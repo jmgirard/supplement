@@ -1,0 +1,20 @@
+Package: supplement
+Title: Supplemental Materials Websites with 'Quarto'
+Version: 0.0.0.9000
+Authors@R:
+    person("Jeffrey M.", "Girard", , "jmgirard@ku.edu", role = c("aut", "cre"),
+           comment = c(ORCID = "0000-0002-7359-3746"))
+Description: Provides a 'Quarto' website template for sharing the
+    supplemental materials of a research paper: analysis reports, code,
+    and open data. Every report renders as a page of one site, and stored
+    computation output lets the site rebuild without the data. The site is
+    served by 'GitHub Pages' and archived on 'Zenodo'.
+License: MIT + file LICENSE
+URL: https://github.com/jmgirard/supplement
+BugReports: https://github.com/jmgirard/supplement/issues
+Suggests:
+    testthat (>= 3.0.0),
+    withr
+Config/testthat/edition: 3
+Encoding: UTF-8
+SystemRequirements: Quarto command-line interface (>= 1.4)

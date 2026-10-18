@@ -1,13 +1,13 @@
 # M003: Package skeleton and starter template
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — other authors start sites from this template
-- **Branch/PR:** —
+- **Branch/PR:** m003-template-starter
 
 ## Goal
 
@@ -45,7 +45,7 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 
 ## Tasks
 
-- [ ] T1: Package skeleton: DESCRIPTION (`supplement`, Authors@R with Jeffrey M. Girard and ORCID 0000-0002-7359-3746, `License: MIT + file LICENSE`, Suggests per D-005, `Config/testthat/edition: 3`), LICENSE, LICENSE.md, NAMESPACE, NEWS.md, and `.Rbuildignore` entries. No exported function yet.
+- [x] T1: Package skeleton: DESCRIPTION (`supplement`, Authors@R with Jeffrey M. Girard and ORCID 0000-0002-7359-3746, `License: MIT + file LICENSE`, Suggests per D-005, `Config/testthat/edition: 3`), LICENSE, LICENSE.md, NAMESPACE, NEWS.md, and `.Rbuildignore` entries. No exported function yet.
 - [ ] T2: Template files in `inst/template/` from the pilot branch: `_quarto.yml` (render list, `freeze: true`, `output-dir: docs`, Analyses menu, `resources: data/*.csv`, the two scripts), `index.qmd` with placeholder text, `analyses/example.qmd` (an R chunk over `../data/example.csv`, with a seeded random draw), `data/example.csv`, `LICENSE.md`, `LICENSE-CC-BY.md`, `_gitignore`.
 - [ ] T3: `_scripts/setup.ts` (pre-render: rename `_gitignore` and `_README.md` when the target is missing, and remove the underscore copy when the target exists) and `_scripts/nojekyll.ts` (post-render: write `.nojekyll` into `QUARTO_PROJECT_OUTPUT_DIR`).
 - [ ] T4: `tests/testthat/test-template.R`: `skip_on_cran()`, skip when quarto is not on PATH, `withr::local_tempdir()`, and checks for AC2 to AC5.
@@ -66,6 +66,7 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - 2026-10-18: freeze level decided as `freeze: true` from the M002 evidence (D-002), absorbing the "freeze level" candidate row. The "site output location" and "extension packaging" rows are absorbed by D-001 and D-003.
 - 2026-10-18: criteria audit (full mode, Opus): flagged stray render output under `inst/` for AC1, the GitHub form of `quarto use template` (cannot test a branch) for AC2, a one-member link domain and body-link matches for AC3, open decisions and a missing behavior check for AC4, `git check-ignore` exit semantics and the first-render gap for AC5, "a section on" as a proxy for AC6, and an instrument-bound promise and one-exemplar probes for AC7. All fixed in the wording above; probes moved to T5.
 - 2026-10-18: AC4's no-code check changed from deleting `data/example.csv` to hiding R, because M004 makes a missing data file stop the render. A frozen render of the pilot clone with `PATH=/usr/bin:/bin` exited 0 with `_freeze/` unchanged, so the new wording can be met.
+- 2026-10-18: T1 done: DESCRIPTION (maintainer email jmgirard@ku.edu, the contact address on the published pilot sites), LICENSE and LICENSE.md (MIT, unchanged legal text), an empty NAMESPACE, NEWS.md, `tests/testthat.R`, and `.Rbuildignore` entries. No R code yet, so `R/` is absent.
 
 ## Decisions
 
