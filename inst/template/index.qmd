@@ -1,0 +1,40 @@
+---
+title: "Supplemental Materials"
+subtitle: "Paper Title Goes Here"
+---
+
+::: {.callout-important}
+## Before your first commit
+
+Run `quarto render` once in this folder. The first render creates the
+`.gitignore` and `README.md` files, and `.gitignore` keeps fitted models
+and other large files out of git. Then delete this box.
+:::
+
+This site hosts the supplemental analysis reports, code, and data for:
+
+> Author, A. A., & Author, B. B. (Year). Title of the paper. *Journal Name*.
+
+## Archived Version
+
+A frozen, citable copy of these materials is archived on Zenodo. Add the
+DOI here after the first GitHub release.
+
+## Analysis Reports
+
+Each report is a rendered Quarto document with its complete code and output.
+The source files (`.qmd`) are in the `analyses/` folder of the repository.
+
+| Report | Description |
+|---|---|
+| [Example Analysis](analyses/example.qmd) | A short example report. Replace it with your own. |
+
+## Data Availability
+
+| File | Contents |
+|---|---|
+| [`example.csv`](data/example.csv) | Example data for the example report |
+
+## Contact
+
+Your Name, Your Institution. Your email address.

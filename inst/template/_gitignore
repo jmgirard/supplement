@@ -1,0 +1,20 @@
+# R and Quarto
+.Rproj.user/
+.Rhistory
+.RData
+.quarto/
+*_cache/
+**/*.quarto_ipynb
+
+# Fitted models and other saved R objects can embed the data
+*.rds
+analyses/fits/
+
+# Files that reports write next to their sources
+analyses/*.html
+analyses/*_files/
+analyses/*.pdf
+analyses/*.png
+
+# Private data. Keep it outside this folder, or put it here.
+private/
