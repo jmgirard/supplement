@@ -105,35 +105,35 @@ Evidence run at d5a8b78: `devtools::test()` 1134 expectations, 0 failed, 0 skipp
 - AC7: README.md lines 63–85 ("Add reports and data") describe both functions; man/add_report.Rd and man/add_data.Rd examples, extracted with `tools::Rd2ex()`, use `tempdir()` and ran clean; NEWS.md has entries for the home page listing and for both functions. Pass.
 - Gate: `cairn_validate.py` exit 0, all checks pass; no principle changed, so `cairn_impact` not run; `devtools::document()` gives no diff; no README.Rmd and no `_pkgdown.yml`; NEWS.md has the entries; no new top-level files; `devtools::check()` 0 errors, 0 warnings, 0 notes. Pass.
 - spawned: diff-bug, blame-history, prior-review
-- diff-bug #1: on a case-insensitive disk, `add_data(".../data/Scores.csv")` for a listed `data/scores.csv` lists `data/Scores.csv` too, which is not on disk — fix now
-- diff-bug #2: an invalid UTF-8 description is written as `"NA"` with no error (title gives a wrong error) — fix now (return floor: load-bearing defect)
-- diff-bug #3: a `>` or `|` block-scalar description at the end of `_supplement.yml` gives a false `supplement_error_yaml`, because the re-read joins lines with no final line break — fix now
-- diff-bug #4: U+FFFE and U+FFFF are not escaped; through add_report()'s description they make `quarto render` fail — fix now
-- diff-bug #5: a UTF-16 file (NUL bytes) gives a plain R error, not `supplement_error_encoding` — fix now
-- diff-bug #6: the add_data() file-name rule accepts a name ending in `\n`, because PCRE `$` matches before a final line break — fix now (return floor: AC5 fails)
-- diff-bug #7: a file with mixed LF and CRLF endings is split wrongly, so a present menu or list reads as missing — fix now
+- diff-bug #1: on a case-insensitive disk, `add_data(".../data/Scores.csv")` for a listed `data/scores.csv` lists `data/Scores.csv` too, which is not on disk — fix now, fixed 8d00fad
+- diff-bug #2: an invalid UTF-8 description is written as `"NA"` with no error (title gives a wrong error) — fix now (return floor: load-bearing defect), fixed 8d00fad
+- diff-bug #3: a `>` or `|` block-scalar description at the end of `_supplement.yml` gives a false `supplement_error_yaml`, because the re-read joins lines with no final line break — fix now, fixed 8d00fad
+- diff-bug #4: U+FFFE and U+FFFF are not escaped; through add_report()'s description they make `quarto render` fail — fix now, fixed 8d00fad
+- diff-bug #5: a UTF-16 file (NUL bytes) gives a plain R error, not `supplement_error_encoding` — fix now, fixed 8d00fad
+- diff-bug #6: the add_data() file-name rule accepts a name ending in `\n`, because PCRE `$` matches before a final line break — fix now (return floor: AC5 fails), fixed 8d00fad
+- diff-bug #7: a file with mixed LF and CRLF endings is split wrongly, so a present menu or list reads as missing — fix now, fixed 8d00fad
 - diff-bug #8: `#` lines inside a block scalar, and `|+` trailing blank lines, count as comments, so the insert point is wrong and the re-read refuses valid YAML — follow-up (candidate row "YAML insert edge shapes")
-- diff-bug #9: a title of only NBSP or U+3000 passes, though the help page says white space — fix now
-- diff-bug #10: a write that fails after the file is opened leaves `_quarto.yml` or `_supplement.yml` cut short — fix now
-- diff-bug #11: on a case-sensitive disk, `add_report("Example")` makes `Example.qmd` beside `example.qmd` — fix now; a menu that already lists `analyses/<name>.qmd` with the file gone gets a second item — follow-up (candidate row "YAML insert edge shapes")
-- diff-bug #12: a `data/<base name>` link to a file outside the site counts as already in `data/` — fix now
+- diff-bug #9: a title of only NBSP or U+3000 passes, though the help page says white space — fix now, fixed 8d00fad
+- diff-bug #10: a write that fails after the file is opened leaves `_quarto.yml` or `_supplement.yml` cut short — fix now, fixed 8d00fad (for errors; the disk-full warning path was fixed in f603729 under pass-2 diff-bug #1)
+- diff-bug #11: on a case-sensitive disk, `add_report("Example")` makes `Example.qmd` beside `example.qmd` — fix now, fixed 8d00fad; a menu that already lists `analyses/<name>.qmd` with the file gone gets a second item — follow-up (candidate row "YAML insert edge shapes")
+- diff-bug #12: a `data/<base name>` link to a file outside the site counts as already in `data/` — fix now, fixed 8d00fad
 - diff-bug #13: the site's own files, such as `_supplement.yml`, pass the file-name rule — reject (planned change: AC5 states the rule, and the file is the user's choice)
-- diff-bug #14: `yaml_append_lines()` writes a stray `: ` line for a one-key item; no caller passes one — fix now
-- diff-bug #15: for an item written as `-` alone, the key offset is read from the next line, not the next content line — fix now
-- diff-bug #16: no test fires `supplement_error_encoding`, `supplement_error_yaml`, or `supplement_error_write` through the functions, or the R-error cleanup path — fix now
-- diff-bug #17: the navbar check matches the link anywhere in the header, and the add_report() shapes test does not check where the lines went — fix now
-- diff-bug #18: check-before-copy is shown only by folder state, which a copy-then-clean-up version also passes — fix now
-- diff-bug #19: test-add-report.R uses `|>`, which needs R 4.1, with no R floor in DESCRIPTION — fix now
-- diff-bug #20: cairn/DESIGN.md lists add_report() and add_data() as planned, and Architecture does not name the new files — fix now
+- diff-bug #14: `yaml_append_lines()` writes a stray `: ` line for a one-key item; no caller passes one — fix now, fixed 8d00fad
+- diff-bug #15: for an item written as `-` alone, the key offset is read from the next line, not the next content line — fix now, fixed 8d00fad
+- diff-bug #16: no test fires `supplement_error_encoding`, `supplement_error_yaml`, or `supplement_error_write` through the functions, or the R-error cleanup path — fix now, fixed 8d00fad
+- diff-bug #17: the navbar check matches the link anywhere in the header, and the add_report() shapes test does not check where the lines went — fix now, fixed 8d00fad
+- diff-bug #18: check-before-copy is shown only by folder state, which a copy-then-clean-up version also passes — fix now, fixed 8d00fad (one half of that test was made able to fail in f603729, pass-2 diff-bug #3)
+- diff-bug #19: test-add-report.R uses `|>`, which needs R 4.1, with no R floor in DESCRIPTION — fix now, fixed 8d00fad
+- diff-bug #20: cairn/DESIGN.md lists add_report() and add_data() as planned, and Architecture does not name the new files — fix now, fixed 8d00fad
 - diff-bug #21: Quarto reads every `yaml_quote()` escape the same as R's yaml package — reject (false: no defect; `\slash` rendering as `back` is the Markdown reading that AC6 leaves out)
-- blame-history #1: add_data() accepts `.rds`, `.rda`, `.RData`, `.qs`, `.qs2`, which the template's `.gitignore` blocks, so the site's link breaks in a clone and D-008 stops its render — fix now
-- blame-history #2: a stale `_freeze/analyses/<name>/` from a deleted report would be reused for the new stub under `freeze: true` — fix now
-- blame-history #3: a bare base name `_x_` passes the file-name rule but reads as emphasis — follow-up (candidate row "YAML insert edge shapes")
-- blame-history #4: DESIGN.md still says planned — fix now (same as diff-bug #20)
-- blame-history #5: the text-insert choice has no D-entry — fix now
-- blame-history #6: mixed CRLF and LF endings — fix now (same as diff-bug #7)
-- prior-review #1: a `data` link to a folder outside the site passes, and add_data() copies through it (regresses the M006 review lesson) — fix now (return floor: load-bearing defect)
-- prior-review #2: an `analyses` link to a folder outside the site passes, and add_report() writes through it — fix now (return floor: load-bearing defect)
+- blame-history #1: add_data() accepts `.rds`, `.rda`, `.RData`, `.qs`, `.qs2`, which the template's `.gitignore` blocks, so the site's link breaks in a clone and D-008 stops its render — fix now, fixed 8d00fad
+- blame-history #2: a stale `_freeze/analyses/<name>/` from a deleted report would be reused for the new stub under `freeze: true` — fix now, fixed 8d00fad
+- blame-history #3: a bare base name `_x_` passes the file-name rule but reads as emphasis — follow-up (candidate row "YAML insert edge shapes"); later fixed in 5ea5ec9 by the claim audit, and removed from that row
+- blame-history #4: DESIGN.md still says planned — fix now (same as diff-bug #20), fixed 8d00fad
+- blame-history #5: the text-insert choice has no D-entry — fix now, fixed 8d00fad (D-010)
+- blame-history #6: mixed CRLF and LF endings — fix now (same as diff-bug #7), fixed 8d00fad
+- prior-review #1: a `data` link to a folder outside the site passes, and add_data() copies through it (regresses the M006 review lesson) — fix now (return floor: load-bearing defect), fixed 8d00fad
+- prior-review #2: an `analyses` link to a folder outside the site passes, and add_report() writes through it — fix now (return floor: load-bearing defect), fixed 8d00fad
 - prior-review #3: the report-name rule accepts `--` and `__` — reject (planned change: AC5 states the name rule)
 - prior-review #4: the docs suggest rendering a new report, which needs its data — reject (planned change: a new report has no stored output, and the guide says to render on the data machine)
 
@@ -148,20 +148,21 @@ Pass 2 (after review return 1), evidence run at 7bf19c8: `devtools::test()` 1267
 - AC7 (pass 2): README and NEWS unchanged in substance; both help examples, extracted with `tools::Rd2ex()`, ran clean again at 7bf19c8. Pass.
 - Gate (pass 2): `cairn_validate.py` all checks pass; no principle changed (DESIGN.md changed only Function Families and Architecture), so `cairn_impact` not run; `devtools::document()` gives no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes. Pass.
 - spawned: diff-bug, blame-history, prior-review
-- diff-bug #1 (pass 2): a disk-full write gives only a warning, so the old bytes are not restored, the file is left cut short, and the function reports success; the restore test mocks an error, not this path — fix now
-- diff-bug #2 (pass 2): a valid UTF-8 value marked "bytes" stops as `supplement_error_yaml`, because the re-read compares it with a UTF-8 string — fix now
-- diff-bug #3 (pass 2): the already-listed half of the check-before-copy test takes the no-copy route, so it cannot fail — fix now
-- diff-bug #4 (pass 2): the add_data() shapes test does not check where the item went — fix now
-- diff-bug #5 (pass 2): `*.knit.md`, `*.utf8.md`, `*.rmarkdown`, and `*.quarto_ipynb`, which the template's `.gitignore` also blocks, pass add_data() — fix now
-- diff-bug #6 (pass 2): a missing `title` or `description` gives base R's missing-argument error, not `supplement_error_argument` — fix now
+- diff-bug #1 (pass 2): a disk-full write gives only a warning, so the old bytes are not restored, the file is left cut short, and the function reports success; the restore test mocks an error, not this path — fix now, fixed f603729 (a run on a full 2 MB disk image then stopped with `supplement_error_write` and kept all 4090 bytes)
+- diff-bug #2 (pass 2): a valid UTF-8 value marked "bytes" stops as `supplement_error_yaml`, because the re-read compares it with a UTF-8 string — fix now, fixed f603729
+- diff-bug #3 (pass 2): the already-listed half of the check-before-copy test takes the no-copy route, so it cannot fail — fix now, fixed f603729
+- diff-bug #4 (pass 2): the add_data() shapes test does not check where the item went — fix now, fixed f603729
+- diff-bug #5 (pass 2): `*.knit.md`, `*.utf8.md`, `*.rmarkdown`, and `*.quarto_ipynb`, which the template's `.gitignore` also blocks, pass add_data() — fix now, fixed f603729
+- diff-bug #6 (pass 2): a missing `title` or `description` gives base R's missing-argument error, not `supplement_error_argument` — fix now, fixed f603729
 - diff-bug #7 (pass 2): Windows-reserved report names such as `con`, and base names ending in `.`, pass — follow-up (candidate row "Windows-safe names")
 - diff-bug #8 (pass 2): a block-scalar value at the very end of a file with no final line break gains a trailing `\n` after the insert, which the re-read cannot see — follow-up (candidate row "YAML insert edge shapes")
-- blame-history #1 (pass 2): the same gitignored names as diff-bug #5 — fix now (same fix)
-- blame-history #2 (pass 2): the re-read compares only the list, while D-010 says the result must be the old file with the change — fix now
+- blame-history #1 (pass 2): the same gitignored names as diff-bug #5 — fix now (same fix), fixed f603729
+- blame-history #2 (pass 2): the re-read compares only the list, while D-010 says the result must be the old file with the change — fix now, fixed f603729
 - blame-history #3 (pass 2): a new stub has no stored output, so a rebuild without R fails on it until the author renders it — reject (planned change: the help, the message, and the guide say to render a new report by name)
-- blame-history #4 (pass 2): DESIGN.md Function Families carries status markers, though the file says status lives in ROADMAP.md — fix now
+- blame-history #4 (pass 2): DESIGN.md Function Families carries status markers, though the file says status lives in ROADMAP.md — fix now, fixed f603729
 - blame-history #5 (pass 2): a second menu item for a listed report whose file is gone, and the block-scalar shapes — follow-up (already in "YAML insert edge shapes")
 - prior-review #1 (pass 2): the report-name rule accepts `--` and `__`, which Quarto might read as Markdown — reject (false: a render of `a--b` and `c__d__e` gave navbar and listing links `./analyses/a--b.html` and `./analyses/c__d__e.html`, and both pages exist)
 - prior-review #2 (pass 2): `is_link()` misses Windows junctions, so a junction `data/` or `analyses/` passes — follow-up (candidate row "Windows-safe names", which points to "Windows check")
-- prior-review #3 (pass 2): `add_data("scores.csv/")` says the file does not exist or is a folder — fix now
+- prior-review #3 (pass 2): `add_data("scores.csv/")` says the file does not exist or is a folder — fix now, fixed f603729
+- Pass 2 fix-now check at f603729: `devtools::test()` 1298 expectations, 0 failed, 1 test skipped (the case-sensitive disk test); `cairn_validate.py` all checks pass; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - prior-review #4 (pass 2): Quarto might rewrite a path-like report description in the listing — reject (false: a render showed the descriptions `data`, `../data`, and `example.qmd` as written)
