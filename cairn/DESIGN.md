@@ -71,9 +71,9 @@ jmgirard/supplement/inst/template`.
 - `_supplement.yml`: the `supplement:` map (title, citation, authors,
   licenses, Zenodo DOIs, data files), loaded through `metadata-files`.
 - `_extensions/supplement/supplement.lua`: shortcodes `supplement-doi`,
-  `supplement-download`, and `supplement-data-table`. Quarto rewrites an
-  existing metadata path to be page-relative, so the data table converts
-  it back to project-relative before it reads the file size.
+  `supplement-download`, and `supplement-data-table`. Quarto rewrites any
+  metadata value that names an existing path to be page-relative, so the
+  data table undoes that for each file and description.
 - `index.qmd` reads its paper facts from `_supplement.yml`.
   `analyses/example.qmd`, `data/example.csv`, and license files are starter
   content for the author to replace.

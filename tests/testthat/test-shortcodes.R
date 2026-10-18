@@ -107,6 +107,24 @@ test_that("the data table lists each file with its size and a page-relative link
   }
 })
 
+test_that("a description that names a folder is shown as written on a subfolder page", {
+  skip_if_no_quarto()
+
+  # Quarto rewrites a metadata value that names an existing path, so on a
+  # page in analyses/ the description "data" would arrive as "../data".
+  dir <- shortcode_site(
+    c("data:", '  - file: "data/example.csv"', '    description: "data"'),
+    list("analyses/page.qmd" = "{{< supplement-data-table >}}")
+  )
+  dir.create(file.path(dir, "data"))
+  file.copy(file.path(template_dir(), "data", "example.csv"), file.path(dir, "data"))
+
+  expect_equal(run_split(dir, "quarto", "render")$status, 0L)
+  rows <- data_table_rows(read_text(file.path(dir, "docs", "analyses", "page.html")))
+  expect_length(rows, 1)
+  expect_equal(rows[[1]][2], "data")
+})
+
 test_that("a missing data file stops the render and names the file", {
   skip_if_no_quarto()
 

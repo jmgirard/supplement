@@ -21,15 +21,21 @@ Website: https://OWNER.github.io/REPO/
 key: the paper title, the citation, a preprint link, a contact line, the
 licenses, the authors, the Zenodo DOIs and archive link, and the data
 files. `_quarto.yml` loads the file with `metadata-files`, so every page can
-read its values. Change these facts in `_supplement.yml`, not in
-`index.qmd`. Values are Markdown, so `*Journal Name*` shows in italics.
+read its values. The home page shows the title, the citation, the
+contact, the Zenodo values, and the data files. Change them in
+`_supplement.yml`, not in `index.qmd`. No page shows the preprint,
+license, or author values yet. The license names in the page footer are
+set in `_quarto.yml`. Values are Markdown, so `*Journal Name*` shows in
+italics.
 
 The home page shows the values with these shortcodes:
 
 - `{{< meta supplement.paper-title >}}` and
   `{{< meta supplement.citation >}}` show the paper title and the citation.
-  The same form shows any other value, for example
-  `{{< meta supplement.contact >}}`.
+  The same form shows any other single value, for example
+  `{{< meta supplement.contact >}}` or
+  `{{< meta supplement.license.code >}}`. It does not show the `authors`
+  list or the `license` group as a whole.
 - `{{< supplement-doi >}}` shows a Zenodo DOI badge that links to
   `https://doi.org/` and the DOI. It uses `zenodo.version-doi`. When that
   value is empty, it uses `zenodo.concept-doi`. When both are empty, it
@@ -42,7 +48,8 @@ The home page shows the values with these shortcodes:
   each `file` relative to this folder, for example `data/example.csv`. The
   table works on any page, and its links are relative to that page.
 
-Zenodo gives the DOIs after the first GitHub release. The version DOI names
+If you turn on Zenodo's GitHub integration for this repository, Zenodo
+gives the DOIs after the next GitHub release. The version DOI names
 one release, and the concept DOI names every release. Add them and the
 archive link to `_supplement.yml`, then render the site again.
 

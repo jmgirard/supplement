@@ -70,20 +70,24 @@ local function cell(content)
   return { pandoc.Plain(content) }
 end
 
+local function exists(path)
+  return os.rename(path, path) ~= nil
+end
+
 -- Paths in _supplement.yml are relative to the project folder. Quarto
--- rewrites a metadata path that exists so that it is relative to the page
--- (`data/x.csv` reaches a page in `analyses/` as `../data/x.csv`), and it
--- leaves a missing path as written. This returns the path relative to the
--- project folder in both cases.
-local function project_path(file, offset)
+-- rewrites every metadata value that names an existing file or folder so
+-- that it is relative to the page (`data/x.csv` reaches a page in
+-- `analyses/` as `../data/x.csv`, and so does a description "data"), and
+-- it leaves other values as written. This undoes that rewrite.
+local function as_written(text, offset)
   local prefix = offset .. "/"
-  if offset ~= "." and file:sub(1, #prefix) == prefix then
+  if offset ~= "." and text:sub(1, #prefix) == prefix then
     local page_dir = pandoc.path.directory(quarto.doc.input_file)
-    if file_size(pandoc.path.join({ page_dir, file })) ~= nil then
-      return file:sub(#prefix + 1)
+    if exists(pandoc.path.join({ page_dir, text })) then
+      return text:sub(#prefix + 1)
     end
   end
-  return file
+  return text
 end
 
 -- One row per entry under `supplement.data`, with each link written
@@ -100,7 +104,7 @@ local function data_table(args, kwargs, meta)
 
   local rows = {}
   for _, entry in ipairs(entries) do
-    local file = project_path(pandoc.utils.stringify(entry["file"] or ""), offset)
+    local file = as_written(pandoc.utils.stringify(entry["file"] or ""), offset)
     local size = file ~= "" and file_size(pandoc.path.join({ root, file })) or nil
     if size == nil then
       error("supplement-data-table: data file not found: '" .. file .. "' (listed under supplement.data in _supplement.yml)")
@@ -111,8 +115,10 @@ local function data_table(args, kwargs, meta)
       href, "", pandoc.Attr("", {}, { { "download", "" } })
     )
     local description = entry["description"] or ""
-    if type(description) == "string" then
-      description = pandoc.Inlines(description)
+    local text = pandoc.utils.stringify(description)
+    local written = as_written(text, offset)
+    if type(description) == "string" or written ~= text then
+      description = pandoc.Inlines(written)
     end
     table.insert(rows, { cell({ link }), cell(description), cell(format_size(size)) })
   end

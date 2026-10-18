@@ -40,7 +40,7 @@ how to publish.
 
 Put the paper title, citation, Zenodo DOIs, and data files in
 `_supplement.yml`. The home page reads them from that file. The guide
-describes each value and the shortcodes that show them.
+lists the values and describes the shortcodes that show them.
 
 ## License
 

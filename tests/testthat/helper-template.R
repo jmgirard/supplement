@@ -86,8 +86,9 @@ run_split <- function(dir, command, args) {
 }
 
 # A small website with the template's supplement extension and no R code.
-# `supplement` holds the lines under the `supplement:` key, indented as in
-# _supplement.yml. `pages` maps file names to page bodies.
+# `supplement` holds the lines that go under the `supplement:` key, without
+# their two-space indent, which this function adds. `pages` maps file names
+# to page bodies.
 shortcode_site <- function(supplement, pages, env = parent.frame()) {
   dir <- withr::local_tempdir("shortcodes-", .local_envir = env)
   dir.create(file.path(dir, "_extensions"))
