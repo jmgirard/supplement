@@ -29,11 +29,9 @@ Zenodo API, Python helper functions, and migration of existing sites.
 
 ## Function Families
 
-None built yet. Three families are planned:
-
-- scaffolding: `create_supplement()`, `add_report()`, `add_data()`
-- metadata writers: `write_citation()`, `write_zenodo()`
-- release steps: `check_supplement()`, `release_supplement()`
+- metadata writers (built): `write_citation()`, `write_zenodo()`
+- scaffolding (planned): `create_supplement()`, `add_report()`, `add_data()`
+- release steps (planned): `check_supplement()`, `release_supplement()`
 
 Status and order live in `ROADMAP.md`.
 
@@ -56,7 +54,15 @@ None elicited yet. Run `/design-interview` to add them.
 
 ## Architecture
 
-The package has no R code yet. It ships a Quarto website template in
+R code: `R/supplement-yml.R` reads `<path>/_supplement.yml` and checks
+it, with classed cli errors (`supplement_error` plus one subclass per
+case). `write_citation()` writes `CITATION.cff` (CFF 1.2.0) and
+`write_zenodo()` writes `.zenodo.json` from that map. Both leave out
+empty values and refuse to replace an existing file unless
+`overwrite = TRUE`.
+Imports: cli, jsonlite, yaml (D-009).
+
+The package ships a Quarto website template in
 `inst/template/` (D-003), installed with `quarto use template
 jmgirard/supplement/inst/template`.
 
@@ -80,6 +86,7 @@ jmgirard/supplement/inst/template`.
 
 Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when quarto is missing.
+The metadata writer tests need no Quarto.
 
 ## Known issues
 

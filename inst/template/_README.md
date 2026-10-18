@@ -67,6 +67,27 @@ those symbols in a row.
 The shortcodes come from the extension in `_extensions/supplement/`. Commit
 that folder with the rest of the site.
 
+## Citation files
+
+The supplement R package writes two files from `_supplement.yml`. Run
+these in R from this folder:
+
+```r
+supplement::write_citation()
+supplement::write_zenodo()
+```
+
+`write_citation()` writes `CITATION.cff`, which GitHub reads to show a
+citation for the repository. `write_zenodo()` writes `.zenodo.json`. When
+Zenodo archives a GitHub release, it reads that file. Both files take the
+title and the authors from `_supplement.yml`. `CITATION.cff` also takes
+both licenses and the concept DOI. If the concept DOI is empty, it takes
+the version DOI. `.zenodo.json` also takes the citation. Its
+`license` field holds one license, so it gets the content license. Give
+each author a `family` name and `given` names. When a file exists, the
+functions stop. To write it again after you change `_supplement.yml`, use
+`overwrite = TRUE`. Commit both files.
+
 ## How the site renders
 
 The site uses Quarto's freeze option (`execute: freeze: true`). A full
