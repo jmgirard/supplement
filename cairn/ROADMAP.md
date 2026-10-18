@@ -1,21 +1,20 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-18 (M007 done and archived, M004 row pruned, scaffolding row graduated, two M007 follow-up rows added)_
+_Last hygiene check: 2026-10-18 (M008 done and archived, M005 row pruned, release checks row narrowed to M009, five M008 review rows added)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M008 | check_supplement() lists release problems | review | — | high | milestones/M008-check-supplement.md |
 | M009 | release_supplement() raises the version and prints release commands | planned | M008 | high | milestones/M009-release-supplement.md |
+| M008 | check_supplement() lists release problems | done | — | high | milestones/archive/M008-check-supplement.md |
 | M007 | add_report() and add_data() list new site files | done | M006 | high | milestones/archive/M007-add-report-data.md |
 | M006 | create_supplement() makes a site from the template | done | — | high | milestones/archive/M006-create-supplement.md |
-| M005 | Metadata writers for CITATION.cff and .zenodo.json | done | — | high | milestones/archive/M005-metadata-writers.md |
 
 ## Candidates
 
-- release checks: `check_supplement()` finds files over 100 MB, tracked `.rds` files, reports with no freeze output, broken links, and mismatched DOIs. `release_supplement()` bumps the version and prints the tag and release commands. — added 2026-10-18 — started M008
+- release checks: `release_supplement()` bumps the version and prints the tag and release commands. Narrowed 2026-10-18: `check_supplement()` shipped in M008. — added 2026-10-18 — started M009
 - template install from GitHub: recommend a pinned tag (`@vX.Y.Z`) in the README once a release exists. Narrowed 2026-10-18: the untagged route ran after the M003 merge and rendered. From the M003 review. — added 2026-10-18
 - Windows check: run the template tests and a render on Windows (CI or by hand), including the no-R test, which skips there, and `nojekyll.ts` with a `C:\` output path. From the M003 review. Also from the M004 review: data files of 2 GiB or more may read as missing (32-bit `ftell` in Windows Lua), and the 1 GB sparse size fixture may cost 1 GB of disk off macOS when Quarto copies it into `docs/`. Also from the M006 review: `create_supplement()` path handling on Windows (a broken link or junction at a template path, where `Sys.readlink()` returns `""`, and trailing separators). — added 2026-10-18
 - license footer: the template footer in `_quarto.yml` names MIT and CC BY 4.0, while `_supplement.yml` holds `license.code` and `license.content`, which no page reads (`write_citation()` and `write_zenodo()` do, so a mismatch also reaches the citation files); drive the footer from `_supplement.yml` so the two cannot differ. From the M004 review; widened in the M005 review. — added 2026-10-18
