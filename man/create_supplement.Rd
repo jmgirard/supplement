@@ -34,12 +34,12 @@ where the template needs a folder, it stops before it writes anything.
 The template ships \verb{_gitignore} and \verb{_README.md} under those names. The
 first \verb{quarto render} gives them their real names, and that render adds
 the template's rules to an existing \code{.gitignore}. If \code{README.md} exists,
-the render writes the guide to \code{SUPPLEMENT.md} instead. Render the site
-once before your first commit.
+the render writes the guide to \code{SUPPLEMENT.md} instead. If both exist,
+it writes no guide. Render the site once before your first commit.
 
-Hidden files in the template folder, and the \code{docs}, \verb{_freeze}, and
-\verb{_site} folders that a render of the template folder itself would make,
-are not copied.
+Hidden files and folders in the template folder are not copied, and
+neither are \code{docs}, \verb{_freeze}, or \verb{_site} folders at its top level,
+which hold render output.
 }
 \section{Errors}{
 

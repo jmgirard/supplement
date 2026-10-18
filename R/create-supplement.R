@@ -13,12 +13,12 @@
 #' The template ships `_gitignore` and `_README.md` under those names. The
 #' first `quarto render` gives them their real names, and that render adds
 #' the template's rules to an existing `.gitignore`. If `README.md` exists,
-#' the render writes the guide to `SUPPLEMENT.md` instead. Render the site
-#' once before your first commit.
+#' the render writes the guide to `SUPPLEMENT.md` instead. If both exist,
+#' it writes no guide. Render the site once before your first commit.
 #'
-#' Hidden files in the template folder, and the `docs`, `_freeze`, and
-#' `_site` folders that a render of the template folder itself would make,
-#' are not copied.
+#' Hidden files and folders in the template folder are not copied, and
+#' neither are `docs`, `_freeze`, or `_site` folders at its top level,
+#' which hold render output.
 #'
 #' @param path The folder for the site. It is made if it does not exist.
 #' @param repo The GitHub repository of the site, as `"owner/name"`, or
@@ -64,8 +64,8 @@ create_supplement <- function(path, repo = NULL) {
   check_repo(repo)
   given <- path
   # file.exists("file/") is FALSE on some systems, so drop the separators
-  # at the end (but keep a root such as "/").
-  path <- sub("(.)[/\\\\]+$", "\\1", path)
+  # at the end. A root such as "/" or "C:/" keeps its separator.
+  path <- sub("^(.*[^/\\\\:])[/\\\\]+$", "\\1", path)
   if (path_occupied(path) && !dir.exists(path)) {
     cli::cli_abort(
       "{.path {path}} is a file or a broken link, so the site cannot be made there.",

@@ -1,6 +1,6 @@
 # M006: create_supplement() makes a site from the template
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -76,6 +76,8 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 - 2026-10-18: review return 1: AC3 fails for `create_supplement("f/")` with `f` an existing file (`supplement_error_write`, not `supplement_error_not_folder`; diff-bug #2). The same return carries the pass-1 fix-now findings listed in the Review section.
 - 2026-10-18: implement: status in-progress; T5 added for review return 1 (minor amendment), Coverage AC3 now maps to T5 too.
 - 2026-10-18: T5 done: trailing separators are dropped before the checks, and a broken link at `path` is `supplement_error_not_folder`; copies use `copy.mode = FALSE`; `fill_repo()` errors become `supplement_error_write`; hidden files and `docs`, `_freeze`, `_site` are not copied, and `.Rbuildignore` keeps them out of the build; the owner must be letters and digits with single hyphens and the name must not be `.` or `..`; `path_occupied()` is shared with `check_overwrite()`; help wording and a README install line fixed; tests added for each, including a hard-written template file list and a render in a folder that holds `README.md` and `.gitignore`. Four planted defects (no slash strip, file mode kept, the old `repo` pattern, no copy filter) each failed tests. Full suite 674 passed; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: claim audit: 32 claims read, 3 corrected — R/create-supplement.R (`_site` is not render output of this template, the no-guide case when `SUPPLEMENT.md` also exists, and "C:/" lost its separator); the slash rule now keeps a separator after `:` or at a root.
+- 2026-10-18: implement complete after return 1: T1-T5 checked, verify clean (138 create_supplement expectations); status review.
 
 ## Decisions
 
