@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M003 done and archived, three decision rows gra
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M004 | Home page from _supplement.yml with shortcodes | planned | M003 | high | milestones/M004-home-page-shortcodes.md |
+| M004 | Home page from _supplement.yml with shortcodes | in-progress | M003 | high | milestones/M004-home-page-shortcodes.md |
 | M003 | Package skeleton and starter template | done | — | high | milestones/archive/M003-template-starter.md |
 | M002 | Pilot render on the data machine and data-free rebuild | done | M001 | high | milestones/archive/M002-pilot-render-check.md |
 | M001 | Pilot site restructure to the freeze layout | done | — | high | milestones/archive/M001-pilot-restructure.md |

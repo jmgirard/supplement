@@ -1,13 +1,13 @@
 # M004: Home page from _supplement.yml with shortcodes
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** M003
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template's home page and its shortcodes are what authors edit and readers see
-- **Branch/PR:** —
+- **Branch/PR:** m004-home-page-shortcodes
 
 ## Goal
 
@@ -44,7 +44,7 @@ Drive the template's home page from one `_supplement.yml` file through a Quarto 
 
 ## Tasks
 
-- [ ] T1: Write `inst/template/_supplement.yml` with the AC1 keys and empty DOI and archive values. Add `metadata-files` to `_quarto.yml`. Rewrite `index.qmd` to read the paper title and citation with `{{< meta >}}` and to use the three shortcodes.
+- [x] T1: Write `inst/template/_supplement.yml` with the AC1 keys and empty DOI and archive values. Add `metadata-files` to `_quarto.yml`. Rewrite `index.qmd` to read the paper title and citation with `{{< meta >}}` and to use the three shortcodes.
 - [ ] T2: Extension skeleton `_extensions/supplement/_extension.yml` and Lua shortcodes `supplement-doi` (version DOI, then concept DOI, then nothing) and `supplement-download`.
 - [ ] T3: `supplement-data-table`: read each file's size from the project root (`quarto.project.directory`), format it by the AC4 rule, write links relative to the page, and call `error()` with the file name when a file is missing.
 - [ ] T4: Tests: a fixture project in a temp folder covering AC2 to AC6, with the size fixtures outside the `resources` glob, and a sparse file for the 1000000000-byte case.
@@ -60,6 +60,8 @@ Drive the template's home page from one `_supplement.yml` file through a Quarto 
 - 2026-10-18: plan gate chose the DOI badge fallback (version DOI, then concept DOI, then nothing) over a version-DOI-only badge because Zenodo mints the version DOI after the release, so a new site has none; falsified by authors who need a badge before the first release.
 - 2026-10-18: plan gate chose a hard error on a missing data file over a marked row because a build without its data must never be published (pilot-port P8); falsified by a site whose data files are fetched after the render.
 - 2026-10-18: criteria audit (full mode, Opus): flagged missing authors and license keys against the DESIGN single-source convention (AC1), escaping and placeholder text (AC2), an empty DOI before the first release (AC3, AC6), an underspecified size rule and page-relative links (AC4), a conflict with M003's data-deletion check (AC5), and no probes (AC7). All fixed in the wording above; M003 AC4 now hides R instead of deleting data; probes in T5.
+- 2026-10-18: implement started on branch m004-home-page-shortcodes, cut from main at 7fb2527.
+- 2026-10-18: T1 done: `_supplement.yml` (licenses as SPDX ids `MIT` and `CC-BY-4.0`, two placeholder authors), `metadata-files` in `_quarto.yml`, `index.qmd` reads the title (as `subtitle`), citation, and contact with `{{< meta >}}`; a scratch render showed the meta values and the not-yet-defined shortcodes as raw text; tests 48 pass.
 
 ## Decisions
 
