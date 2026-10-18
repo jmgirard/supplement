@@ -1,6 +1,6 @@
 # M003: Package skeleton and starter template
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -74,6 +74,8 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - 2026-10-18: T6 done: `_README.md` (written during T4) states each AC6 fact, and `index.qmd` carries the first-render callout from T2.
 - 2026-10-18: T7 done: repository README.md with the `quarto use template` route. NEWS.md heading changed to `# supplement 0.0.0.9000`, because R could not read "(development version)" as a version. `devtools::check()`: 0 errors, 0 warnings, 0 notes.
 - 2026-10-18: minor amendment to T3: `setup.ts` now appends the template's missing `.gitignore` lines to an existing `.gitignore` instead of discarding them. The claim audit showed that Quarto writes its own `.gitignore` before pre-render in a git repository, so `git init` before the first render left `*.rds` unignored. New tests: rules added to an existing `.gitignore`, `git init` before the first render, an existing README.md kept. The `git init` test fails on the old script (checked in a scratch copy). Tests 27 passed, check 0/0/0.
+- 2026-10-18: claim audit: 30 claims read, 5 corrected — README.md, DESCRIPTION, inst/template/index.qmd, inst/template/_README.md, inst/template/LICENSE-CC-BY.md, inst/template/_scripts/setup.ts. The re-read of the 7 corrected or unverifiable claims found 0 wrong.
+- 2026-10-18: all tasks done; status set to review.
 
 ## Decisions
 
