@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (scaffold created from the scope draft)_
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M001 | Pilot site restructure to the freeze layout | planned | — | high | milestones/M001-pilot-restructure.md |
+| M001 | Pilot site restructure to the freeze layout | in-progress | — | high | milestones/M001-pilot-restructure.md |
 | M002 | Pilot render on the data machine and data-free rebuild | planned | M001 | high | milestones/M002-pilot-render-check.md |
 
 ## Candidates
