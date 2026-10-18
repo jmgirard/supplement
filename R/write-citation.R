@@ -7,6 +7,7 @@
 #' The file holds:
 #'
 #' * `title`: "Supplemental materials for: " and `paper-title`.
+#' * `version`: `version`, the version of the site, such as `"1.0.0"`.
 #' * `authors`: each author's `family` and `given` names, ORCID iD, and
 #'   affiliation, in the order of `_supplement.yml`.
 #' * `doi`: `zenodo.concept-doi`, which names every release. When it is
@@ -46,6 +47,9 @@
 #' * `supplement_error_doi`: for [write_citation()], `zenodo.concept-doi`
 #'   or `zenodo.version-doi`, with its prefix removed, is not `10.`, four
 #'   to nine digits, `/`, and a suffix with no spaces.
+#' * `supplement_error_version`: `version` is not empty and is not three
+#'   whole numbers joined by `.`, each `0` or without a leading zero, such
+#'   as `1.0.0` or `0.10.2`.
 #' * `supplement_error_authors`: `authors` is missing, empty, or not a list
 #'   of authors.
 #' * `supplement_error_author_name`: an author has no `family` or no
@@ -83,6 +87,10 @@ write_citation <- function(path = ".", overwrite = FALSE) {
     bare_doi(value(zenodo[[key]], field), field)
   })
   doi <- dois[[1]] %||% dois[[2]]
+  # `version` is "the version of the software or dataset" in the CFF 1.2.0
+  # schema guide:
+  # https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md#version
+  version <- read_version(meta)
 
   license <- map_field(meta, "license")
   licenses <- unique(c(
@@ -94,6 +102,7 @@ write_citation <- function(path = ".", overwrite = FALSE) {
     "cff-version" = "1.2.0",
     message = "If you use these materials, please cite them using the metadata from this file.",
     title = supplement_title(meta),
+    version = version,
     authors = lapply(authors, function(author) {
       compact(list(
         "family-names" = author$family,

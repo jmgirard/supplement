@@ -1,13 +1,13 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — a new exported R function and a new `_supplement.yml` field
-- **Branch/PR:** —
+- **Branch/PR:** m009-release-supplement
 
 ## Goal
 
@@ -44,7 +44,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 
 ## Tasks
 
-- [ ] T1: Add `version: ""` with a comment to `inst/template/_supplement.yml`. Add a version check to `R/supplement-yml.R`, and write `version` in `R/write-citation.R` and `R/write-zenodo.R`. Cite the CFF 1.2.0 schema and Zenodo's deposit metadata in code comments. Add the AC1 tests and update the two help pages.
+- [x] T1: Add `version: ""` with a comment to `inst/template/_supplement.yml`. Add a version check to `R/supplement-yml.R`, and write `version` in `R/write-citation.R` and `R/write-zenodo.R`. Cite the CFF 1.2.0 schema and Zenodo's deposit metadata in code comments. Add the AC1 tests and update the two help pages.
 - [ ] T2: Add a helper to `R/yaml-insert.R` that replaces the value on one line of a block-style map and checks the result with the yaml package, as D-010 asks of inserts. Test it directly against the AC4 fixture files. Append a D-entry that extends D-010 to a one-line value change.
 - [ ] T3: Write `tests/testthat/test-release-supplement.R` for AC2 to AC6. Mock `check_supplement()`, so the tests need no render, and add one test that searches `R/release-supplement.R` for the git helper's name.
 - [ ] T4: Write `R/release-supplement.R`. Check `bump`, `_supplement.yml`, and the `version:` line before `check_supplement()` runs, and reuse `write_checked()` from `R/yaml-insert.R` for the restore.
@@ -62,3 +62,5 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: criteria audit (full mode, fresh Opus reader) returned 11 findings across M008 and M009, 5 on M009. Fixed all: AC3 also stops when a check was skipped, ignores the `CITATION.cff` DOI row that the release fixes, and defines the `version:` line by indent; AC2 stops on a current version that is invalid or read as a number; AC5 restores on any stop after the first write and probes three failures; AC6 prints `git status` and `git add -A`, so `docs/` and `_freeze/` reach the tag, and its process promise is now a property of the code, not of a mock.
 - 2026-10-18: plan chose to print `git add -A` over a release stop on uncommitted files, because the stop needs a git command outside M008's read list and `git add -A` adds the same files that `check_supplement()` checked; falsified by sites where authors keep unignored work files that must not reach the release.
 - 2026-10-18: collision check: D-010 covers YAML edits by line inserts only, so T2 appends a D-entry that extends it to a one-line value change under the same re-read check.
+- 2026-10-18: implement started on branch m009-release-supplement.
+- 2026-10-18: T1 done: `read_version()` in `R/supplement-yml.R`, `version` written after `title` in both files; the error tests also refuse `1.00.0`, `1.0.0.0`, and `-1.0.0`; 1448 tests pass.
