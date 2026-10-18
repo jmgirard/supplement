@@ -50,7 +50,7 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 ## Tasks
 
 - [x] T1: In `inst/template/index.qmd`, replace the "Analysis Reports" table with a Quarto listing of `analyses/*.qmd` in table form, with the title and description fields. Add a `description:` to `analyses/example.qmd`. Change `_README.md` text that tells authors to edit the table. Update `tests/testthat/test-template.R`, and add the AC1 render check.
-- [ ] T2: Write an internal helper that inserts one item at the end of a block-style YAML list as text. It finds the list by its key path, reads the indent of the items, double-quotes and escapes each string, and keeps the file's other lines. Test it directly against the AC4 fixture files, because its logic stands apart from the two callers.
+- [x] T2: Write an internal helper that inserts one item at the end of a block-style YAML list as text. It finds the list by its key path, reads the indent of the items, double-quotes and escapes each string, and keeps the file's other lines. Test it directly against the AC4 fixture files, because its logic stands apart from the two callers.
 - [ ] T3: Write `add_report()` in `R/add-report.R`, with tests for AC2 and its AC5 cases. Check every argument and the menu before the first write.
 - [ ] T4: Write `add_data()` in `R/add-data.R`, with tests for AC3 and its AC5 cases. Check every argument and `_supplement.yml` before the copy.
 - [ ] T5: Add the AC6 render test. Reuse the skip helpers in `tests/testthat/helper-template.R`, so that the test skips without Quarto, knitr, or rmarkdown.
@@ -72,3 +72,5 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - 2026-10-18: inbox sweep: no open issues or pull requests.
 - 2026-10-18: implement started on branch m007-add-report-data.
 - 2026-10-18: T1 done: index.qmd lists analyses/*.qmd in a table listing (id `reports`, title column named Report, sort and filter controls off); example.qmd has a description; _README.md has a Reports section; static and render tests added. Suite 696 pass, 0 skip.
+- 2026-10-18: T2 implementation choice: the helper in R/yaml-insert.R finds the list by indent and key, inserts after the list's last content line (trailing comments stay with what follows), copies the last item's dash-to-key offset, and keeps the line ending, final line break, and byte order mark. `yaml_appended()` re-reads the result with the yaml package, so callers can stop before writing when the scanner misreads a file. Values are double-quoted with `\`, `"`, control characters, U+2028, U+2029, and U+FEFF escaped.
+- 2026-10-18: T2 done: 12 direct tests over the AC4 shapes and not-found forms; a planted insert-at-end defect failed 6 of them. Suite 800 pass, 0 skip.
