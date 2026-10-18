@@ -1,16 +1,21 @@
 # Read and check the `supplement:` map in `_supplement.yml`.
 
 check_args <- function(path, overwrite, call = parent.frame()) {
-  if (!is.character(path) || length(path) != 1 || is.na(path) || !nzchar(path)) {
+  check_path(path, call = call)
+  if (!isTRUE(overwrite) && !isFALSE(overwrite)) {
     cli::cli_abort(
-      "{.arg path} must be one folder path, given as a single string.",
+      "{.arg overwrite} must be {.code TRUE} or {.code FALSE}.",
       class = c("supplement_error_argument", "supplement_error"),
       call = call
     )
   }
-  if (!isTRUE(overwrite) && !isFALSE(overwrite)) {
+  invisible()
+}
+
+check_path <- function(path, call = parent.frame()) {
+  if (!is.character(path) || length(path) != 1 || is.na(path) || !nzchar(path)) {
     cli::cli_abort(
-      "{.arg overwrite} must be {.code TRUE} or {.code FALSE}.",
+      "{.arg path} must be one folder path, given as a single string.",
       class = c("supplement_error_argument", "supplement_error"),
       call = call
     )
