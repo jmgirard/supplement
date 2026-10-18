@@ -6,7 +6,8 @@
 // When `.gitignore` already exists (Quarto writes one in a git repository
 // before this script runs), the template's lines that it lacks are appended,
 // so the ignore rules for fitted models are never lost. An existing
-// README.md is kept as it is. Either way the template copy is removed.
+// README.md is kept as it is, and the template's README becomes
+// SUPPLEMENT.md instead.
 
 const projectDir = Deno.env.get("QUARTO_PROJECT_DIR") ?? ".";
 
@@ -31,19 +32,26 @@ function mergeLines(src: string, dest: string) {
   }
 }
 
-const files: [string, string, boolean][] = [
-  ["_gitignore", ".gitignore", true],
-  ["_README.md", "README.md", false],
-];
-
-for (const [from, to, merge] of files) {
-  const src = `${projectDir}/${from}`;
-  const dest = `${projectDir}/${to}`;
-  if (!exists(src)) continue;
-  if (!exists(dest)) {
-    Deno.renameSync(src, dest);
-    continue;
+const gitignoreSrc = `${projectDir}/_gitignore`;
+const gitignore = `${projectDir}/.gitignore`;
+if (exists(gitignoreSrc)) {
+  if (exists(gitignore)) {
+    mergeLines(gitignoreSrc, gitignore);
+    Deno.removeSync(gitignoreSrc);
+  } else {
+    Deno.renameSync(gitignoreSrc, gitignore);
   }
-  if (merge) mergeLines(src, dest);
-  Deno.removeSync(src);
+}
+
+const readmeSrc = `${projectDir}/_README.md`;
+if (exists(readmeSrc)) {
+  const readme = `${projectDir}/README.md`;
+  const fallback = `${projectDir}/SUPPLEMENT.md`;
+  if (!exists(readme)) {
+    Deno.renameSync(readmeSrc, readme);
+  } else if (!exists(fallback)) {
+    Deno.renameSync(readmeSrc, fallback);
+  } else {
+    Deno.removeSync(readmeSrc);
+  }
 }

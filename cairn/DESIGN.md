@@ -39,7 +39,9 @@ Status and order live in `ROADMAP.md`.
 
 ## Conventions
 
-- Pure R, with no compiled code (chosen at init, 2026-10-18).
+- Pure R, with no compiled code (chosen at init, 2026-10-18). This covers
+  package code. The template may carry Quarto TypeScript scripts that need
+  no R (D-004).
 - One metadata file (`_supplement.yml`) is the single source for citation,
   authors, ORCIDs, DOIs, and licenses. `CITATION.cff` and `.zenodo.json`
   are generated from it.
@@ -54,7 +56,23 @@ None elicited yet. Run `/design-interview` to add them.
 
 ## Architecture
 
-Nothing built yet. The repository holds only tracking files.
+The package has no R code yet. It ships a Quarto website template in
+`inst/template/` (D-003), installed with `quarto use template
+jmgirard/supplement/inst/template`.
+
+- `_quarto.yml`: a website project with `freeze: true` (D-002), output in
+  `docs/` (D-001), an Analyses navbar menu, and `data/**` as resources.
+- `_scripts/setup.ts` (pre-render): gives `_gitignore` and `_README.md`
+  their real names, merges missing rules into an existing `.gitignore`, and
+  writes the guide to `SUPPLEMENT.md` beside an existing README (D-004,
+  D-006).
+- `_scripts/nojekyll.ts` (post-render): writes `.nojekyll` into the output
+  folder.
+- `index.qmd`, `analyses/example.qmd`, `data/example.csv`, and license files
+  are starter content for the author to replace.
+
+Tests in `tests/testthat/` build a site from the template in a temporary
+folder with the Quarto CLI and skip on CRAN or when quarto is missing.
 
 ## Known issues
 

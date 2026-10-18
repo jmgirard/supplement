@@ -12,11 +12,16 @@ The package is in early development.
 ## Start a new site
 
 You need the [Quarto](https://quarto.org) command-line interface, and R
-with the knitr and rmarkdown packages. In a new, empty folder, run:
+with the knitr and rmarkdown packages. In a new, empty folder, or in a
+clone of a new GitHub repository, run:
 
 ```
 quarto use template jmgirard/supplement/inst/template
 ```
+
+In a folder that is not empty, such as a clone, Quarto asks whether to put
+the site in a new subdirectory. Answer no. GitHub Pages serves `docs/` only
+at the top of the repository.
 
 Then render the site once, before your first commit:
 
@@ -24,9 +29,10 @@ Then render the site once, before your first commit:
 quarto render
 ```
 
-The first render creates `README.md` and writes the template's rules into
-`.gitignore`. If `.gitignore` already exists, the missing rules are added to
-it. The template ships these files as `_gitignore` and `_README.md`, because
+The first render writes the template's rules into `.gitignore`. If
+`.gitignore` already exists, the render adds the rules that it lacks. The
+first render also writes the template's guide to `README.md`. If the folder
+already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. The template ships these files as `_gitignore` and `_README.md`, because
 `quarto use template` does not copy those file names. The new `README.md` explains how the site
 renders, how to render on the machine that holds private data, and how to
 publish.

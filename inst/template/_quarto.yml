@@ -8,7 +8,7 @@ project:
     - index.qmd
     - "analyses/*.qmd"
   resources:
-    - "data/*.csv"
+    - "data/**"
   # Quarto runs these scripts itself; they need no R. See README.md.
   pre-render: _scripts/setup.ts
   post-render: _scripts/nojekyll.ts
