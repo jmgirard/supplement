@@ -88,6 +88,7 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - 2026-10-18: implement resumed for review return 1; added T7 (minor amendment).
 - 2026-10-18: T7 implementation choices: files are split at "\n" with each line keeping its "\r" and a final "" for a closing line break, so bytes round-trip and mixed endings stay; new lines take the majority ending; a failed write restores the old bytes. New subclass `supplement_error_ignored_file` for saved R objects; `supplement_error_encoding` also covers invalid UTF-8 arguments; links, letter-case clashes, and stale `_freeze/analyses/<name>` stop as `supplement_error_file_exists`. `copy_file()` and `write_bytes()` are wrappers so tests can mock them. CR-only files went to the "YAML insert edge shapes" row. Added D-010 and updated DESIGN.md.
 - 2026-10-18: T7 done: every fix-now finding has a test; a render of a description with escaped U+FFFE and U+FFFF exited 0. Suite 1257 pass, 0 skip.
+- 2026-10-18: checkpoint: claim audit 2 corrections applied (any letter-case match in `data/` that is not `file` stops; names with `_` at both ends refused, which also fixes blame-history #3, so it left the "YAML insert edge shapes" row; three wording fixes). The auditor's re-read is pending. Suite 1267 pass, 1 skip (the case-sensitive disk test).
 
 ## Review
 

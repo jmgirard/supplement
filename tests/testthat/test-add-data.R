@@ -159,7 +159,7 @@ test_that("a bad description stops and writes nothing", {
 })
 
 test_that("a file name that Quarto reads as Markdown stops", {
-  for (name in c("a b.csv", "it's.csv", "a--b.csv", "a._b.csv", ".hidden", "café.csv", "_x_.csv", "x.csv\n")) {
+  for (name in c("a b.csv", "it's.csv", "a--b.csv", "a._b.csv", ".hidden", "café.csv", "_x_.csv", "x.csv\n", "_data_", "_x-y_")) {
     file <- source_file(name)
     expect_data_error("supplement_error_file_name", file = file, description = "D")
   }
@@ -281,6 +281,26 @@ test_that("on a case-insensitive disk, a file in data/ is listed under its name 
   items <- yaml_list(lines_utf8(file.path(site, "_supplement.yml")), data_list)
   expect_identical(items[[length(items)]]$file, "data/mine.csv")
   expect_identical(sort(list.files(file.path(site, "data"))), c("example.csv", "mine.csv"))
+})
+
+test_that("names with one leading or inner underscore pass the file-name rule", {
+  site <- new_site()
+  for (name in c("_a.csv", "a_x_b.csv", "a_b_")) {
+    suppressMessages(add_data(source_file(name), "D", path = site))
+    expect_true(file.exists(file.path(site, "data", name)), info = name)
+  }
+})
+
+test_that("on a case-sensitive disk, any file in data/ that differs only in letter case stops", {
+  site <- new_site()
+  writeBin(as.raw(1:3), file.path(site, "data", "mine.csv"))
+  writeBin(as.raw(4:6), file.path(site, "data", "MINE.csv"))
+  skip_if(length(list.files(file.path(site, "data"))) < 3, "the disk is case-insensitive")
+  for (name in c("mine.csv", "MINE.csv")) {
+    before <- folder_state(site)
+    expect_error(add_data(file.path(site, "data", name), "D", path = site), class = "supplement_error_file_exists")
+    expect_identical(folder_state(site), before)
+  }
 })
 
 test_that("a description that is not valid UTF-8 stops", {

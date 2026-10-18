@@ -9,7 +9,8 @@ add_data(file, description, path = ".")
 \arguments{
 \item{file}{The path of the data file. Its base name must be ASCII
 letters, digits, \code{.}, \code{-}, and \verb{_}, with no two of the symbols in a
-row and no \code{.} at the start. Quarto reads each value in
+row, no \code{.} at the start, and not \verb{_} at both the start and the end.
+Quarto reads each value in
 \verb{_supplement.yml} as Markdown, and these names stay as they are.}
 
 \item{description}{A short description of the file for the data table.}
@@ -53,7 +54,8 @@ the file-name rule above.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
 \item \code{supplement_error_ignored_file}: \code{file} is a saved R object (\code{.rds},
 \code{.rda}, \code{.RData}, \code{.qs}, or \code{.qs2}, in any letter case), which the
-site's \code{.gitignore} keeps out of git.
+template's \code{.gitignore} rules keep out of git. A new site gets its
+\code{.gitignore} at the first render.
 \item \code{supplement_error_file_exists}: \verb{data/<base name>}, or a file in
 \verb{data/} whose name differs from it only in letter case, exists and is
 not \code{file}, or is a link; or \code{data} is not a folder or is a link.
@@ -74,7 +76,7 @@ not UTF-8 text.
 
 When a file cannot be written, for example a read-only
 \verb{_supplement.yml}, R's own error is shown, and the function removes the
-copy. If a write of \verb{_supplement.yml} fails partway, the file gets its
+copy and any folder it made. If a write of \verb{_supplement.yml} fails partway, the file gets its
 old text back.
 }
 

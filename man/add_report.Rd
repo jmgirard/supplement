@@ -69,7 +69,8 @@ the lines to add by hand.
 }
 
 When a file cannot be written, for example a read-only \verb{_quarto.yml},
-R's own error is shown, and the function removes the report file. If a
+R's own error is shown, and the function removes the report file and
+any folder it made. If a
 write of \verb{_quarto.yml} fails partway, the file gets its old text back.
 }
 

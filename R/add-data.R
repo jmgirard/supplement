@@ -19,7 +19,8 @@
 #'
 #' @param file The path of the data file. Its base name must be ASCII
 #'   letters, digits, `.`, `-`, and `_`, with no two of the symbols in a
-#'   row and no `.` at the start. Quarto reads each value in
+#'   row, no `.` at the start, and not `_` at both the start and the end.
+#'   Quarto reads each value in
 #'   `_supplement.yml` as Markdown, and these names stay as they are.
 #' @param description A short description of the file for the data table.
 #' @param path The folder of the site.
@@ -40,7 +41,8 @@
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 #' * `supplement_error_ignored_file`: `file` is a saved R object (`.rds`,
 #'   `.rda`, `.RData`, `.qs`, or `.qs2`, in any letter case), which the
-#'   site's `.gitignore` keeps out of git.
+#'   template's `.gitignore` rules keep out of git. A new site gets its
+#'   `.gitignore` at the first render.
 #' * `supplement_error_file_exists`: `data/<base name>`, or a file in
 #'   `data/` whose name differs from it only in letter case, exists and is
 #'   not `file`, or is a link; or `data` is not a folder or is a link.
@@ -60,7 +62,7 @@
 #'
 #' When a file cannot be written, for example a read-only
 #' `_supplement.yml`, R's own error is shown, and the function removes the
-#' copy. If a write of `_supplement.yml` fails partway, the file gets its
+#' copy and any folder it made. If a write of `_supplement.yml` fails partway, the file gets its
 #' old text back.
 #'
 #' @seealso [add_report()] to add a report, and [create_supplement()] to
@@ -90,20 +92,21 @@ add_data <- function(file, description, path = ".") {
   }
   check_text(description, "description")
   base <- basename(file)
-  # \z, because $ also matches before a line break at the end.
-  if (!grepl("^(?!\\.)(?!.*[._-]{2})[A-Za-z0-9._-]+\\z", base, perl = TRUE)) {
+  # \z, because $ also matches before a line break at the end. A name that
+  # starts and ends with "_", such as _data_, reads as italic text.
+  if (!grepl("^(?!\\.)(?!_.*_\\z)(?!.*[._-]{2})[A-Za-z0-9._-]+\\z", base, perl = TRUE)) {
     cli::cli_abort(
       c("The file name {.file {base}} cannot be listed in {.file _supplement.yml}.",
-        "i" = "Use ASCII letters, digits, {.code .}, {.code -}, and {.code _}, with no two of those symbols in a row and no {.code .} at the start, because Quarto reads the name as Markdown.",
+        "i" = "Use ASCII letters, digits, {.code .}, {.code -}, and {.code _}, with no two of those symbols in a row, no {.code .} at the start, and not {.code _} at both the start and the end, because Quarto reads the name as Markdown.",
         "i" = "Rename the file, then add it."),
       class = c("supplement_error_file_name", "supplement_error")
     )
   }
-  # The template's .gitignore blocks saved R objects, so the site's link to
-  # such a file would break in a clone.
+  # The template's .gitignore rules block saved R objects, so the site's
+  # link to such a file would break in a clone.
   if (grepl("\\.(rds|rda|rdata|qs|qs2)\\z", base, ignore.case = TRUE, perl = TRUE)) {
     cli::cli_abort(
-      c("{.file {base}} is a saved R object, which the site's {.file .gitignore} keeps out of git.",
+      c("{.file {base}} is a saved R object, which the template's {.file .gitignore} rules keep out of git.",
         "i" = "Saved R objects can embed private data. Share the data as CSV or another plain format."),
       class = c("supplement_error_ignored_file", "supplement_error")
     )
@@ -129,12 +132,16 @@ add_data <- function(file, description, path = ".") {
   # on macOS and Windows, and clashes with this one in a clone there.
   taken <- if (dir.exists(folder)) list.files(folder, all.files = TRUE) else character()
   match <- taken[tolower(taken) == tolower(base)]
-  if (length(match) > 0) {
+  is_file <- vapply(file.path(folder, match), function(x) {
+    file.exists(x) && normalizePath(x) == normalizePath(file)
+  }, logical(1))
+  if (length(match) > 0 && all(is_file)) {
     base <- match[1]
   }
   target <- file.path(folder, base)
-  same <- file.exists(target) && normalizePath(target) == normalizePath(file)
-  if (is_link(target) || (path_occupied(target) && !same)) {
+  same <- length(match) > 0 && all(is_file)
+  if (is_link(target) || any(is_link(file.path(folder, match))) ||
+      (length(match) > 0 && !all(is_file)) || (path_occupied(target) && !same)) {
     cli::cli_abort(
       c("{.file data/{base}} already exists in {.path {path}} and is not {.path {file}}, or is a link.",
         "i" = "Rename the file, or remove the one in {.file data/}. Nothing was written."),
