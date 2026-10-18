@@ -37,14 +37,17 @@ needs the data.
 \item \code{"broken-link"}: a quoted \code{href} or \code{src} link on a page in \verb{docs/} to
 a file that is not in \verb{docs/}, or to a folder there with no
 \code{index.html}. Links that start with \code{/}, \verb{#}, or a scheme such as
-\verb{https:} are not checked, and no web address is requested.
+\verb{https:} are not checked, and no web address is requested. GitHub
+Pages matches letter case, so a link whose case differs from the file
+name counts as broken, also on a disk that ignores case.
 \item \code{"doi-mismatch"}: the DOI in \code{CITATION.cff} differs from the one that
 \code{\link[=write_citation]{write_citation()}} writes from \verb{_supplement.yml}, or the DOI badge on
 \code{docs/index.html} differs from \code{zenodo.version-doi} (or
 \code{zenodo.concept-doi} when that is empty). A home page whose source uses
 \verb{\{\{< supplement-doi >\}\}} but that shows no badge, while
-\verb{_supplement.yml} has a DOI, also counts, and so does a \code{CITATION.cff}
-that cannot be read as a YAML map.
+\verb{_supplement.yml} has a DOI, also counts. So does a \code{CITATION.cff}
+that cannot be read as a YAML map, and a DOI in \code{CITATION.cff} or on
+the badge that is not a DOI.
 }
 
 The first two checks look at the files that git tracks or does not
@@ -64,8 +67,7 @@ these classes:
 \item \code{supplement_error_no_map}: \verb{_supplement.yml} has no \verb{supplement:} map.
 \item \code{supplement_error_field_type}: a DOI in \verb{_supplement.yml} is not one
 text value, or \code{zenodo} is not a map.
-\item \code{supplement_error_doi}: a DOI in \verb{_supplement.yml}, \code{CITATION.cff}, or
-the badge on \code{docs/index.html} is not a DOI.
+\item \code{supplement_error_doi}: a DOI in \verb{_supplement.yml} is not a DOI.
 }
 }
 

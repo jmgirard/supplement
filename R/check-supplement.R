@@ -19,14 +19,17 @@
 #' * `"broken-link"`: a quoted `href` or `src` link on a page in `docs/` to
 #'   a file that is not in `docs/`, or to a folder there with no
 #'   `index.html`. Links that start with `/`, `#`, or a scheme such as
-#'   `https:` are not checked, and no web address is requested.
+#'   `https:` are not checked, and no web address is requested. GitHub
+#'   Pages matches letter case, so a link whose case differs from the file
+#'   name counts as broken, also on a disk that ignores case.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
 #'   `zenodo.concept-doi` when that is empty). A home page whose source uses
 #'   `{{< supplement-doi >}}` but that shows no badge, while
-#'   `_supplement.yml` has a DOI, also counts, and so does a `CITATION.cff`
-#'   that cannot be read as a YAML map.
+#'   `_supplement.yml` has a DOI, also counts. So does a `CITATION.cff`
+#'   that cannot be read as a YAML map, and a DOI in `CITATION.cff` or on
+#'   the badge that is not a DOI.
 #'
 #' The first two checks look at the files that git tracks or does not
 #' ignore, which `git ls-files --cached --others --exclude-standard` lists,
@@ -53,8 +56,7 @@
 #' * `supplement_error_no_map`: `_supplement.yml` has no `supplement:` map.
 #' * `supplement_error_field_type`: a DOI in `_supplement.yml` is not one
 #'   text value, or `zenodo` is not a map.
-#' * `supplement_error_doi`: a DOI in `_supplement.yml`, `CITATION.cff`, or
-#'   the badge on `docs/index.html` is not a DOI.
+#' * `supplement_error_doi`: a DOI in `_supplement.yml` is not a DOI.
 #'
 #' @seealso [write_citation()] to write `CITATION.cff` again.
 #' @export
@@ -68,7 +70,9 @@
 #' unlink(site, recursive = TRUE)
 check_supplement <- function(path = ".") {
   check_path(path)
-  path <- sub("(.)[/\\\\]+$", "\\1", path)
+  # Drop the separators at the end, as create_supplement() does. A root such
+  # as "/" or "C:/" keeps its separator.
+  path <- sub("^(.*[^/\\\\:])[/\\\\]+$", "\\1", path)
   meta <- read_supplement(path)
 
   git <- git_files(path)
@@ -146,7 +150,7 @@ git_files <- function(path) {
   }
   tree <- git_run(c("rev-parse", "--is-inside-work-tree"), path)
   if (!identical(tree$status, 0L) || !identical(trimws(rawToChar(tree$stdout)), "true")) {
-    return(list(reason = "the folder is not in a git work tree"))
+    return(list(reason = "`git rev-parse` failed, or the folder is not in a git work tree"))
   }
   # -z prints each name as it is, ended by a NUL byte. Without it, git
   # quotes names with non-ASCII characters.
@@ -172,6 +176,26 @@ split_nul <- function(bytes) {
   names[nzchar(names)]
 }
 
+# Strings marked as UTF-8, with each byte that is not valid UTF-8 shown as
+# <xx>.
+show_text <- function(x) {
+  Encoding(x) <- "UTF-8"
+  bad <- !validUTF8(x)
+  x[bad] <- iconv(x[bad], "UTF-8", "UTF-8", sub = "byte")
+  x
+}
+
+# The text of a file as UTF-8, with NUL bytes dropped and bytes that are
+# not valid UTF-8 shown as <xx>, or NULL when it cannot be read.
+read_page_text <- function(file) {
+  bytes <- tryCatch(readBin(file, "raw", file.size(file)), error = function(e) NULL,
+                    warning = function(w) NULL)
+  if (is.null(bytes)) {
+    return(NULL)
+  }
+  show_text(rawToChar(bytes[bytes != as.raw(0)]))
+}
+
 # GitHub blocks files larger than 100 MiB:
 # https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github
 github_file_limit <- 104857600
@@ -180,14 +204,16 @@ check_git_files <- function(path, files) {
   full <- file.path(path, files)
   size <- file.info(full, extra_cols = FALSE)$size
   large <- !is.na(size) & size > github_file_limit & !is_link(full)
-  saved <- grepl("\\.(rds|rda|rdata|qs|qs2)$", files, ignore.case = TRUE)
+  # useBytes keeps a name that is not valid UTF-8 in the match.
+  saved <- grepl("\\.(rds|rda|rdata|qs|qs2)$", files, ignore.case = TRUE, useBytes = TRUE)
+  shown <- show_text(files)
   rbind(
     problem_rows(
-      "large-file", files[large],
-      sprintf("%.0f MiB is more than GitHub's limit of 100 MiB for one file.", size[large] / 2^20)
+      "large-file", shown[large],
+      sprintf("%.1f MiB is more than GitHub's limit of 100 MiB for one file.", size[large] / 2^20)
     ),
     problem_rows(
-      "saved-object", files[saved],
+      "saved-object", shown[saved],
       rep_len("A saved R object can hold the data. Remove it from git or add it to .gitignore.", sum(saved))
     )
   )
@@ -196,7 +222,14 @@ check_git_files <- function(path, files) {
 # Stored output ---------------------------------------------------------------
 
 check_stored_output <- function(path) {
-  reports <- Sys.glob(file.path(path, "analyses", "*.qmd"))
+  # The files that the glob analyses/*.qmd matches in the site. A glob over
+  # the whole path would read `[`, `*`, or `?` in the site's own path as a
+  # pattern, so list the folder instead. Like a glob, `*` skips names that
+  # start with a dot.
+  dir <- file.path(path, "analyses")
+  names <- list.files(dir, pattern = "\\.qmd$")
+  reports <- file.path(dir, names[!startsWith(names, ".")])
+  reports <- reports[!dir.exists(reports)]
   missing <- vapply(reports, function(report) {
     lines <- readLines(report, warn = FALSE, encoding = "UTF-8")
     has_code <- any(grepl("^\\s*`{3,}\\{(r|python|julia)[\\s,}]", lines, perl = TRUE, useBytes = TRUE))
@@ -234,11 +267,16 @@ check_links <- function(path) {
 
 # The quoted href and src values on a page that point to a place inside
 # the site, each once.
+# A page that cannot be read, such as a link whose target is missing, has
+# no links.
 page_links <- function(file) {
-  html <- rawToChar(readBin(file, "raw", file.size(file)))
-  attrs <- regmatches(html, gregexpr("\\b(href|src)\\s*=\\s*(\"[^\"]*\"|'[^']*')", html, perl = TRUE, useBytes = TRUE))[[1]]
-  values <- sub("^[^=]*=\\s*.(.*).$", "\\1", attrs, perl = TRUE, useBytes = TRUE)
-  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values, useBytes = TRUE)
+  html <- read_page_text(file)
+  if (is.null(html)) {
+    return(character())
+  }
+  attrs <- regmatches(html, gregexpr("\\b(href|src)\\s*=\\s*(\"[^\"]*\"|'[^']*')", html, perl = TRUE))[[1]]
+  values <- sub("^[^=]*=\\s*.(.*).$", "\\1", attrs, perl = TRUE)
+  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
   unique(values[!skip])
 }
 
@@ -249,8 +287,12 @@ link_ok <- function(link, docs, page) {
   if (!nzchar(target)) {
     return(TRUE)
   }
+  decoded <- percent_decode(target)
+  if (is.na(decoded)) {
+    return(FALSE)
+  }
   parts <- c(strsplit(dirname(page), "/", fixed = TRUE)[[1]],
-             strsplit(percent_decode(target), "/", fixed = TRUE)[[1]])
+             strsplit(decoded, "/", fixed = TRUE)[[1]])
   kept <- character()
   for (part in parts) {
     if (part %in% c("", ".")) next
@@ -263,10 +305,36 @@ link_ok <- function(link, docs, page) {
       kept <- c(kept, part)
     }
   }
-  full <- do.call(file.path, as.list(c(docs, kept)))
-  if (dir.exists(full)) file.exists(file.path(full, "index.html")) else file.exists(full)
+  if (dir.exists(file.path(docs, paste(kept, collapse = "/")))) {
+    kept <- c(kept, "index.html")
+  }
+  # GitHub Pages matches letter case, so each part must match the name on
+  # disk, also on a disk that ignores case.
+  dir <- docs
+  for (part in kept) {
+    if (!exact_name(dir, part)) {
+      return(FALSE)
+    }
+    dir <- file.path(dir, part)
+  }
+  TRUE
 }
 
+# TRUE when `dir` holds `name`. On a disk that ignores letter case,
+# file.exists() also finds `Name`, so a name that differs only in case
+# from every entry of `dir` counts as missing. A name that differs in
+# another way, such as Unicode normalization, is taken as found.
+exact_name <- function(dir, name) {
+  path <- file.path(dir, name)
+  if (!file.exists(path)) {
+    return(FALSE)
+  }
+  entries <- list.files(dir, all.files = TRUE, no.. = TRUE)
+  name %in% entries || !(tolower(name) %in% tolower(entries))
+}
+
+# Decode %XX escapes, or return NA when the result holds a NUL byte or is
+# not valid UTF-8, since no file name in the site can match it.
 percent_decode <- function(x) {
   if (!grepl("%[0-9A-Fa-f]{2}", x)) {
     return(x)
@@ -284,9 +352,12 @@ percent_decode <- function(x) {
       i <- i + 1L
     }
   }
+  if (any(out == as.raw(0))) {
+    return(NA_character_)
+  }
   x <- rawToChar(out)
   Encoding(x) <- "UTF-8"
-  x
+  if (!validUTF8(x)) NA_character_ else x
 }
 
 # DOIs ------------------------------------------------------------------------
@@ -303,16 +374,16 @@ check_dois <- function(path, meta, call = parent.frame()) {
   rows <- list(problem_rows())
   cff <- file.path(path, "CITATION.cff")
   if (file.exists(cff) && !dir.exists(cff)) {
-    rows <- c(rows, list(check_cff_doi(cff, cite_doi, call)))
+    rows <- c(rows, list(check_cff_doi(cff, cite_doi)))
   }
   index <- file.path(path, "docs", "index.html")
   if (file.exists(index) && !dir.exists(index)) {
-    rows <- c(rows, list(check_badge_doi(path, index, badge_doi, call)))
+    rows <- c(rows, list(check_badge_doi(path, index, badge_doi)))
   }
   do.call(rbind, rows)
 }
 
-check_cff_doi <- function(cff, expected, call) {
+check_cff_doi <- function(cff, expected) {
   doc <- tryCatch(yaml::read_yaml(cff), error = function(e) NULL)
   if (!is_map(doc)) {
     return(problem_rows(
@@ -324,8 +395,21 @@ check_cff_doi <- function(cff, expected, call) {
   if (!is.null(doi) && (!is.character(doi) || length(doi) != 1)) {
     return(problem_rows("doi-mismatch", "CITATION.cff", "Its doi is not one text value."))
   }
+  # As value() does for _supplement.yml, so that a block-scalar doi loses
+  # its final line break.
   if (!is.null(doi)) {
-    doi <- bare_doi(doi, "doi", file = "CITATION.cff", call = call)
+    doi <- clean_space(doi)
+    if (is.na(doi) || !nzchar(doi)) doi <- NULL
+  }
+  if (!is.null(doi)) {
+    bare <- doi_or_null(doi, "doi", "CITATION.cff")
+    if (is.null(bare)) {
+      return(problem_rows(
+        "doi-mismatch", "CITATION.cff",
+        sprintf("Its doi is not a DOI: %s. Run write_citation(overwrite = TRUE).", doi)
+      ))
+    }
+    doi <- bare
   }
   if (same_doi(doi, expected)) {
     return(problem_rows())
@@ -337,12 +421,23 @@ check_cff_doi <- function(cff, expected, call) {
   )
 }
 
-check_badge_doi <- function(path, index, expected, call) {
-  html <- rawToChar(readBin(index, "raw", file.size(index)))
+check_badge_doi <- function(path, index, expected) {
+  html <- read_page_text(index)
+  if (is.null(html)) {
+    return(problem_rows())
+  }
   ids <- regmatches(html, gregexpr("https://zenodo\\.org/badge/DOI/([^\"'<>[:space:]]+?)\\.svg", html, perl = TRUE))[[1]]
-  ids <- sub("^https://zenodo\\.org/badge/DOI/(.*)\\.svg$", "\\1", ids)
-  ids <- vapply(ids, bare_doi, character(1), field = "DOI badge", file = "docs/index.html",
-                call = call, USE.NAMES = FALSE)
+  ids <- unique(sub("^https://zenodo\\.org/badge/DOI/(.*)\\.svg$", "\\1", ids))
+  bare <- lapply(ids, doi_or_null, field = "DOI badge", file = "docs/index.html")
+  invalid <- vapply(bare, is.null, logical(1))
+  if (any(invalid)) {
+    return(problem_rows(
+      "doi-mismatch", rep_len("docs/index.html", sum(invalid)),
+      sprintf("The DOI badge shows %s, which is not a DOI. Fix _supplement.yml and render the site again.",
+              ids[invalid])
+    ))
+  }
+  ids <- unlist(bare)
   if (length(ids) == 0) {
     if (!is.null(expected) && uses_doi_shortcode(file.path(path, "index.qmd"))) {
       return(problem_rows(
@@ -358,6 +453,12 @@ check_badge_doi <- function(path, index, expected, call) {
     sprintf("The DOI badge shows %s, and _supplement.yml gives %s. Render the site again.",
             wrong, expected %||% "none")
   )
+}
+
+# The DOI from bare_doi(), or NULL when it is not a DOI, so that a bad DOI
+# outside _supplement.yml gives a row and not an error.
+doi_or_null <- function(doi, field, file) {
+  tryCatch(bare_doi(doi, field, file = file), supplement_error_doi = function(e) NULL)
 }
 
 same_doi <- function(doi, expected) {

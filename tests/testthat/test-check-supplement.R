@@ -104,6 +104,22 @@ test_that("files over GitHub's size limit give a large-file row", {
 
   rows <- rows_of(check_quiet(site), "large-file")
   expect_identical(rows$file, "data/over.csv")
+  expect_match(rows$problem, "^100\\.0 MiB")
+})
+
+test_that("a git file name that is not valid UTF-8 is still checked", {
+  site <- new_site()
+  name <- c(charToRaw("fits/a"), as.raw(0xff), charToRaw(".rds"))
+  local_mocked_bindings(git_run = function(args, dir) {
+    out <- switch(args[1],
+      "--version" = charToRaw("git version 2"),
+      "rev-parse" = charToRaw("true\n"),
+      "ls-files" = c(name, as.raw(0))
+    )
+    list(status = 0L, stdout = out)
+  })
+  rows <- rows_of(check_quiet(site), "saved-object")
+  expect_identical(rows$file, "fits/a<ff>.rds")
 })
 
 test_that("saved R objects that git would publish give a saved-object row", {
@@ -182,6 +198,15 @@ test_that("reports with code but no stored output give a no-stored-output row", 
   expect_setequal(rows$file, file.path("analyses", c("r-chunk.qmd", "python-chunk.qmd", "callout.qmd", "example.qmd")))
 })
 
+test_that("glob characters in the site path do not hide reports", {
+  site <- file.path(withr::local_tempdir(), "site [draft]*?")
+  suppressMessages(create_supplement(site))
+  rows <- rows_of(check_quiet(site), "no-stored-output")
+  expect_identical(rows$file, "analyses/example.qmd")
+  # A path with a separator at the end gives the same rows.
+  expect_identical(check_quiet(paste0(site, "/")), check_quiet(site))
+})
+
 test_that("the rendered example report has stored output", {
   skip_if_no_quarto()
   site <- site_copy()$dir
@@ -226,12 +251,33 @@ test_that("links to files missing from the site give a broken-link row", {
     '<a href="../index.html">home</a>',
     '<a href="../../x.html">outside</a>'
   ))
+  # Non-ASCII names, bad percent escapes, and letter case.
+  touch(file.path(site, "docs", "data", "données.csv"))
+  touch(file.path(site, "docs", "data", "Upper.csv"))
+  write_page(site, "names.html", c(
+    '<a href="data/donn%C3%A9es.csv">encoded</a>',
+    '<a href="data/données.csv">raw</a>',
+    '<a href="café.html">missing</a>',
+    '<a href="a%00b.html">nul</a>',
+    '<a href="a%FFb.html">not UTF-8</a>',
+    '<a href="data/upper.csv">wrong case</a>',
+    '<a href="data/Upper.csv">right case</a>'
+  ))
+  # A page in Latin-1 with a NUL byte, and a link to a missing page.
+  latin <- c(charToRaw('<p>caf'), as.raw(0xe9), as.raw(0), charToRaw('</p><a href="gone-latin.csv">x</a>'))
+  writeBin(latin, file.path(site, "docs", "latin.html"))
+  file.symlink(file.path(site, "docs", "no-such-page.html"), file.path(site, "docs", "dangling.html"))
 
   rows <- rows_of(check_quiet(site), "broken-link")
   links <- regmatches(rows$problem, regexpr("`[^`]*`$", rows$problem))
   expect_setequal(
     paste(rows$file, links),
-    c("docs/index.html `data/missing.csv`",
+    c("docs/names.html `café.html`",
+      "docs/names.html `a%00b.html`",
+      "docs/names.html `a%FFb.html`",
+      "docs/names.html `data/upper.csv`",
+      "docs/latin.html `gone-latin.csv`",
+      "docs/index.html `data/missing.csv`",
       "docs/index.html `no-index/`",
       "docs/index.html `gone.png`",
       "docs/index.html `../outside.html`",
@@ -282,6 +328,19 @@ test_that("DOIs that differ between files give a doi-mismatch row", {
   expect_identical(nrow(doi_rows(site_with("10.5281/zenodo.2", badges = character(), shortcode = FALSE))), 0L)
   # No CITATION.cff and no docs/index.html: nothing to compare.
   expect_identical(nrow(doi_rows(site_with("10.5281/zenodo.2"))), 0L)
+  # A doi that is not a DOI, in CITATION.cff or on the badge, gives a row
+  # and the other checks still run.
+  site <- site_with("10.5281/zenodo.2", cff = "not-a-doi")
+  result <- check_quiet(site)
+  expect_match(rows_of(result, "doi-mismatch")$problem, "not a DOI: not-a-doi")
+  expect_identical(nrow(rows_of(result, "not-rendered")), 1L)
+  expect_match(doi_rows(site_with("10.5281/zenodo.2", badges = "nota"))$problem, "nota, which is not a DOI")
+  # A block-scalar doi in CITATION.cff ends with a line break.
+  site <- site_with("", "10.5281/zenodo.1")
+  # A key after it keeps the line break in the value.
+  writeLines(c("doi: |", "  10.5281/zenodo.1", "", "title: x"), file.path(site, "CITATION.cff"))
+  expect_identical(yaml::read_yaml(file.path(site, "CITATION.cff"))$doi, "10.5281/zenodo.1\n")
+  expect_identical(nrow(doi_rows(site)), 0L)
   # A CITATION.cff that is not a YAML map, or not YAML at all.
   for (text in c("just text", "doi: [unclosed")) {
     site <- site_with("10.5281/zenodo.2")

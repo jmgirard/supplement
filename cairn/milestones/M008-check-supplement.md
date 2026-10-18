@@ -35,12 +35,12 @@ Export `check_supplement()`, which lists the problems in a site that would break
 
 ## Coverage
 
-- AC1 → T1, T2
-- AC2 → T1, T3
-- AC3 → T1, T3
-- AC4 → T1, T4
-- AC5 → T1, T4
-- AC6 → T1, T5
+- AC1 → T1, T2, T7
+- AC2 → T1, T3, T7
+- AC3 → T1, T3, T7
+- AC4 → T1, T4, T7
+- AC5 → T1, T4, T7
+- AC6 → T1, T5, T7
 - AC7 → T6
 
 ## Tasks
@@ -51,6 +51,7 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - [x] T4: Write the stored-output check and the link check. Do the link check in base R, with no HTML package.
 - [x] T5: Write the DOI check. Reuse `bare_doi()` from `R/supplement-yml.R` and read `CITATION.cff` with the yaml package.
 - [x] T6: Add roxygen documentation with an example that writes to `tempdir()`, and run `devtools::document()`. Describe the function in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
+- [x] T7: Review return 1. Read pages as UTF-8 with NUL bytes dropped and invalid bytes replaced, so non-ASCII, Latin-1, and NUL pages give rows, not errors; treat a link whose decoded path holds a NUL or invalid UTF-8 as broken; skip a page that cannot be read; match each link path part by its exact name. Find reports with `list.files()` in `analyses/`, not a glob over the site path. Turn an invalid DOI in `CITATION.cff` or the badge into a `doi-mismatch` row, and clean spaces in the `CITATION.cff` doi first. Keep a `C:/` root, match git names with `useBytes`, name `rev-parse` failure in the skip reason, and print sizes with one decimal. Add a test for each.
 
 ## Work log
 
@@ -81,6 +82,10 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: review evidence: three ticks (AC2 to AC7 batch) landed before their evidence lines when an edit failed; the ticks were removed and set again after each line. No criterion was ticked without evidence at the checkpoint.
 - 2026-10-18: review return 1: a link with a non-ASCII name stops `check_supplement()` with an unclassed "bytes encoding" error (AC5), and a site path with `[`, `*`, or `?` empties the `Sys.glob()` report search (AC4). Fix with them the other fix-now items of review pass 1: `%00`/`%FF` links, NUL bytes and Latin-1 pages, dangling page links, exact-case link matching, invalid DOIs in `CITATION.cff` or the badge as rows, a block-scalar `CITATION.cff` doi, the `C:/` root, non-UTF-8 git names, the `rev-parse` skip reason, the MiB rounding, and tests for each.
 - 2026-10-18: review pass 1 follow-ups went to new candidate rows "link check false positives", "stored output chunk shapes", and "release check edge cases", and to the "badge DOI form" row.
+- 2026-10-18: correction to the review-evidence line above: six ticks (AC2 to AC7), not three, landed before their evidence lines.
+- 2026-10-18: implement resumed for review return 1; T7 added (minor amendment) and mapped in Coverage to AC1 to AC6.
+- 2026-10-18: T7 done. Pages are read through `read_page_text()` (NUL bytes dropped, invalid UTF-8 shown as `<xx>`), so links are UTF-8 and not bytes; a decoded link with a NUL or invalid UTF-8 is broken; `exact_name()` matches letter case and lets a name that differs only in Unicode form pass; reports are listed in `analyses/` with leading-dot names left out, as the glob does; bad DOIs in `CITATION.cff` or the badge give rows through `doi_or_null()`; the `CITATION.cff` doi is space-cleaned first. `devtools::test()` 1360 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: planted defects turned the T7 tests red: links read with `useBytes`, no case match, no NUL test in decoding, DOI stop restored, the glob restored, no space cleaning (after a fixture that keeps the line break), no UTF-8 repair of pages, and git names without `useBytes`.
 
 ## Review
 

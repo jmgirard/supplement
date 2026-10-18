@@ -78,7 +78,9 @@ its problems as a data frame (`check`, `file`, `problem`), with a
 ls-files -z --cached --others --exclude-standard` through `git_run()`, the
 package's one place that starts a process. Its link check reads quoted
 `href` and `src` values in `docs/**/*.html` with a regular expression and
-resolves each link by path segments inside `docs/`.
+resolves each link by path segments inside `docs/`, matching each name's
+letter case as GitHub Pages does. A bad DOI in `CITATION.cff` or on the
+badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in
