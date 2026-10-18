@@ -1,6 +1,6 @@
 # M003: Package skeleton and starter template
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -76,6 +76,7 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - 2026-10-18: minor amendment to T3: `setup.ts` now appends the template's missing `.gitignore` lines to an existing `.gitignore` instead of discarding them. The claim audit showed that Quarto writes its own `.gitignore` before pre-render in a git repository, so `git init` before the first render left `*.rds` unignored. New tests: rules added to an existing `.gitignore`, `git init` before the first render, an existing README.md kept. The `git init` test fails on the old script (checked in a scratch copy). Tests 27 passed, check 0/0/0.
 - 2026-10-18: claim audit: 30 claims read, 5 corrected — README.md, DESCRIPTION, inst/template/index.qmd, inst/template/_README.md, inst/template/LICENSE-CC-BY.md, inst/template/_scripts/setup.ts. The re-read of the 7 corrected or unverifiable claims found 0 wrong.
 - 2026-10-18: all tasks done; status set to review.
+- 2026-10-18: review return 1: `inst/template/_scripts/nojekyll.ts` joins `QUARTO_PROJECT_DIR` to `QUARTO_PROJECT_OUTPUT_DIR` unless the latter starts with `/`. Quarto passes an absolute output path, so on Windows (`C:\…\docs`) the write goes to a broken path and every render fails (diff-bug #1).
 
 ## Decisions
 
@@ -117,3 +118,4 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - prior-review #2: "rebuilds without the data" overstates — reject, false: same test.
 - prior-review #3: fit file location — fix now, same as blame-history #1.
 - prior-review #4: stale `docs/` pages after a render by name — fix now, same as blame-history #5.
+- Fixes: every fix-now item above, fixed da559f5 (tests 32 passed, 0 skips; `devtools::check()` 0/0/0). The new `docs/` test fails with the `!docs/` lines removed (checked in a scratch copy). D-006 records the merge behavior. The diff-bug #6 follow-up is the candidate row "template install from GitHub".
