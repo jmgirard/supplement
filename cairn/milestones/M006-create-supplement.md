@@ -48,7 +48,7 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 - [x] T1: Write `R/create-supplement.R`. Check `path` and `repo` first. Then compare the template's file list with `path` and stop on any conflict before the first write. Copy the files with their bytes unchanged, then replace the placeholders when `repo` is given. End with a cli message that tells the author to render once and then commit. Reuse `supplement_error_argument` from `R/supplement-yml.R` for a bad `path`.
 - [x] T2: Write `tests/testthat/test-create-supplement.R` for AC1, AC2, and AC3. Take a snapshot of the folder's file list and file bytes before and after each error case.
 - [x] T3: Add a render test for a site made with `repo` given. Reuse the skip helpers in `tests/testthat/helper-template.R`, so that the test skips without Quarto, knitr, or rmarkdown.
-- [ ] T4: Add roxygen documentation with an example that writes to `tempdir()`, and run `devtools::document()`. Add the R route to the README section "Start a new site", next to `quarto use template`. Add a NEWS.md entry.
+- [x] T4: Add roxygen documentation with an example that writes to `tempdir()`, and run `devtools::document()`. Add the R route to the README section "Start a new site", next to `quarto use template`. Add a NEWS.md entry.
 
 ## Work log
 
@@ -66,3 +66,5 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 - 2026-10-18: implement chose the error classes `supplement_error_repo`, `supplement_error_not_folder`, and `supplement_error_file_exists` (reused from the writers), and moved the `path` check of `check_args()` into `check_path()` so both share it. A link at a template path, even a broken one, counts as a conflict. A failed copy removes what the call made.
 - 2026-10-18: T1, T2 done: `R/create-supplement.R` and `tests/testthat/test-create-supplement.R`, 90 expectations; three planted defects (no conflict check, no lowercase owner, no folder creation) each failed tests; full suite 626 passed.
 - 2026-10-18: T3 done: render test for a site made with `repo`; it renders with status 0, writes the three files, and its navbar links to the given repository.
+- 2026-10-18: T4 done: README "Start a new site" gives the R route first, then the Quarto route; NEWS entry added; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: implement: the T3 render test was appended with a shell heredoc, not the Edit tool, so the desktop edit card missed it; the commit 026075c holds it.
