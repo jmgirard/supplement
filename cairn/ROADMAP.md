@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M001 done and archived, pilot row narrowed to M
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M002 | Pilot render on the data machine and data-free rebuild | planned | M001 | high | milestones/M002-pilot-render-check.md |
+| M002 | Pilot render on the data machine and data-free rebuild | review | M001 | high | milestones/M002-pilot-render-check.md |
 | M001 | Pilot site restructure to the freeze layout | done | — | high | milestones/archive/M001-pilot-restructure.md |
 
 ## Candidates
