@@ -46,8 +46,8 @@ Move pilot-ptsd-markers, on a branch, to one Quarto website project with freeze 
 - [x] T1: In `~/github/pilot-ptsd-markers`, cut branch `freeze-layout` from an up-to-date `main`.
 - [x] T2: `git mv src/*.qmd analyses/`. Remove `analyses/*.html`, `analyses/*_files/`, `src/_quarto.yml`, and `src/.gitignore`. Move the fit-file and figure ignores in `.gitignore` from `src/` to `analyses/`.
 - [x] T3: Rewrite `_quarto.yml`: render all `.qmd` files, `execute: freeze: true`, `output-dir: docs`, an Analyses navbar menu with the five reports, and `resources` for `data/*.csv` only.
-- [ ] T4: Point `index.qmd` links at the report pages. Run `quarto render analyses/feature_descriptives.qmd` (a single-file render, so no model report runs). Commit the source changes, `_freeze/analyses/feature_descriptives/`, and `docs/`.
-- [ ] T5: Rewrite the README reproduce and publish sections. Add a data-machine section: move the fits folder to `analyses/fits/`, set the demographics environment variables, run a full `quarto render`, and commit `_freeze/` and `docs/`.
+- [x] T4: Point `index.qmd` links at the report pages. Run `quarto render analyses/feature_descriptives.qmd` (a single-file render, so no model report runs). Commit the source changes, `_freeze/analyses/feature_descriptives/`, and `docs/`.
+- [x] T5: Rewrite the README reproduce and publish sections. Add a data-machine section: move the fits folder to `analyses/fits/`, set the demographics environment variables, run a full `quarto render`, and commit `_freeze/` and `docs/`.
 - [ ] T6: Push `freeze-layout` to origin. Leave `main` untouched.
 - [ ] T7: Write `cairn/references/pilot-port.md` (synthesis note) with its INDEX line.
 
@@ -63,6 +63,8 @@ Move pilot-ptsd-markers, on a branch, to one Quarto website project with freeze 
 - 2026-10-18: companion branch keeps the name `freeze-layout` that the criteria name, not `m001-pilot-restructure`.
 - 2026-10-18: verify slot not applicable: the repo has no R package code yet.
 - 2026-10-18: T1-T3 done in the pilot repo (commits "Move report sources into analyses/…" and "Render every report as a site page…"). The navbar splits reports into Tables and Analyses menus, matching the index page. `render:` lists `index.qmd` and `analyses/*.qmd` so README.md is not rendered.
+- 2026-10-18: T4 done (pilot 2a4a51e): smoke render exited 0, the page has the header and links to the other four reports, and `_freeze/analyses/feature_descriptives/execute-results/html.json` is tracked. A single-file render does not clean `docs/`, so the old per-report `_files/` copies stay until the full render in M002.
+- 2026-10-18: T5 done (pilot f541444): README documents the freeze layout and the data-machine steps. The citation sentence in the README stays over the plain-English length limit because it is a quoted reference.
 
 ## Decisions
 
