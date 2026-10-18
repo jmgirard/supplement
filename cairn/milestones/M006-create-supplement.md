@@ -114,3 +114,27 @@ Pass 1 review, 2026-10-18. spawned: diff-bug, blame-history, prior-review.
 - prior-review #1: new path code is untested on Windows — follow-up: added to the "Windows check" row.
 - prior-review #2: no render test of a `create_supplement()` site in a folder that already holds `README.md` and `.gitignore` — fix now.
 - prior-review #3: `occupied()` copies the link rule of `check_overwrite()` — fix now: one shared helper.
+
+Pass-1 fix-now findings fixed in 5e1e2c3 and 47de0c3 (T5).
+
+Pass 2, 2026-10-18, on 47de0c3, branch level with origin/main. Fresh evidence: `NOT_CRAN=true` test file run, 16 tests, 138 expectations, all passed, none skipped. AC1: tests 1, 2, 3 (file list equal to a hard-written list of the 13 tracked template files, bytes equal, hidden and render-output files not copied). AC2: tests 4 and 6 (bytes equal outside the placeholders). AC3: tests 7, 8 (including `f/` and `f//`), 9, 10, 11, 12, 15 (36 expectations, with `o/..`, `o/.`, `-/_`, and the owner forms). AC4: test 16, render status 0 in a folder that held `README.md` and `.gitignore`. AC5: README.md:17-33, NEWS.md:11, help example run by `devtools::check()`. Gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; `devtools::test()` 674 passed; `devtools::check()` 0 errors, 0 warnings, 0 notes. All five criteria stay ticked.
+
+spawned: diff-bug, blame-history, prior-review.
+
+- diff-bug #1: a link at a template folder target, such as `data` linked to an outside folder, makes the copy write outside `path` — fix now: a link at any template path is a conflict.
+- diff-bug #2: the conflict message calls every conflict "a file that the template writes", also for a folder in the way or a file where a folder belongs — fix now.
+- diff-bug #3: "copies the same files as `quarto use template`" holds only for this template, because Quarto's own excludes differ and Quarto copies from GitHub — fix now: reworded.
+- diff-bug #4: if a developer renders `inst/template` in place, the renamed `README.md` is copied and the guide is lost — reject: false, because the help text does not claim to handle that case, which no workflow of this repo uses (tests render copies, `tests/testthat/helper-template.R`), and `git status` shows the renames.
+- diff-bug #5: the cleanup message does not check that `unlink()` worked — reject: false in practice, as settled in pass 1 (diff-bug #6).
+- diff-bug #6: no test makes `file.copy()` or a `dir.create()` inside an existing `path` fail — fix now.
+- diff-bug #7: two tests compare with the live template listing, so a stray `.DS_Store` in `inst/template` fails them — fix now: compare with the hard-written list only.
+- diff-bug #8: "If both exist" in the help text does not name the second file — fix now.
+- diff-bug #9: no length limits on the owner (39) and the name (100) — fix now.
+- diff-bug #10: a broken link as a parent of `path` gives `supplement_error_write`, which the help's example does not name — reject: false, because the help gives one example, not a list, and the class is right.
+- diff-bug #11: messages show the path without its trailing `/` while the return value keeps it — reject: style.
+- diff-bug #12: README line wrap — reject: style.
+- diff-bug #13: Windows links are not caught — follow-up: already in the "Windows check" row since pass 1.
+- blame-history #1: the README's "render the site once" line follows the Quarto block, so it reads as Quarto-only — fix now.
+- blame-history #2: the `.Rbuildignore` line would drop a committed `_freeze/` under `inst/template` — reject: false, because the template ships no frozen output by design; a site's `_freeze/` (D-002) lives in the author's site, not in the template.
+- prior-review #1: no test of a copy that fails partway — fix now, same fix as diff-bug #6.
+- prior-review #2: the trailing-slash test does not cover an existing folder — fix now.
