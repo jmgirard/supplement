@@ -53,7 +53,7 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - [x] T2: Write an internal helper that inserts one item at the end of a block-style YAML list as text. It finds the list by its key path, reads the indent of the items, double-quotes and escapes each string, and keeps the file's other lines. Test it directly against the AC4 fixture files, because its logic stands apart from the two callers.
 - [x] T3: Write `add_report()` in `R/add-report.R`, with tests for AC2 and its AC5 cases. Check every argument and the menu before the first write.
 - [x] T4: Write `add_data()` in `R/add-data.R`, with tests for AC3 and its AC5 cases. Check every argument and `_supplement.yml` before the copy.
-- [ ] T5: Add the AC6 render test. Reuse the skip helpers in `tests/testthat/helper-template.R`, so that the test skips without Quarto, knitr, or rmarkdown.
+- [x] T5: Add the AC6 render test. Reuse the skip helpers in `tests/testthat/helper-template.R`, so that the test skips without Quarto, knitr, or rmarkdown.
 - [ ] T6: Add roxygen documentation with examples that write to `tempdir()`, and run `devtools::document()`. Describe both functions in the README, and add a NEWS.md entry for them and for the home page listing.
 
 ## Work log
@@ -78,3 +78,4 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - 2026-10-18: T3 done: add_report() in R/add-report.R, shared checks in R/add-utils.R, shared test helpers moved to helper-files.R; tests cover the AC2 probes, AC4 shapes for _quarto.yml, and the AC5 add_report() cases. Suite 976 pass, 0 skip.
 - 2026-10-18: T4 implementation choices: new subclasses `supplement_error_no_file`, `_file_name`, `_already_listed`, `_no_data_list`, plus reused `_argument`, `_line_break`, `_no_metadata`, `_file_exists`. A file counts as already in `data/` when `normalizePath()` of it equals that of `data/<base name>`. The already-listed check strips leading `./` from listed `file` values. The description may be empty.
 - 2026-10-18: T4 done: add_data() in R/add-data.R; tests cover the AC3 probes with a byte-for-byte copy, the no-copy route, AC4 shapes for _supplement.yml, and the AC5 add_data() cases. Suite 1127 pass, 0 skip.
+- 2026-10-18: T5 done: tests/testthat/test-add-render.R renders a create_supplement() site after add_report() and add_data(), and finds the listing row, the data table row, and the navbar link; it skips through skip_if_no_quarto(). 7 expectations pass.
