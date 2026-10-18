@@ -69,6 +69,15 @@ test_that(".gitignore blocks fit files and keeps published output", {
   ignored <- git_in(site$dir, c("check-ignore", "analyses/fits/m.rds", "x.rds"))
   expect_setequal(ignored$output, c("analyses/fits/m.rds", "x.rds"))
 
+  # The fits folder is ignored as a whole, saved R objects are ignored in any
+  # letter case, and the negations for docs/ do not re-include them.
+  objects <- c(
+    "analyses/fits/m.json", "docs/data/x.rds", "_freeze/x/a.rds",
+    "m.RDS", "m.Rda", "m.Rdata", "m.RData", "m.qs", "m.qs2"
+  )
+  ignored_objects <- git_in(site$dir, c("-c", "core.ignorecase=false", "check-ignore", objects))
+  expect_setequal(ignored_objects$output, objects)
+
   kept <- git_in(
     site$dir,
     c("check-ignore", "_freeze/analyses/example/execute-results/html.json", "docs/index.html", "data/example.csv")
@@ -86,23 +95,33 @@ test_that("setup adds the template rules to an existing .gitignore", {
   expect_equal(run_in(dir, "quarto", "render")$status, 0L)
   kept <- readLines(file.path(dir, ".gitignore"))
   expect_equal(kept[1], "mine")
-  expect_true(all(c("*.rds", "analyses/fits/") %in% kept))
-  expect_equal(sum(kept == "*.rds"), 1L)
+  expect_true(all(c("*.[Rr][Dd][Ss]", "analyses/fits/") %in% kept))
+  expect_equal(sum(kept == "*.[Rr][Dd][Ss]"), 1L)
+  expect_equal(utils::tail(kept, 2), c("!docs/", "!_freeze/"))
   expect_false(file.exists(file.path(dir, "_gitignore")))
 })
 
-test_that("a docs/ rule in an existing .gitignore does not hide the site", {
-  skip_if_no_quarto()
-  skip_if_no_git()
+expect_site_not_ignored <- function(existing_gitignore) {
   dir <- withr::local_tempdir("site-")
   expect_equal(use_template(dir)$status, 0L)
-  # GitHub's R .gitignore template ignores docs/.
-  writeLines(c(".Rhistory", "docs/"), file.path(dir, ".gitignore"))
+  writeBin(charToRaw(existing_gitignore), file.path(dir, ".gitignore"))
 
   expect_equal(run_in(dir, "quarto", "render")$status, 0L)
   git_in(dir, c("init", "-q"))
   kept <- git_in(dir, c("check-ignore", "docs/index.html", "_freeze/analyses/example/execute-results/html.json"))
   expect_equal(kept$status, 1L)
+  expect_length(kept$output, 0)
+}
+
+test_that("a docs/ rule in an existing .gitignore does not hide the site", {
+  skip_if_no_quarto()
+  skip_if_no_git()
+  # GitHub's R .gitignore template ignores docs/.
+  expect_site_not_ignored(".Rhistory\ndocs/\n")
+  # Windows line endings and no final newline.
+  expect_site_not_ignored(".Rhistory\r\ndocs/")
+  # A negation that comes before a later docs/ rule.
+  expect_site_not_ignored("!docs/\n!_freeze/\ndocs/\n_freeze/\n")
 })
 
 test_that("fit files stay ignored when git init comes before the first render", {
@@ -125,6 +144,22 @@ test_that("setup keeps an existing README.md and writes the guide beside it", {
 
   expect_equal(run_in(dir, "quarto", "render")$status, 0L)
   expect_equal(readLines(file.path(dir, "README.md")), "my readme")
-  expect_true(file.exists(file.path(dir, "SUPPLEMENT.md")))
+  expect_equal(
+    readLines(file.path(dir, "SUPPLEMENT.md")),
+    readLines(file.path(template_dir(), "_README.md"))
+  )
+  expect_false(file.exists(file.path(dir, "_README.md")))
+})
+
+test_that("setup keeps both files when README.md and SUPPLEMENT.md exist", {
+  skip_if_no_quarto()
+  dir <- withr::local_tempdir("site-")
+  expect_equal(use_template(dir)$status, 0L)
+  writeLines("my readme", file.path(dir, "README.md"))
+  writeLines("my supplement", file.path(dir, "SUPPLEMENT.md"))
+
+  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
+  expect_equal(readLines(file.path(dir, "README.md")), "my readme")
+  expect_equal(readLines(file.path(dir, "SUPPLEMENT.md")), "my supplement")
   expect_false(file.exists(file.path(dir, "_README.md")))
 })

@@ -19,9 +19,9 @@ clone of a new GitHub repository, run:
 quarto use template jmgirard/supplement/inst/template
 ```
 
-In a folder that is not empty, such as a clone, Quarto asks whether to put
-the site in a new subdirectory. Answer no. GitHub Pages serves `docs/` only
-at the top of the repository.
+Quarto asks whether to put the site in a new subdirectory. In a folder that
+is not empty, such as a clone, the default answer is yes, so type `n`.
+GitHub Pages serves `docs/` only at the top of the repository.
 
 Then render the site once, before your first commit:
 
@@ -34,9 +34,9 @@ The first render writes the template's rules into `.gitignore`. If
 first render also writes the template's guide to `README.md`. If the folder
 already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. If
 both files exist, no guide is written. The template ships these files as `_gitignore` and `_README.md`, because
-`quarto use template` does not copy those file names. The new `README.md` explains how the site
-renders, how to render on the machine that holds private data, and how to
-publish.
+`quarto use template` does not copy those file names. The guide explains how
+the site renders, how to render on the machine that holds private data, and
+how to publish.
 
 ## License
 

@@ -27,13 +27,17 @@ run_in <- function(dir, command, args, env = character()) {
   list(status = attr(out, "status") %||% 0L, output = out)
 }
 
-# Run git without the user's global excludes file, so that only the
-# repository's own .gitignore decides what is ignored.
+# Run git without the user's global or system configuration and without a
+# global excludes file, so that only the repository's own .gitignore
+# decides what is ignored.
 git_in <- function(dir, args) {
-  empty <- tempfile("excludes-")
+  empty <- tempfile("gitconfig-")
   file.create(empty)
   on.exit(unlink(empty))
-  run_in(dir, "git", c("-c", paste0("core.excludesFile=", shQuote(empty)), args))
+  withr::with_envvar(
+    c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1"),
+    run_in(dir, "git", c("-c", paste0("core.excludesFile=", shQuote(empty)), args))
+  )
 }
 
 # Make a new folder from the template without rendering it.
@@ -60,6 +64,9 @@ rendered_site <- local({
 
 site_copy <- function(env = parent.frame()) {
   site <- rendered_site()
+  if (site$used$status != 0L || site$rendered$status != 0L) {
+    fail(paste(c("Building the site from the template failed:", site$rendered$output), collapse = "\n"))
+  }
   dest <- withr::local_tempdir("site-copy-", .local_envir = env)
   file.copy(list.files(site$dir, all.files = TRUE, no.. = TRUE, full.names = TRUE),
             dest, recursive = TRUE)

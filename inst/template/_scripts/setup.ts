@@ -5,7 +5,9 @@
 //
 // When `.gitignore` already exists (Quarto writes one in a git repository
 // before this script runs), the template's lines that it lacks are appended,
-// so the ignore rules for fitted models are never lost. An existing
+// so the ignore rules for fitted models are never lost. The file then ends
+// with `!docs/` and `!_freeze/`, because in git the last matching rule wins,
+// so an earlier `docs/` rule cannot keep the site out of git. An existing
 // README.md is kept as it is, and the template's README becomes
 // SUPPLEMENT.md instead. If SUPPLEMENT.md also exists, the template's
 // README is removed and no guide is written.
@@ -21,15 +23,22 @@ function exists(path: string): boolean {
   }
 }
 
+const keepLast = ["!docs/", "!_freeze/"];
+
 function mergeLines(src: string, dest: string) {
   const current = Deno.readTextFileSync(dest);
   const have = new Set(current.split(/\r?\n/));
-  const missing = Deno.readTextFileSync(src)
+  const add = Deno.readTextFileSync(src)
     .split(/\r?\n/)
-    .filter((line) => line.trim() !== "" && !have.has(line));
-  if (missing.length > 0) {
+    .filter((line) => line.trim() !== "" && !have.has(line) && !keepLast.includes(line));
+
+  const lines = current.split(/\r?\n/).concat(add).filter((line) => line.trim() !== "");
+  const tail = lines.slice(-keepLast.length);
+  if (tail.join("\n") !== keepLast.join("\n")) add.push(...keepLast);
+
+  if (add.length > 0) {
     const sep = current.endsWith("\n") || current === "" ? "" : "\n";
-    Deno.writeTextFileSync(dest, current + sep + missing.join("\n") + "\n");
+    Deno.writeTextFileSync(dest, current + sep + add.join("\n") + "\n");
   }
 }
 

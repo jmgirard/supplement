@@ -39,7 +39,11 @@ Quarto runs two scripts in `_scripts/` on each render. They need no R.
 - `setup.ts` runs before the render. On the first render it renames
   `_gitignore` to `.gitignore` and `_README.md` to `README.md`, because
   `quarto use template` does not copy those names. When `.gitignore` already
-  exists, it adds the rules that it lacks. When `README.md` already exists,
+  exists, it adds the rules that it lacks. It then ends the file with
+  `!docs/` and `!_freeze/`, so an earlier `docs/` rule cannot hide the
+  site. These
+  two lines cannot undo a rule such as `docs/*` or `*.html`. Remove such a
+  rule by hand. When `README.md` already exists,
   it writes this guide to `SUPPLEMENT.md` instead. If both files exist, it
   writes no guide.
 - `nojekyll.ts` runs after the render and writes `docs/.nojekyll`, so that
@@ -69,9 +73,12 @@ code reads them as `file.path("fits", ...)`.
 Never publish a build that ran with the data deleted. It drops the data
 files from `docs/`, so the download links break.
 
-Share open data as CSV or another plain format in `data/`. `.gitignore`
-blocks `.rds`, `.rda`, `.RData`, and `.qs` files everywhere, because saved
-R objects such as fitted models can embed the data.
+Every file in `data/` is published on the site. Share open data as CSV or
+another plain format there, and keep private data out of the folder.
+`.gitignore` blocks `.rds`, `.rda`, `.RData`, `.qs`, and `.qs2` files
+everywhere, in any letter case. Saved R objects such as fitted models can
+embed the data. Such a file in `data/` is copied to `docs/` but
+never committed, so its download link breaks.
 
 ## Stable figures
 
