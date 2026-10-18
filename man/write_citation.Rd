@@ -7,69 +7,71 @@
 write_citation(path = ".", overwrite = FALSE)
 }
 \arguments{
-\item{path}{The folder that holds `_supplement.yml`.}
+\item{path}{The folder that holds \verb{_supplement.yml}.}
 
-\item{overwrite}{If `TRUE`, replace an existing file.}
+\item{overwrite}{If \code{TRUE}, replace an existing file.}
 }
 \value{
 The path of the written file, invisibly.
 }
 \description{
-`write_citation()` reads `_supplement.yml` in `path` and writes a
-`CITATION.cff` file (Citation File Format 1.2.0) into the same folder.
+\code{write_citation()} reads \verb{_supplement.yml} in \code{path} and writes a
+\code{CITATION.cff} file (Citation File Format 1.2.0) into the same folder.
 GitHub reads this file to show a citation for the repository.
 }
 \details{
 The file holds:
-
-* `title`: "Supplemental materials for: " and `paper-title`.
-* `authors`: each author's `family` and `given` names, ORCID iD, and
-  affiliation, in the order of `_supplement.yml`.
-* `doi`: `zenodo.concept-doi`, which names every release. When it is
-  empty, `zenodo.version-doi`. A `doi:`, `https://doi.org/`, or
-  `http://dx.doi.org/` in front is removed.
-* `license`: the SPDX identifiers in `license.code` and
-  `license.content`.
+\itemize{
+\item \code{title}: "Supplemental materials for: " and \code{paper-title}.
+\item \code{authors}: each author's \code{family} and \code{given} names, ORCID iD, and
+affiliation, in the order of \verb{_supplement.yml}.
+\item \code{doi}: \code{zenodo.concept-doi}, which names every release. When it is
+empty, \code{zenodo.version-doi}. A \verb{doi:}, \verb{https://doi.org/}, or
+\verb{http://dx.doi.org/} in front is removed.
+\item \code{license}: the SPDX identifiers in \code{license.code} and
+\code{license.content}.
+}
 
 Empty values are left out. In each value, every run of spaces and line
 breaks becomes one space, and spaces at the start and end are removed.
 Every value is written in double quotes. Values are otherwise written as
-they are, so Markdown such as `*Journal*` keeps its asterisks. YAML reads
-some values without quotes as numbers or as true/false, for example `No`
-or `1.10`. Such a value is an error, so put it in quotes in
-`_supplement.yml`, as the template does.
+they are, so Markdown such as \verb{*Journal*} keeps its asterisks. YAML reads
+some values without quotes as numbers or as true/false, for example \code{No}
+or \code{1.10}. Such a value is an error, so put it in quotes in
+\verb{_supplement.yml}, as the template does.
 }
 \section{Errors}{
 
-A `_supplement.yml` that is not valid YAML gives the error of the YAML
+A \verb{_supplement.yml} that is not valid YAML gives the error of the YAML
 parser. The errors that these functions raise themselves have the class
-`supplement_error` and one of these classes:
-
-* `supplement_error_argument`: `path` is not a single non-missing,
-  non-empty character string, or `overwrite` is not `TRUE` or `FALSE`.
-* `supplement_error_no_metadata`: `path` has no `_supplement.yml`.
-* `supplement_error_no_map`: the file has no `supplement:` map.
-* `supplement_error_missing_field`: `paper-title` is missing or empty.
-  For [write_zenodo()], also `citation`.
-* `supplement_error_field_type`: a value that the function reads is a
-  list (a one-item list included), a number, or true/false where one
-  text value belongs, or `license` (and, for [write_citation()],
-  `zenodo`) is not a map.
-* `supplement_error_doi`: for [write_citation()], `zenodo.concept-doi`
-  or `zenodo.version-doi`, with its prefix removed, is not `10.`, four
-  to nine digits, `/`, and a suffix with no spaces.
-* `supplement_error_authors`: `authors` is missing, empty, or not a list
-  of authors.
-* `supplement_error_author_name`: an author has no `family` or no
-  `given` name.
-* `supplement_error_orcid`: an ORCID iD does not have the form
-  `0000-0000-0000-0000`, with or without `https://orcid.org/` or
-  `http://orcid.org/` in front,
-  or its last character is not the iD's check digit. The last character
-  can be `X`.
-* `supplement_error_file_exists`: the output file (or a link with its
-  name) exists and `overwrite` is `FALSE`, or a folder has the output
-  file's name.
+\code{supplement_error} and one of these classes:
+\itemize{
+\item \code{supplement_error_argument}: \code{path} is not a single non-missing,
+non-empty character string, or \code{overwrite} is not \code{TRUE} or \code{FALSE}.
+\item \code{supplement_error_no_metadata}: \code{path} has no \verb{_supplement.yml}.
+\item \code{supplement_error_no_map}: the file has no \verb{supplement:} map.
+\item \code{supplement_error_missing_field}: \code{paper-title} is missing or empty.
+For \code{\link[=write_zenodo]{write_zenodo()}}, also \code{citation}.
+\item \code{supplement_error_field_type}: a value that the function reads is a
+list (a one-item list included), a number, or true/false where one
+text value belongs, or \code{license} (and, for \code{\link[=write_citation]{write_citation()}},
+\code{zenodo}) is not a map.
+\item \code{supplement_error_doi}: for \code{\link[=write_citation]{write_citation()}}, \code{zenodo.concept-doi}
+or \code{zenodo.version-doi}, with its prefix removed, is not \code{10.}, four
+to nine digits, \code{/}, and a suffix with no spaces.
+\item \code{supplement_error_authors}: \code{authors} is missing, empty, or not a list
+of authors.
+\item \code{supplement_error_author_name}: an author has no \code{family} or no
+\code{given} name.
+\item \code{supplement_error_orcid}: an ORCID iD does not have the form
+\code{0000-0000-0000-0000}, with or without \verb{https://orcid.org/} or
+\verb{http://orcid.org/} in front,
+or its last character is not the iD's check digit. The last character
+can be \code{X}.
+\item \code{supplement_error_file_exists}: the output file (or a link with its
+name) exists and \code{overwrite} is \code{FALSE}, or a folder has the output
+file's name.
+}
 }
 
 \examples{
@@ -84,5 +86,5 @@ readLines(file.path(site, "CITATION.cff"))
 unlink(site, recursive = TRUE)
 }
 \seealso{
-[write_zenodo()] for `.zenodo.json`.
+\code{\link[=write_zenodo]{write_zenodo()}} for \code{.zenodo.json}.
 }

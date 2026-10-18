@@ -1,16 +1,21 @@
 # Read and check the `supplement:` map in `_supplement.yml`.
 
 check_args <- function(path, overwrite, call = parent.frame()) {
-  if (!is.character(path) || length(path) != 1 || is.na(path) || !nzchar(path)) {
+  check_path(path, call = call)
+  if (!isTRUE(overwrite) && !isFALSE(overwrite)) {
     cli::cli_abort(
-      "{.arg path} must be one folder path, given as a single string.",
+      "{.arg overwrite} must be {.code TRUE} or {.code FALSE}.",
       class = c("supplement_error_argument", "supplement_error"),
       call = call
     )
   }
-  if (!isTRUE(overwrite) && !isFALSE(overwrite)) {
+  invisible()
+}
+
+check_path <- function(path, call = parent.frame()) {
+  if (!is.character(path) || length(path) != 1 || is.na(path) || !nzchar(path)) {
     cli::cli_abort(
-      "{.arg overwrite} must be {.code TRUE} or {.code FALSE}.",
+      "{.arg path} must be one folder path, given as a single string.",
       class = c("supplement_error_argument", "supplement_error"),
       call = call
     )
@@ -228,11 +233,8 @@ check_overwrite <- function(file, overwrite, call = parent.frame()) {
       call = call
     )
   }
-  # file.exists() is FALSE for a link whose target is missing, and
-  # writing would follow the link.
-  link <- Sys.readlink(file)
-  exists <- file.exists(file) || (!is.na(link) && nzchar(link))
-  if (exists && !isTRUE(overwrite)) {
+  # Writing would follow a link, even one whose target is missing.
+  if (path_occupied(file) && !isTRUE(overwrite)) {
     cli::cli_abort(
       c("{.file {file}} already exists.",
         "i" = "Use {.code overwrite = TRUE} to replace it."),
@@ -241,6 +243,18 @@ check_overwrite <- function(file, overwrite, call = parent.frame()) {
     )
   }
   invisible(file)
+}
+
+# TRUE for each path that holds a file, a folder, or a link.
+# file.exists() is FALSE for a link whose target is missing, and
+# Sys.readlink() is NA for a path that does not exist.
+path_occupied <- function(paths) {
+  file.exists(paths) | is_link(paths)
+}
+
+is_link <- function(paths) {
+  link <- Sys.readlink(paths)
+  !is.na(link) & nzchar(link)
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x

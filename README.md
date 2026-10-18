@@ -12,8 +12,25 @@ The package is in early development.
 ## Start a new site
 
 You need the [Quarto](https://quarto.org) command-line interface, and R
-with the knitr and rmarkdown packages. In a new, empty folder, or in a
-clone of a new GitHub repository, run:
+with the knitr and rmarkdown packages, to render the site. You can make
+the site folder from R or from Quarto.
+
+From R, install the package from GitHub with `pak::pak("jmgirard/supplement")`.
+Then run:
+
+```r
+supplement::create_supplement("my-supplement", repo = "owner/name")
+```
+
+The first argument is the folder for the site. It can be a new folder or a
+clone of a new GitHub repository. `repo` is the GitHub repository, which
+the function writes into the site's GitHub links. You can leave it out and
+edit the `OWNER` and `REPO` placeholders in `_quarto.yml` and `_README.md`
+yourself. If the folder already holds a file that the template writes, the
+function stops and writes nothing.
+
+From Quarto, in a new, empty folder or in a clone of a new GitHub
+repository, run:
 
 ```
 quarto use template jmgirard/supplement/inst/template
@@ -23,7 +40,8 @@ Quarto asks whether to put the site in a new subdirectory. In a folder that
 is not empty, such as a clone, the default answer is yes, so type `n`.
 GitHub Pages serves `docs/` only at the top of the repository.
 
-Then render the site once, before your first commit:
+With either route, render the site once in its folder before your first
+commit:
 
 ```
 quarto render
