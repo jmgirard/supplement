@@ -1,13 +1,13 @@
 # M002: Pilot render on the data machine and data-free rebuild
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** M001
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — an unmerged proof branch of a companion repo that informs template extraction
-- **Branch/PR:** —
+- **Branch/PR:** m002-pilot-render-check; companion: /Users/jmgirard/github/pilot-ptsd-markers freeze-layout (not merged, no PR)
 
 ## Goal
 
@@ -38,8 +38,8 @@ Show that the pilot site, after one full render on the machine that holds the fi
 
 ## Tasks
 
-- [ ] T1: Stop for the user: on the data machine, follow the branch README section, run a full `quarto render`, then commit and push `_freeze/` and `docs/`.
-- [ ] T2: Fetch origin's `freeze-layout` and run the AC1 listing.
+- [x] T1: Stop for the user: on the data machine, follow the branch README section, run a full `quarto render`, then commit and push `_freeze/` and `docs/`.
+- [x] T2: Fetch origin's `freeze-layout` and run the AC1 listing.
 - [ ] T3: Clone it into the scratchpad, delete `data/*.csv`, run a full `quarto render`, then run the AC2 and AC3 checks.
 - [ ] T4: Ask the user what went wrong on the data machine and write each problem as a `data-machine report:` work-log line. Add those entries and the new path list to the pilot-port note.
 
@@ -50,6 +50,8 @@ Show that the pilot site, after one full render on the machine that holds the fi
 - 2026-10-18: question set: renders of the model reports and demographics happen on the machine that built v1.1.0, with its existing fits and private data.
 - 2026-10-18: question set: branch fate — push only, no merge.
 - 2026-10-18: criteria audit (reduced mode, Opus): AC1 to AC3 passed. AC4 had no record to check against and an undefined "refreshed". Fixed with `data-machine report:` lines and a named diff command.
+- 2026-10-18: T1 done by the user: commit dddad4a "Render all reports" on origin `freeze-layout`, pushed after comparing the demographics page with the live page. Origin `main` still 54684dc. The commit kept `docs/` cleaned of the old `_files/` and `docs/src/` copies.
+- 2026-10-18: T2 done: on origin `freeze-layout`, `_freeze/analyses/` holds 1 file each for demographics and feature_descriptives and 12 each for the three model reports. No CR characters in `_freeze/`. The only backslashes are the default Windows data paths already in the demographics source.
 
 ## Decisions
 
