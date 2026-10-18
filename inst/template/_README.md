@@ -23,6 +23,18 @@ title links to the report's page. To add a report, put its `.qmd` file in
 `analyses/` with a `title` and a `description`. Then add a link to it under
 `Analyses` in the navbar in `_quarto.yml`.
 
+The supplement R package does these steps for you. Run these in R from
+this folder:
+
+```r
+supplement::add_report("models", "Model Comparison", "Fits and compares the models.")
+supplement::add_data("path/to/scores.csv", "Scores of each participant")
+```
+
+`add_report()` writes `analyses/models.qmd` and adds it to the Analyses
+menu. `add_data()` copies the file into `data/` and adds it to the `data`
+list in `_supplement.yml`.
+
 ## Paper facts in `_supplement.yml`
 
 `_supplement.yml` holds the facts about the paper under one `supplement`
