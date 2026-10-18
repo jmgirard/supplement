@@ -143,7 +143,7 @@ add_data <- function(file, description, path = ".") {
   if (is_link(target) || any(is_link(file.path(folder, match))) ||
       (length(match) > 0 && !all(is_file)) || (path_occupied(target) && !same)) {
     cli::cli_abort(
-      c("{.file data/{base}} already exists in {.path {path}} and is not {.path {file}}, or is a link.",
+      c("{.file data/{base}}, or a file in {.file data/} whose name differs from it only in letter case, already exists in {.path {path}} and is not {.path {file}}, or is a link.",
         "i" = "Rename the file, or remove the one in {.file data/}. Nothing was written."),
       class = c("supplement_error_file_exists", "supplement_error")
     )
