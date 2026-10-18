@@ -70,8 +70,38 @@ local function cell(content)
   return { pandoc.Plain(content) }
 end
 
+-- Quarto replaces the global `error` with a function that only prints a
+-- message, so the render would go on. `assert` still raises an error,
+-- which stops the render.
+local function stop(message)
+  assert(false, message)
+end
+
+local function is_folder(path)
+  return (pcall(pandoc.system.list_directory, path))
+end
+
+-- Opening a file needs only read access, so this works in a read-only
+-- folder too.
 local function exists(path)
-  return os.rename(path, path) ~= nil
+  local handle = io.open(path, "rb")
+  if handle ~= nil then
+    handle:close()
+    return true
+  end
+  return is_folder(path)
+end
+
+-- A metadata value as inlines. A folded or block YAML string arrives as
+-- blocks, and a number or `true` arrives as a plain Lua value.
+local function as_inlines(value)
+  local kind = pandoc.utils.type(value)
+  if kind == "Inlines" then
+    return value
+  elseif kind == "Blocks" then
+    return pandoc.utils.blocks_to_inlines(value)
+  end
+  return pandoc.Inlines(pandoc.utils.stringify(value))
 end
 
 -- Paths in _supplement.yml are relative to the project folder. Quarto
@@ -105,19 +135,24 @@ local function data_table(args, kwargs, meta)
   local rows = {}
   for _, entry in ipairs(entries) do
     local file = as_written(pandoc.utils.stringify(entry["file"] or ""), offset)
-    local size = file ~= "" and file_size(pandoc.path.join({ root, file })) or nil
+    local path = pandoc.path.join({ root, file })
+    if file ~= "" and is_folder(path) then
+      stop("supplement-data-table: '" .. file .. "' is a folder, not a file (listed under supplement.data in _supplement.yml)")
+    end
+    local size = file ~= "" and file_size(path) or nil
     if size == nil then
-      error("supplement-data-table: data file not found: '" .. file .. "' (listed under supplement.data in _supplement.yml)")
+      stop("supplement-data-table: data file not found: '" .. file .. "' (listed under supplement.data in _supplement.yml)."
+        .. " Quarto reads the value as Markdown, so characters such as * _ ^ ' -- and ... can change a file name.")
     end
     local href = offset == "." and file or (offset .. "/" .. file)
     local link = pandoc.Link(
       { pandoc.Code(pandoc.path.filename(file)) },
       href, "", pandoc.Attr("", {}, { { "download", "" } })
     )
-    local description = entry["description"] or ""
+    local description = as_inlines(entry["description"] or "")
     local text = pandoc.utils.stringify(description)
     local written = as_written(text, offset)
-    if type(description) == "string" or written ~= text then
+    if written ~= text then
       description = pandoc.Inlines(written)
     end
     table.insert(rows, { cell({ link }), cell(description), cell(format_size(size)) })

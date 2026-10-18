@@ -1,10 +1,12 @@
 # Helpers for tests that build a site from the template with the Quarto CLI.
 
-skip_if_no_quarto <- function() {
+skip_if_no_quarto <- function(needs_r = TRUE) {
   skip_on_cran()
   skip_if(Sys.which("quarto") == "", "quarto is not on PATH")
-  skip_if_not_installed("knitr")
-  skip_if_not_installed("rmarkdown")
+  if (needs_r) {
+    skip_if_not_installed("knitr")
+    skip_if_not_installed("rmarkdown")
+  }
 }
 
 skip_if_no_git <- function() {

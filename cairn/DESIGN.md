@@ -40,8 +40,8 @@ Status and order live in `ROADMAP.md`.
 ## Conventions
 
 - Pure R, with no compiled code (chosen at init, 2026-10-18). This covers
-  package code. The template may carry Quarto TypeScript scripts that need
-  no R (D-004).
+  package code. The template may carry Quarto TypeScript scripts (D-004)
+  and a Quarto Lua extension (M004), which need no R.
 - One metadata file (`_supplement.yml`) is the single source for citation,
   authors, ORCIDs, DOIs, and licenses. `CITATION.cff` and `.zenodo.json`
   are generated from it.

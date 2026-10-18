@@ -51,11 +51,18 @@ The home page shows the values with these shortcodes:
 If you turn on Zenodo's GitHub integration for this repository, Zenodo
 gives the DOIs after the next GitHub release. The version DOI names
 one release, and the concept DOI names every release. Add them and the
-archive link to `_supplement.yml`, then render the site again.
+archive link to `_supplement.yml`, then render the site again. Write each
+DOI without `https://doi.org/`, for example `10.5281/zenodo.1234567`.
 
-If a file under `data` does not exist, the render stops with an error that
-names the file. A site without its data files must not be published.
-Quarto copies each file that the table links into `docs/`.
+If a file under `data` does not exist, or names a folder, the render stops
+with an error that names it. A site without its data files must not be
+published. Quarto copies each file that the table links into `docs/`.
+
+Quarto reads each value in `_supplement.yml` as Markdown, so some
+characters in a file name change before the shortcode sees it. For
+example, `a--b.csv` becomes `a–b.csv` and `_raw_.csv` becomes `raw.csv`.
+Use file names made of letters, digits, `.`, `-`, and `_`, with no two of
+those symbols in a row.
 
 The shortcodes come from the extension in `_extensions/supplement/`. Commit
 that folder with the rest of the site.

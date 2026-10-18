@@ -17,7 +17,7 @@ render_doi_page <- function(zenodo) {
 }
 
 test_that("the DOI badge shows the version DOI, then the concept DOI", {
-  skip_if_no_quarto()
+  skip_if_no_quarto(needs_r = FALSE)
 
   both <- render_doi_page(zenodo_yaml(version = "10.5281/zenodo.222", concept = "10.5281/zenodo.111"))
   expect_equal(both$status, 0L)
@@ -30,7 +30,7 @@ test_that("the DOI badge shows the version DOI, then the concept DOI", {
 })
 
 test_that("empty DOI and archive values render nothing", {
-  skip_if_no_quarto()
+  skip_if_no_quarto(needs_r = FALSE)
 
   empty <- render_doi_page(zenodo_yaml())
   expect_equal(empty$status, 0L)
@@ -39,7 +39,7 @@ test_that("empty DOI and archive values render nothing", {
 })
 
 test_that("the download link points at the archive", {
-  skip_if_no_quarto()
+  skip_if_no_quarto(needs_r = FALSE)
 
   url <- "https://zenodo.org/records/12345"
   page <- render_doi_page(zenodo_yaml(archive = url))
@@ -70,7 +70,7 @@ write_size_fixture <- function(path, bytes) {
 }
 
 test_that("the data table lists each file with its size and a page-relative link", {
-  skip_if_no_quarto()
+  skip_if_no_quarto(needs_r = FALSE)
 
   size_files <- sprintf("sizes/f%s.bin", names(size_cases))
   files <- c("data/example.csv", size_files)
@@ -108,7 +108,7 @@ test_that("the data table lists each file with its size and a page-relative link
 })
 
 test_that("a description that names a folder is shown as written on a subfolder page", {
-  skip_if_no_quarto()
+  skip_if_no_quarto(needs_r = FALSE)
 
   # Quarto rewrites a metadata value that names an existing path, so on a
   # page in analyses/ the description "data" would arrive as "../data".
@@ -125,8 +125,59 @@ test_that("a description that names a folder is shown as written on a subfolder 
   expect_equal(rows[[1]][2], "data")
 })
 
+test_that("a folded YAML description is shown as one line of text", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  dir <- shortcode_site(
+    c("data:", '  - file: "data/example.csv"', "    description: >", "      Scores from the",
+      "      example study", '  - file: "data/example.csv"', "    description: true"),
+    list("index.qmd" = "{{< supplement-data-table >}}")
+  )
+  dir.create(file.path(dir, "data"))
+  file.copy(file.path(template_dir(), "data", "example.csv"), file.path(dir, "data"))
+
+  rendered <- run_split(dir, "quarto", "render")
+  expect_equal(rendered$status, 0L, info = rendered$stderr)
+  rows <- data_table_rows(read_text(file.path(dir, "docs", "index.html")))
+  expect_length(rows, 2)
+  expect_equal(rows[[1]][2], "Scores from the example study")
+  expect_equal(rows[[2]][2], "true")
+})
+
+test_that("data files in a read-only folder are found from a subfolder page", {
+  skip_if_no_quarto(needs_r = FALSE)
+  skip_on_os("windows")
+
+  dir <- shortcode_site(
+    data_yaml("data/example.csv"),
+    list("analyses/page.qmd" = "{{< supplement-data-table >}}")
+  )
+  dir.create(file.path(dir, "data"))
+  file.copy(file.path(template_dir(), "data", "example.csv"), file.path(dir, "data"))
+  Sys.chmod(file.path(dir, "data"), "0555")
+  withr::defer(Sys.chmod(file.path(dir, "data"), "0755"))
+
+  rendered <- run_split(dir, "quarto", "render")
+  expect_equal(rendered$status, 0L, info = rendered$stderr)
+  rows <- data_table_rows(read_text(file.path(dir, "docs", "analyses", "page.html")))
+  expect_length(rows, 1)
+  expect_match(rows[[1]][1], 'href="../data/example.csv"', fixed = TRUE)
+})
+
+test_that("a folder listed as a data file stops the render", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  dir <- shortcode_site(data_yaml("data"), list("index.qmd" = "{{< supplement-data-table >}}"))
+  dir.create(file.path(dir, "data"))
+  file.copy(file.path(template_dir(), "data", "example.csv"), file.path(dir, "data"))
+
+  rendered <- run_split(dir, "quarto", "render")
+  expect_true(rendered$status != 0L)
+  expect_match(rendered$stderr, "supplement-data-table: 'data' is a folder, not a file", fixed = TRUE)
+})
+
 test_that("a missing data file stops the render and names the file", {
-  skip_if_no_quarto()
+  skip_if_no_quarto(needs_r = FALSE)
 
   dir <- shortcode_site(
     data_yaml(c("data/example.csv", "data/not_here_42.csv")),
@@ -140,6 +191,8 @@ test_that("a missing data file stops the render and names the file", {
   expect_true(rendered$status != 0L)
   expect_match(rendered$stderr, "supplement-data-table: data file not found: 'data/not_here_42.csv'",
                fixed = TRUE)
+  # The shortcode itself stops the render, not a later Lua error.
+  expect_no_match(rendered$stderr, "attempt to", fixed = TRUE)
 })
 
 test_that("values set in _supplement.yml reach the home page", {
@@ -162,7 +215,7 @@ test_that("values set in _supplement.yml reach the home page", {
 })
 
 test_that("the template home page reads its values from _supplement.yml", {
-  skip_if_no_quarto()
+  skip_if_no_quarto(needs_r = FALSE)
 
   index <- read_text(file.path(template_dir(), "index.qmd"))
   yml <- file.path(template_dir(), "_supplement.yml")

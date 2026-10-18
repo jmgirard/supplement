@@ -24,13 +24,16 @@ supplement:
   # With Zenodo's GitHub integration turned on for the repository, Zenodo
   # gives these after the next GitHub release. version-doi names one
   # release, and concept-doi names all of them. The badge shows version-doi,
-  # or concept-doi when version-doi is empty.
+  # or concept-doi when version-doi is empty. Write a DOI without
+  # "https://doi.org/", for example "10.5281/zenodo.1234567".
   zenodo:
     version-doi: ""
     concept-doi: ""
     archive-url: ""
   # Files for the data table on the home page. Paths are relative to this
-  # folder. A file that does not exist stops the render.
+  # folder. A file that does not exist stops the render. Use file names
+  # made of letters, digits, ".", "-", and "_", with no two of those
+  # symbols in a row, because Quarto reads each value as Markdown.
   data:
     - file: data/example.csv
       description: "Example data for the example report"

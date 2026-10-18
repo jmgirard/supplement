@@ -9,11 +9,10 @@ subtitle: "{{< meta supplement.paper-title >}}"
 Run `quarto render` once in this folder. The first render adds the
 template's rules to `.gitignore`, which keep fitted models and other large
 files out of git. It also writes the template's guide to `README.md`. If a
-`README.md` already exists, the guide goes to `SUPPLEMENT.md`. Then delete
-this box.
+`README.md` already exists, the guide goes to `SUPPLEMENT.md`.
 
 Put the paper title, citation, DOIs, and data files in `_supplement.yml`.
-This page reads them from there.
+This page reads them from there. Then delete this box.
 :::
 
 This site hosts the supplemental analysis reports, code, and data for:
