@@ -83,6 +83,31 @@ Both functions add lines to these files as text, so the other lines and
 the comments stay as they are. If a function cannot find the menu or the
 list, it stops, writes nothing, and shows the lines to add by hand.
 
+## Check a site before a release
+
+In R, run this function in the site folder:
+
+```r
+supplement::check_supplement()
+```
+
+`check_supplement()` changes no file. It prints each problem that it finds
+and returns the problems as a data frame, with one row per problem. It
+finds:
+
+- files larger than GitHub's limit of 100 MiB
+- saved R objects, such as `.rds` files, that git tracks or does not ignore
+- reports with code and no stored output in `_freeze/`
+- a site with no `docs/` folder
+- links in `docs/` to files that are not in the site
+- DOIs in `CITATION.cff` or on the home page that differ from
+  `_supplement.yml`
+
+It checks only links inside the site. For the
+file size and saved object checks, it reads the file list from git. When
+git cannot run or the folder is not in a git repository, it skips those two
+checks and says so.
+
 ## License
 
 MIT. See `LICENSE.md`.

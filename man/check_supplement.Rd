@@ -16,8 +16,8 @@ zero rows when the function finds no problem. Its \code{skipped} attribute
 names the checks that did not run.
 }
 \description{
-\code{check_supplement()} looks for problems that would break a release of a
-site or publish files that should stay private. It changes no file. It
+\code{check_supplement()} looks for problems that can break a release of a
+site or publish files that must stay private. It changes no file. It
 prints each problem it finds and returns all of them as a data frame.
 }
 \details{
@@ -30,7 +30,7 @@ or \code{.qs2}, in any letter case). A fitted model saved this way can hold
 the data it was fitted to.
 \item \code{"no-stored-output"}: a report in \verb{analyses/} with an R, Python, or
 Julia code chunk and no stored output in \verb{_freeze/}. A full render
-would run its code, which needs the data.
+then runs its code, which needs the data.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
 \item \code{"broken-link"}: a link on a page in \verb{docs/} to a file or folder that
 is not in \verb{docs/}. Only links inside the site are checked, and no web
@@ -43,8 +43,8 @@ address is requested.
 \verb{_supplement.yml} has a DOI, also counts.
 }
 
-The first two checks look at the files that git tracks or would add,
-which \verb{git ls-files --cached --others --exclude-standard} lists, so files
+The first two checks look at the files that git tracks or does not
+ignore, which \verb{git ls-files --cached --others --exclude-standard} lists, so files
 that \code{.gitignore} blocks are left out. For these two checks the function
 runs git, but only to read the file list. When git is not on the PATH,
 cannot run, or the folder is not in a git repository, it skips these two

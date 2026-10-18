@@ -1,7 +1,7 @@
 #' Check a supplement site before a release
 #'
-#' `check_supplement()` looks for problems that would break a release of a
-#' site or publish files that should stay private. It changes no file. It
+#' `check_supplement()` looks for problems that can break a release of a
+#' site or publish files that must stay private. It changes no file. It
 #' prints each problem it finds and returns all of them as a data frame.
 #'
 #' The checks, by the value in the `check` column:
@@ -13,7 +13,7 @@
 #'   the data it was fitted to.
 #' * `"no-stored-output"`: a report in `analyses/` with an R, Python, or
 #'   Julia code chunk and no stored output in `_freeze/`. A full render
-#'   would run its code, which needs the data.
+#'   then runs its code, which needs the data.
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: a link on a page in `docs/` to a file or folder that
 #'   is not in `docs/`. Only links inside the site are checked, and no web
@@ -25,8 +25,8 @@
 #'   `{{< supplement-doi >}}` but that shows no badge, while
 #'   `_supplement.yml` has a DOI, also counts.
 #'
-#' The first two checks look at the files that git tracks or would add,
-#' which `git ls-files --cached --others --exclude-standard` lists, so files
+#' The first two checks look at the files that git tracks or does not
+#' ignore, which `git ls-files --cached --others --exclude-standard` lists, so files
 #' that `.gitignore` blocks are left out. For these two checks the function
 #' runs git, but only to read the file list. When git is not on the PATH,
 #' cannot run, or the folder is not in a git repository, it skips these two
@@ -126,7 +126,7 @@ git_run <- function(args, dir) {
   list(status = status, stdout = bytes)
 }
 
-# The files in `path` that git tracks or would add, as paths relative to
+# The files in `path` that git tracks or does not ignore, as paths relative to
 # `path`, or NULL with the reason when git cannot list them.
 git_files <- function(path) {
   version <- git_run("--version", path)

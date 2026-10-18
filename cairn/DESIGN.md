@@ -72,6 +72,13 @@ the first write, and refuse a linked `analyses/` or `data/` folder.
 `R/yaml-insert.R` adds a list item as lines of text, so comments stay
 (D-010); it re-reads the result with the yaml package before any write.
 `R/add-utils.R` holds the checks the two share.
+`R/check-supplement.R`: `check_supplement()` changes no file and returns
+its problems as a data frame (`check`, `file`, `problem`), with a
+`skipped` attribute. Its file size and saved-object checks read `git
+ls-files -z --cached --others --exclude-standard` through `git_run()`, the
+package's one place that starts a process. Its link check reads quoted
+`href` and `src` values in `docs/**/*.html` with a regular expression and
+resolves each link by path segments inside `docs/`.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in

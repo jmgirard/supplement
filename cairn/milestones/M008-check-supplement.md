@@ -50,7 +50,7 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - [x] T3: Write the git helper and the sweep, with the AC2 and AC3 checks. Cite GitHub's file size page in a code comment beside the limit.
 - [x] T4: Write the stored-output check and the link check. Do the link check in base R, with no HTML package.
 - [x] T5: Write the DOI check. Reuse `bare_doi()` from `R/supplement-yml.R` and read `CITATION.cff` with the yaml package.
-- [ ] T6: Add roxygen documentation with an example that writes to `tempdir()`, and run `devtools::document()`. Describe the function in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
+- [x] T6: Add roxygen documentation with an example that writes to `tempdir()`, and run `devtools::document()`. Describe the function in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
 
 ## Work log
 
@@ -74,3 +74,4 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: implement chose to resolve each link by its path segments inside `docs/` rather than with `normalizePath()`, so a `../` above `docs/` is broken without a file system read; a percent decoder in base R avoids importing utils.
 - 2026-10-18: `bare_doi()` gained a `file` argument, so an invalid DOI in `CITATION.cff` or the badge names that file; an unreadable `CITATION.cff` stops with the yaml package's error.
 - 2026-10-18: planted defects turned the new tests red: limit `>=`, no `-z`, no Python, no indent, case-sensitive DOIs, no shortcode test, no percent decoding, `href` only, and `..` dropped above `docs/`. The last needed a `docs/outside.html` fixture before it failed.
+- 2026-10-18: T6 done: help page, README and `_README.md` sections, NEWS entry, DESIGN Architecture paragraph. `devtools::test()` 1349 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
