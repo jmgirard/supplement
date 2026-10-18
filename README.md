@@ -38,6 +38,10 @@ both files exist, no guide is written. The template ships these files as `_gitig
 the site renders, how to render on the machine that holds private data, and
 how to publish.
 
+Put the paper title, citation, Zenodo DOIs, and data files in
+`_supplement.yml`. The home page reads them from that file. The guide
+lists the values and describes the shortcodes that show them.
+
 ## License
 
 MIT. See `LICENSE.md`.

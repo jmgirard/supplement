@@ -1,0 +1,39 @@
+# Facts about the paper and this site. The home page shows the title,
+# citation, contact, Zenodo values, and data files, so edit them here and
+# not in index.qmd. No page shows preprint, license, or authors yet; the
+# license names in the page footer are set in _quarto.yml. Values are
+# Markdown, so *Journal* gives italics. Leave a value as "" until you have
+# it.
+supplement:
+  paper-title: "Title of the paper"
+  citation: "Author, A. A., & Author, B. B. (Year). Title of the paper. *Journal Name*."
+  # A link to the preprint, if there is one.
+  preprint: ""
+  contact: "Your Name, Your Institution. Your email address."
+  # SPDX license identifiers. LICENSE.md and LICENSE-CC-BY.md hold the texts.
+  license:
+    code: "MIT"
+    content: "CC-BY-4.0"
+  authors:
+    - name: "A. A. Author"
+      orcid: ""
+      affiliation: ""
+    - name: "B. B. Author"
+      orcid: ""
+      affiliation: ""
+  # With Zenodo's GitHub integration turned on for the repository, Zenodo
+  # gives these after the next GitHub release. version-doi names one
+  # release, and concept-doi names all of them. The badge shows version-doi,
+  # or concept-doi when version-doi is empty. Write a DOI without
+  # "https://doi.org/", for example "10.5281/zenodo.1234567".
+  zenodo:
+    version-doi: ""
+    concept-doi: ""
+    archive-url: ""
+  # Files for the data table on the home page. Paths are relative to this
+  # folder. A file that does not exist stops the render. Use file names
+  # made of letters, digits, ".", "-", and "_", with no two of those
+  # symbols in a row, because Quarto reads each value as Markdown.
+  data:
+    - file: data/example.csv
+      description: "Example data for the example report"

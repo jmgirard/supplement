@@ -15,6 +15,11 @@ project:
   pre-render: _scripts/setup.ts
   post-render: _scripts/nojekyll.ts
 
+# Facts about the paper (title, citation, DOIs, data files) that every page
+# can read.
+metadata-files:
+  - _supplement.yml
+
 execute:
   freeze: true
 

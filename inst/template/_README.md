@@ -10,8 +10,62 @@ Website: https://OWNER.github.io/REPO/
 - `analyses/`: Quarto source files (`.qmd`), one per report
 - `data/`: shared data files
 - `_freeze/`: stored output of each report, so the site rebuilds without running report code
+- `_supplement.yml`: facts about the paper, such as its title, citation, DOIs, and data files
 - `index.qmd`, `_quarto.yml`: website source
+- `_extensions/supplement/`: the shortcodes that show the DOI badge, the download link, and the data table
 - `docs/`: rendered website, served by GitHub Pages
+
+## Paper facts in `_supplement.yml`
+
+`_supplement.yml` holds the facts about the paper under one `supplement`
+key: the paper title, the citation, a preprint link, a contact line, the
+licenses, the authors, the Zenodo DOIs and archive link, and the data
+files. `_quarto.yml` loads the file with `metadata-files`, so every page can
+read its values. The home page shows the title, the citation, the
+contact, the Zenodo values, and the data files. Change them in
+`_supplement.yml`, not in `index.qmd`. No page shows the preprint,
+license, or author values yet. The license names in the page footer are
+set in `_quarto.yml`. Values are Markdown, so `*Journal Name*` shows in
+italics.
+
+The home page shows the values with these shortcodes:
+
+- `{{< meta supplement.paper-title >}}` and
+  `{{< meta supplement.citation >}}` show the paper title and the citation.
+  The same form shows any other single value, for example
+  `{{< meta supplement.contact >}}` or
+  `{{< meta supplement.license.code >}}`. It does not show the `authors`
+  list or the `license` group as a whole.
+- `{{< supplement-doi >}}` shows a Zenodo DOI badge that links to
+  `https://doi.org/` and the DOI. It uses `zenodo.version-doi`. When that
+  value is empty, it uses `zenodo.concept-doi`. When both are empty, it
+  shows nothing.
+- `{{< supplement-download >}}` shows a link to `zenodo.archive-url`. When
+  that value is empty, it shows nothing.
+- `{{< supplement-data-table >}}`, on a line by itself, shows a table with
+  one row for each entry under `data`: the file name as a download link,
+  the description, and the file size. Sizes use 1 KB = 1000 bytes. Write
+  each `file` relative to this folder, for example `data/example.csv`. The
+  table works on any page, and its links are relative to that page.
+
+If you turn on Zenodo's GitHub integration for this repository, Zenodo
+gives the DOIs after the next GitHub release. The version DOI names
+one release, and the concept DOI names every release. Add them and the
+archive link to `_supplement.yml`, then render the site again. Write each
+DOI without `https://doi.org/`, for example `10.5281/zenodo.1234567`.
+
+If a file under `data` does not exist, or names a folder, the render stops
+with an error that names it. A site without its data files must not be
+published. Quarto copies each file that the table links into `docs/`.
+
+Quarto reads each value in `_supplement.yml` as Markdown, so some
+characters in a file name change before the shortcode sees it. For
+example, `a--b.csv` becomes `a–b.csv` and `_raw_.csv` becomes `raw.csv`.
+Use file names made of letters, digits, `.`, `-`, and `_`, with no two of
+those symbols in a row.
+
+The shortcodes come from the extension in `_extensions/supplement/`. Commit
+that folder with the rest of the site.
 
 ## How the site renders
 

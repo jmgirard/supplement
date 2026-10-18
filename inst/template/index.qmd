@@ -1,6 +1,6 @@
 ---
 title: "Supplemental Materials"
-subtitle: "Paper Title Goes Here"
+subtitle: "{{< meta supplement.paper-title >}}"
 ---
 
 ::: {.callout-important}
@@ -9,18 +9,23 @@ subtitle: "Paper Title Goes Here"
 Run `quarto render` once in this folder. The first render adds the
 template's rules to `.gitignore`, which keep fitted models and other large
 files out of git. It also writes the template's guide to `README.md`. If a
-`README.md` already exists, the guide goes to `SUPPLEMENT.md`. Then delete
-this box.
+`README.md` already exists, the guide goes to `SUPPLEMENT.md`.
+
+Put the paper title, citation, DOIs, and data files in `_supplement.yml`.
+This page reads them from there. Then delete this box.
 :::
 
 This site hosts the supplemental analysis reports, code, and data for:
 
-> Author, A. A., & Author, B. B. (Year). Title of the paper. *Journal Name*.
+> {{< meta supplement.citation >}}
 
 ## Archived Version
 
-A frozen, citable copy of these materials is archived on Zenodo. Add the
-DOI here after the first GitHub release.
+A frozen, citable copy of these materials is archived on Zenodo. The DOI
+badge and the download link show here after you add the values under
+`zenodo` in `_supplement.yml`.
+
+{{< supplement-doi >}} {{< supplement-download >}}
 
 ## Analysis Reports
 
@@ -33,10 +38,8 @@ The source files (`.qmd`) are in the `analyses/` folder of the repository.
 
 ## Data Availability
 
-| File | Contents |
-|---|---|
-| [`example.csv`](data/example.csv) | Example data for the example report |
+{{< supplement-data-table >}}
 
 ## Contact
 
-Your Name, Your Institution. Your email address.
+{{< meta supplement.contact >}}

@@ -44,3 +44,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** The template tests render the example report, which needs knitr and rmarkdown, and skip without them. Packages that tests use belong in DESCRIPTION.
 **Decision:** DESCRIPTION lists knitr and rmarkdown under Suggests. The user granted this at the M003 merge gate.
 **Consequences:** No package is added to Imports. Users of the template still need knitr and rmarkdown to render R reports.
+
+### D-008 (2026-10-18): A missing data file stops the render
+
+**Context:** The pilot showed that a build without `data/` drops the download files from `docs/` (pilot-port P8), and P8's disposition left the guard to a later release check. The template's data table now lists each data file from `_supplement.yml`.
+**Decision:** The `supplement-data-table` shortcode stops the render when a listed file is missing or is a folder, and names it. The user chose this at the M004 plan gate over a table row marked as missing.
+**Consequences:** A clone without its listed data files no longer renders, so a data-free rebuild is no longer a test of the full site. A site whose data files are fetched after the render would need another approach. The release check can still look for the same problem.

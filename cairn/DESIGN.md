@@ -40,8 +40,8 @@ Status and order live in `ROADMAP.md`.
 ## Conventions
 
 - Pure R, with no compiled code (chosen at init, 2026-10-18). This covers
-  package code. The template may carry Quarto TypeScript scripts that need
-  no R (D-004).
+  package code. The template may carry Quarto TypeScript scripts (D-004)
+  and a Quarto Lua extension (M004), which need no R.
 - One metadata file (`_supplement.yml`) is the single source for citation,
   authors, ORCIDs, DOIs, and licenses. `CITATION.cff` and `.zenodo.json`
   are generated from it.
@@ -68,8 +68,15 @@ jmgirard/supplement/inst/template`.
   D-006).
 - `_scripts/nojekyll.ts` (post-render): writes `.nojekyll` into the output
   folder.
-- `index.qmd`, `analyses/example.qmd`, `data/example.csv`, and license files
-  are starter content for the author to replace.
+- `_supplement.yml`: the `supplement:` map (title, citation, authors,
+  licenses, Zenodo DOIs, data files), loaded through `metadata-files`.
+- `_extensions/supplement/supplement.lua`: shortcodes `supplement-doi`,
+  `supplement-download`, and `supplement-data-table`. Quarto rewrites any
+  metadata value that names an existing path to be page-relative, so the
+  data table undoes that for each file and description.
+- `index.qmd` reads its paper facts from `_supplement.yml`.
+  `analyses/example.qmd`, `data/example.csv`, and license files are starter
+  content for the author to replace.
 
 Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when quarto is missing.
