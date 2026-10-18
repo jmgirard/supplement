@@ -91,6 +91,7 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - 2026-10-18: checkpoint: claim audit 2 corrections applied (any letter-case match in `data/` that is not `file` stops; names with `_` at both ends refused, which also fixes blame-history #3, so it left the "YAML insert edge shapes" row; three wording fixes). The auditor's re-read is pending. Suite 1267 pass, 1 skip (the case-sensitive disk test).
 - 2026-10-18: claim audit: 125 claims read, 5 corrected — R/add-data.R, R/add-report.R (the letter-case rule now checks every match, names with `_` at both ends are refused, the `.gitignore` wording, "and any folder it made", the file_exists message in the two-file case); the same reader confirmed each on its re-read, the twin case on a case-sensitive disk image.
 - 2026-10-18: implement done after review return 1; status review. Suite 1266 pass, 1 skip.
+- 2026-10-18: step-7 approval: m007-add-report-data approved for merge
 
 ## Review
 
