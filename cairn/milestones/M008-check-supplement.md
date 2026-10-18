@@ -223,3 +223,5 @@ Review pass 3 findings. spawned: diff-bug, blame-history, prior-review. No findi
 - prior-review #2: an unreadable `index.qmd` skips the missing-badge row, and its test asserts only no error — reject, planned: the test turned red on the planted crash it guards, and an unreadable source gives no shortcode to test.
 - prior-review #3: "Render it by name, then commit _freeze/" may not clear the row — reject, false: `quarto render analyses/example.qmd` on a new site wrote `_freeze/analyses/example/execute-results/html.json`, and the check then gave zero rows.
 - prior-review #4: hidden folders under `docs/` — reject, already recorded in "link check false positives".
+
+Every pass-3 fix-now item above: fixed 2751805.
