@@ -160,3 +160,19 @@ test_that("a bad repo stops and leaves no new folder", {
   expect_error(create_supplement(existing, repo = "no slash"), class = "supplement_error_repo")
   expect_identical(folder_state(existing), before)
 })
+
+test_that("a site made with repo renders", {
+  skip_if_no_quarto()
+  site <- file.path(withr::local_tempdir(), "site")
+  expect_message(create_supplement(site, repo = "jdoe/my-supplement"), "Made a supplement site")
+
+  rendered <- run_in(site, "quarto", "render")
+  expect_equal(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  expect_true(file.exists(file.path(site, "docs", "index.html")))
+  expect_true(file.exists(file.path(site, "docs", ".nojekyll")))
+  expect_true(file.exists(file.path(site, ".gitignore")))
+  expect_match(
+    quarto_header(read_text(file.path(site, "docs", "index.html"))),
+    "https://github.com/jdoe/my-supplement", fixed = TRUE
+  )
+})
