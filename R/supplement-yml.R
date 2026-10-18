@@ -207,8 +207,9 @@ orcid_check_digit <- function(id) {
 
 # Return the DOI without a "doi:" or http(s)://(dx. or www.)doi.org/
 # prefix, in any letter case, or NULL. A DOI that does not then start
-# with "10." and a registrant code is an error.
-bare_doi <- function(doi, field, call = parent.frame()) {
+# with "10." and a registrant code is an error that names `field` in
+# `file`.
+bare_doi <- function(doi, field, file = "_supplement.yml", call = parent.frame()) {
   if (is.null(doi)) {
     return(NULL)
   }
@@ -216,7 +217,7 @@ bare_doi <- function(doi, field, call = parent.frame()) {
               ignore.case = TRUE, perl = TRUE)
   if (!grepl("^10\\.[0-9]{4,9}/\\S+$", bare, perl = TRUE)) {
     cli::cli_abort(
-      c("{.field {field}} in {.file _supplement.yml} is not a DOI: {.val {doi}}.",
+      c("{.field {field}} in {.file {file}} is not a DOI: {.val {doi}}.",
         "i" = "Write it as {.val 10.5281/zenodo.1234567}."),
       class = c("supplement_error_doi", "supplement_error"),
       call = call

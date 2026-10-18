@@ -1,13 +1,13 @@
 # M008: check_supplement() lists release problems
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — a new exported R function
-- **Branch/PR:** —
+- **Branch/PR:** m008-check-supplement
 
 ## Goal
 
@@ -45,11 +45,11 @@ Export `check_supplement()`, which lists the problems in a site that would break
 
 ## Tasks
 
-- [ ] T1: Write `tests/testthat/test-check-supplement.R` with the fixtures that AC1 to AC6 name. Build git fixtures with `git_in()` and `skip_if_no_git()` from `tests/testthat/helper-template.R`, and reuse `rendered_site()` for the rendered case. Make `skip_if_no_git()` also skip when `git --version` fails.
-- [ ] T2: Write `R/check-supplement.R` with the exported function, the result frame, the printed report, and the argument and metadata errors. Reuse `check_path()` and `read_supplement()` from `R/supplement-yml.R`.
-- [ ] T3: Write the git helper and the sweep, with the AC2 and AC3 checks. Cite GitHub's file size page in a code comment beside the limit.
-- [ ] T4: Write the stored-output check and the link check. Do the link check in base R, with no HTML package.
-- [ ] T5: Write the DOI check. Reuse `bare_doi()` from `R/supplement-yml.R` and read `CITATION.cff` with the yaml package.
+- [x] T1: Write `tests/testthat/test-check-supplement.R` with the fixtures that AC1 to AC6 name. Build git fixtures with `git_in()` and `skip_if_no_git()` from `tests/testthat/helper-template.R`, and reuse `rendered_site()` for the rendered case. Make `skip_if_no_git()` also skip when `git --version` fails.
+- [x] T2: Write `R/check-supplement.R` with the exported function, the result frame, the printed report, and the argument and metadata errors. Reuse `check_path()` and `read_supplement()` from `R/supplement-yml.R`.
+- [x] T3: Write the git helper and the sweep, with the AC2 and AC3 checks. Cite GitHub's file size page in a code comment beside the limit.
+- [x] T4: Write the stored-output check and the link check. Do the link check in base R, with no HTML package.
+- [x] T5: Write the DOI check. Reuse `bare_doi()` from `R/supplement-yml.R` and read `CITATION.cff` with the yaml package.
 - [ ] T6: Add roxygen documentation with an example that writes to `tempdir()`, and run `devtools::document()`. Describe the function in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
 
 ## Work log
@@ -68,3 +68,9 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: inbox sweep: no open issues or pull requests.
 - 2026-10-18: criteria audit (full mode, fresh Opus reader) returned 11 findings across M008 and M009, 6 on M008. Fixed all: AC1 adds a `skipped` attribute and the invalid-DOI stop; AC2 reads `ls-files -z`, so non-ASCII names match, with a `données.rds` probe; AC3 widens its process search to `pipe(`, `callr`, and `sys::`; AC4 matches indented and longer fences by one pattern and probes Python, a callout, and `{rust}`; AC5 adds subfolder pages; AC6 passes both sides through `bare_doi()` and limits the missing-badge row to sites that use the shortcode. The reader confirmed the 100 MiB limit, the freeze path, and the `ls-files` options.
 - 2026-10-18: lessons applied: the git on PATH here fails until the Xcode license is accepted, so the git helper treats a failing `git --version` as no git (T1, AC3); a test file of 100 MiB is made sparse, after the M004 lesson on large fixtures; trailing separators are dropped before file checks (M006).
+- 2026-10-18: started implement on branch m008-check-supplement.
+- 2026-10-18: T1–T5 done in one checkpoint, since the five checks share one file. `devtools::test()`: 1349 pass, 0 fail, 1 skip (case-insensitive disk), run with `/opt/homebrew/bin` first on PATH because `/usr/bin/git` fails here.
+- 2026-10-18: implement chose `git_run(args, dir)` as the one process helper; it returns NULL when git is not on the PATH, so one mock covers all three skip cases. It runs git with the folder as the working directory, not with `git -C`, so every call is one of the AC3 commands.
+- 2026-10-18: implement chose to resolve each link by its path segments inside `docs/` rather than with `normalizePath()`, so a `../` above `docs/` is broken without a file system read; a percent decoder in base R avoids importing utils.
+- 2026-10-18: `bare_doi()` gained a `file` argument, so an invalid DOI in `CITATION.cff` or the badge names that file; an unreadable `CITATION.cff` stops with the yaml package's error.
+- 2026-10-18: planted defects turned the new tests red: limit `>=`, no `-z`, no Python, no indent, case-sensitive DOIs, no shortcode test, no percent decoding, `href` only, and `..` dropped above `docs/`. The last needed a `docs/outside.html` fixture before it failed.

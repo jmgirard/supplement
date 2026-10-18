@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M007 done and archived, M004 row pruned, scaffo
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M008 | check_supplement() lists release problems | planned | — | high | milestones/M008-check-supplement.md |
+| M008 | check_supplement() lists release problems | in-progress | — | high | milestones/M008-check-supplement.md |
 | M009 | release_supplement() raises the version and prints release commands | planned | M008 | high | milestones/M009-release-supplement.md |
 | M007 | add_report() and add_data() list new site files | done | M006 | high | milestones/archive/M007-add-report-data.md |
 | M006 | create_supplement() makes a site from the template | done | — | high | milestones/archive/M006-create-supplement.md |
