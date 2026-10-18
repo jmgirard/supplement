@@ -3,29 +3,6 @@ data_path <- list("supplement", "data")
 menu_item <- c(href = "analyses/new.qmd", text = "New \"report\": #1")
 data_item <- c(file = "data/new.csv", description = "New data, \\ and '")
 
-# Check that `after` is `before` with one run of lines added, and return
-# the added lines.
-added_lines <- function(before, after) {
-  n <- length(after) - length(before)
-  expect_gt(n, 0)
-  i <- which(c(after[seq_along(before)] != before, TRUE))[1]
-  expect_identical(after[-seq.int(i, i + n - 1)], before)
-  after[seq.int(i, i + n - 1)]
-}
-
-# The list at `path` in YAML text, read with the yaml package.
-yaml_list <- function(lines, path) {
-  doc <- yaml::yaml.load(paste(lines, collapse = "\n"))
-  for (step in path) {
-    doc <- if (is.character(step)) {
-      doc[[step]]
-    } else {
-      Filter(function(x) identical(x[[step$key]], step$value), doc)[[1]]
-    }
-  }
-  doc
-}
-
 expect_appended <- function(before, path, item, n_lines = length(item)) {
   after <- yaml_append_lines(before, path, item)
   expect_length(added_lines(before, after), n_lines)

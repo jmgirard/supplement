@@ -1,19 +1,3 @@
-# The relative paths and bytes of every file and folder under `dir`, or
-# NULL when `dir` does not exist.
-folder_state <- function(dir) {
-  if (!file.exists(dir)) {
-    return(NULL)
-  }
-  if (!dir.exists(dir)) {
-    return(list(file = readBin(dir, "raw", file.size(dir))))
-  }
-  paths <- sort(list.files(dir, recursive = TRUE, all.files = TRUE, no.. = TRUE, include.dirs = TRUE))
-  lapply(stats::setNames(paths, paths), function(p) {
-    full <- file.path(dir, p)
-    if (dir.exists(full)) "<folder>" else readBin(full, "raw", file.size(full))
-  })
-}
-
 # The template's files as git tracks them, written out here so that the
 # test does not take its expectation from the folder that the function
 # copies.
@@ -23,8 +7,6 @@ template_tracked <- c(
   "_gitignore", "_quarto.yml", "_scripts/nojekyll.ts", "_scripts/setup.ts",
   "_supplement.yml", "analyses/example.qmd", "data/example.csv", "index.qmd"
 )
-
-read_bytes <- function(path) readBin(path, "raw", file.size(path))
 
 # The whole file as one string, line endings and final newline kept.
 read_raw_text <- function(path) rawToChar(read_bytes(path))
