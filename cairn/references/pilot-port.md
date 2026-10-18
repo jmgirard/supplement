@@ -299,7 +299,7 @@ No problems came from the data-machine render: the user reported none, so this s
 - P3 → closed by the data-machine render, as M002 shows.
 - P4, P5, and P6 → the "template extraction" candidate row: the template `_quarto.yml`, `index.qmd`, and `.gitignore` take these forms.
 - P7 → the "template extraction" candidate row: the template README carries the fit check and the narrow `git add`.
-- P9, P10, and P11 → the "template extraction" candidate row: the template README tells authors to seed random draws in reports, to publish from one machine, and how to keep a page out of search.
+- P9, P10, and P11 → the "template extraction" candidate row. The template README tells authors to seed random draws and to publish from one machine. It also shows how to keep a page out of search.
 - P8 → the "release checks" candidate row: `check_supplement()` refuses to publish a build that lacks the data files `index.qmd` links to.
 
 ## Open questions
