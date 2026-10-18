@@ -99,6 +99,7 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: claim audit: 52 claims read, 4 corrected — R/check-supplement.R, man/check_supplement.Rd, README.md, NEWS.md, inst/template/_README.md, tests/testthat/test-check-supplement.R. The first was a T8 regression: catching every warning from `read_yaml()` made a valid `CITATION.cff` with no final line break read as unreadable; it now reads through `read_page_text()` and `yaml.load()` with warnings muffled, with a test that the planted regression turns red. The others: the `%2F` comment, "not in a git work tree" in place of "not in a git repository", and the unreadable page and `CITATION.cff` cases in the README, `_README.md`, and NEWS lists. The re-read found all four correct.
 - 2026-10-18: implement done; status review. `devtools::test()` 1378 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - 2026-10-18: review pass 3 on 50295a7: 19 findings, none a criterion failure, so no return (defect returns stay at 2). Six fix-now items committed on the branch; `devtools::test()` 1381 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes. Follow-ups went to "link check false positives", "release check edge cases", and the new rows "YAML parse errors" and "testthat floor".
+- 2026-10-18: step-7 approval: m008-check-supplement approved for merge
 
 ## Review
 
