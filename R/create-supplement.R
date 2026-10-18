@@ -1,20 +1,22 @@
 #' Make a new supplement site from the template
 #'
 #' `create_supplement()` copies the package's Quarto website template into
-#' `path`. It copies the same files as `quarto use template
-#' jmgirard/supplement/inst/template`, but it needs no Quarto command-line
+#' `path`. It is an R route in place of `quarto use template
+#' jmgirard/supplement/inst/template`: it copies the template that is
+#' installed with the package, and it needs no Quarto command-line
 #' interface and no network.
 #'
 #' `path` can be a new folder or an existing one, such as a clone of a new
-#' GitHub repository. The function never replaces a file: if `path` already
-#' holds a file or a folder where the template writes a file, or a file
-#' where the template needs a folder, it stops before it writes anything.
+#' GitHub repository. The function never replaces a file and never follows
+#' a link: if `path` already holds a file, a folder, or a link where the
+#' template writes a file, or a file or a link where the template needs a
+#' folder, it stops before it writes anything.
 #'
 #' The template ships `_gitignore` and `_README.md` under those names. The
 #' first `quarto render` gives them their real names, and that render adds
 #' the template's rules to an existing `.gitignore`. If `README.md` exists,
-#' the render writes the guide to `SUPPLEMENT.md` instead. If both exist,
-#' it writes no guide. Render the site once before your first commit.
+#' the render writes the guide to `SUPPLEMENT.md` instead. If `README.md`
+#' and `SUPPLEMENT.md` both exist, it writes no guide. Render the site once before your first commit.
 #'
 #' Hidden files and folders in the template folder are not copied, and
 #' neither are `docs`, `_freeze`, or `_site` folders at its top level,
@@ -38,15 +40,15 @@
 #' * `supplement_error_argument`: `path` is not a single non-missing,
 #'   non-empty character string.
 #' * `supplement_error_repo`: `repo` is not `NULL` or a single string of
-#'   the form `owner/name`. The owner must be ASCII letters and digits,
-#'   with single `-` between them. The name must be ASCII letters, digits,
-#'   `-`, `_`, and `.`, and must not be `.` or `..`.
+#'   the form `owner/name`. The owner must be 1 to 39 ASCII letters and
+#'   digits, with single `-` between them. The name must be 1 to 100 ASCII
+#'   letters, digits, `-`, `_`, and `.`, and must not be `.` or `..`.
 #' * `supplement_error_not_folder`: `path` is an existing file, or a link
 #'   whose target is missing. A `/` at the end of `path` does not change
 #'   this.
 #' * `supplement_error_file_exists`: `path` holds a file, a folder, or a
-#'   link where the template writes a file, or a file where the template
-#'   needs a folder.
+#'   link where the template writes a file, or a file or a link where the
+#'   template needs a folder.
 #' * `supplement_error_write`: a folder could not be made, a file could not
 #'   be copied, or the repository could not be written into a copied file,
 #'   for example because a parent of `path` is a file. The function then
@@ -93,12 +95,14 @@ create_supplement <- function(path, repo = NULL) {
   }
   for (file in files) {
     target <- file.path(path, file)
+    # A failed file.copy() can leave an empty file, so record the target
+    # first. The conflict check showed that nothing was there.
+    made <- c(made, target)
     # copy.mode = FALSE, so that the copies are writable even when the
     # package is installed read-only.
     if (!file.copy(file.path(template, file), target, overwrite = FALSE, copy.mode = FALSE)) {
       write_error("Could not copy {.file {file}} to {.path {path}}.")
     }
-    made <- c(made, target)
   }
   if (!is.null(repo)) {
     here <- environment()
@@ -162,7 +166,8 @@ check_repo <- function(repo, call = parent.frame()) {
   # GitHub owners are letters and digits with single hyphens between them.
   # Repository names are letters, digits, "-", "_", and ".", but not "."
   # or "..".
-  pattern <- "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*/(?!\\.\\.?$)[A-Za-z0-9._-]+$"
+  # GitHub allows at most 39 characters in an owner and 100 in a name.
+  pattern <- "^(?=[^/]{1,39}/[^/]{1,100}$)[A-Za-z0-9]+(-[A-Za-z0-9]+)*/(?!\\.\\.?$)[A-Za-z0-9._-]+$"
   if (!is.character(repo) || length(repo) != 1 || is.na(repo) ||
       !grepl(pattern, repo, perl = TRUE)) {
     cli::cli_abort(
@@ -197,11 +202,13 @@ check_conflicts <- function(path, files, folders, call = parent.frame()) {
   folder_targets <- file.path(path, folders)
   conflicts <- c(
     files[path_occupied(file_targets)],
-    folders[path_occupied(folder_targets) & !dir.exists(folder_targets)]
+    # A link to a folder would make the copy write outside `path`.
+    folders[path_occupied(folder_targets) &
+              (!dir.exists(folder_targets) | is_link(folder_targets))]
   )
   if (length(conflicts) > 0) {
     cli::cli_abort(
-      c("{.path {path}} already holds {cli::qty(length(conflicts))}{?a file/files} that the template writes: {.file {conflicts}}.",
+      c("{.path {path}} already holds something where the template writes: {.file {conflicts}}.",
         "i" = "Move {cli::qty(length(conflicts))}{?it/them} away or choose another folder. Nothing was written."),
       class = c("supplement_error_file_exists", "supplement_error"),
       call = call

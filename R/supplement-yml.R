@@ -249,8 +249,12 @@ check_overwrite <- function(file, overwrite, call = parent.frame()) {
 # file.exists() is FALSE for a link whose target is missing, and
 # Sys.readlink() is NA for a path that does not exist.
 path_occupied <- function(paths) {
+  file.exists(paths) | is_link(paths)
+}
+
+is_link <- function(paths) {
   link <- Sys.readlink(paths)
-  file.exists(paths) | (!is.na(link) & nzchar(link))
+  !is.na(link) & nzchar(link)
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x

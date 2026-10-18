@@ -22,20 +22,22 @@ you to edit.}
 }
 \description{
 \code{create_supplement()} copies the package's Quarto website template into
-\code{path}. It copies the same files as \verb{quarto use template jmgirard/supplement/inst/template}, but it needs no Quarto command-line
+\code{path}. It is an R route in place of \verb{quarto use template jmgirard/supplement/inst/template}: it copies the template that is
+installed with the package, and it needs no Quarto command-line
 interface and no network.
 }
 \details{
 \code{path} can be a new folder or an existing one, such as a clone of a new
-GitHub repository. The function never replaces a file: if \code{path} already
-holds a file or a folder where the template writes a file, or a file
-where the template needs a folder, it stops before it writes anything.
+GitHub repository. The function never replaces a file and never follows
+a link: if \code{path} already holds a file, a folder, or a link where the
+template writes a file, or a file or a link where the template needs a
+folder, it stops before it writes anything.
 
 The template ships \verb{_gitignore} and \verb{_README.md} under those names. The
 first \verb{quarto render} gives them their real names, and that render adds
 the template's rules to an existing \code{.gitignore}. If \code{README.md} exists,
-the render writes the guide to \code{SUPPLEMENT.md} instead. If both exist,
-it writes no guide. Render the site once before your first commit.
+the render writes the guide to \code{SUPPLEMENT.md} instead. If \code{README.md}
+and \code{SUPPLEMENT.md} both exist, it writes no guide. Render the site once before your first commit.
 
 Hidden files and folders in the template folder are not copied, and
 neither are \code{docs}, \verb{_freeze}, or \verb{_site} folders at its top level,
@@ -49,15 +51,15 @@ The errors that the function raises itself have the class
 \item \code{supplement_error_argument}: \code{path} is not a single non-missing,
 non-empty character string.
 \item \code{supplement_error_repo}: \code{repo} is not \code{NULL} or a single string of
-the form \code{owner/name}. The owner must be ASCII letters and digits,
-with single \code{-} between them. The name must be ASCII letters, digits,
-\code{-}, \verb{_}, and \code{.}, and must not be \code{.} or \code{..}.
+the form \code{owner/name}. The owner must be 1 to 39 ASCII letters and
+digits, with single \code{-} between them. The name must be 1 to 100 ASCII
+letters, digits, \code{-}, \verb{_}, and \code{.}, and must not be \code{.} or \code{..}.
 \item \code{supplement_error_not_folder}: \code{path} is an existing file, or a link
 whose target is missing. A \code{/} at the end of \code{path} does not change
 this.
 \item \code{supplement_error_file_exists}: \code{path} holds a file, a folder, or a
-link where the template writes a file, or a file where the template
-needs a folder.
+link where the template writes a file, or a file or a link where the
+template needs a folder.
 \item \code{supplement_error_write}: a folder could not be made, a file could not
 be copied, or the repository could not be written into a copied file,
 for example because a parent of \code{path} is a file. The function then
