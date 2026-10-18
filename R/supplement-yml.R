@@ -64,7 +64,7 @@ field_type_error <- function(field, what, call) {
 }
 
 # A single text value with outer spaces and line breaks removed, or NULL
-# when it is absent or empty.
+# when it is absent or empty. A list or several values is an error.
 value <- function(x, field, call = parent.frame()) {
   if (is_empty(x)) {
     return(NULL)
@@ -76,7 +76,7 @@ value <- function(x, field, call = parent.frame()) {
 }
 
 # A map such as `license` or `zenodo`, or an empty list when it is absent
-# or empty.
+# or empty. A value that is not a map is an error.
 map_field <- function(meta, name, call = parent.frame()) {
   x <- meta[[name]]
   if (is_empty(x)) {
@@ -180,7 +180,7 @@ orcid_check_digit <- function(id) {
   if (result == 10) "X" else as.character(result)
 }
 
-# Return the DOI without a "https://doi.org/" prefix, or NULL.
+# Return the DOI without an http(s)://(dx.)doi.org/ prefix, or NULL.
 bare_doi <- function(doi) {
   if (is.null(doi)) {
     return(NULL)

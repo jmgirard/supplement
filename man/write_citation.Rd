@@ -26,7 +26,8 @@ The file holds:
 * `authors`: each author's `family` and `given` names, ORCID iD, and
   affiliation, in the order of `_supplement.yml`.
 * `doi`: `zenodo.concept-doi`, which names every release. When it is
-  empty, `zenodo.version-doi`. A `https://doi.org/` in front is removed.
+  empty, `zenodo.version-doi`. A `https://doi.org/` or `http://dx.doi.org/` in
+  front is removed.
 * `license`: the SPDX identifiers in `license.code` and
   `license.content`.
 
@@ -42,15 +43,16 @@ A `_supplement.yml` that is not valid YAML gives the error of the YAML
 parser. The errors that these functions raise themselves have the class
 `supplement_error` and one of these classes:
 
-* `supplement_error_argument`: `path` is not one folder path, or
-  `overwrite` is not `TRUE` or `FALSE`.
+* `supplement_error_argument`: `path` is not a single non-missing
+  character string,
+  or `overwrite` is not `TRUE` or `FALSE`.
 * `supplement_error_no_metadata`: `path` has no `_supplement.yml`.
 * `supplement_error_no_map`: the file has no `supplement:` map.
 * `supplement_error_missing_field`: `paper-title` is missing or empty.
   For [write_zenodo()], also `citation`.
 * `supplement_error_field_type`: a value that the function reads is a
-  list where one text value belongs, or `license` or `zenodo` is not a
-  map.
+  list where one text value belongs, or `license` (and, for
+  [write_citation()], `zenodo`) is not a map.
 * `supplement_error_authors`: `authors` is missing, empty, or not a list
   of authors.
 * `supplement_error_author_name`: an author has no `family` or no

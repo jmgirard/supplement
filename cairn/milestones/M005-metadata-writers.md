@@ -1,6 +1,6 @@
 # M005: Metadata writers for CITATION.cff and .zenodo.json
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -79,6 +79,8 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 - 2026-10-18: review return 1: AC4 fails for a `_supplement.yml` whose top level is a scalar or a list of scalars (base `subscriptOutOfBoundsError`, not `supplement_error_no_map`; diff-bug #1). The fix-now findings of pass 1 (diff-bug #2-5, #7-9, #11, #14; prior-review #2) are fixed in the same return; see the Review section.
 - 2026-10-18: implement resumed for return 1; minor amendment: T8 (the return) and T9 (pass 1 fix-now findings) added, Coverage AC4 → T8.
 - 2026-10-18: T8-T9 done: top level checked as a map before indexing; new classes `supplement_error_argument` and `supplement_error_field_type`; ORCID check digit (ISO 7064 MOD 11-2; fixture ORCID changed to 0000-0002-1694-233X, a valid X iD); DOI prefix stripped; every CITATION.cff value double-quoted; values trimmed; folder with the output name refused; authors list-form message; DESIGN sentence fixed. An ORCID with outer spaces is now accepted after trimming, so that error-test input became "0000-0002-1825-0097 x". Planted defects, one each in a scratch copy, failing tests: map check removed 1; check digit skipped 8; DOI prefix kept 2; CFF unquoted 6; no trim 1; list keeps first item 13; non-map license accepted 1; argument check skipped 1; output-named folder accepted 1; list-form message lost 2. devtools::test() 0 failures.
+- 2026-10-18: claim audit: 25 claims read, 4 corrected — R/write-citation.R, R/supplement-yml.R (return 1 lines, diff 781c7d1..HEAD). Fixes: the DOI bullet names both stripped prefixes; `supplement_error_argument` says "a single non-missing character string"; `supplement_error_field_type` says only `write_citation()` reads `zenodo`; the `bare_doi()` comment names both prefixes. The `value()` and `map_field()` comments now name their errors. The same reader re-read them and found them correct. devtools::document() regenerated; devtools::check() 0/0/0.
+- 2026-10-18: implement complete after return 1; status set to review.
 
 ## Decisions
 
