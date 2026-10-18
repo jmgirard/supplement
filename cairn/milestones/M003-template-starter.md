@@ -148,3 +148,5 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - blame-history #5 (pass 2): the Windows path in `nojekyll.ts` has no test — follow-up: the "Windows check" row.
 - blame-history #6 (pass 2): the `_gitignore` comment says "elsewhere in this file" — reject, false: after the merge, GitHub's rules are in the same `.gitignore`.
 - blame-history #7 (pass 2): README.md says "The new README.md explains" when the guide may be SUPPLEMENT.md — fix now.
+- Pass 2 fixes: every pass-2 fix-now item, fixed 694ccfc. Tests: FAIL 0, SKIP 0, PASS 48; `devtools::check()` 0/0/0. Run on the old setup script and rules (78780ae) in a scratch copy, the new tests fail 5 times. The "Windows check" candidate row holds blame-history #3 and #5.
+- Return floor (pass 2): no finding shows a criterion failing. Defect returns so far: 1.
