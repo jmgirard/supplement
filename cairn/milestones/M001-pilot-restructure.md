@@ -25,12 +25,12 @@ Move pilot-ptsd-markers, on a branch, to one Quarto website project with freeze 
 
 ## Acceptance criteria
 
-- [ ] AC1: On branch `freeze-layout`, `git ls-files analyses` lists the five `analyses/<name>.qmd` files and no `.html` file or `_files/` path, and `git ls-files src` lists nothing.
-- [ ] AC2: `quarto inspect` at the pilot repo root reports `execute.freeze: true` and `project.output-dir: docs`.
-- [ ] AC3: After `quarto render analyses/feature_descriptives.qmd` at the repo root, `docs/analyses/feature_descriptives.html` matches `id="quarto-header"`. For each other `analyses/<name>.qmd` that `git ls-files 'analyses/*.qmd'` lists, the page also matches `href="[^"]*<name>\.html"`. `git ls-files _freeze/analyses/feature_descriptives` lists at least one file.
-- [ ] AC4: The branch README has a section for the data machine. It says that the existing fit files go in `analyses/fits/`, and it gives the render command, `quarto render` at the repo root.
-- [ ] AC5: `git ls-remote origin refs/heads/freeze-layout` prints the local branch HEAD, and `git ls-remote origin refs/heads/main` prints `54684dc` as the start of its hash.
-- [ ] AC6: `cairn/references/pilot-port.md` lists every path that `git diff --name-status main...freeze-layout` prints in the pilot repo, with its status letter. It has a Problems section in which each entry gives the problem and its fix.
+- [x] AC1: On branch `freeze-layout`, `git ls-files analyses` lists the five `analyses/<name>.qmd` files and no `.html` file or `_files/` path, and `git ls-files src` lists nothing.
+- [x] AC2: `quarto inspect` at the pilot repo root reports `execute.freeze: true` and `project.output-dir: docs`.
+- [x] AC3: After `quarto render analyses/feature_descriptives.qmd` at the repo root, `docs/analyses/feature_descriptives.html` matches `id="quarto-header"`. For each other `analyses/<name>.qmd` that `git ls-files 'analyses/*.qmd'` lists, the page also matches `href="[^"]*<name>\.html"`. `git ls-files _freeze/analyses/feature_descriptives` lists at least one file.
+- [x] AC4: The branch README has a section for the data machine. It says that the existing fit files go in `analyses/fits/`, and it gives the render command, `quarto render` at the repo root.
+- [x] AC5: `git ls-remote origin refs/heads/freeze-layout` prints the local branch HEAD, and `git ls-remote origin refs/heads/main` prints `54684dc` as the start of its hash.
+- [x] AC6: `cairn/references/pilot-port.md` lists every path that `git diff --name-status main...freeze-layout` prints in the pilot repo, with its status letter. It has a Problems section in which each entry gives the problem and its fix.
 
 ## Coverage
 
@@ -73,3 +73,28 @@ Move pilot-ptsd-markers, on a branch, to one Quarto website project with freeze 
 ## Decisions
 
 ## Review
+
+- Sync: origin/main is 6b2872a, an ancestor of the branch. Copilot round off (no header line in PROFILE.md).
+- AC1 evidence (2026-10-18, pilot at f541444): `git ls-files analyses` lists the five `.qmd` files and nothing else, so 0 `.html` and 0 `_files/` paths. `git ls-files src` lists 0 paths.
+- AC2 evidence (2026-10-18): `quarto inspect` at the pilot root reports `execute.freeze` True and `project.output-dir` docs.
+- AC3 evidence (2026-10-18): fresh `quarto render analyses/feature_descriptives.qmd` exited 0. The page matches `id="quarto-header"` once and has one link each to demographics, verbal_analyses, visual_analyses, and vocal_analyses. `git ls-files _freeze/analyses/feature_descriptives` lists 1 file. The re-render changed only gt's random table ids, and that output was restored to the committed state.
+- AC4 evidence (2026-10-18): the README section "Rendering on the data machine" says to move the fit files into `analyses/fits/` (step 1) and gives `quarto render` at the repository root (step 3).
+- AC5 evidence (2026-10-18): `git ls-remote origin refs/heads/freeze-layout` prints f541444…, equal to the local HEAD. `refs/heads/main` prints 54684dc….
+- AC6 evidence (2026-10-18): a script compared the note's path block with a fresh `git diff --name-status main...freeze-layout`, sorted. All 122 lines match. The Problems section has 6 entries (P1 to P6), and each has a `Fix:` clause.
+- Consistency gate (2026-10-18): `cairn_validate.py` all checks passed. Toolchain checks of the r-package slot not applicable: no DESCRIPTION, R/, or man/ yet. No principle changed, so `cairn_impact` skipped.
+- spawned: diff-bug (one Opus reviewer, internal-tier docs-only primary diff; it also read the companion diff).
+- diff-bug #1: README data-machine steps never check that the fits are in `analyses/fits/`, and brms then refits every model and freeze stores new estimates — fix now.
+- diff-bug #2: `.gitignore` no longer ignores old `src/` render leftovers on the data machine, so a blanket add would commit them — fix now.
+- diff-bug #3: README "Rendering the site" says a full render needs neither data nor R, which is true only after every report has stored output — fix now.
+- diff-bug #4: README License section and LICENSE-CC-BY.md still say the code is in `src/` — fix now.
+- diff-bug #5: P3 omits the stale `docs/index.html` and the leftover `docs/src/*.qmd` — fix now in the note.
+- diff-bug #6: the index link to `tree/main/analyses` is wrong while the branch is unmerged — reject, planned change: the link is right once the layout reaches main, and no merge is planned now.
+- diff-bug #7: a data-free build drops `docs/data/*.csv`, so it must never be published — fix now as a note entry (P7), which feeds the template.
+- diff-bug #8: `_freeze` written on Windows may carry backslash paths or CRLF endings — follow-up: added to the note's open questions, which M002 T3 answers.
+- diff-bug #9: the note calls its path block the diff output, but the lines are regrouped — fix now.
+- diff-bug #10: P5 overstates a problem, because `.html` links also resolve in a website — fix now.
+- diff-bug #11: Scope and T3 say "an Analyses navbar menu" but the build adds a Tables menu too — reject, false: the Analyses menu exists, and the added Tables menu is in the work log.
+- diff-bug #12: ggsave paper figures in `analyses/` are ignored and unpublished, as before the change — follow-up: new candidate row "paper figure files".
+- diff-bug #13: demographics `_freeze` holds only the aggregate tables the old page showed — noted, no defect.
+- diff-bug #14: the milestone file had uncommitted edits during review — reject, false: those are this Review section's evidence lines, committed at the step-6 checkpoint.
+- Return floor: no finding shows a criterion failing, so status stays `review`.
