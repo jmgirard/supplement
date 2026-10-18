@@ -196,6 +196,23 @@ test_that("an ORCID iD as a URL gives the same files as the bare iD", {
   }
 })
 
+test_that("both files are written in a copy of the template", {
+  dir <- withr::local_tempdir("template-")
+  file.copy(list.files(template_dir(), full.names = TRUE, all.files = TRUE, no.. = TRUE),
+            dir, recursive = TRUE)
+
+  authors <- yaml::read_yaml(file.path(dir, "_supplement.yml"))$supplement$authors
+  for (author in authors) {
+    expect_true(all(c("family", "given") %in% names(author)))
+    expect_false("name" %in% names(author))
+  }
+
+  expect_no_error(write_citation(dir))
+  expect_no_error(write_zenodo(dir))
+  expect_equal(read_cff(dir)$title, "Supplemental materials for: Title of the paper")
+  expect_equal(read_zenodo(dir)$creators[[1]]$name, "Author, A. A.")
+})
+
 test_that("overwrite = TRUE replaces the file", {
   dir <- local_site(full_supplement())
   for (name in c("CITATION.cff", ".zenodo.json")) {
