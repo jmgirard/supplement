@@ -1,6 +1,6 @@
 # M004: Home page from _supplement.yml with shortcodes
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M003
 - **Driving RR:** —
@@ -67,6 +67,8 @@ Drive the template's home page from one `_supplement.yml` file through a Quarto 
 - 2026-10-18: T4 done: `test-shortcodes.R` with 8 tests and helpers in `helper-template.R`; the AC3 to AC5 tests use a small fixture site with the extension and no R code, the AC2 test edits a fresh `quarto use template` folder, and the AC6 test reads the shared rendered site. The 1000000000-byte fixture is a sparse file made by `seek()`; Quarto copies it into `docs/` because the table links it, which was cheap on this Mac (APFS) and may not be on Linux. Full suite 167 pass, 0 skip.
 - 2026-10-18: T5 done: each defect planted alone in a `git archive` copy of fb2edac, shortcode tests run there. Base 1024: 5 failures at the size cell (test-shortcodes.R:105). Unit before rounding: 2 failures at the size cell (the 999950 case on both pages). `error()` removed: render still exits non-zero, 1 failure at the stderr message match (line 123). Root links: 5 failures at the link match (line 102). DOI order swapped: 2 failures (lines 24, 25).
 - 2026-10-18: T6 done: `_README.md` gains a "Paper facts in `_supplement.yml`" section and two Contents lines, the package README one paragraph, NEWS.md one entry; DESIGN.md Architecture updated for the new files. `devtools::document()` added `Config/roxygen2/version: 8.1.0` to DESCRIPTION; kept, so the review's no-diff `document()` check holds. `devtools::check()`: 0 errors, 0 warnings, 0 notes, tests run inside it; `devtools::test()`: 167 pass, 0 skip.
+- 2026-10-18: claim audit: 62 claims read, 5 corrected — inst/template/_README.md, inst/template/_supplement.yml, tests/testthat/helper-template.R, README.md. The reader also found that Quarto rewrites a description naming an existing folder ("data" became "../data" on an `analyses/` page); fixed test-first in supplement.lua (`as_written`) with a new test, and the same reader confirmed all corrections on one re-read. Left as is: a `{{< meta >}}` value on a subfolder page whose text names an existing path is still rewritten by Quarto; the template shows those values only on the home page. Tests 170 pass, 0 skip.
+- 2026-10-18: all tasks done; status set to review.
 
 ## Decisions
 
