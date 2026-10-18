@@ -249,7 +249,11 @@ test_that("a hand-written _supplement.yml gives the same files as the R-written 
 })
 
 test_that("a DOI written as a URL is written bare", {
-  for (prefix in c("https://doi.org/", "http://dx.doi.org/")) {
+  prefixes <- c(
+    "https://doi.org/", "http://dx.doi.org/", "HTTPS://DOI.ORG/",
+    "https://www.doi.org/", "doi:", "doi: "
+  )
+  for (prefix in prefixes) {
     meta <- full_supplement()
     meta$zenodo[["concept-doi"]] <- paste0(prefix, "10.5281/zenodo.1")
     dir <- local_site(meta)
@@ -307,6 +311,37 @@ test_that("every CITATION.cff value is written in double quotes", {
   values <- values[!grepl(":\\s*$", values)]
   expect_gt(length(values), 0)
   expect_true(all(grepl(': "', values)))
+  items <- grep("^\\s*- [^a-z]", lines, value = TRUE)
+  expect_length(items, 2)
+  expect_true(all(grepl('^\\s*- "', items)))
+})
+
+test_that("inner line breaks and Unicode spaces are cleaned", {
+  dir <- local_site(text = c(
+    "supplement:",
+    "  paper-title: |",
+    "    A paper",
+    "    in two lines",
+    "  citation: \"Doe, J.  (2026).\"",
+    "  authors:",
+    "    - family: Doe",
+    "      given: Jane",
+    "      affiliation: \"  \""
+  ))
+  write_citation(dir)
+  write_zenodo(dir)
+
+  expect_equal(read_cff(dir)$title, "Supplemental materials for: A paper in two lines")
+  expect_equal(read_zenodo(dir)$description, "Supplemental materials for: Doe, J. (2026).")
+  expect_equal(read_cff(dir)$authors, list(list("family-names" = "Doe", "given-names" = "Jane")))
+})
+
+test_that("an ORCID iD after http://orcid.org/ is accepted", {
+  meta <- full_supplement()
+  meta$authors[[1]]$orcid <- "http://orcid.org/0000-0002-1825-0097"
+  dir <- local_site(meta)
+  write_zenodo(dir)
+  expect_equal(read_zenodo(dir)$creators[[1]]$orcid, "0000-0002-1825-0097")
 })
 
 test_that("overwrite = TRUE replaces the file", {

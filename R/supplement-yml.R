@@ -1,9 +1,9 @@
 # Read and check the `supplement:` map in `_supplement.yml`.
 
 check_args <- function(path, overwrite, call = parent.frame()) {
-  if (!is.character(path) || length(path) != 1 || is.na(path)) {
+  if (!is.character(path) || length(path) != 1 || is.na(path) || !nzchar(path)) {
     cli::cli_abort(
-      "{.arg path} must be one folder path, not {.obj_type_friendly {path}}.",
+      "{.arg path} must be one folder path, given as a single string.",
       class = c("supplement_error_argument", "supplement_error"),
       call = call
     )
@@ -28,7 +28,9 @@ read_supplement <- function(path, call = parent.frame()) {
       call = call
     )
   }
-  meta <- yaml::read_yaml(file)
+  # Read every sequence as a list, so that a one-item sequence such as
+  # [A paper] is not taken for a single value.
+  meta <- yaml::read_yaml(file, handlers = list(seq = function(x) as.list(x)))
   meta <- if (is_map(meta)) meta[["supplement"]]
   if (!is_map(meta)) {
     cli::cli_abort(
@@ -52,7 +54,14 @@ is_empty <- function(x) {
   if (is.list(x)) {
     return(FALSE)
   }
-  all(is.na(x) | !nzchar(trimws(as.character(x))))
+  all(is.na(x) | !nzchar(clean_space(as.character(x))))
+}
+
+# Make each run of spaces and line breaks (Unicode ones included) one
+# space, and remove them at the start and end.
+clean_space <- function(x) {
+  x <- gsub("[\\h\\v]+", " ", x, perl = TRUE)
+  gsub("^ | $", "", x, perl = TRUE)
 }
 
 field_type_error <- function(field, what, call) {
@@ -63,16 +72,24 @@ field_type_error <- function(field, what, call) {
   )
 }
 
-# A single text value with outer spaces and line breaks removed, or NULL
-# when it is absent or empty. A list or several values is an error.
+# A single text value with its spaces cleaned (clean_space()), or NULL
+# when it is absent or empty. A list, several values, or a value that YAML
+# read as a number or true/false is an error.
 value <- function(x, field, call = parent.frame()) {
-  if (is_empty(x)) {
+  if (is.null(x) || length(x) == 0) {
     return(NULL)
   }
   if (is.list(x) || length(x) > 1) {
     field_type_error(field, "one text value", call)
   }
-  trimws(as.character(x))
+  if (is.logical(x) && is.na(x)) {
+    return(NULL)
+  }
+  if (!is.character(x)) {
+    field_type_error(field, "text. YAML read it as a number or as true/false, so put it in quotes", call)
+  }
+  x <- clean_space(x)
+  if (is.na(x) || !nzchar(x)) NULL else x
 }
 
 # A map such as `license` or `zenodo`, or an empty list when it is absent
@@ -113,7 +130,8 @@ read_authors <- function(meta, call = parent.frame()) {
       call = call
     )
   }
-  if (!is.list(authors) || is_map(authors)) {
+  if (!is.list(authors) || is_map(authors) ||
+      !any(vapply(authors, is_map, logical(1)))) {
     cli::cli_abort(
       c("{.field supplement.authors} in {.file _supplement.yml} must be a list of authors.",
         "i" = "Start each author with {.code -}, and give each one {.field family:} and {.field given:}."),
@@ -123,15 +141,17 @@ read_authors <- function(meta, call = parent.frame()) {
   }
   lapply(seq_along(authors), function(i) {
     author <- authors[[i]]
+    hint <- NULL
     if (!is_map(author)) {
       author <- list()
+      hint <- c("i" = "Write each author as {.field family:} and {.field given:} under one {.code -}, not as a single name.")
     }
     field <- function(name) sprintf("supplement.authors[%d].%s", i, name)
     family <- value(author[["family"]], field("family"), call)
     given <- value(author[["given"]], field("given"), call)
     if (is.null(family) || is.null(given)) {
-      hint <- if (!is_empty(author[["name"]])) {
-        c("i" = "Replace {.field name:} with {.field family:} (the family name) and {.field given:} (the given names).")
+      if (!is_empty(author[["name"]])) {
+        hint <- c("i" = "Replace {.field name:} with {.field family:} (the family name) and {.field given:} (the given names).")
       }
       cli::cli_abort(
         c("Author {i} in {.file _supplement.yml} needs a {.field family} and a {.field given} name.",
@@ -154,7 +174,7 @@ orcid_id <- function(orcid, i, call = parent.frame()) {
   if (is.null(orcid)) {
     return(NULL)
   }
-  id <- sub("^https://orcid\\.org/", "", orcid)
+  id <- sub("^https?://orcid\\.org/", "", orcid)
   if (!grepl("^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$", id) ||
       orcid_check_digit(id) != substr(id, 19, 19)) {
     cli::cli_abort(
@@ -180,12 +200,24 @@ orcid_check_digit <- function(id) {
   if (result == 10) "X" else as.character(result)
 }
 
-# Return the DOI without an http(s)://(dx.)doi.org/ prefix, or NULL.
-bare_doi <- function(doi) {
+# Return the DOI without a "doi:" or http(s)://(dx. or www.)doi.org/
+# prefix, in any letter case, or NULL. A DOI that does not then start
+# with "10." and a registrant code is an error.
+bare_doi <- function(doi, field, call = parent.frame()) {
   if (is.null(doi)) {
     return(NULL)
   }
-  sub("^https?://(dx\\.)?doi\\.org/", "", doi)
+  bare <- sub("^(doi:\\s*|https?://((dx|www)\\.)?doi\\.org/)", "", doi,
+              ignore.case = TRUE, perl = TRUE)
+  if (!grepl("^10\\.[0-9]{4,9}/\\S+$", bare, perl = TRUE)) {
+    cli::cli_abort(
+      c("{.field {field}} in {.file _supplement.yml} is not a DOI: {.val {doi}}.",
+        "i" = "Write it as {.val 10.5281/zenodo.1234567}."),
+      class = c("supplement_error_doi", "supplement_error"),
+      call = call
+    )
+  }
+  bare
 }
 
 check_overwrite <- function(file, overwrite, call = parent.frame()) {
@@ -196,7 +228,11 @@ check_overwrite <- function(file, overwrite, call = parent.frame()) {
       call = call
     )
   }
-  if (file.exists(file) && !isTRUE(overwrite)) {
+  # file.exists() is FALSE for a link whose target is missing, and
+  # writing would follow the link.
+  link <- Sys.readlink(file)
+  exists <- file.exists(file) || (!is.na(link) && nzchar(link))
+  if (exists && !isTRUE(overwrite)) {
     cli::cli_abort(
       c("{.file {file}} already exists.",
         "i" = "Use {.code overwrite = TRUE} to replace it."),

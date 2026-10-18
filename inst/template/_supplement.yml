@@ -17,7 +17,7 @@ supplement:
     code: "MIT"
     content: "CC-BY-4.0"
   # family is the family name (surname), and given holds the given names.
-  # Write an ORCID iD as 0000-0000-0000-0000.
+  # Write an ORCID iD in the form 0000-0002-1825-0097 (an example iD).
   authors:
     - family: "Author"
       given: "A. A."

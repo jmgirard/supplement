@@ -17,11 +17,13 @@
 #'   The `license` field of `.zenodo.json` takes one license id, so the
 #'   code license is not written.
 #'
-#' Empty values are left out, and spaces and line breaks at the start and
-#' end of a value are removed. Values are otherwise written as the YAML
-#' parser reads them, so Markdown such as `*Journal*` keeps its asterisks. Put values in
-#' quotes in `_supplement.yml`, as the template does, so that YAML does not
-#' read a value such as `No` or `1.10` as true/false or a number.
+#' Empty values are left out. In each value, every run of spaces and line
+#' breaks becomes one space, and spaces at the start and end are removed.
+#' Values are otherwise written as they are, so Markdown such as
+#' `*Journal*` keeps its asterisks. YAML reads some values without quotes
+#' as numbers or as true/false, for example `No` or `1.10`. Such a value is
+#' an error, so put it in quotes in `_supplement.yml`, as the template
+#' does.
 #'
 #' @inheritParams write_citation
 #' @inherit write_citation return

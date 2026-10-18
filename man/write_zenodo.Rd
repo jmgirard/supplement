@@ -33,11 +33,13 @@ The file holds:
   The `license` field of `.zenodo.json` takes one license id, so the
   code license is not written.
 
-Empty values are left out, and spaces and line breaks at the start and
-end of a value are removed. Values are otherwise written as the YAML
-parser reads them, so Markdown such as `*Journal*` keeps its asterisks. Put values in
-quotes in `_supplement.yml`, as the template does, so that YAML does not
-read a value such as `No` or `1.10` as true/false or a number.
+Empty values are left out. In each value, every run of spaces and line
+breaks becomes one space, and spaces at the start and end are removed.
+Values are otherwise written as they are, so Markdown such as
+`*Journal*` keeps its asterisks. YAML reads some values without quotes
+as numbers or as true/false, for example `No` or `1.10`. Such a value is
+an error, so put it in quotes in `_supplement.yml`, as the template
+does.
 }
 \section{Errors}{
 
@@ -45,26 +47,31 @@ A `_supplement.yml` that is not valid YAML gives the error of the YAML
 parser. The errors that these functions raise themselves have the class
 `supplement_error` and one of these classes:
 
-* `supplement_error_argument`: `path` is not a single non-missing
-  character string,
-  or `overwrite` is not `TRUE` or `FALSE`.
+* `supplement_error_argument`: `path` is not a single non-missing,
+  non-empty character string, or `overwrite` is not `TRUE` or `FALSE`.
 * `supplement_error_no_metadata`: `path` has no `_supplement.yml`.
 * `supplement_error_no_map`: the file has no `supplement:` map.
 * `supplement_error_missing_field`: `paper-title` is missing or empty.
   For [write_zenodo()], also `citation`.
 * `supplement_error_field_type`: a value that the function reads is a
-  list where one text value belongs, or `license` (and, for
-  [write_citation()], `zenodo`) is not a map.
+  list (a one-item list included), a number, or true/false where one
+  text value belongs, or `license` (and, for [write_citation()],
+  `zenodo`) is not a map.
+* `supplement_error_doi`: for [write_citation()], `zenodo.concept-doi`
+  or `zenodo.version-doi`, with its prefix removed, is not `10.`, four
+  to nine digits, `/`, and a suffix with no spaces.
 * `supplement_error_authors`: `authors` is missing, empty, or not a list
   of authors.
 * `supplement_error_author_name`: an author has no `family` or no
   `given` name.
 * `supplement_error_orcid`: an ORCID iD does not have the form
-  `0000-0000-0000-0000`, with or without `https://orcid.org/` in front,
+  `0000-0000-0000-0000`, with or without `https://orcid.org/` or
+  `http://orcid.org/` in front,
   or its last character is not the iD's check digit. The last character
   can be `X`.
-* `supplement_error_file_exists`: the output file exists and
-  `overwrite` is `FALSE`, or a folder has the output file's name.
+* `supplement_error_file_exists`: the output file (or a link with its
+  name) exists and `overwrite` is `FALSE`, or a folder has the output
+  file's name.
 }
 
 \examples{

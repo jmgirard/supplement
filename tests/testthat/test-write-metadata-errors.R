@@ -37,6 +37,8 @@ test_that("path and overwrite must have the right form", {
     list(path = c(dir, dir)),
     list(path = 1),
     list(path = NA_character_),
+    list(path = ""),
+    list(path = factor(dir)),
     list(path = dir, overwrite = NA),
     list(path = dir, overwrite = "yes"),
     list(path = dir, overwrite = c(TRUE, TRUE))
@@ -152,6 +154,62 @@ test_that("a list where one value belongs, or a license or zenodo that is not a 
   expect_refused(dir, ".zenodo.json", "supplement_error_field_type")
 })
 
+test_that("a one-item list, a number, or true/false where text belongs is refused", {
+  base <- c(
+    "supplement:",
+    "  citation: A citation"
+  )
+  author <- c("  authors:", "    - family: Doe")
+  cases <- list(
+    c(base, "  paper-title: [A paper]", author, "      given: Jane"),
+    c(base, "  paper-title: A paper", author, "      given: No"),
+    c(base, "  paper-title: A paper", author, "      given: Jane", "      affiliation: 1.10"),
+    c(base, "  paper-title: A paper", author, "      given: 12345678901234567890"),
+    c(base, "  paper-title: true", author, "      given: Jane")
+  )
+  for (text in cases) {
+    dir <- local_site(text = text)
+    for (file in names(writers)) {
+      suppressWarnings(expect_refused(dir, file, "supplement_error_field_type"))
+    }
+  }
+  dir <- local_site(text = c(base, "  paper-title: A paper", author, "      given: No"))
+  err <- expect_error(write_citation(dir), class = "supplement_error_field_type")
+  expect_match(conditionMessage(err), "quotes", fixed = TRUE)
+})
+
+test_that("write_citation() refuses a DOI that is not a DOI", {
+  bad <- c(
+    "zenodo.1234567",
+    "10.5281",
+    "10.52/zenodo.1",
+    "https://zenodo.org/records/1",
+    "doi.org/10.5281/zenodo.1",
+    "10.5281/zenodo 1"
+  )
+  for (key in c("concept-doi", "version-doi")) {
+    for (doi in bad) {
+      dir <- local_site(with_change(function(m) {
+        m$zenodo[[key]] <- doi
+        m
+      }))
+      expect_refused(dir, "CITATION.cff", "supplement_error_doi")
+      expect_no_error(write_zenodo(dir))
+    }
+  }
+})
+
+test_that("a bare-string author in a list gets a message about the author form", {
+  dir <- local_site(with_change(function(m) {
+    m$authors[[1]] <- "Jane Doe"
+    m
+  }))
+  for (file in names(writers)) {
+    err <- expect_error(writers[[file]](dir), class = "supplement_error_author_name")
+    expect_match(conditionMessage(err), "not as a single name", fixed = TRUE)
+  }
+})
+
 test_that("an author without a family or given name is refused", {
   changes <- list(
     function(m) { m$authors[[2]]$family <- NULL; m },
@@ -188,8 +246,8 @@ test_that("a malformed ORCID iD is refused", {
     "0000-0002-1825-0098",
     "0000-0002-1694-2330",
     "0000000218250097",
-    "http://orcid.org/0000-0002-1825-0097",
     "https://orcid.org/0000-0002-1825-0097/",
+    "https://www.orcid.org/0000-0002-1825-0097",
     "orcid.org/0000-0002-1825-0097",
     "0000-0002-1825-0097 x"
   )
@@ -223,6 +281,18 @@ test_that("a folder with the output file's name is refused", {
       class = "supplement_error_file_exists"
     )
     expect_true(dir.exists(file.path(dir, file)))
+  }
+})
+
+test_that("a dangling link with the output file's name is kept", {
+  skip_on_os("windows")
+  dir <- local_site(full_supplement())
+  target <- file.path(dir, "missing-target")
+  for (file in names(writers)) {
+    link <- file.path(dir, file)
+    file.symlink(target, link)
+    expect_error(writers[[file]](dir), class = "supplement_error_file_exists")
+    expect_false(file.exists(target))
   }
 })
 

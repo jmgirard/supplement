@@ -28,7 +28,7 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 - [x] AC1: For a fixture `_supplement.yml` with every field filled, two authors, a non-ASCII family name, a `paper-title` holding `:`, `"`, `&`, and `*text*`, and a `citation` holding `*Journal*`, `write_citation()` writes `CITATION.cff` that `yaml::read_yaml()` reads back as: `cff-version` "1.2.0"; a non-empty `message`; `title` "Supplemental materials for: " followed by `paper-title` exactly as written (Markdown is not converted); `authors` in file order, each with `family-names`, `given-names`, `orcid` as `https://orcid.org/<id>`, and `affiliation`; `doi` equal to `concept-doi`; `license` equal to `c(<code>, <content>)`.
 - [x] AC2: For the same fixture, `write_zenodo()` writes `.zenodo.json` that `jsonlite::read_json()` reads back as: `title` as in AC1; `upload_type` "software"; `description` "Supplemental materials for: " followed by `citation` exactly as written; `creators` in file order, each with `name` "<family>, <given>", `orcid` as the bare id, and `affiliation`; `license` the content SPDX id in lowercase (Zenodo's license vocabulary form, such as `cc-by-4.0`).
 - [x] AC3: Two fixtures hold one author and only the required fields: one gives every optional field as `""`, the other leaves the optional keys out or null and has no `zenodo:` map. For both, a recursive walk over each read-back file finds no `""`, null, or zero-length value, and `.zenodo.json` read with `simplifyVector = FALSE` has `creators` as a list of length 1. With `concept-doi` empty and `version-doi` set, `CITATION.cff` has `doi` equal to `version-doi`. With only one license set, or both set to the same id, `CITATION.cff` has `license` as that one id. An ORCID given as `https://orcid.org/<id>` gives the same files as the bare id.
-- [ ] AC4: Each function stops with a `cli::cli_abort()` error of a class named in its help page, and a test fires each case on each function that reads the field and asserts its class: `_supplement.yml` is missing; it has no `supplement:` map; `paper-title` is absent or empty; for `write_zenodo()`, `citation` is absent or empty; `authors` is absent or empty; an author's `family` or `given` is absent or empty (an author with only `name:` gets a message naming `family:` and `given:`); an ORCID, after an optional `https://orcid.org/` prefix is removed, does not match `^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$`; the output file exists and `overwrite = FALSE`. In each case the test shows that the output file is absent or unchanged afterwards.
+- [x] AC4: Each function stops with a `cli::cli_abort()` error of a class named in its help page, and a test fires each case on each function that reads the field and asserts its class: `_supplement.yml` is missing; it has no `supplement:` map; `paper-title` is absent or empty; for `write_zenodo()`, `citation` is absent or empty; `authors` is absent or empty; an author's `family` or `given` is absent or empty (an author with only `name:` gets a message naming `family:` and `given:`); an ORCID, after an optional `https://orcid.org/` prefix is removed, does not match `^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$`; the output file exists and `overwrite = FALSE`. In each case the test shows that the output file is absent or unchanged afterwards.
 - [x] AC5: The template's `_supplement.yml` gives each author `family:` and `given:` in place of `name:`, and its comments and `_README.md` name the two functions. A test copies the template to a temporary folder, runs both functions there, and gets both files with no error.
 - [x] AC6: Both functions are exported and have help pages whose examples write into `tempdir()`. NEWS.md has an entry for them. On a clean checkout, `Rscript -e 'devtools::check()'` reports 0 errors and 0 warnings, and `Rscript -e 'devtools::test()'` reports 0 failures.
 
@@ -118,3 +118,36 @@ Pass 1, 2026-10-18, branch m005-metadata-writers at 781c7d1, level with origin/m
 - prior-review #1: DOI URL prefix written into CITATION.cff (M004 diff-bug #16 shape) — fix now, with diff-bug #5
 - prior-review #2: a folded YAML value keeps its trailing newline in `.zenodo.json` (M004 diff-bug #1 shape) — fix now (trim values)
 - prior-review #3: Markdown kept as literal asterisks — reject, planned change
+- fix-now items above: fixed 9c9a581 (diff-bug #2, #3, #4, #5, #7, #8, #9, #11, #14; prior-review #1, #2), claim wording 8d2fcc5.
+
+Pass 2, 2026-10-18, branch at 8d2fcc5, level with origin/main 67b0fe1. Full suite: 51 tests, 452 expectations, 0 failed, 0 errors, 0 skipped.
+
+- AC1 (pass 2): "write_citation() writes every field of a full _supplement.yml" passes (4), now with ORCID 0000-0002-1694-233X; "a hand-written _supplement.yml gives the same files as the R-written one" passes (2).
+- AC2 (pass 2): "write_zenodo() writes every field of a full _supplement.yml" passes (2); the hand-written fixture test covers `.zenodo.json` too.
+- AC3 (pass 2): the five AC3 tests named in pass 1 pass (18, 4, 1, 7, 2), plus "folded values and outer spaces are trimmed, and .na counts as empty" (5) and "a DOI written as a URL is written bare" (2).
+- AC4 (pass 2): all 15 tests in test-write-metadata-errors.R pass (211 expectations). "_supplement.yml without a supplement map is refused" (24) now includes a top-level scalar, a top-level list, and an empty file, each giving `supplement_error_no_map` from both functions with no output file. The other AC4 cases pass as in pass 1; 10 malformed ORCIDs including two bad check digits. grep: all 9 class names appear in both Rd files.
+- AC5 (pass 2): "both files are written in a copy of the template" passes (8); template files unchanged since pass 1.
+- AC6 (pass 2): fresh `git clone` at 8d2fcc5: `devtools::check()` 0 errors, 0 warnings, 0 notes; `devtools::test()` 0 failures; exports and NEWS entry unchanged.
+- Consistency gate (pass 2): `cairn_validate.py` all checks passed; `devtools::document()` no diff; no README.Rmd or `_pkgdown.yml`; no principle changed.
+- spawned: diff-bug, blame-history, prior-review
+- diff-bug #1: a DOI such as `doi:10.5281/zenodo.1` or `HTTPS://DOI.ORG/...` is written in an invalid CFF form — fix now (strip `doi:` and any-case `http(s)://(dx.|www.)doi.org/`, then a classed error unless it starts `10.`)
+- diff-bug #2: plain YAML numbers and booleans (`No`, `1.10`, `0755`) are written as converted text — fix now (a value YAML reads as a number or true/false is a classed error asking for quotes); same as prior-review #1
+- diff-bug #3: a huge number reads as NA and gives a misleading "no given name" — fix now, with #2
+- diff-bug #4: a one-item sequence `[A paper]` passes as one value — fix now (sequences read as lists)
+- diff-bug #5: a literal block keeps inner line breaks — fix now (inner runs of spaces and line breaks become one space)
+- diff-bug #6: Unicode spaces such as U+00A0 are not trimmed, so a blank affiliation is written — fix now
+- diff-bug #7: `http://orcid.org/` refused while `http://dx.doi.org/` is accepted — fix now (accept http and https for ORCID)
+- diff-bug #8: `{.obj_type_friendly}` needs cli 3.4.0 with no version floor — fix now by dropping that markup (a version floor is a dependency re-pin the question set did not grant)
+- diff-bug #9: `path = ""` passes the argument check — fix now
+- diff-bug #10: `supplement: {}` gives `supplement_error_missing_field`, not `_no_map` — reject, false: the map is present and `paper-title` is missing, which that class names
+- diff-bug #11: no `_pkgdown.yml` rows — follow-up, already in the "docs site and walkthrough" row (pass 1)
+- diff-bug #12: the template's ORCID example `0000-0000-0000-0000` fails the new check digit — fix now (use 0000-0002-1825-0097); same as blame-history #3
+- diff-bug #13: a dangling symlink named CITATION.cff skips the overwrite check — fix now
+- diff-bug #14: the quoting test does not check list items — fix now
+- blame-history #1: CITATION.cff takes `concept-doi` first while the badge takes `version-doi` first — reject, planned change (plan gate recorded why); fix now the guide sentence so it names which DOI
+- blame-history #2: plan-gate choices are not D-entries — reject, false: they are milestone-local choices, recorded in the work log as plan step 4 asks
+- blame-history #3: stale ORCID example — fix now, with diff-bug #12
+- blame-history #4: the badge does not strip a DOI URL prefix while CITATION.cff does — follow-up, new row "badge DOI form"
+- prior-review #1: plain booleans and numbers converted silently — fix now, with diff-bug #2
+- prior-review #2: the "license footer" row says no page reads `license`, and the citation writers now read it — follow-up, row text updated
+- prior-review #3: a bare-string author in a mixed list gets no list-form hint — fix now (the author-name message gives the list form)

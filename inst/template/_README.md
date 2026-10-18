@@ -81,7 +81,8 @@ supplement::write_zenodo()
 citation for the repository. `write_zenodo()` writes `.zenodo.json`. When
 Zenodo archives a GitHub release, it reads that file. Both files take the
 title and the authors from `_supplement.yml`. `CITATION.cff` also takes
-both licenses and the DOI. `.zenodo.json` also takes the citation. Its
+both licenses and the concept DOI. If the concept DOI is empty, it takes
+the version DOI. `.zenodo.json` also takes the citation. Its
 `license` field holds one license, so it gets the content license. Give
 each author a `family` name and `given` names. When a file exists, the
 functions stop. To write it again after you change `_supplement.yml`, use
