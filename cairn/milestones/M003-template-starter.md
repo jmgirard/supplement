@@ -123,3 +123,12 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - prior-review #3: fit file location — fix now, same as blame-history #1.
 - prior-review #4: stale `docs/` pages after a render by name — fix now, same as blame-history #5.
 - Fixes: every fix-now item above, fixed da559f5 (tests 32 passed, 0 skips; `devtools::check()` 0/0/0). The new `docs/` test fails with the `!docs/` lines removed (checked in a scratch copy). D-006 records the merge behavior. The diff-bug #6 follow-up is the candidate row "template install from GitHub".
+- Pass 2 (2026-10-18, after review return 1): origin/main is 5726f3d, an ancestor of the branch. New clean clone at 78780ae.
+- Pass 2 AC1 evidence: `devtools::check()` 0 errors, 0 warnings, 0 notes; hidden-files check OK.
+- Pass 2 AC2 evidence: `quarto use template` exit 0, render exit 0, all 8 files present, no underscore copies.
+- Pass 2 AC3 evidence: header element contains `href="../index.html"`; `_freeze/analyses/example/` holds 2 files.
+- Pass 2 AC4 evidence: `quarto inspect` freeze True and output-dir docs; no-R render exit 0, `example.html` byte-identical.
+- Pass 2 AC5 evidence: both fit paths ignored; the published paths printed nothing, exit 1.
+- Pass 2 AC6 evidence: each listed fact found once in `README.md`; `index.qmd` line 9 holds the first-render instruction.
+- Pass 2 AC7 evidence: `devtools::test()` FAIL 0, WARN 0, SKIP 0, PASS 32.
+- Pass 2 consistency gate: `cairn_validate.py` all checks passed; r-package slot as in pass 1.
