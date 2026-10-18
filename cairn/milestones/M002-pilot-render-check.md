@@ -1,6 +1,6 @@
 # M002: Pilot render on the data machine and data-free rebuild
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M001
 - **Driving RR:** —
@@ -41,7 +41,7 @@ Show that the pilot site, after one full render on the machine that holds the fi
 - [x] T1: Stop for the user: on the data machine, follow the branch README section, run a full `quarto render`, then commit and push `_freeze/` and `docs/`.
 - [x] T2: Fetch origin's `freeze-layout` and run the AC1 listing.
 - [x] T3: Clone it into the scratchpad, delete `data/*.csv`, run a full `quarto render`, then run the AC2 and AC3 checks.
-- [ ] T4: Ask the user what went wrong on the data machine and write each problem as a `data-machine report:` work-log line. Add those entries and the new path list to the pilot-port note.
+- [x] T4: Ask the user what went wrong on the data machine and write each problem as a `data-machine report:` work-log line. Add those entries and the new path list to the pilot-port note.
 
 ## Work log
 
@@ -53,6 +53,10 @@ Show that the pilot site, after one full render on the machine that holds the fi
 - 2026-10-18: T1 done by the user: commit dddad4a "Render all reports" on origin `freeze-layout`, pushed after comparing the demographics page with the live page. Origin `main` still 54684dc. The commit kept `docs/` cleaned of the old `_files/` and `docs/src/` copies.
 - 2026-10-18: T2 done: on origin `freeze-layout`, `_freeze/analyses/` holds 1 file each for demographics and feature_descriptives and 12 each for the three model reports. No CR characters in `_freeze/`. The only backslashes are the default Windows data paths already in the demographics source.
 - 2026-10-18: T3 done: fresh clone of origin `freeze-layout` at dddad4a in the scratchpad, `data/*.csv` deleted, full `quarto render` exited 0, `_freeze` status empty, all 5 pages have the header and links to the other 4, and one bootstrap theme file. Extra check: every decimal number on the verbal, vocal, visual, and demographics pages matches the v1.1.0 pages on `main`, except one added "4.0" from the new footer license text, so the fits were reused.
+- 2026-10-18: T4 done: asked the user, who answered "Nothing went wrong", so the work log has no report lines and the note's Problems section gains no entry. The note's path list now matches `git diff --name-status main...origin/freeze-layout` at dddad4a (259 lines, script compare). P3 and the Windows open question are marked closed.
+- 2026-10-18: verify slot not applicable: the repo has no R package code yet.
+- 2026-10-18: claim audit: not owed — internal tier.
+- 2026-10-18: all tasks done; status set to review.
 
 ## Decisions
 
