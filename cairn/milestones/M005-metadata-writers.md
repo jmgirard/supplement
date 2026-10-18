@@ -37,7 +37,7 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 - AC1 → T2, T3
 - AC2 → T2, T4
 - AC3 → T3, T4
-- AC4 → T2, T5
+- AC4 → T2, T5, T8
 - AC5 → T1, T6
 - AC6 → T1, T6, T7
 
@@ -50,6 +50,8 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 - [x] T5: Error tests for every AC4 case on both functions, each with `expect_error(class =)` and a check that the output file is absent or unchanged.
 - [x] T6: Template test (AC5) and planted-defect check in a scratch copy, one at a time, each in each function it applies to: `doi` from `version-doi` first; empty values kept (per file); `orcid` without the URL prefix in CFF and with it in Zenodo; authors reversed; Zenodo `name` as "Given Family"; Zenodo license from `code`; `creators` unboxed to an object for one author; `overwrite` ignored; one AC4 error without its class. Each must make a test fail; record the results in the work log.
 - [x] T7: `_README.md` paragraph on the two functions. Roxygen help with examples that copy the template from `system.file()` into `tempdir()`; the `write_zenodo()` page says Zenodo shows only the content license and uses `.zenodo.json` over `CITATION.cff`. `devtools::document()`, NEWS.md entry (with the `name:` to `family:`/`given:` change), DESIGN.md Function Families and Architecture updated, then `devtools::check()`.
+- [x] T8: Review return 1: a `_supplement.yml` whose top level is a scalar or a list of scalars gives `supplement_error_no_map`; add both inputs to the no-map test.
+- [x] T9: Review pass 1 fix-now findings: classed error for a non-map `license`/`zenodo` and for a list where one text value is expected; ORCID check digit; strip a `https://doi.org/` prefix from DOIs; quote every string in CITATION.cff; check `path` and `overwrite`, and refuse a folder named like the output file; message for `authors` as a list of strings; trim values (folded YAML); hand-written full fixture, `.na`, and missing-path tests; DESIGN.md sentence fix. Update help pages and the guide.
 
 ## Work log
 
@@ -75,6 +77,8 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 - 2026-10-18: claim audit: 52 claims read, 6 corrected — R/write-citation.R, R/write-zenodo.R, inst/template/_README.md, tests/testthat/test-write-metadata-errors.R. Fixes: YAML parse errors are not classed; values pass through the YAML parser (quote them); `.zenodo.json`'s `license` field, not a Zenodo record, holds one license; the authors error also covers a map; the guide names which file takes which values; one test name narrowed. The same reader re-read the six and found them correct.
 - 2026-10-18: implement complete; status set to review (commit 6c557a9 landed without this line and the claim-audit line; both added here).
 - 2026-10-18: review return 1: AC4 fails for a `_supplement.yml` whose top level is a scalar or a list of scalars (base `subscriptOutOfBoundsError`, not `supplement_error_no_map`; diff-bug #1). The fix-now findings of pass 1 (diff-bug #2-5, #7-9, #11, #14; prior-review #2) are fixed in the same return; see the Review section.
+- 2026-10-18: implement resumed for return 1; minor amendment: T8 (the return) and T9 (pass 1 fix-now findings) added, Coverage AC4 → T8.
+- 2026-10-18: T8-T9 done: top level checked as a map before indexing; new classes `supplement_error_argument` and `supplement_error_field_type`; ORCID check digit (ISO 7064 MOD 11-2; fixture ORCID changed to 0000-0002-1694-233X, a valid X iD); DOI prefix stripped; every CITATION.cff value double-quoted; values trimmed; folder with the output name refused; authors list-form message; DESIGN sentence fixed. An ORCID with outer spaces is now accepted after trimming, so that error-test input became "0000-0002-1825-0097 x". Planted defects, one each in a scratch copy, failing tests: map check removed 1; check digit skipped 8; DOI prefix kept 2; CFF unquoted 6; no trim 1; list keeps first item 13; non-map license accepted 1; argument check skipped 1; output-named folder accepted 1; list-form message lost 2. devtools::test() 0 failures.
 
 ## Decisions
 

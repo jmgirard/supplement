@@ -28,7 +28,7 @@ test_that("write_citation() writes every field of a full _supplement.yml", {
       list(
         "family-names" = "Müller",
         "given-names" = "Änne",
-        orcid = "https://orcid.org/0000-0001-5109-370X",
+        orcid = "https://orcid.org/0000-0002-1694-233X",
         affiliation = "Institut B"
       )
     ),
@@ -54,7 +54,7 @@ test_that("write_zenodo() writes every field of a full _supplement.yml", {
       ),
       list(
         name = "Müller, Änne",
-        orcid = "0000-0001-5109-370X",
+        orcid = "0000-0002-1694-233X",
         affiliation = "Institut B"
       )
     ),
@@ -166,7 +166,7 @@ test_that("one license, or two equal ones, is written as one id", {
     expect_identical(read_cff(dir)$license, expected[[i]])
     expect_match(
       paste(readLines(file.path(dir, "CITATION.cff")), collapse = "\n"),
-      paste0("\nlicense: ", expected[[i]], "$")
+      paste0("\nlicense: \"", expected[[i]], "\"$")
     )
   }
 
@@ -179,7 +179,7 @@ test_that("one license, or two equal ones, is written as one id", {
 
 test_that("an ORCID iD as a URL gives the same files as the bare iD", {
   bare <- full_supplement()
-  bare$authors[[2]]$orcid <- "0000-0001-5109-370X"
+  bare$authors[[2]]$orcid <- "0000-0002-1694-233X"
   url <- full_supplement()
   url$authors[[1]]$orcid <- "https://orcid.org/0000-0002-1825-0097"
   dirs <- list(local_site(bare), local_site(url))
@@ -211,6 +211,102 @@ test_that("both files are written in a copy of the template", {
   expect_no_error(write_zenodo(dir))
   expect_equal(read_cff(dir)$title, "Supplemental materials for: Title of the paper")
   expect_equal(read_zenodo(dir)$creators[[1]]$name, "Author, A. A.")
+})
+
+test_that("a hand-written _supplement.yml gives the same files as the R-written one", {
+  text <- c(
+    "supplement:",
+    "  paper-title: 'Effects: a \"close\" look at *text* & more'",
+    "  citation: \"Doe, J., & Müller, Ä. (2026). Effects. *Journal*.\"",
+    "  preprint: https://osf.io/abcde",
+    "  contact: Jane Doe, University A.",
+    "  license: {code: MIT, content: CC-BY-4.0}",
+    "  authors:",
+    "  - family: Doe",
+    "    given: Jane Q.",
+    "    orcid: 0000-0002-1825-0097",
+    "    affiliation: University A",
+    "  - {family: \"Müller\", given: \"Änne\", orcid: \"https://orcid.org/0000-0002-1694-233X\", affiliation: Institut B}",
+    "  zenodo:",
+    "    version-doi: 10.5281/zenodo.2",
+    "    concept-doi: 10.5281/zenodo.1",
+    "    archive-url: https://zenodo.org/records/2",
+    "  data:",
+    "    - file: data/example.csv",
+    "      description: Example"
+  )
+  dirs <- list(local_site(text = text), local_site(full_supplement()))
+  for (dir in dirs) {
+    write_citation(dir)
+    write_zenodo(dir)
+  }
+  for (file in c("CITATION.cff", ".zenodo.json")) {
+    expect_identical(
+      readLines(file.path(dirs[[1]], file), encoding = "UTF-8"),
+      readLines(file.path(dirs[[2]], file), encoding = "UTF-8")
+    )
+  }
+})
+
+test_that("a DOI written as a URL is written bare", {
+  for (prefix in c("https://doi.org/", "http://dx.doi.org/")) {
+    meta <- full_supplement()
+    meta$zenodo[["concept-doi"]] <- paste0(prefix, "10.5281/zenodo.1")
+    dir <- local_site(meta)
+    write_citation(dir)
+    expect_equal(read_cff(dir)$doi, "10.5281/zenodo.1")
+  }
+})
+
+test_that("folded values and outer spaces are trimmed, and .na counts as empty", {
+  dir <- local_site(text = c(
+    "supplement:",
+    "  paper-title: >",
+    "    A paper",
+    "  citation: >",
+    "    Doe, J. (2026).",
+    "    A paper.",
+    "  license:",
+    "    code: .na",
+    "    content: '  CC-BY-4.0  '",
+    "  authors:",
+    "    - family: ' Doe '",
+    "      given: Jane",
+    "      orcid: ' 0000-0002-1825-0097 '",
+    "      affiliation: .na"
+  ))
+  write_citation(dir)
+  write_zenodo(dir)
+
+  cff <- read_cff(dir)
+  zenodo <- read_zenodo(dir)
+  expect_equal(cff$title, "Supplemental materials for: A paper")
+  expect_equal(cff$license, "CC-BY-4.0")
+  expect_equal(
+    cff$authors,
+    list(list(
+      "family-names" = "Doe", "given-names" = "Jane",
+      orcid = "https://orcid.org/0000-0002-1825-0097"
+    ))
+  )
+  expect_equal(zenodo$description, "Supplemental materials for: Doe, J. (2026). A paper.")
+  expect_equal(zenodo$creators, list(list(name = "Doe, Jane", orcid = "0000-0002-1825-0097")))
+})
+
+test_that("every CITATION.cff value is written in double quotes", {
+  meta <- full_supplement()
+  meta$authors[[1]]$affiliation <- "1e3"
+  meta$authors[[2]]$given <- "No"
+  dir <- local_site(meta)
+  write_citation(dir)
+
+  lines <- readLines(file.path(dir, "CITATION.cff"), encoding = "UTF-8")
+  expect_true(any(lines == '    affiliation: "1e3"'))
+  expect_true(any(lines == '    given-names: "No"'))
+  values <- grep("^\\s*(- )?[a-z-]+: ", lines, value = TRUE)
+  values <- values[!grepl(":\\s*$", values)]
+  expect_gt(length(values), 0)
+  expect_true(all(grepl(': "', values)))
 })
 
 test_that("overwrite = TRUE replaces the file", {

@@ -17,8 +17,9 @@
 #'   The `license` field of `.zenodo.json` takes one license id, so the
 #'   code license is not written.
 #'
-#' Empty values are left out. Values are written as the YAML parser reads
-#' them, so Markdown such as `*Journal*` keeps its asterisks. Put values in
+#' Empty values are left out, and spaces and line breaks at the start and
+#' end of a value are removed. Values are otherwise written as the YAML
+#' parser reads them, so Markdown such as `*Journal*` keeps its asterisks. Put values in
 #' quotes in `_supplement.yml`, as the template does, so that YAML does not
 #' read a value such as `No` or `1.10` as true/false or a number.
 #'
@@ -39,23 +40,24 @@
 #' readLines(file.path(site, ".zenodo.json"))
 #' unlink(site, recursive = TRUE)
 write_zenodo <- function(path = ".", overwrite = FALSE) {
+  check_args(path, overwrite)
   meta <- read_supplement(path)
   require_fields(meta, c("paper-title", "citation"))
   authors <- read_authors(meta)
 
-  license <- meta[["license"]]
-  if (!is.list(license)) {
-    license <- list()
-  }
+  license <- map_field(meta, "license")
   # Zenodo's license ids are lowercase SPDX ids:
   # https://zenodo.org/api/vocabularies/licenses/cc-by-4.0 has the id
   # "cc-by-4.0".
-  content <- value(license[["content"]])
+  content <- value(license[["content"]], "supplement.license.content")
 
   zenodo <- compact(list(
     title = supplement_title(meta),
     upload_type = "software",
-    description = paste0("Supplemental materials for: ", value(meta[["citation"]])),
+    description = paste0(
+      "Supplemental materials for: ",
+      value(meta[["citation"]], "supplement.citation")
+    ),
     creators = lapply(authors, function(author) {
       compact(list(
         name = paste0(author$family, ", ", author$given),

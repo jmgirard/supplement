@@ -16,7 +16,7 @@ full_supplement <- function() {
       ),
       list(
         family = "Müller", given = "Änne",
-        orcid = "https://orcid.org/0000-0001-5109-370X",
+        orcid = "https://orcid.org/0000-0002-1694-233X",
         affiliation = "Institut B"
       )
     ),

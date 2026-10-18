@@ -26,12 +26,13 @@ The file holds:
 * `authors`: each author's `family` and `given` names, ORCID iD, and
   affiliation, in the order of `_supplement.yml`.
 * `doi`: `zenodo.concept-doi`, which names every release. When it is
-  empty, `zenodo.version-doi`.
+  empty, `zenodo.version-doi`. A `https://doi.org/` in front is removed.
 * `license`: the SPDX identifiers in `license.code` and
   `license.content`.
 
-Empty values are left out. Values are written as the YAML parser reads
-them, so Markdown such as `*Journal*` keeps its asterisks. Put values in
+Empty values are left out, and spaces and line breaks at the start and
+end of a value are removed. Every value is written in double quotes.
+Values are otherwise written as the YAML parser reads them, so Markdown such as `*Journal*` keeps its asterisks. Put values in
 quotes in `_supplement.yml`, as the template does, so that YAML does not
 read a value such as `No` or `1.10` as true/false or a number.
 }
@@ -41,19 +42,25 @@ A `_supplement.yml` that is not valid YAML gives the error of the YAML
 parser. The errors that these functions raise themselves have the class
 `supplement_error` and one of these classes:
 
+* `supplement_error_argument`: `path` is not one folder path, or
+  `overwrite` is not `TRUE` or `FALSE`.
 * `supplement_error_no_metadata`: `path` has no `_supplement.yml`.
 * `supplement_error_no_map`: the file has no `supplement:` map.
 * `supplement_error_missing_field`: `paper-title` is missing or empty.
   For [write_zenodo()], also `citation`.
+* `supplement_error_field_type`: a value that the function reads is a
+  list where one text value belongs, or `license` or `zenodo` is not a
+  map.
 * `supplement_error_authors`: `authors` is missing, empty, or not a list
   of authors.
 * `supplement_error_author_name`: an author has no `family` or no
   `given` name.
 * `supplement_error_orcid`: an ORCID iD does not have the form
-  `0000-0000-0000-0000`, with or without `https://orcid.org/` in front.
-  The last character can be `X`.
+  `0000-0000-0000-0000`, with or without `https://orcid.org/` in front,
+  or its last character is not the iD's check digit. The last character
+  can be `X`.
 * `supplement_error_file_exists`: the output file exists and
-  `overwrite` is `FALSE`.
+  `overwrite` is `FALSE`, or a folder has the output file's name.
 }
 
 \examples{
