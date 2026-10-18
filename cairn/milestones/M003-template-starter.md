@@ -90,3 +90,30 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - AC6 evidence (2026-10-18): `grep -F` on the rendered folder's `README.md` finds each fact once: "A render by name, such as … always runs that report's code"; "Before a full render, check the `.rds` fit files"; "Stage only `_freeze/` and `docs/`"; "`set.seed(`"; "Render and push the site from one machine"; "`search: false`"; "Never publish a build that ran with the data deleted". `index.qmd` has the callout "Before your first commit" with "Run `quarto render` once in this folder" (line 9).
 - AC7 evidence (2026-10-18): `devtools::test()` on this Mac with quarto 1.10.19 on PATH: FAIL 0, WARN 0, SKIP 0, PASS 27.
 - Consistency gate (2026-10-18): `cairn_validate.py` all checks passed. r-package slot: no roxygen, so `document()` has nothing to regenerate; NEWS.md has an entry; README.md is plain markdown (no README.Rmd); no pkgdown site; `.Rbuildignore` covers the new top-level files (check gave 0 notes); `devtools::check()` 0/0/0 (AC1).
+- spawned: diff-bug, blame-history, prior-review.
+- diff-bug #1: `nojekyll.ts` treats only `/`-paths as absolute, but Quarto passes an absolute `QUARTO_PROJECT_OUTPUT_DIR`, so on Windows the write goes to a broken path and every render fails — return floor (load-bearing defect: the user's data machine is Windows).
+- diff-bug #2: the merge keeps an existing `docs/` rule, and GitHub's R `.gitignore` template has an active `docs/` rule (line 44, checked), so the site would never be committed — fix now: `_gitignore` ends with `!docs/` and `!_freeze/`.
+- diff-bug #3: an existing README.md makes `setup.ts` delete `_README.md` silently, so the guidance is lost — fix now: keep it as `SUPPLEMENT.md`.
+- diff-bug #4: `_gitignore` misses `*.rda`, `*.RData`, `*.qs`, `.Renviron`, `.DS_Store`, `.Rapp.history`, `rsconnect/`, `*.knit.md`, `*.utf8.md` — fix now.
+- diff-bug #5: in a non-empty folder `quarto use template` offers a subdirectory, which GitHub Pages cannot serve — fix now: README says to answer no inside a clone.
+- diff-bug #6: the remote form `jmgirard/supplement/inst/template` was never run, because main has no template yet — follow-up: run it after merge at hygiene, and pinning a tag goes to the new candidate row "template install from GitHub".
+- diff-bug #7: the no-R test has no Windows skip, skips on `R` instead of `Rscript`, and a seeded re-run would also give identical bytes — fix now: `skip_on_os("windows")`, skip on `/usr/bin/Rscript` or `/bin/Rscript`, and require unchanged `_freeze/` modification times.
+- diff-bug #8: renders need knitr and rmarkdown, which the tests do not skip on — fix now: `skip_if_not_installed()`.
+- diff-bug #9: `git check-ignore` reads the global excludes file — fix now: `-c core.excludesFile=<empty file>`.
+- diff-bug #10: the shared site uses `tempfile()`, caches a failed render, and is changed by later tests — fix now: each test gets its own copy of the rendered site, and the cache is removed at teardown.
+- diff-bug #11: the `_quarto.yml` comment "See README.md" points at nothing — fix now: README section on the scripts.
+- diff-bug #12: `resources: data/*.csv` covers CSV only — fix now: `data/**`.
+- diff-bug #13: the CC BY scope includes `docs/site_libs`, which holds third-party MIT code — fix now: exclude it.
+- diff-bug #14: the merge drops blank lines and can mix line endings — reject, style: git reads the result the same.
+- diff-bug #15: `quarto preview` re-runs a report on save — fix now: one README line.
+- diff-bug #16: DESIGN.md says nothing is built and the Pure R convention predates D-004; the Review section was uncommitted — fix now for DESIGN.md; the second part rejected, false: committed in f53dc0c.
+- blame-history #1: the README never says fit files go in `analyses/fits/` (pilot P1) — fix now.
+- blame-history #2: merging into an existing `.gitignore` changed D-004's behavior with no D-entry — fix now: D-006.
+- blame-history #3: `.claude/`, `.luarc.json`, and `*.rmarkdown` rules from the pilot were dropped — fix now: added.
+- blame-history #4: the pilot's `/src/` leftovers rule was dropped — reject, planned change: new sites have no old `src/` layout, and P7's disposition carries only the fit check and the narrow `git add`.
+- blame-history #5: the README drops "needs its data, its fit files, and R" and says nothing about stale pages after a render by name — fix now.
+- blame-history #6: the three absorbed candidate rows are still listed — reject, planned change: rows graduate at post-merge hygiene.
+- prior-review #1: "freeze re-runs a report whose source changed" — reject, false: in the evidence site, after an edit to `example.qmd`, a full render with R unreachable exited 0 and the new chunk did not run. The README now says so outright (with blame-history #5).
+- prior-review #2: "rebuilds without the data" overstates — reject, false: same test.
+- prior-review #3: fit file location — fix now, same as blame-history #1.
+- prior-review #4: stale `docs/` pages after a render by name — fix now, same as blame-history #5.
