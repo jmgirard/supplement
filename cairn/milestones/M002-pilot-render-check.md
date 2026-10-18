@@ -59,6 +59,7 @@ Show that the pilot site, after one full render on the machine that holds the fi
 - 2026-10-18: all tasks done; status set to review.
 - 2026-10-18: correction from review (diff-bug #3): the T2 line's "only backslashes are the default Windows data paths" is wrong. R `\(x)` lambdas and `"\n"` strings in the source also put backslashes in `_freeze/`.
 - 2026-10-18: correction from review (diff-bug #1, #6): the T3 number check also matches on feature_descriptives. "So the fits were reused" covers the printed numbers only: the 27 posterior predictive check figures changed, because their draws have no seed (note P9).
+- 2026-10-18: step-7 approval: m002-pilot-render-check approved for merge. The companion branch `freeze-layout` is not merged and gets no PR, per the branch-fate answer in the question set.
 
 ## Decisions
 
