@@ -8,3 +8,8 @@
   `supplement-download` links to the Zenodo archive, and
   `supplement-data-table` lists the data files with their sizes and
   download links. A data file that does not exist stops the render.
+* `write_citation()` and `write_zenodo()` write `CITATION.cff` and
+  `.zenodo.json` from `_supplement.yml`.
+* Authors in the template's `_supplement.yml` now have `family:` and
+  `given:` in place of `name:`. Both functions stop with an error for an
+  author without them.
