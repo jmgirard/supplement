@@ -40,7 +40,7 @@ Show that the pilot site, after one full render on the machine that holds the fi
 
 - [x] T1: Stop for the user: on the data machine, follow the branch README section, run a full `quarto render`, then commit and push `_freeze/` and `docs/`.
 - [x] T2: Fetch origin's `freeze-layout` and run the AC1 listing.
-- [ ] T3: Clone it into the scratchpad, delete `data/*.csv`, run a full `quarto render`, then run the AC2 and AC3 checks.
+- [x] T3: Clone it into the scratchpad, delete `data/*.csv`, run a full `quarto render`, then run the AC2 and AC3 checks.
 - [ ] T4: Ask the user what went wrong on the data machine and write each problem as a `data-machine report:` work-log line. Add those entries and the new path list to the pilot-port note.
 
 ## Work log
@@ -52,6 +52,7 @@ Show that the pilot site, after one full render on the machine that holds the fi
 - 2026-10-18: criteria audit (reduced mode, Opus): AC1 to AC3 passed. AC4 had no record to check against and an undefined "refreshed". Fixed with `data-machine report:` lines and a named diff command.
 - 2026-10-18: T1 done by the user: commit dddad4a "Render all reports" on origin `freeze-layout`, pushed after comparing the demographics page with the live page. Origin `main` still 54684dc. The commit kept `docs/` cleaned of the old `_files/` and `docs/src/` copies.
 - 2026-10-18: T2 done: on origin `freeze-layout`, `_freeze/analyses/` holds 1 file each for demographics and feature_descriptives and 12 each for the three model reports. No CR characters in `_freeze/`. The only backslashes are the default Windows data paths already in the demographics source.
+- 2026-10-18: T3 done: fresh clone of origin `freeze-layout` at dddad4a in the scratchpad, `data/*.csv` deleted, full `quarto render` exited 0, `_freeze` status empty, all 5 pages have the header and links to the other 4, and one bootstrap theme file. Extra check: every decimal number on the verbal, vocal, visual, and demographics pages matches the v1.1.0 pages on `main`, except one added "4.0" from the new footer license text, so the fits were reused.
 
 ## Decisions
 
