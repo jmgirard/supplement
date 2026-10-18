@@ -39,7 +39,9 @@ a file that is not in \verb{docs/}, or to a folder there with no
 \code{index.html}. Links that start with \code{/}, \verb{#}, or a scheme such as
 \verb{https:} are not checked, and no web address is requested. GitHub
 Pages matches letter case, so a link whose case differs from the file
-name counts as broken, also on a disk that ignores case.
+name counts as broken, also on a disk that ignores case. A link that
+also differs from the name in Unicode form (for example \code{é} written
+as \code{e} plus an accent) is not caught.
 \item \code{"doi-mismatch"}: the DOI in \code{CITATION.cff} differs from the one that
 \code{\link[=write_citation]{write_citation()}} writes from \verb{_supplement.yml}, or the DOI badge on
 \code{docs/index.html} differs from \code{zenodo.version-doi} (or

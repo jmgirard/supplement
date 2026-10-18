@@ -1,6 +1,6 @@
 # M008: check_supplement() lists release problems
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -86,6 +86,8 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: implement resumed for review return 1; T7 added (minor amendment) and mapped in Coverage to AC1 to AC6.
 - 2026-10-18: T7 done. Pages are read through `read_page_text()` (NUL bytes dropped, invalid UTF-8 shown as `<xx>`), so links are UTF-8 and not bytes; a decoded link with a NUL or invalid UTF-8 is broken; `exact_name()` matches letter case and lets a name that differs only in Unicode form pass; reports are listed in `analyses/` with leading-dot names left out, as the glob does; bad DOIs in `CITATION.cff` or the badge give rows through `doi_or_null()`; the `CITATION.cff` doi is space-cleaned first. `devtools::test()` 1360 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - 2026-10-18: planted defects turned the T7 tests red: links read with `useBytes`, no case match, no NUL test in decoding, DOI stop restored, the glob restored, no space cleaning (after a fixture that keeps the line break), no UTF-8 repair of pages, and git names without `useBytes`.
+- 2026-10-18: claim audit: 51 claims read, 5 corrected — R/check-supplement.R, man/check_supplement.Rd, tests/testthat/test-check-supplement.R. Fixes: a badge that is not a DOI no longer hides the comparison of the other badges (code change, with a test); its message no longer tells the author to fix `_supplement.yml`; the help page names the Unicode-form gap in the case match; the `percent_decode()` comment limits itself to disks that need UTF-8 names; the large-file message gives byte counts. The re-read found all five correct.
+- 2026-10-18: implement done; status review. `devtools::test()` 1363 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 
 ## Review
 

@@ -21,7 +21,9 @@
 #'   `index.html`. Links that start with `/`, `#`, or a scheme such as
 #'   `https:` are not checked, and no web address is requested. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
-#'   name counts as broken, also on a disk that ignores case.
+#'   name counts as broken, also on a disk that ignores case. A link that
+#'   also differs from the name in Unicode form (for example `é` written
+#'   as `e` plus an accent) is not caught.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
@@ -210,7 +212,8 @@ check_git_files <- function(path, files) {
   rbind(
     problem_rows(
       "large-file", shown[large],
-      sprintf("%.1f MiB is more than GitHub's limit of 100 MiB for one file.", size[large] / 2^20)
+      sprintf("%s bytes is more than GitHub's limit of 104,857,600 bytes (100 MiB) for one file.",
+              format(size[large], big.mark = ",", scientific = FALSE, trim = TRUE))
     ),
     problem_rows(
       "saved-object", shown[saved],
@@ -334,7 +337,10 @@ exact_name <- function(dir, name) {
 }
 
 # Decode %XX escapes, or return NA when the result holds a NUL byte or is
-# not valid UTF-8, since no file name in the site can match it.
+# not valid UTF-8. No file name holds a NUL byte, and a name that is not
+# valid UTF-8 cannot match a file on a disk that needs UTF-8 names, such
+# as macOS. On Linux such a link counts as broken even when the file
+# exists.
 percent_decode <- function(x) {
   if (!grepl("%[0-9A-Fa-f]{2}", x)) {
     return(x)
@@ -429,15 +435,6 @@ check_badge_doi <- function(path, index, expected) {
   ids <- regmatches(html, gregexpr("https://zenodo\\.org/badge/DOI/([^\"'<>[:space:]]+?)\\.svg", html, perl = TRUE))[[1]]
   ids <- unique(sub("^https://zenodo\\.org/badge/DOI/(.*)\\.svg$", "\\1", ids))
   bare <- lapply(ids, doi_or_null, field = "DOI badge", file = "docs/index.html")
-  invalid <- vapply(bare, is.null, logical(1))
-  if (any(invalid)) {
-    return(problem_rows(
-      "doi-mismatch", rep_len("docs/index.html", sum(invalid)),
-      sprintf("The DOI badge shows %s, which is not a DOI. Fix _supplement.yml and render the site again.",
-              ids[invalid])
-    ))
-  }
-  ids <- unlist(bare)
   if (length(ids) == 0) {
     if (!is.null(expected) && uses_doi_shortcode(file.path(path, "index.qmd"))) {
       return(problem_rows(
@@ -447,11 +444,21 @@ check_badge_doi <- function(path, index, expected) {
     }
     return(problem_rows())
   }
-  wrong <- unique(ids[!vapply(ids, same_doi, logical(1), expected = expected)])
-  problem_rows(
-    "doi-mismatch", rep_len("docs/index.html", length(wrong)),
-    sprintf("The DOI badge shows %s, and _supplement.yml gives %s. Render the site again.",
-            wrong, expected %||% "none")
+  # The DOIs in _supplement.yml passed bare_doi() already, so a badge that
+  # is not a DOI comes from an old render or from HTML written by hand.
+  invalid <- vapply(bare, is.null, logical(1))
+  valid <- unlist(bare[!invalid])
+  wrong <- unique(valid[!vapply(valid, same_doi, logical(1), expected = expected)])
+  rbind(
+    problem_rows(
+      "doi-mismatch", rep_len("docs/index.html", sum(invalid)),
+      sprintf("The DOI badge shows %s, which is not a DOI. Render the site again.", ids[invalid])
+    ),
+    problem_rows(
+      "doi-mismatch", rep_len("docs/index.html", length(wrong)),
+      sprintf("The DOI badge shows %s, and _supplement.yml gives %s. Render the site again.",
+              wrong, expected %||% "none")
+    )
   )
 }
 

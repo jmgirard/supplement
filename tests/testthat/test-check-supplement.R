@@ -104,7 +104,7 @@ test_that("files over GitHub's size limit give a large-file row", {
 
   rows <- rows_of(check_quiet(site), "large-file")
   expect_identical(rows$file, "data/over.csv")
-  expect_match(rows$problem, "^100\\.0 MiB")
+  expect_match(rows$problem, "^104,857,601 bytes is more than", fixed = FALSE)
 })
 
 test_that("a git file name that is not valid UTF-8 is still checked", {
@@ -335,6 +335,11 @@ test_that("DOIs that differ between files give a doi-mismatch row", {
   expect_match(rows_of(result, "doi-mismatch")$problem, "not a DOI: not-a-doi")
   expect_identical(nrow(rows_of(result, "not-rendered")), 1L)
   expect_match(doi_rows(site_with("10.5281/zenodo.2", badges = "nota"))$problem, "nota, which is not a DOI")
+  # A badge that is not a DOI does not hide a wrong badge beside it.
+  rows <- doi_rows(site_with("10.5281/zenodo.2", badges = c("nota", "10.5281/zenodo.9")))
+  expect_length(rows$problem, 2L)
+  expect_match(rows$problem, "nota, which is not a DOI", all = FALSE)
+  expect_match(rows$problem, "shows 10.5281/zenodo.9, and", all = FALSE)
   # A block-scalar doi in CITATION.cff ends with a line break.
   site <- site_with("", "10.5281/zenodo.1")
   # A key after it keeps the line break in the value.
