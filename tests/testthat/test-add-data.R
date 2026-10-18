@@ -159,7 +159,7 @@ test_that("a bad description stops and writes nothing", {
 })
 
 test_that("a file name that Quarto reads as Markdown stops", {
-  for (name in c("a b.csv", "it's.csv", "a--b.csv", "a._b.csv", ".hidden", "café.csv", "_x_.csv")) {
+  for (name in c("a b.csv", "it's.csv", "a--b.csv", "a._b.csv", ".hidden", "café.csv", "_x_.csv", "x.csv\n")) {
     file <- source_file(name)
     expect_data_error("supplement_error_file_name", file = file, description = "D")
   }
@@ -213,4 +213,112 @@ test_that("a _supplement.yml with no block-style data list stops and shows the l
     '    supplement:\n      data:\n        - file: "data/scores.csv"\n          description: "D \\"x\\""',
     fixed = TRUE
   )
+})
+
+test_that("_supplement.yml is checked before the copy runs", {
+  local_mocked_bindings(copy_file = function(from, to) stop("the copy ran"))
+  expect_data_error(
+    "supplement_error_no_data_list", file = source_file(), description = "D",
+    setup = function(site) writeLines(c("supplement:", "  data: []"), file.path(site, "_supplement.yml"))
+  )
+  expect_data_error("supplement_error_already_listed", description = "D",
+                    setup = function(site) list(file = file.path(site, "data", "example.csv")))
+})
+
+test_that("a copy that fails stops with a write error and leaves nothing", {
+  local_mocked_bindings(copy_file = function(from, to) FALSE)
+  expect_data_error("supplement_error_write", file = source_file(), description = "D")
+})
+
+test_that("saved R objects stop, in any letter case", {
+  for (name in c("fit.rds", "fit.RDS", "a.rda", "b.RData", "c.qs", "d.QS2")) {
+    expect_data_error("supplement_error_ignored_file", file = source_file(name), description = "D")
+  }
+})
+
+test_that("a linked data folder or data file stops, so nothing is written outside the site", {
+  skip_on_os("windows")
+  outside <- withr::local_tempdir("outside-")
+  outside_before <- folder_state(outside)
+  expect_data_error(
+    "supplement_error_file_exists", file = source_file(), description = "D",
+    setup = function(site) {
+      unlink(file.path(site, "data"), recursive = TRUE)
+      file.symlink(outside, file.path(site, "data"))
+    }
+  )
+  expect_identical(folder_state(outside), outside_before)
+
+  real <- source_file("real.csv")
+  expect_data_error(
+    "supplement_error_file_exists", file = real, description = "D",
+    setup = function(site) file.symlink(real, file.path(site, "data", "real.csv"))
+  )
+})
+
+test_that("a name that differs from a file in data/ only in letter case stops", {
+  expect_data_error("supplement_error_file_exists", file = source_file("EXAMPLE.csv"), description = "D")
+})
+
+test_that("a file listed in another letter case is already listed", {
+  expect_data_error(
+    "supplement_error_already_listed", description = "D",
+    setup = function(site) {
+      meta <- file.path(site, "_supplement.yml")
+      lines <- readLines(meta)
+      writeLines(sub("data/example.csv", "data/EXAMPLE.csv", lines, fixed = TRUE), meta)
+      list(file = file.path(site, "data", "example.csv"))
+    }
+  )
+})
+
+test_that("on a case-insensitive disk, a file in data/ is listed under its name on disk", {
+  site <- new_site()
+  writeBin(as.raw(1:3), file.path(site, "data", "mine.csv"))
+  given <- file.path(site, "data", "MINE.csv")
+  skip_if_not(file.exists(given), "the disk is case-sensitive")
+  suppressMessages(add_data(given, "Mine", path = site))
+  items <- yaml_list(lines_utf8(file.path(site, "_supplement.yml")), data_list)
+  expect_identical(items[[length(items)]]$file, "data/mine.csv")
+  expect_identical(sort(list.files(file.path(site, "data"))), c("example.csv", "mine.csv"))
+})
+
+test_that("a description that is not valid UTF-8 stops", {
+  bad <- "caf\xe9"
+  Encoding(bad) <- "bytes"
+  bad <- rawToChar(charToRaw(bad))
+  expect_data_error("supplement_error_encoding", file = source_file(), description = bad)
+})
+
+test_that("a block-scalar description at the end of _supplement.yml does not stop", {
+  site <- new_site()
+  meta <- file.path(site, "_supplement.yml")
+  lines <- readLines(meta)
+  i <- grep("description: \"Example data", lines, fixed = TRUE)
+  lines <- c(lines[seq_len(i - 1)], "      description: >", "        Example data for the", "        example report")
+  writeLines(lines, meta)
+  suppressMessages(add_data(source_file(), "Scores", path = site))
+  expect_identical(added_lines(lines, lines_utf8(meta)),
+                   c('    - file: "data/scores.csv"', '      description: "Scores"'))
+})
+
+test_that("a _supplement.yml that does not parse stops with a yaml error", {
+  expect_data_error(
+    "supplement_error_yaml", file = source_file(), description = "D",
+    setup = function(site) write("other: [unclosed", file.path(site, "_supplement.yml"), append = TRUE)
+  )
+})
+
+test_that("a read-only _supplement.yml gives R's error and the copy is removed", {
+  skip_on_os("windows")
+  skip_if(Sys.info()[["user"]] == "root", "root can write to read-only files")
+  site <- new_site()
+  meta <- file.path(site, "_supplement.yml")
+  Sys.chmod(meta, "0444")
+  withr::defer(Sys.chmod(meta, "0644"))
+  before <- folder_state(site)
+  err <- tryCatch(suppressWarnings(add_data(source_file(), "D", path = site)), error = function(e) e)
+  expect_s3_class(err, "error")
+  expect_false(inherits(err, "supplement_error"))
+  expect_identical(folder_state(site), before)
 })

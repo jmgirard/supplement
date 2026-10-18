@@ -37,7 +37,7 @@ test_that("the non-ASCII title is written as UTF-8 bytes", {
   value <- probe_values[["non_ascii"]]
   suppressMessages(add_report("utf8", value, path = site))
   bytes <- read_bytes(file.path(site, "analyses", "utf8.qmd"))
-  expect_true(grepl(charToRaw(enc2utf8(value)) |> rawToChar(), rawToChar(bytes), fixed = TRUE, useBytes = TRUE))
+  expect_true(grepl(enc2utf8(value), rawToChar(bytes), fixed = TRUE, useBytes = TRUE))
 })
 
 test_that("an empty description writes no description key", {
@@ -97,6 +97,9 @@ test_that("other _quarto.yml shapes keep every other line", {
     suppressMessages(add_report("new", "New", path = site))
     after <- lines_utf8(config)
     expect_length(added_lines(shapes[[name]], after), 2)
+    side <- if (name == "menu_on_right") "right" else "left"
+    items <- yaml_list(after, list("website", "navbar", side, list(key = "text", value = "Analyses"), "menu"))
+    expect_identical(items[[length(items)]], list(href = "analyses/new.qmd", text = "New"), info = name)
     expect_true(file.exists(file.path(site, "analyses", "new.qmd")), info = name)
   }
 })
@@ -137,7 +140,7 @@ test_that("a bad path stops with an argument error", {
 })
 
 test_that("a bad name stops and writes nothing", {
-  for (name in list("_x", "-x", "a b", "a.b", "", "café", c("a", "b"), NA_character_, 1)) {
+  for (name in list("_x", "-x", "a b", "a.b", "", "café", c("a", "b"), NA_character_, 1, "ab\n")) {
     expect_report_error("supplement_error_report_name", name = name, title = "X")
   }
 })
@@ -198,4 +201,94 @@ test_that("a _quarto.yml with no block-style Analyses menu stops and shows the l
     '          - href: "analyses/x.qmd"\n                text: "X \\"y\\""',
     fixed = TRUE
   )
+})
+
+test_that("a title of only Unicode spaces stops", {
+  for (title in c(" ", "　  ")) {
+    expect_report_error("supplement_error_argument", name = "x", title = title)
+  }
+})
+
+test_that("text that is not valid UTF-8 stops", {
+  bad <- "caf\xe9"
+  Encoding(bad) <- "bytes"
+  bad <- rawToChar(charToRaw(bad))
+  expect_report_error("supplement_error_encoding", name = "x", title = bad)
+  expect_report_error("supplement_error_encoding", name = "x", title = "X", description = bad)
+})
+
+test_that("a name that differs from an existing report only in letter case stops", {
+  expect_report_error("supplement_error_file_exists", name = "Example", title = "X")
+})
+
+test_that("stored output of an earlier report with the same name stops", {
+  expect_report_error(
+    "supplement_error_file_exists", name = "old", title = "X",
+    setup = function(site) dir.create(file.path(site, "_freeze", "analyses", "old"), recursive = TRUE)
+  )
+})
+
+test_that("a linked analyses folder stops, so nothing is written outside the site", {
+  skip_on_os("windows")
+  outside <- withr::local_tempdir("outside-")
+  outside_before <- folder_state(outside)
+  expect_report_error(
+    "supplement_error_file_exists", name = "x", title = "X",
+    setup = function(site) {
+      unlink(file.path(site, "analyses"), recursive = TRUE)
+      file.symlink(outside, file.path(site, "analyses"))
+    }
+  )
+  expect_identical(folder_state(outside), outside_before)
+})
+
+test_that("noncharacters in a description are escaped and read back", {
+  site <- new_site()
+  value <- "x ￾ y ￿"
+  suppressMessages(add_report("nonchar", "Nonchar", value, path = site))
+  report <- file.path(site, "analyses", "nonchar.qmd")
+  expect_identical(front_matter(report)$description, value)
+  expect_true(any(lines_utf8(report) == 'description: "x \\uFFFE y \\uFFFF"'))
+})
+
+test_that("a _quarto.yml that is not UTF-8 or does not parse stops and writes nothing", {
+  expect_report_error(
+    "supplement_error_encoding", name = "x", title = "X",
+    setup = function(site) {
+      con <- file(file.path(site, "_quarto.yml"), "ab")
+      writeBin(as.raw(c(0x23, 0x20, 0xe9, 0x0a)), con)
+      close(con)
+    }
+  )
+  expect_report_error(
+    "supplement_error_yaml", name = "x", title = "X",
+    setup = function(site) write("format: [unclosed", file.path(site, "_quarto.yml"), append = TRUE)
+  )
+})
+
+test_that("a folder that cannot be made stops with a write error", {
+  skip_on_os("windows")
+  skip_if(Sys.info()[["user"]] == "root", "root can write to read-only folders")
+  site <- new_site()
+  unlink(file.path(site, "analyses"), recursive = TRUE)
+  Sys.chmod(site, "0555")
+  withr::defer(Sys.chmod(site, "0755"))
+  before <- folder_state(site)
+  expect_error(add_report("x", "X", path = site), class = "supplement_error_write")
+  expect_identical(folder_state(site), before)
+})
+
+test_that("a read-only _quarto.yml gives R's error and the report file is removed", {
+  skip_on_os("windows")
+  skip_if(Sys.info()[["user"]] == "root", "root can write to read-only files")
+  site <- new_site()
+  config <- file.path(site, "_quarto.yml")
+  Sys.chmod(config, "0444")
+  withr::defer(Sys.chmod(config, "0644"))
+  before <- folder_state(site)
+  err <- tryCatch(suppressWarnings(add_report("x", "X", path = site)), error = function(e) e)
+  expect_s3_class(err, "error")
+  expect_false(inherits(err, "supplement_error"))
+  expect_match(conditionMessage(err), "cannot open", fixed = TRUE)
+  expect_identical(folder_state(site), before)
 })

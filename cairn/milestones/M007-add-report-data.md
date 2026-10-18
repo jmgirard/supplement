@@ -43,7 +43,7 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - AC2 → T2, T3
 - AC3 → T2, T4
 - AC4 → T2, T3, T4
-- AC5 → T3, T4
+- AC5 → T3, T4, T7
 - AC6 → T5
 - AC7 → T6
 
@@ -55,6 +55,7 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - [x] T4: Write `add_data()` in `R/add-data.R`, with tests for AC3 and its AC5 cases. Check every argument and `_supplement.yml` before the copy.
 - [x] T5: Add the AC6 render test. Reuse the skip helpers in `tests/testthat/helper-template.R`, so that the test skips without Quarto, knitr, or rmarkdown.
 - [x] T6: Add roxygen documentation with examples that write to `tempdir()`, and run `devtools::document()`. Describe both functions in the README, and add a NEWS.md entry for them and for the home page listing.
+- [x] T7: Fix review return 1 and the fix-now findings in the Review section: reject a name or base name that ends in a line break, a linked `analyses/`, `data/`, or `data/<base name>`, and invalid UTF-8 text; then the other fix-now items, each with a test.
 
 ## Work log
 
@@ -84,6 +85,9 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - 2026-10-18: implement done; status review. Suite 1134 pass, 0 skip.
 - 2026-10-18: review started; main at c78239a, not moved since the cut; no PR; Copilot round off.
 - 2026-10-18: review return 1: AC5 fails for an add_data() base name ending in `\n` (accepted, diff-bug #6); add_report() and add_data() write through a linked `analyses/` or `data/` folder outside the site (prior-review #1, #2); an invalid UTF-8 description is written as `"NA"` (diff-bug #2). The fix-now findings in the Review section ride on the same return.
+- 2026-10-18: implement resumed for review return 1; added T7 (minor amendment).
+- 2026-10-18: T7 implementation choices: files are split at "\n" with each line keeping its "\r" and a final "" for a closing line break, so bytes round-trip and mixed endings stay; new lines take the majority ending; a failed write restores the old bytes. New subclass `supplement_error_ignored_file` for saved R objects; `supplement_error_encoding` also covers invalid UTF-8 arguments; links, letter-case clashes, and stale `_freeze/analyses/<name>` stop as `supplement_error_file_exists`. `copy_file()` and `write_bytes()` are wrappers so tests can mock them. CR-only files went to the "YAML insert edge shapes" row. Added D-010 and updated DESIGN.md.
+- 2026-10-18: T7 done: every fix-now finding has a test; a render of a description with escaped U+FFFE and U+FFFF exited 0. Suite 1257 pass, 0 skip.
 
 ## Review
 

@@ -5,51 +5,73 @@
 # form. yaml_appended() reads the result with the yaml package, so that a
 # form the scanner reads wrongly stops the caller before it writes.
 
-# The lines of a UTF-8 text file, with what write_text_lines() needs to
-# write them back as they were: the line ending, whether the last line
-# ends with one, and a byte order mark.
+# The lines of a UTF-8 text file, split at each "\n". A line keeps its
+# "\r" when the file has CRLF line endings, and a file that ends with a
+# line break has "" as its last line, so pasting the lines with "\n" gives
+# the text back. `bytes` holds the whole file, to restore it when a write
+# fails.
 read_text_lines <- function(file, call = parent.frame()) {
   bytes <- readBin(file, "raw", file.size(file))
-  bom <- length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))
-  if (bom) {
-    bytes <- bytes[-(1:3)]
-  }
-  text <- rawToChar(bytes)
-  Encoding(text) <- "UTF-8"
-  if (!validUTF8(text)) {
+  not_utf8 <- function() {
     cli::cli_abort(
-      "{.file {file}} is not UTF-8 text, so it was not changed.",
+      "{.file {file}} is not UTF-8 text, so nothing was written.",
       class = c("supplement_error_encoding", "supplement_error"),
       call = call
     )
   }
-  eol <- if (grepl("\r\n", text, fixed = TRUE)) "\r\n" else "\n"
-  lines <- if (nzchar(text)) strsplit(text, eol, fixed = TRUE)[[1]] else character()
-  list(lines = lines, eol = eol, final = !nzchar(text) || endsWith(text, eol), bom = bom)
+  # A NUL byte, as in UTF-16 text, cannot be in an R string.
+  if (any(bytes == as.raw(0))) {
+    not_utf8()
+  }
+  bom <- length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))
+  text <- rawToChar(if (bom) bytes[-(1:3)] else bytes)
+  Encoding(text) <- "UTF-8"
+  if (!validUTF8(text)) {
+    not_utf8()
+  }
+  lines <- if (nzchar(text)) strsplit(text, "\n", fixed = TRUE)[[1]] else ""
+  if (endsWith(text, "\n")) {
+    lines <- c(lines, "")
+  }
+  list(lines = lines, bom = bom, bytes = bytes)
 }
 
+# Write `lines` to `file` as read_text_lines() would read them. If the
+# write fails after the file is opened, the file gets its old bytes back.
 write_text_lines <- function(read, lines, file) {
-  text <- paste(enc2utf8(lines), collapse = read$eol)
-  if (read$final && length(lines) > 0) {
-    text <- paste0(text, read$eol)
-  }
-  bytes <- charToRaw(text)
+  bytes <- charToRaw(enc2utf8(paste(lines, collapse = "\n")))
   if (read$bom) {
     bytes <- c(as.raw(c(0xef, 0xbb, 0xbf)), bytes)
   }
   con <- file(file, open = "wb")
-  on.exit(close(con))
+  tryCatch(
+    {
+      write_bytes(bytes, con)
+      close(con)
+    },
+    error = function(e) {
+      try(close(con), silent = TRUE)
+      try(writeBin(read$bytes, file), silent = TRUE)
+      stop(e)
+    }
+  )
+  invisible(file)
+}
+
+# A separate function, so that tests can make a write fail.
+write_bytes <- function(bytes, con) {
   writeBin(bytes, con)
 }
 
 # A YAML double-quoted string for each value. `\` and `"` are escaped, and
-# so are control characters and the characters that YAML 1.1 reads as line
-# breaks or as a byte order mark.
+# so are control characters, the characters that YAML 1.1 reads as line
+# breaks or as a byte order mark, and the noncharacters U+FFFE and U+FFFF.
 yaml_quote <- function(x) {
   vapply(enc2utf8(x), function(s) {
     cp <- utf8ToInt(s)
     out <- intToUtf8(cp, multiple = TRUE)
-    escape <- cp < 0x20 | (cp >= 0x7f & cp <= 0x9f) | cp %in% c(0x2028, 0x2029, 0xfeff)
+    escape <- cp < 0x20 | (cp >= 0x7f & cp <= 0x9f) |
+      cp %in% c(0x2028, 0x2029, 0xfeff, 0xfffe, 0xffff)
     out[escape] <- sprintf("\\u%04X", cp[escape])
     out[cp == 0x5c] <- "\\\\"
     out[cp == 0x22] <- "\\\""
@@ -65,16 +87,28 @@ yaml_item <- function(key, value) {
 
 # `lines` with `item`, a named character vector, added as the last item of
 # the block-style list that `path` names. NULL when there is no such list.
+# The lines of a file read by read_text_lines() may end with "\r". The new
+# lines get the line ending that most lines of the file have.
 yaml_append_lines <- function(lines, path, item) {
-  found <- yaml_find_list(lines, path)
+  found <- yaml_find_list(sub("\r$", "", lines), path)
   if (is.null(found)) {
     return(NULL)
   }
   values <- yaml_quote(unname(item))
-  new <- c(
-    paste0(strrep(" ", found$indent), "-", strrep(" ", found$offset - 1), names(item)[1], ": ", values[1]),
-    paste0(strrep(" ", found$indent + found$offset), names(item)[-1], ": ", values[-1])
-  )
+  new <- paste0(strrep(" ", found$indent), "-", strrep(" ", found$offset - 1), names(item)[1], ": ", values[1])
+  if (length(item) > 1) {
+    new <- c(new, paste0(strrep(" ", found$indent + found$offset), names(item)[-1], ": ", values[-1]))
+  }
+  n <- length(lines)
+  ended <- lines[-n]
+  cr <- if (length(ended) > 0 && mean(endsWith(ended, "\r")) > 0.5) "\r" else ""
+  new <- paste0(new, cr)
+  if (found$after == n) {
+    # The list ends the file and no line break follows it, so the old last
+    # line gets one and the new last line does not.
+    lines[n] <- paste0(lines[n], cr)
+    new[length(new)] <- sub("\r$", "", new[length(new)])
+  }
   append(lines, new, after = found$after)
 }
 
@@ -82,8 +116,11 @@ yaml_append_lines <- function(lines, path, item) {
 # last item of the list that `path` names.
 yaml_appended <- function(old, new, path, item) {
   read <- function(lines) {
+    # End the text with a line break either way, so that a block scalar at
+    # the end of the file reads the same before and after the insert.
+    text <- paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
     doc <- tryCatch(
-      yaml::yaml.load(paste(lines, collapse = "\n"), handlers = list(seq = function(x) as.list(x))),
+      yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x))),
       error = function(e) NULL
     )
     yaml_get(doc, path)
@@ -166,8 +203,9 @@ yaml_find_list <- function(lines, path) {
   head <- sub("^ *(- *).*$", "\\1", lines[last[1]])
   offset <- nchar(head)
   if (!yaml_content(sub("^ *- *", "", lines[last[1]])) && last[2] > last[1]) {
-    # The item's keys start on the next line.
-    offset <- yaml_indent(lines[last[1] + 1L]) - indent
+    # The item's keys start on its next content line.
+    rest <- seq.int(last[1] + 1L, last[2])
+    offset <- yaml_indent(lines[rest[yaml_content(lines[rest])][1]]) - indent
   }
   list(after = last[2], indent = indent, offset = max(offset, 2L))
 }

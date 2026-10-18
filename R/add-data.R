@@ -6,7 +6,8 @@
 #' list, with its description, its size, and a download link.
 #'
 #' If `file` is directly in the site's `data/` folder, and not in a folder
-#' inside it, the function copies nothing and only adds it to the list.
+#' inside it, the function copies nothing and only adds it to the list,
+#' under its name on disk.
 #' Every file in `data/` is published on the site, so add only data that
 #' you can share.
 #'
@@ -37,10 +38,14 @@
 #' * `supplement_error_file_name`: the base name of `file` does not follow
 #'   the file-name rule above.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
-#' * `supplement_error_file_exists`: `data/<base name>` exists and is not
-#'   `file`, or `data` is not a folder.
+#' * `supplement_error_ignored_file`: `file` is a saved R object (`.rds`,
+#'   `.rda`, `.RData`, `.qs`, or `.qs2`, in any letter case), which the
+#'   site's `.gitignore` keeps out of git.
+#' * `supplement_error_file_exists`: `data/<base name>`, or a file in
+#'   `data/` whose name differs from it only in letter case, exists and is
+#'   not `file`, or is a link; or `data` is not a folder or is a link.
 #' * `supplement_error_already_listed`: `data/<base name>` is already in
-#'   the `data` list.
+#'   the `data` list, in any letter case.
 #' * `supplement_error_no_data_list`: `_supplement.yml` has no `data` list
 #'   in block style under `supplement:`. An empty list written as
 #'   `data: []` is not in block style. The error shows the lines to add by
@@ -48,13 +53,15 @@
 #' * `supplement_error_yaml`: the yaml package does not read the changed
 #'   `_supplement.yml` as the old list with the new item added. The error
 #'   shows the lines to add by hand.
-#' * `supplement_error_encoding`: `_supplement.yml` is not UTF-8 text.
+#' * `supplement_error_encoding`: `description` or `_supplement.yml` is
+#'   not UTF-8 text.
 #' * `supplement_error_write`: the `data` folder could not be made, or
 #'   `file` could not be copied.
 #'
 #' When a file cannot be written, for example a read-only
-#' `_supplement.yml`, R's own error is shown, and the function removes what
-#' it wrote.
+#' `_supplement.yml`, R's own error is shown, and the function removes the
+#' copy. If a write of `_supplement.yml` fails partway, the file gets its
+#' old text back.
 #'
 #' @seealso [add_report()] to add a report, and [create_supplement()] to
 #'   make a site.
@@ -83,12 +90,22 @@ add_data <- function(file, description, path = ".") {
   }
   check_text(description, "description")
   base <- basename(file)
-  if (!grepl("^(?!\\.)(?!.*[._-]{2})[A-Za-z0-9._-]+$", base, perl = TRUE)) {
+  # \z, because $ also matches before a line break at the end.
+  if (!grepl("^(?!\\.)(?!.*[._-]{2})[A-Za-z0-9._-]+\\z", base, perl = TRUE)) {
     cli::cli_abort(
       c("The file name {.file {base}} cannot be listed in {.file _supplement.yml}.",
         "i" = "Use ASCII letters, digits, {.code .}, {.code -}, and {.code _}, with no two of those symbols in a row and no {.code .} at the start, because Quarto reads the name as Markdown.",
         "i" = "Rename the file, then add it."),
       class = c("supplement_error_file_name", "supplement_error")
+    )
+  }
+  # The template's .gitignore blocks saved R objects, so the site's link to
+  # such a file would break in a clone.
+  if (grepl("\\.(rds|rda|rdata|qs|qs2)\\z", base, ignore.case = TRUE, perl = TRUE)) {
+    cli::cli_abort(
+      c("{.file {base}} is a saved R object, which the site's {.file .gitignore} keeps out of git.",
+        "i" = "Saved R objects can embed private data. Share the data as CSV or another plain format."),
+      class = c("supplement_error_ignored_file", "supplement_error")
     )
   }
 
@@ -101,17 +118,25 @@ add_data <- function(file, description, path = ".") {
     )
   }
   folder <- file.path(path, "data")
-  if (path_occupied(folder) && !dir.exists(folder)) {
+  # A link to a folder would make the copy land outside the site.
+  if (path_occupied(folder) && (!dir.exists(folder) || is_link(folder))) {
     cli::cli_abort(
-      "{.path {folder}} is not a folder, so the file cannot be copied there.",
+      "{.path {folder}} is not a folder in the site, or is a link, so the file cannot be copied there.",
       class = c("supplement_error_file_exists", "supplement_error")
     )
   }
+  # A file in data/ whose name differs only in letter case is the same file
+  # on macOS and Windows, and clashes with this one in a clone there.
+  taken <- if (dir.exists(folder)) list.files(folder, all.files = TRUE) else character()
+  match <- taken[tolower(taken) == tolower(base)]
+  if (length(match) > 0) {
+    base <- match[1]
+  }
   target <- file.path(folder, base)
   same <- file.exists(target) && normalizePath(target) == normalizePath(file)
-  if (path_occupied(target) && !same) {
+  if (is_link(target) || (path_occupied(target) && !same)) {
     cli::cli_abort(
-      c("{.file data/{base}} already exists in {.path {path}} and is not {.path {file}}.",
+      c("{.file data/{base}} already exists in {.path {path}} and is not {.path {file}}, or is a link.",
         "i" = "Rename the file, or remove the one in {.file data/}. Nothing was written."),
       class = c("supplement_error_file_exists", "supplement_error")
     )
@@ -132,12 +157,13 @@ add_data <- function(file, description, path = ".") {
     missing_class = "supplement_error_no_data_list",
     hand = hand
   )
-  doc <- yaml::yaml.load(paste(edit$read$lines, collapse = "\n"), handlers = list(seq = function(x) as.list(x)))
+  text <- paste(sub("\r$", "", edit$read$lines), collapse = "\n")
+  doc <- yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)))
   files <- vapply(yaml_get(doc, data_path), function(x) {
     f <- if (is_map(x)) x[["file"]]
     if (is.character(f) && length(f) == 1) sub("^(\\./)+", "", f) else NA_character_
   }, "")
-  if (listed %in% files) {
+  if (tolower(listed) %in% tolower(files)) {
     cli::cli_abort(
       c("{.file {listed}} is already in the {.field data} list in {.file _supplement.yml}.",
         "i" = "Nothing was written."),
@@ -156,7 +182,7 @@ add_data <- function(file, description, path = ".") {
       made <- c(made, folder)
     }
     made <- c(made, target)
-    if (!file.copy(file, target, overwrite = FALSE, copy.mode = FALSE)) {
+    if (!copy_file(file, target)) {
       write_error("Could not copy {.path {file}} to {.path {target}}.")
     }
   }
@@ -172,4 +198,9 @@ add_data <- function(file, description, path = ".") {
     "i" = "Every file in {.file data/} is published on the site."
   ))
   invisible(target)
+}
+
+# A separate function, so that tests can check when the copy runs.
+copy_file <- function(from, to) {
+  file.copy(from, to, overwrite = FALSE, copy.mode = FALSE)
 }

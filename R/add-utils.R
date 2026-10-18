@@ -4,8 +4,16 @@
 # hold a character that is not white space. A line break is always an error,
 # because the value goes on one line of YAML.
 check_text <- function(x, arg, required = FALSE, call = parent.frame()) {
+  if (is.character(x) && length(x) == 1 && !is.na(x) && !validUTF8(enc2utf8(x))) {
+    cli::cli_abort(
+      "{.arg {arg}} must be UTF-8 text. Mark its encoding or convert it with {.fn enc2utf8} or {.fn iconv}.",
+      class = c("supplement_error_encoding", "supplement_error"),
+      call = call
+    )
+  }
+  # (*UCP) makes \S skip Unicode spaces such as U+00A0 and U+3000 too.
   if (!is.character(x) || length(x) != 1 || is.na(x) ||
-      (required && !grepl("\\S", x, perl = TRUE))) {
+      (required && !grepl("(*UCP)\\S", enc2utf8(x), perl = TRUE))) {
     what <- if (required) "one string with a character other than white space" else "one string"
     cli::cli_abort(
       "{.arg {arg}} must be {what}.",

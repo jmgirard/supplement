@@ -40,18 +40,22 @@
 #' * `supplement_error_line_break`: `title` or `description` holds a line
 #'   break.
 #' * `supplement_error_no_config`: `path` holds no `_quarto.yml`.
-#' * `supplement_error_file_exists`: the report file exists, or
-#'   `analyses` is not a folder.
+#' * `supplement_error_file_exists`: the report file exists, or a file
+#'   whose name differs from it only in letter case; `analyses` is not a
+#'   folder or is a link; or `_freeze/analyses/<name>` exists, which holds
+#'   the stored output of an earlier report of that name.
 #' * `supplement_error_no_menu`: `_quarto.yml` has no Analyses menu in
 #'   block style. The error shows the lines to add by hand.
 #' * `supplement_error_yaml`: the yaml package does not read the changed
 #'   `_quarto.yml` as the old menu with the new item added. The error shows
 #'   the lines to add by hand.
-#' * `supplement_error_encoding`: `_quarto.yml` is not UTF-8 text.
+#' * `supplement_error_encoding`: `title`, `description`, or
+#'   `_quarto.yml` is not UTF-8 text.
 #' * `supplement_error_write`: the `analyses` folder could not be made.
 #'
 #' When a file cannot be written, for example a read-only `_quarto.yml`,
-#' R's own error is shown, and the function removes what it wrote.
+#' R's own error is shown, and the function removes the report file. If a
+#' write of `_quarto.yml` fails partway, the file gets its old text back.
 #'
 #' @seealso [add_data()] to add a data file, and [create_supplement()] to
 #'   make a site.
@@ -84,18 +88,32 @@ add_report <- function(name, title, description = "", path = ".") {
     )
   }
   folder <- file.path(path, "analyses")
-  if (path_occupied(folder) && !dir.exists(folder)) {
+  # A link to a folder would make the write land outside the site.
+  if (path_occupied(folder) && (!dir.exists(folder) || is_link(folder))) {
     cli::cli_abort(
-      "{.path {folder}} is not a folder, so the report cannot be written there.",
+      "{.path {folder}} is not a folder in the site, or is a link, so the report cannot be written there.",
       class = c("supplement_error_file_exists", "supplement_error")
     )
   }
   file <- paste0(name, ".qmd")
   report <- file.path(folder, file)
-  if (path_occupied(report)) {
+  # Names that differ only in letter case clash when the site is cloned on
+  # macOS or Windows.
+  taken <- if (dir.exists(folder)) list.files(folder, all.files = TRUE) else character()
+  if (path_occupied(report) || tolower(file) %in% tolower(taken)) {
     cli::cli_abort(
-      c("{.file analyses/{file}} already exists.",
+      c("{.file analyses/{file}}, or a file whose name differs from it only in letter case, already exists.",
         "i" = "Choose another {.arg name}. Nothing was written."),
+      class = c("supplement_error_file_exists", "supplement_error")
+    )
+  }
+  # With `freeze: true`, Quarto would show the stored output of an earlier
+  # report of this name in place of the new one.
+  frozen <- file.path(path, "_freeze", "analyses", name)
+  if (path_occupied(frozen)) {
+    cli::cli_abort(
+      c("{.path {frozen}} holds the stored output of an earlier report named {.val {name}}.",
+        "i" = "Delete that folder, or choose another {.arg name}. Nothing was written."),
       class = c("supplement_error_file_exists", "supplement_error")
     )
   }

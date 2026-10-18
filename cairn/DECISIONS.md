@@ -56,3 +56,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** The first exported functions read `_supplement.yml`, write `.zenodo.json`, and need user-facing errors, which the r-package profile asks to come from cli.
 **Decision:** DESCRIPTION lists yaml, jsonlite, and cli under Imports. The user granted this at the M005 plan gate.
 **Consequences:** Installing the package now installs these three. The template itself still needs no R package beyond those D-007 names for rendering R reports.
+
+### D-010 (2026-10-18): Package functions edit site YAML files by inserting lines of text
+
+**Context:** `add_report()` and `add_data()` add an item to `_quarto.yml` and `_supplement.yml`. A rewrite with the yaml package drops every comment in the template's files and can change how values are quoted.
+**Decision:** A function that changes a site's YAML file inserts lines of text and leaves the other lines as they are. Before it writes, it reads the result with the yaml package and stops if the result is not the old file with the change. The user chose text insertion at the M007 plan gate.
+**Consequences:** Such a function handles block-style YAML and refuses other forms, such as a flow-style list, with the lines to add by hand. Later writers of these files follow the same rule.

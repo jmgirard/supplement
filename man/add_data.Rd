@@ -27,7 +27,8 @@ list, with its description, its size, and a download link.
 }
 \details{
 If \code{file} is directly in the site's \verb{data/} folder, and not in a folder
-inside it, the function copies nothing and only adds it to the list.
+inside it, the function copies nothing and only adds it to the list,
+under its name on disk.
 Every file in \verb{data/} is published on the site, so add only data that
 you can share.
 
@@ -50,10 +51,14 @@ string.
 \item \code{supplement_error_file_name}: the base name of \code{file} does not follow
 the file-name rule above.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
-\item \code{supplement_error_file_exists}: \verb{data/<base name>} exists and is not
-\code{file}, or \code{data} is not a folder.
+\item \code{supplement_error_ignored_file}: \code{file} is a saved R object (\code{.rds},
+\code{.rda}, \code{.RData}, \code{.qs}, or \code{.qs2}, in any letter case), which the
+site's \code{.gitignore} keeps out of git.
+\item \code{supplement_error_file_exists}: \verb{data/<base name>}, or a file in
+\verb{data/} whose name differs from it only in letter case, exists and is
+not \code{file}, or is a link; or \code{data} is not a folder or is a link.
 \item \code{supplement_error_already_listed}: \verb{data/<base name>} is already in
-the \code{data} list.
+the \code{data} list, in any letter case.
 \item \code{supplement_error_no_data_list}: \verb{_supplement.yml} has no \code{data} list
 in block style under \verb{supplement:}. An empty list written as
 \verb{data: []} is not in block style. The error shows the lines to add by
@@ -61,14 +66,16 @@ hand.
 \item \code{supplement_error_yaml}: the yaml package does not read the changed
 \verb{_supplement.yml} as the old list with the new item added. The error
 shows the lines to add by hand.
-\item \code{supplement_error_encoding}: \verb{_supplement.yml} is not UTF-8 text.
+\item \code{supplement_error_encoding}: \code{description} or \verb{_supplement.yml} is
+not UTF-8 text.
 \item \code{supplement_error_write}: the \code{data} folder could not be made, or
 \code{file} could not be copied.
 }
 
 When a file cannot be written, for example a read-only
-\verb{_supplement.yml}, R's own error is shown, and the function removes what
-it wrote.
+\verb{_supplement.yml}, R's own error is shown, and the function removes the
+copy. If a write of \verb{_supplement.yml} fails partway, the file gets its
+old text back.
 }
 
 \examples{

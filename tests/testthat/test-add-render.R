@@ -26,7 +26,10 @@ test_that("a site with an added report and data file renders and lists both", {
   }, logical(1))))
   expect_true(file.exists(file.path(site, "docs", "data", basename(scores))))
 
-  header <- quarto_header(html)
-  expect_match(header, 'href="./analyses/models.html"', fixed = TRUE)
+  # The links in the Analyses dropdown, in order.
+  menu <- regmatches(html, regexpr('<ul class="dropdown-menu" aria-labelledby="nav-menu-analyses">[\\s\\S]*?</ul>', html, perl = TRUE))
+  expect_length(menu, 1)
+  links <- regmatches(menu, gregexpr('href="[^"]*"', menu))[[1]]
+  expect_identical(links, c('href="./analyses/example.html"', 'href="./analyses/models.html"'))
   expect_true(file.exists(file.path(site, "docs", "analyses", "models.html")))
 })

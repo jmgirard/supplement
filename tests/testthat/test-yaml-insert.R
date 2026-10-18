@@ -102,7 +102,7 @@ test_that("a file with no line break at the end keeps its other bytes", {
   before <- suppressWarnings(readLines(file))
 
   read <- read_text_lines(file)
-  expect_false(read$final)
+  expect_identical(utils::tail(read$lines, 1), "      description: A")
   write_text_lines(read, yaml_append_lines(read$lines, data_path, data_item), file)
   after <- suppressWarnings(readLines(file))
   expect_length(added_lines(before, after), 2)
@@ -118,7 +118,7 @@ test_that("line endings, a byte order mark, and UTF-8 text are written back", {
   writeBin(bytes, file)
 
   read <- read_text_lines(file)
-  expect_identical(read$lines, enc2utf8(lines))
+  expect_identical(read$lines, c(paste0(enc2utf8(lines), "\r"), ""))
   write_text_lines(read, read$lines, file)
   expect_identical(readBin(file, "raw", file.size(file)), bytes)
 
@@ -129,6 +129,77 @@ test_that("line endings, a byte order mark, and UTF-8 text are written back", {
   new <- rawToChar(after[-seq_along(bytes)])
   Encoding(new) <- "UTF-8"
   expect_identical(new, enc2utf8('    - file: "data/b.csv"\r\n      description: "über"\r\n'))
+})
+
+# Write `bytes` to a temporary file, add `data_item` with the helpers, and
+# return the new bytes.
+append_bytes <- function(bytes, env = parent.frame()) {
+  file <- withr::local_tempfile(fileext = ".yml", .local_envir = env)
+  writeBin(bytes, file)
+  read <- read_text_lines(file)
+  new <- yaml_append_lines(read$lines, data_path, data_item)
+  expect_true(yaml_appended(read$lines, new, data_path, data_item))
+  write_text_lines(read, new, file)
+  readBin(file, "raw", file.size(file))
+}
+
+added <- '    - file: "data/new.csv"%s      description: "New data, \\\\ and \'"'
+
+test_that("a CRLF file with no line break at the end gets CRLF between lines only", {
+  text <- "supplement:\r\n  data:\r\n    - file: data/a.csv\r\n      description: A"
+  after <- rawToChar(append_bytes(charToRaw(text)))
+  expect_identical(after, paste0(text, "\r\n", sprintf(added, "\r\n")))
+})
+
+test_that("a file with mixed line endings keeps each line's ending", {
+  text <- "# CRLF line\r\nsupplement:\n  data:\n    - file: data/a.csv\n      description: A\n"
+  after <- rawToChar(append_bytes(charToRaw(text)))
+  expect_identical(after, paste0(text, sprintf(added, "\n"), "\n"))
+
+  text <- "supplement:\r\n  data:\r\n    - file: data/a.csv\n      description: A\r\n"
+  after <- rawToChar(append_bytes(charToRaw(text)))
+  expect_identical(after, paste0(text, sprintf(added, "\r\n"), "\r\n"))
+})
+
+test_that("a block scalar at the end of the file reads the same after the insert", {
+  for (end in c("\n", "")) {
+    text <- paste0("supplement:\n  data:\n    - file: data/a.csv\n      description: >\n        Folded\n        text", end)
+    after <- rawToChar(append_bytes(charToRaw(text)))
+    expect_identical(substr(after, 1, nchar(text)), text)
+  }
+})
+
+test_that("a one-key item is one line", {
+  before <- c("supplement:", "  data:", "    - data/a.csv")
+  after <- yaml_append_lines(before, data_path, c(file = "b"))
+  expect_identical(after, c(before, '    - file: "b"'))
+})
+
+test_that("the key offset of a bare dash item comes from its next content line", {
+  before <- c("supplement:", "  data:", "    -", "", "# note", "        file: data/a.csv", "        description: A")
+  after <- expect_appended(before, data_path, data_item)
+  expect_identical(after[8:9], c('    -   file: "data/new.csv"', '        description: "New data, \\\\ and \'"'))
+})
+
+test_that("a file with NUL bytes, such as UTF-16 text, is not UTF-8", {
+  file <- withr::local_tempfile(fileext = ".yml")
+  writeBin(as.raw(c(0xff, 0xfe, 0x73, 0x00, 0x75, 0x00, 0x70, 0x00, 0x3a, 0x00)), file)
+  expect_error(read_text_lines(file), class = "supplement_error_encoding")
+  writeBin(charToRaw("supplement:\n  title: caf\xe9\n"), file)
+  expect_error(read_text_lines(file), class = "supplement_error_encoding")
+})
+
+test_that("a write that fails partway restores the old bytes", {
+  file <- withr::local_tempfile(fileext = ".yml")
+  text <- "supplement:\n  data:\n    - file: data/a.csv\n"
+  writeChar(text, file, eos = NULL)
+  read <- read_text_lines(file)
+  local_mocked_bindings(write_bytes = function(bytes, con) {
+    writeBin(bytes[1:5], con)
+    stop("disk full")
+  })
+  expect_error(write_text_lines(read, c(read$lines, "more"), file), "disk full")
+  expect_identical(readBin(file, "raw", file.size(file)), charToRaw(text))
 })
 
 test_that("a list that is missing or not in block form is not found", {
@@ -182,7 +253,7 @@ test_that("yaml_appended() rejects a result that does not read as the item added
 test_that("quoted values read back as written", {
   values <- c(
     "plain", "a \"b\": #c \\d 'e'", "No", "1.10", "- x", "[x", "*x", "été 中文",
-    "tab\there", " ", "", "~", "null", "true", "@x", "%x", "!x", "&x", "|", ">"
+    "tab\there", " ", "", "~", "null", "true", "@x", "%x", "!x", "&x", "|", ">", "x ￾ y ￿"
   )
   for (value in values) {
     expect_identical(yaml::yaml.load(yaml_quote(value)), enc2utf8(value), label = value)

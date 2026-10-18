@@ -54,19 +54,23 @@ letters, digits, \code{-}, and \verb{_} that starts with a letter or a digit.
 \item \code{supplement_error_line_break}: \code{title} or \code{description} holds a line
 break.
 \item \code{supplement_error_no_config}: \code{path} holds no \verb{_quarto.yml}.
-\item \code{supplement_error_file_exists}: the report file exists, or
-\code{analyses} is not a folder.
+\item \code{supplement_error_file_exists}: the report file exists, or a file
+whose name differs from it only in letter case; \code{analyses} is not a
+folder or is a link; or \verb{_freeze/analyses/<name>} exists, which holds
+the stored output of an earlier report of that name.
 \item \code{supplement_error_no_menu}: \verb{_quarto.yml} has no Analyses menu in
 block style. The error shows the lines to add by hand.
 \item \code{supplement_error_yaml}: the yaml package does not read the changed
 \verb{_quarto.yml} as the old menu with the new item added. The error shows
 the lines to add by hand.
-\item \code{supplement_error_encoding}: \verb{_quarto.yml} is not UTF-8 text.
+\item \code{supplement_error_encoding}: \code{title}, \code{description}, or
+\verb{_quarto.yml} is not UTF-8 text.
 \item \code{supplement_error_write}: the \code{analyses} folder could not be made.
 }
 
 When a file cannot be written, for example a read-only \verb{_quarto.yml},
-R's own error is shown, and the function removes what it wrote.
+R's own error is shown, and the function removes the report file. If a
+write of \verb{_quarto.yml} fails partway, the file gets its old text back.
 }
 
 \examples{
