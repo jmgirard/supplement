@@ -37,7 +37,98 @@ local function download(args, kwargs, meta)
   return pandoc.Link(pandoc.Inlines("Download the archive from Zenodo"), url)
 end
 
+-- A file size in base 1000: whole bytes below 1000, else one decimal,
+-- rounded half up. The unit is chosen after rounding, so 999950 bytes
+-- reads "1.0 MB" and not "1000.0 KB". Integer arithmetic keeps the
+-- rounding exact.
+local function format_size(bytes)
+  if bytes < 1000 then
+    return string.format("%d B", bytes)
+  end
+  local units = { "KB", "MB", "GB" }
+  local divisor = 1
+  for i, unit in ipairs(units) do
+    divisor = divisor * 1000
+    local tenths = (bytes * 10 + divisor // 2) // divisor
+    if tenths < 10000 or i == #units then
+      return string.format("%d.%d %s", tenths // 10, tenths % 10, unit)
+    end
+  end
+end
+
+local function file_size(path)
+  local handle = io.open(path, "rb")
+  if handle == nil then
+    return nil
+  end
+  local size = handle:seek("end")
+  handle:close()
+  return size
+end
+
+local function cell(content)
+  return { pandoc.Plain(content) }
+end
+
+-- Paths in _supplement.yml are relative to the project folder. Quarto
+-- rewrites a metadata path that exists so that it is relative to the page
+-- (`data/x.csv` reaches a page in `analyses/` as `../data/x.csv`), and it
+-- leaves a missing path as written. This returns the path relative to the
+-- project folder in both cases.
+local function project_path(file, offset)
+  local prefix = offset .. "/"
+  if offset ~= "." and file:sub(1, #prefix) == prefix then
+    local page_dir = pandoc.path.directory(quarto.doc.input_file)
+    if file_size(pandoc.path.join({ page_dir, file })) ~= nil then
+      return file:sub(#prefix + 1)
+    end
+  end
+  return file
+end
+
+-- One row per entry under `supplement.data`, with each link written
+-- relative to the page that holds the table. A missing file stops the
+-- render, because a site without its data must not be published.
+local function data_table(args, kwargs, meta)
+  local entries = meta["supplement"] and meta["supplement"]["data"]
+  if type(entries) ~= "table" or #entries == 0 then
+    return pandoc.Blocks({})
+  end
+
+  local root = quarto.project.directory or pandoc.path.directory(quarto.doc.input_file)
+  local offset = quarto.project.offset or "."
+
+  local rows = {}
+  for _, entry in ipairs(entries) do
+    local file = project_path(pandoc.utils.stringify(entry["file"] or ""), offset)
+    local size = file ~= "" and file_size(pandoc.path.join({ root, file })) or nil
+    if size == nil then
+      error("supplement-data-table: data file not found: '" .. file .. "' (listed under supplement.data in _supplement.yml)")
+    end
+    local href = offset == "." and file or (offset .. "/" .. file)
+    local link = pandoc.Link(
+      { pandoc.Code(pandoc.path.filename(file)) },
+      href, "", pandoc.Attr("", {}, { { "download", "" } })
+    )
+    local description = entry["description"] or ""
+    if type(description) == "string" then
+      description = pandoc.Inlines(description)
+    end
+    table.insert(rows, { cell({ link }), cell(description), cell(format_size(size)) })
+  end
+
+  local simple = pandoc.SimpleTable(
+    {},
+    { pandoc.AlignDefault, pandoc.AlignDefault, pandoc.AlignRight },
+    { 0, 0, 0 },
+    { cell("File"), cell("Description"), cell("Size") },
+    rows
+  )
+  return pandoc.Blocks({ pandoc.utils.from_simple_table(simple) })
+end
+
 return {
   ["supplement-doi"] = doi,
   ["supplement-download"] = download,
+  ["supplement-data-table"] = data_table,
 }
