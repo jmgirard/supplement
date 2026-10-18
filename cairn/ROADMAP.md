@@ -7,10 +7,12 @@ _Last hygiene check: 2026-10-18 (scaffold created from the scope draft)_
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
+| M001 | Pilot site restructure to the freeze layout | planned | — | high | milestones/M001-pilot-restructure.md |
+| M002 | Pilot render on the data machine and data-free rebuild | planned | M001 | high | milestones/M002-pilot-render-check.md |
 
 ## Candidates
 
-- [high] freeze-layout pilot port: move pilot-ptsd-markers to one website project with `freeze: true`, so every report page has the navbar and a fresh clone builds without the private data. This proves the layout before the template is extracted. — added 2026-10-18
+- [high] freeze-layout pilot port: move pilot-ptsd-markers to one website project with `freeze: true`, so every report page has the navbar and a fresh clone builds without the private data. This proves the layout before the template is extracted. — added 2026-10-18 — started M001
 - template extraction: turn the ported pilot site into a `quarto use template` starter with `_supplement.yml` and license files. Add shortcodes for the citation, DOI badge, Zenodo download, and data-file rows. Add a `.gitignore` that blocks fit files and private-data folders. — added 2026-10-18
 - scaffolding functions: `create_supplement()`, `add_report()`, and `add_data()`, with tests. — added 2026-10-18
 - metadata writers: `write_citation()` and `write_zenodo()` generate `CITATION.cff` and `.zenodo.json` from `_supplement.yml`. — added 2026-10-18
