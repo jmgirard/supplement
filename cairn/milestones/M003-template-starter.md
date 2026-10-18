@@ -132,3 +132,19 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - Pass 2 AC6 evidence: each listed fact found once in `README.md`; `index.qmd` line 9 holds the first-render instruction.
 - Pass 2 AC7 evidence: `devtools::test()` FAIL 0, WARN 0, SKIP 0, PASS 32.
 - Pass 2 consistency gate: `cairn_validate.py` all checks passed; r-package slot as in pass 1.
+- spawned (pass 2): diff-bug, blame-history, prior-review.
+- diff-bug #1 (pass 2): the extension rules are case-sensitive on Linux, so `m.RDS`, `m.Rda`, `m.Rdata`, and `m.qs2` are not ignored — fix now: bracket patterns and `*.qs2`.
+- diff-bug #2 (pass 2): an earlier `!docs/` before a later `docs/` is not appended again, and `!docs/` cannot undo `docs/*` — fix now: setup always ends the file with `!docs/` and `!_freeze/`, and the guide names the `docs/*` limit.
+- diff-bug #3 (pass 2): Quarto asks about a subdirectory in every folder, and in a non-empty folder the default is yes — fix now: README says type `n`.
+- diff-bug #4 (pass 2): `data/**` publishes every file in `data/` — fix now: the guide says every file there is published.
+- diff-bug #5 (pass 2): `_quarto.yml` comments point at README.md when the guide may be SUPPLEMENT.md — fix now.
+- diff-bug #6 (pass 2): the tests never check the `analyses/fits/` rule alone or `docs/data/x.rds` after `!docs/` — fix now.
+- diff-bug #7 (pass 2): the SUPPLEMENT.md test checks existence only, with no both-exist case and no CRLF `docs/` case — fix now.
+- diff-bug #8 (pass 2): `git_in` leaves the global config active — fix now: `GIT_CONFIG_GLOBAL` and `GIT_CONFIG_NOSYSTEM`.
+- blame-history #1 (pass 2): knitr and rmarkdown are skip conditions but not in Suggests, outside D-005 — stop: a dependency question for the user at the merge gate.
+- blame-history #2 (pass 2): `data/**` copies `.rds` files into `docs/`, where git ignores them, so their links break — fix now with diff-bug #4 (the guide says so).
+- blame-history #3 (pass 2): the no-R test skips on Windows — follow-up: new candidate row "Windows check".
+- blame-history #4 (pass 2), prior-review #1 (pass 2): `rendered_site()` still caches a failed render — fix now: `site_copy()` fails at once on a failed render.
+- blame-history #5 (pass 2): the Windows path in `nojekyll.ts` has no test — follow-up: the "Windows check" row.
+- blame-history #6 (pass 2): the `_gitignore` comment says "elsewhere in this file" — reject, false: after the merge, GitHub's rules are in the same `.gitignore`.
+- blame-history #7 (pass 2): README.md says "The new README.md explains" when the guide may be SUPPLEMENT.md — fix now.
