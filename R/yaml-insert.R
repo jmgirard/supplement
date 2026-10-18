@@ -38,23 +38,46 @@ read_text_lines <- function(file, call = parent.frame()) {
 
 # Write `lines` to `file` as read_text_lines() would read them. If the
 # write fails after the file is opened, the file gets its old bytes back.
-write_text_lines <- function(read, lines, file) {
+write_text_lines <- function(read, lines, file, call = parent.frame()) {
   bytes <- charToRaw(enc2utf8(paste(lines, collapse = "\n")))
   if (read$bom) {
     bytes <- c(as.raw(c(0xef, 0xbb, 0xbf)), bytes)
   }
+  write_checked(bytes, file, restore = read$bytes, call = call)
+}
+
+# Write `bytes` to `file`. A file that cannot be opened gives R's own
+# error. After the file is opened, an error, a warning (R only warns when
+# the disk is full), or a file of another size stops with
+# `supplement_error_write`, after `restore`, when given, is written back.
+write_checked <- function(bytes, file, restore = NULL, call = parent.frame()) {
   con <- file(file, open = "wb")
+  failed <- function(reason) {
+    if (!is.null(con)) {
+      try(suppressWarnings(close(con)), silent = TRUE)
+    }
+    if (!is.null(restore)) {
+      try(suppressWarnings(writeBin(restore, file)), silent = TRUE)
+    }
+    cli::cli_abort(
+      c("Could not write {.path {file}}: {reason}",
+        "i" = if (!is.null(restore)) "The file got its old text back."),
+      class = c("supplement_error_write", "supplement_error"),
+      call = call
+    )
+  }
   tryCatch(
     {
       write_bytes(bytes, con)
       close(con)
+      con <- NULL
     },
-    error = function(e) {
-      try(close(con), silent = TRUE)
-      try(writeBin(read$bytes, file), silent = TRUE)
-      stop(e)
-    }
+    error = function(e) failed(conditionMessage(e)),
+    warning = function(w) failed(conditionMessage(w))
   )
+  if (!identical(file.size(file), as.numeric(length(bytes)))) {
+    failed("the file has another size than the text written.")
+  }
   invisible(file)
 }
 
@@ -113,23 +136,40 @@ yaml_append_lines <- function(lines, path, item) {
 }
 
 # TRUE when the yaml package reads `new` as `old` with `item` added as the
-# last item of the list that `path` names.
+# last item of the list that `path` names, and with nothing else changed.
 yaml_appended <- function(old, new, path, item) {
   read <- function(lines) {
     # End the text with a line break either way, so that a block scalar at
     # the end of the file reads the same before and after the insert.
     text <- paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
-    doc <- tryCatch(
+    tryCatch(
       yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x))),
       error = function(e) NULL
     )
-    yaml_get(doc, path)
   }
-  before <- read(old)
-  after <- read(new)
+  old_doc <- read(old)
+  new_doc <- read(new)
+  before <- yaml_get(old_doc, path)
+  after <- yaml_get(new_doc, path)
   n <- length(after)
   is.list(before) && is.list(after) && n == length(before) + 1 &&
-    identical(after[-n], before) && identical(after[[n]], as.list(item))
+    identical(after[-n], before) && identical(after[[n]], as.list(item)) &&
+    identical(yaml_set(new_doc, path, after[-n]), old_doc)
+}
+
+# `doc` with the value at `path` replaced by `value`.
+yaml_set <- function(doc, path, value) {
+  if (length(path) == 0) {
+    return(value)
+  }
+  step <- path[[1]]
+  i <- if (is.character(step)) {
+    step
+  } else {
+    which(vapply(doc, function(x) is_map(x) && identical(x[[step$key]], step$value), logical(1)))[1]
+  }
+  doc[[i]] <- yaml_set(doc[[i]], path[-1], value)
+  doc
 }
 
 yaml_get <- function(doc, path) {

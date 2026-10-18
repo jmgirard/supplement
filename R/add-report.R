@@ -51,12 +51,13 @@
 #'   the lines to add by hand.
 #' * `supplement_error_encoding`: `title`, `description`, or
 #'   `_quarto.yml` is not UTF-8 text.
-#' * `supplement_error_write`: the `analyses` folder could not be made.
+#' * `supplement_error_write`: the `analyses` folder could not be made, or
+#'   a write failed after its file was opened, for example on a full disk.
+#'   A `_quarto.yml` whose write failed gets its old text back.
 #'
-#' When a file cannot be written, for example a read-only `_quarto.yml`,
-#' R's own error is shown, and the function removes the report file and
-#' any folder it made. If a
-#' write of `_quarto.yml` fails partway, the file gets its old text back.
+#' When a file cannot be opened for writing, for example a read-only
+#' `_quarto.yml`, R's own error is shown. After any failed write, the
+#' function removes the report file and any folder it made.
 #'
 #' @seealso [add_data()] to add a data file, and [create_supplement()] to
 #'   make a site.
@@ -68,6 +69,9 @@
 #' cat(readLines(file.path(site, "analyses", "models.qmd")), sep = "\n")
 #' unlink(site, recursive = TRUE)
 add_report <- function(name, title, description = "", path = ".") {
+  # A missing argument reaches the checks as NULL, so it gets their error.
+  if (missing(name)) name <- NULL
+  if (missing(title)) title <- NULL
   check_path(path)
   if (!is.character(name) || length(name) != 1 || is.na(name) ||
       !grepl("^[A-Za-z0-9][A-Za-z0-9_-]*$", name)) {
@@ -77,8 +81,8 @@ add_report <- function(name, title, description = "", path = ".") {
       class = c("supplement_error_report_name", "supplement_error")
     )
   }
-  check_text(title, "title", required = TRUE)
-  check_text(description, "description")
+  title <- check_text(title, "title", required = TRUE)
+  description <- check_text(description, "description")
 
   config <- file.path(path, "_quarto.yml")
   if (!file.exists(config) || dir.exists(config)) {
@@ -150,7 +154,8 @@ add_report <- function(name, title, description = "", path = ".") {
     made <- c(made, folder)
   }
   made <- c(made, report)
-  write_utf8(report_lines(title, description), report)
+  text <- paste0(paste(report_lines(title, description), collapse = "\n"), "\n")
+  write_checked(charToRaw(enc2utf8(text)), report)
   write_text_lines(edit$read, edit$lines, config)
   done <- TRUE
 

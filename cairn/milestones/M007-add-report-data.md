@@ -136,3 +136,32 @@ Evidence run at d5a8b78: `devtools::test()` 1134 expectations, 0 failed, 0 skipp
 - prior-review #2: an `analyses` link to a folder outside the site passes, and add_report() writes through it — fix now (return floor: load-bearing defect)
 - prior-review #3: the report-name rule accepts `--` and `__` — reject (planned change: AC5 states the name rule)
 - prior-review #4: the docs suggest rendering a new report, which needs its data — reject (planned change: a new report has no stored output, and the guide says to render on the data machine)
+
+Pass 2 (after review return 1), evidence run at 7bf19c8: `devtools::test()` 1267 expectations, 0 failed, 0 errors, 1 test skipped ("on a case-sensitive disk, any file in data/ that differs only in letter case stops", which needs a case-sensitive disk; the claim-audit reader ran that case on a case-sensitive disk image and it stopped as expected).
+
+- AC1 (pass 2): test-template.R listing tests pass unchanged (57 expectations in the file). Pass.
+- AC2 (pass 2): test-add-report.R probe, UTF-8, and empty-description tests pass (218 expectations in the file). Pass.
+- AC3 (pass 2): test-add-data.R copy, no-copy, and probe tests pass; the no-copy route now lists the name on disk. Pass.
+- AC4 (pass 2): the add_report() and add_data() shape tests pass, and the add_report() shapes now also check the new item is last in the menu; test-yaml-insert.R adds CRLF, mixed-ending, and block-scalar shapes (127 expectations). Pass.
+- AC5 (pass 2): every pass-1 case still fires its class with folder state unchanged; `x.csv\n`, `_data_`, `_x-y_`, and `ab\n` now stop too; check-before-copy is shown by a mocked `copy_file()` that fails the test if it runs. Pass.
+- AC6 (pass 2): test-add-render.R renders and finds the listing row, the data row, and the Analyses dropdown links in order (`example.html`, `models.html`); 8 expectations pass. Pass.
+- AC7 (pass 2): README and NEWS unchanged in substance; both help examples, extracted with `tools::Rd2ex()`, ran clean again at 7bf19c8. Pass.
+- Gate (pass 2): `cairn_validate.py` all checks pass; no principle changed (DESIGN.md changed only Function Families and Architecture), so `cairn_impact` not run; `devtools::document()` gives no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes. Pass.
+- spawned: diff-bug, blame-history, prior-review
+- diff-bug #1 (pass 2): a disk-full write gives only a warning, so the old bytes are not restored, the file is left cut short, and the function reports success; the restore test mocks an error, not this path — fix now
+- diff-bug #2 (pass 2): a valid UTF-8 value marked "bytes" stops as `supplement_error_yaml`, because the re-read compares it with a UTF-8 string — fix now
+- diff-bug #3 (pass 2): the already-listed half of the check-before-copy test takes the no-copy route, so it cannot fail — fix now
+- diff-bug #4 (pass 2): the add_data() shapes test does not check where the item went — fix now
+- diff-bug #5 (pass 2): `*.knit.md`, `*.utf8.md`, `*.rmarkdown`, and `*.quarto_ipynb`, which the template's `.gitignore` also blocks, pass add_data() — fix now
+- diff-bug #6 (pass 2): a missing `title` or `description` gives base R's missing-argument error, not `supplement_error_argument` — fix now
+- diff-bug #7 (pass 2): Windows-reserved report names such as `con`, and base names ending in `.`, pass — follow-up (candidate row "Windows-safe names")
+- diff-bug #8 (pass 2): a block-scalar value at the very end of a file with no final line break gains a trailing `\n` after the insert, which the re-read cannot see — follow-up (candidate row "YAML insert edge shapes")
+- blame-history #1 (pass 2): the same gitignored names as diff-bug #5 — fix now (same fix)
+- blame-history #2 (pass 2): the re-read compares only the list, while D-010 says the result must be the old file with the change — fix now
+- blame-history #3 (pass 2): a new stub has no stored output, so a rebuild without R fails on it until the author renders it — reject (planned change: the help, the message, and the guide say to render a new report by name)
+- blame-history #4 (pass 2): DESIGN.md Function Families carries status markers, though the file says status lives in ROADMAP.md — fix now
+- blame-history #5 (pass 2): a second menu item for a listed report whose file is gone, and the block-scalar shapes — follow-up (already in "YAML insert edge shapes")
+- prior-review #1 (pass 2): the report-name rule accepts `--` and `__`, which Quarto might read as Markdown — reject (false: a render of `a--b` and `c__d__e` gave navbar and listing links `./analyses/a--b.html` and `./analyses/c__d__e.html`, and both pages exist)
+- prior-review #2 (pass 2): `is_link()` misses Windows junctions, so a junction `data/` or `analyses/` passes — follow-up (candidate row "Windows-safe names", which points to "Windows check")
+- prior-review #3 (pass 2): `add_data("scores.csv/")` says the file does not exist or is a folder — fix now
+- prior-review #4 (pass 2): Quarto might rewrite a path-like report description in the listing — reject (false: a render showed the descriptions `data`, `../data`, and `example.qmd` as written)

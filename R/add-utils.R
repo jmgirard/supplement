@@ -29,7 +29,18 @@ check_text <- function(x, arg, required = FALSE, call = parent.frame()) {
       call = call
     )
   }
-  invisible(x)
+  utf8_text(x)
+}
+
+# `x` as a string marked as UTF-8. A string marked "bytes" that holds valid
+# UTF-8 is marked as UTF-8, so that it compares equal to the same text read
+# from a file.
+utf8_text <- function(x) {
+  if (identical(Encoding(x), "bytes")) {
+    x <- rawToChar(charToRaw(x))
+    Encoding(x) <- "UTF-8"
+  }
+  enc2utf8(x)
 }
 
 # Stop with `message`, formatted by cli, followed by `lines` of YAML as

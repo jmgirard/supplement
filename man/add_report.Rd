@@ -65,13 +65,14 @@ block style. The error shows the lines to add by hand.
 the lines to add by hand.
 \item \code{supplement_error_encoding}: \code{title}, \code{description}, or
 \verb{_quarto.yml} is not UTF-8 text.
-\item \code{supplement_error_write}: the \code{analyses} folder could not be made.
+\item \code{supplement_error_write}: the \code{analyses} folder could not be made, or
+a write failed after its file was opened, for example on a full disk.
+A \verb{_quarto.yml} whose write failed gets its old text back.
 }
 
-When a file cannot be written, for example a read-only \verb{_quarto.yml},
-R's own error is shown, and the function removes the report file and
-any folder it made. If a
-write of \verb{_quarto.yml} fails partway, the file gets its old text back.
+When a file cannot be opened for writing, for example a read-only
+\verb{_quarto.yml}, R's own error is shown. After any failed write, the
+function removes the report file and any folder it made.
 }
 
 \examples{

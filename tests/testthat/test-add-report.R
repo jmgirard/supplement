@@ -203,6 +203,35 @@ test_that("a _quarto.yml with no block-style Analyses menu stops and shows the l
   )
 })
 
+test_that("valid UTF-8 text marked as bytes is written as UTF-8", {
+  site <- new_site()
+  value <- "café"
+  marked <- value
+  Encoding(marked) <- "bytes"
+  suppressMessages(add_report("bytes", marked, marked, path = site))
+  meta <- front_matter(file.path(site, "analyses", "bytes.qmd"))
+  expect_identical(meta, list(title = value, description = value))
+})
+
+test_that("a missing name or title stops with an argument error", {
+  site <- new_site()
+  before <- folder_state(site)
+  expect_error(add_report(title = "X", path = site), class = "supplement_error_report_name")
+  expect_error(add_report("x", path = site), class = "supplement_error_argument")
+  expect_identical(folder_state(site), before)
+})
+
+test_that("a failed write of the report stub stops and leaves nothing", {
+  site <- new_site()
+  before <- folder_state(site)
+  local_mocked_bindings(write_bytes = function(bytes, con) {
+    writeBin(bytes[1:3], con)
+    warning("No space left on device")
+  })
+  expect_error(add_report("x", "X", path = site), class = "supplement_error_write")
+  expect_identical(folder_state(site), before)
+})
+
 test_that("a title of only Unicode spaces stops", {
   for (title in c(" ", "　  ")) {
     expect_report_error("supplement_error_argument", name = "x", title = title)

@@ -194,12 +194,32 @@ test_that("a write that fails partway restores the old bytes", {
   text <- "supplement:\n  data:\n    - file: data/a.csv\n"
   writeChar(text, file, eos = NULL)
   read <- read_text_lines(file)
-  local_mocked_bindings(write_bytes = function(bytes, con) {
-    writeBin(bytes[1:5], con)
-    stop("disk full")
-  })
-  expect_error(write_text_lines(read, c(read$lines, "more"), file), "disk full")
-  expect_identical(readBin(file, "raw", file.size(file)), charToRaw(text))
+  # An error, a warning (R only warns when the disk is full), and a short
+  # write with no condition at all.
+  fails <- list(
+    error = function(bytes, con) {
+      writeBin(bytes[1:5], con)
+      stop("disk full")
+    },
+    warning = function(bytes, con) {
+      writeBin(bytes[1:5], con)
+      warning("No space left on device")
+    },
+    short = function(bytes, con) writeBin(bytes[1:5], con)
+  )
+  for (name in names(fails)) {
+    local_mocked_bindings(write_bytes = fails[[name]])
+    expect_error(write_text_lines(read, c(read$lines, "more"), file), class = "supplement_error_write")
+    expect_identical(readBin(file, "raw", file.size(file)), charToRaw(text), info = name)
+  }
+})
+
+test_that("yaml_appended() rejects a change outside the list", {
+  before <- c("supplement:", "  title: A", "  data:", "    - file: a")
+  after <- c("supplement:", "  title: B", "  data:", "    - file: a", "    - file: b")
+  expect_false(yaml_appended(before, after, data_path, c(file = "b")))
+  after[2] <- "  title: A"
+  expect_true(yaml_appended(before, after, data_path, c(file = "b")))
 })
 
 test_that("a list that is missing or not in block form is not found", {

@@ -29,9 +29,9 @@ Zenodo API, Python helper functions, and migration of existing sites.
 
 ## Function Families
 
-- metadata writers (built): `write_citation()`, `write_zenodo()`
-- scaffolding (built): `create_supplement()`, `add_report()`, `add_data()`
-- release steps (planned): `check_supplement()`, `release_supplement()`
+- metadata writers: `write_citation()`, `write_zenodo()`
+- scaffolding: `create_supplement()`, `add_report()`, `add_data()`
+- release steps: `check_supplement()`, `release_supplement()`
 
 Status and order live in `ROADMAP.md`.
 

@@ -39,10 +39,11 @@
 #' * `supplement_error_file_name`: the base name of `file` does not follow
 #'   the file-name rule above.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
-#' * `supplement_error_ignored_file`: `file` is a saved R object (`.rds`,
-#'   `.rda`, `.RData`, `.qs`, or `.qs2`, in any letter case), which the
-#'   template's `.gitignore` rules keep out of git. A new site gets its
-#'   `.gitignore` at the first render.
+#' * `supplement_error_ignored_file`: `file` is of a type that the
+#'   template's `.gitignore` rules keep out of git: a saved R object
+#'   (`.rds`, `.rda`, `.RData`, `.qs`, or `.qs2`), or a `.rmarkdown`,
+#'   `.quarto_ipynb`, `.knit.md`, or `.utf8.md` file, in any letter case. A
+#'   new site gets its `.gitignore` at the first render.
 #' * `supplement_error_file_exists`: `data/<base name>`, or a file in
 #'   `data/` whose name differs from it only in letter case, exists and is
 #'   not `file`, or is a link; or `data` is not a folder or is a link.
@@ -57,13 +58,14 @@
 #'   shows the lines to add by hand.
 #' * `supplement_error_encoding`: `description` or `_supplement.yml` is
 #'   not UTF-8 text.
-#' * `supplement_error_write`: the `data` folder could not be made, or
-#'   `file` could not be copied.
+#' * `supplement_error_write`: the `data` folder could not be made, `file`
+#'   could not be copied, or the write of `_supplement.yml` failed after
+#'   the file was opened, for example on a full disk. Then
+#'   `_supplement.yml` gets its old text back.
 #'
-#' When a file cannot be written, for example a read-only
-#' `_supplement.yml`, R's own error is shown, and the function removes the
-#' copy and any folder it made. If a write of `_supplement.yml` fails partway, the file gets its
-#' old text back.
+#' When `_supplement.yml` cannot be opened for writing, for example when it
+#' is read-only, R's own error is shown. After any failed write, the
+#' function removes the copy and any folder it made.
 #'
 #' @seealso [add_report()] to add a report, and [create_supplement()] to
 #'   make a site.
@@ -77,6 +79,9 @@
 #' list.files(file.path(site, "data"))
 #' unlink(c(site, scores), recursive = TRUE)
 add_data <- function(file, description, path = ".") {
+  # A missing argument reaches the checks as NULL, so it gets their error.
+  if (missing(file)) file <- NULL
+  if (missing(description)) description <- NULL
   check_path(path)
   if (!is.character(file) || length(file) != 1 || is.na(file)) {
     cli::cli_abort(
@@ -84,13 +89,16 @@ add_data <- function(file, description, path = ".") {
       class = c("supplement_error_argument", "supplement_error")
     )
   }
+  # file.exists("file/") is FALSE, so drop the separators at the end. A
+  # root such as "/" or "C:/" keeps its separator.
+  file <- sub("^(.*[^/\\\\:])[/\\\\]+$", "\\1", file)
   if (!file.exists(file) || dir.exists(file)) {
     cli::cli_abort(
       "{.path {file}} does not exist or is a folder.",
       class = c("supplement_error_no_file", "supplement_error")
     )
   }
-  check_text(description, "description")
+  description <- check_text(description, "description")
   base <- basename(file)
   # \z, because $ also matches before a line break at the end. A name that
   # starts and ends with "_", such as _data_, reads as italic text.
@@ -102,12 +110,14 @@ add_data <- function(file, description, path = ".") {
       class = c("supplement_error_file_name", "supplement_error")
     )
   }
-  # The template's .gitignore rules block saved R objects, so the site's
-  # link to such a file would break in a clone.
-  if (grepl("\\.(rds|rda|rdata|qs|qs2)\\z", base, ignore.case = TRUE, perl = TRUE)) {
+  # The template's .gitignore rules block these file types, so the site's
+  # link to such a file would break in a clone. Names that start with "."
+  # are refused above.
+  ignored <- "\\.(rds|rda|rdata|qs|qs2|rmarkdown|quarto_ipynb|knit\\.md|utf8\\.md)\\z"
+  if (grepl(ignored, base, ignore.case = TRUE, perl = TRUE)) {
     cli::cli_abort(
-      c("{.file {base}} is a saved R object, which the template's {.file .gitignore} rules keep out of git.",
-        "i" = "Saved R objects can embed private data. Share the data as CSV or another plain format."),
+      c("The template's {.file .gitignore} rules keep {.file {base}} out of git, so its link on the site would break in a clone.",
+        "i" = "Saved R objects ({.code .rds}, {.code .rda}, {.code .RData}, {.code .qs}, {.code .qs2}) can embed private data. Share the data as CSV or another plain format."),
       class = c("supplement_error_ignored_file", "supplement_error")
     )
   }

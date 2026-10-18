@@ -95,9 +95,12 @@ test_that("other _supplement.yml shapes keep every other line", {
     meta <- file.path(site, "_supplement.yml")
     writeLines(shapes[[name]], meta)
     suppressMessages(add_data(source_file(), "Scores", path = site))
-    added <- added_lines(shapes[[name]], lines_utf8(meta))
+    after <- lines_utf8(meta)
+    added <- added_lines(shapes[[name]], after)
     expect_length(added, 2)
     expect_match(added[1], '- file: "data/scores.csv"', fixed = TRUE)
+    items <- yaml_list(after, data_list)
+    expect_identical(items[[length(items)]], list(file = "data/scores.csv", description = "Scores"), info = name)
   }
 })
 
@@ -221,8 +224,15 @@ test_that("_supplement.yml is checked before the copy runs", {
     "supplement_error_no_data_list", file = source_file(), description = "D",
     setup = function(site) writeLines(c("supplement:", "  data: []"), file.path(site, "_supplement.yml"))
   )
-  expect_data_error("supplement_error_already_listed", description = "D",
-                    setup = function(site) list(file = file.path(site, "data", "example.csv")))
+  # A listed file that is not on disk, and a file of that name from outside
+  # the site, which would be copied if the check came after the copy.
+  expect_data_error(
+    "supplement_error_already_listed", file = source_file(), description = "D",
+    setup = function(site) {
+      meta <- file.path(site, "_supplement.yml")
+      writeLines(sub("data/example.csv", "data/scores.csv", readLines(meta), fixed = TRUE), meta)
+    }
+  )
 })
 
 test_that("a copy that fails stops with a write error and leaves nothing", {
@@ -231,7 +241,8 @@ test_that("a copy that fails stops with a write error and leaves nothing", {
 })
 
 test_that("saved R objects stop, in any letter case", {
-  for (name in c("fit.rds", "fit.RDS", "a.rda", "b.RData", "c.qs", "d.QS2")) {
+  for (name in c("fit.rds", "fit.RDS", "a.rda", "b.RData", "c.qs", "d.QS2",
+                 "e.rmarkdown", "f.quarto_ipynb", "g.knit.md", "h.utf8.md")) {
     expect_data_error("supplement_error_ignored_file", file = source_file(name), description = "D")
   }
 })
@@ -301,6 +312,30 @@ test_that("on a case-sensitive disk, any file in data/ that differs only in lett
     expect_error(add_data(file.path(site, "data", name), "D", path = site), class = "supplement_error_file_exists")
     expect_identical(folder_state(site), before)
   }
+})
+
+test_that("valid UTF-8 text marked as bytes is listed as UTF-8", {
+  site <- new_site()
+  marked <- "café"
+  Encoding(marked) <- "bytes"
+  suppressMessages(add_data(source_file(), marked, path = site))
+  items <- yaml_list(lines_utf8(file.path(site, "_supplement.yml")), data_list)
+  expect_identical(items[[length(items)]]$description, "café")
+})
+
+test_that("a missing file or description stops with an argument error", {
+  site <- new_site()
+  before <- folder_state(site)
+  expect_error(add_data(description = "D", path = site), class = "supplement_error_argument")
+  expect_error(add_data(source_file(), path = site), class = "supplement_error_argument")
+  expect_identical(folder_state(site), before)
+})
+
+test_that("a separator after the file name is dropped", {
+  site <- new_site()
+  file <- source_file()
+  suppressMessages(add_data(paste0(file, "/"), "D", path = site))
+  expect_identical(read_bytes(file.path(site, "data", "scores.csv")), read_bytes(file))
 })
 
 test_that("a description that is not valid UTF-8 stops", {

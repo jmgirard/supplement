@@ -52,10 +52,11 @@ string.
 \item \code{supplement_error_file_name}: the base name of \code{file} does not follow
 the file-name rule above.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
-\item \code{supplement_error_ignored_file}: \code{file} is a saved R object (\code{.rds},
-\code{.rda}, \code{.RData}, \code{.qs}, or \code{.qs2}, in any letter case), which the
-template's \code{.gitignore} rules keep out of git. A new site gets its
-\code{.gitignore} at the first render.
+\item \code{supplement_error_ignored_file}: \code{file} is of a type that the
+template's \code{.gitignore} rules keep out of git: a saved R object
+(\code{.rds}, \code{.rda}, \code{.RData}, \code{.qs}, or \code{.qs2}), or a \code{.rmarkdown},
+\code{.quarto_ipynb}, \code{.knit.md}, or \code{.utf8.md} file, in any letter case. A
+new site gets its \code{.gitignore} at the first render.
 \item \code{supplement_error_file_exists}: \verb{data/<base name>}, or a file in
 \verb{data/} whose name differs from it only in letter case, exists and is
 not \code{file}, or is a link; or \code{data} is not a folder or is a link.
@@ -70,14 +71,15 @@ hand.
 shows the lines to add by hand.
 \item \code{supplement_error_encoding}: \code{description} or \verb{_supplement.yml} is
 not UTF-8 text.
-\item \code{supplement_error_write}: the \code{data} folder could not be made, or
-\code{file} could not be copied.
+\item \code{supplement_error_write}: the \code{data} folder could not be made, \code{file}
+could not be copied, or the write of \verb{_supplement.yml} failed after
+the file was opened, for example on a full disk. Then
+\verb{_supplement.yml} gets its old text back.
 }
 
-When a file cannot be written, for example a read-only
-\verb{_supplement.yml}, R's own error is shown, and the function removes the
-copy and any folder it made. If a write of \verb{_supplement.yml} fails partway, the file gets its
-old text back.
+When \verb{_supplement.yml} cannot be opened for writing, for example when it
+is read-only, R's own error is shown. After any failed write, the
+function removes the copy and any folder it made.
 }
 
 \examples{
