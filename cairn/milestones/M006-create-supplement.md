@@ -138,3 +138,5 @@ spawned: diff-bug, blame-history, prior-review.
 - blame-history #2: the `.Rbuildignore` line would drop a committed `_freeze/` under `inst/template` — reject: false, because the template ships no frozen output by design; a site's `_freeze/` (D-002) lives in the author's site, not in the template.
 - prior-review #1: no test of a copy that fails partway — fix now, same fix as diff-bug #6.
 - prior-review #2: the trailing-slash test does not cover an existing folder — fix now.
+
+Pass-2 fix-now findings fixed in 688b57d (diff-bug #1, #2, #3, #6, #7, #8, #9; blame-history #1; prior-review #1, #2). The new copy-failure test found one more defect: a failed `file.copy()` left an empty file that the cleanup missed, because the target was recorded only after a successful copy; the target is now recorded first, and the test passes. A planted return of the folder-link defect failed 3 tests. Full suite 687 passed; `devtools::check()` 0 errors, 0 warnings, 0 notes.
