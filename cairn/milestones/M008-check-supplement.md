@@ -1,6 +1,6 @@
 # M008: check_supplement() lists release problems
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -88,6 +88,9 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: planted defects turned the T7 tests red: links read with `useBytes`, no case match, no NUL test in decoding, DOI stop restored, the glob restored, no space cleaning (after a fixture that keeps the line break), no UTF-8 repair of pages, and git names without `useBytes`.
 - 2026-10-18: claim audit: 51 claims read, 5 corrected — R/check-supplement.R, man/check_supplement.Rd, tests/testthat/test-check-supplement.R. Fixes: a badge that is not a DOI no longer hides the comparison of the other badges (code change, with a test); its message no longer tells the author to fix `_supplement.yml`; the help page names the Unicode-form gap in the case match; the `percent_decode()` comment limits itself to disks that need UTF-8 names; the large-file message gives byte counts. The re-read found all five correct.
 - 2026-10-18: implement done; status review. `devtools::test()` 1363 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: review pass 2 started on a2793cb; main has not moved.
+- 2026-10-18: review return 2: a report in `analyses/` that is a dangling link or cannot be read stops `check_supplement()` with an unclassed error (AC1). Fix with it the other pass-2 fix-now items: an unreadable `index.qmd`, file links with a trailing `/`, `%2F`, `CITATION.cff` warnings and one-item sequences, dangling `CITATION.cff` and `docs/` pages as rows, line breaks in quoted values, hidden files in `execute-results/`, the unused `bare_doi()` argument, one trailing-separator helper, the AC1 test site made with `create_supplement()`, and the AC3 skip reasons.
+- 2026-10-18: review pass 2 follow-ups went to the rows "link check false positives" and "release check edge cases". The thrash count is now 2 defect returns.
 
 ## Review
 
@@ -136,3 +139,43 @@ Review pass 1 (2026-10-18). spawned: diff-bug, blame-history, prior-review. Each
 - prior-review #7: the trailing-separator strip turns `C:/` into `C:` — fix now: reuse the root-keeping pattern from `create_supplement()`.
 - prior-review #8: a git file name that is not valid UTF-8 makes `grepl()` warn and miss a saved object — fix now: match names with `useBytes = TRUE`.
 - prior-review #9: a file of 100.0 to 100.49 MiB prints "100 MiB is more than … 100 MiB" — fix now: one decimal place.
+
+Every pass-1 fix-now item above: fixed 35b83b3 (T7, review return 1); the claim audit after it changed the large-file message to byte counts and the not-a-DOI badge rows, fixed a2793cb.
+
+Review pass 2 (2026-10-18) evidence, on a2793cb, `test_file()` with `NOT_CRAN=true` and `/opt/homebrew/bin` first on PATH: 14 blocks, 0 failed, 0 skipped. Each criterion's pass-1 line above still holds, and:
+
+- AC1 (re-verified): blocks 1–3 and 12 pass (11, 2, 6, 2 expectations); block 14 shows a bad `CITATION.cff` doi gives a row while `not-rendered` still appears.
+- AC2 (re-verified): block 4 (2 pass) adds the byte-count message; block 5 (pass) finds the saved object `fits/a<ff>.rds` from a name that is not valid UTF-8; block 6 (2 pass) as before.
+- AC3 (re-verified): the AC3 search of `R/` finds one line, `R/check-supplement.R:138` in `git_run()`; blocks 7 (2 pass) and 8 (13 pass).
+- AC4 (re-verified): block 9 (pass) as before; block 10 (2 pass) finds `analyses/example.qmd` in a site at `site [draft]*?`, and a trailing `/` gives the same result; block 11 (pass).
+- AC5 (re-verified): block 13 (pass) adds rows for `café.html` (missing), `a%00b.html`, `a%FFb.html`, wrong-case `data/upper.csv`, and a Latin-1 page with a NUL byte; no row for `donn%C3%A9es.csv`, raw `données.csv`, or right-case `data/Upper.csv`; the dangling page link gives no error. Block 12 (2 pass).
+- AC6 (re-verified): block 14 (20 pass) adds rows for a `not-a-doi` `CITATION.cff` doi and a `nota` badge, both rows for a `nota` badge beside a wrong one, no row for a block-scalar doi that keeps its line break, and the YAML-map rows.
+- AC7 (re-verified): README.md, `inst/template/_README.md`, NEWS.md, and the help example unchanged since pass 1 except the help text; `devtools::check()` ran the examples with 0 errors.
+
+Consistency gate, pass 2: `cairn_validate.py` all checks passed; `devtools::document()` leaves no diff; `devtools::test()` 1363 pass, 0 fail, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes on a2793cb's code; no new top-level file; NEWS entry present.
+
+Review pass 2 findings. spawned: diff-bug, blame-history, prior-review.
+
+- diff-bug #1: a report in `analyses/` that is a dangling link or cannot be read stops the check with an unclassed `readLines()` error, so AC1's result never returns — fix now, floor return.
+- diff-bug #2: an unreadable `index.qmd` stops the shortcode test the same way — fix now.
+- diff-bug #3: a `docs/` folder with no `index.html` (one report rendered by name) gives no `not-rendered` or DOI row — follow-up, "release check edge cases" (a new check widens the criteria after a return).
+- diff-bug #4: a large file that is staged and then deleted from disk gives no row, though the next commit sends it — follow-up, "release check edge cases".
+- diff-bug #5: upper-case `HREF=` and `SRC=` are not read — follow-up, "link check false positives" (AC5 names a case-sensitive pattern).
+- diff-bug #6: a file link with a trailing `/` passes, but GitHub Pages serves 404 — fix now.
+- diff-bug #7: `%2F` passes as a folder separator — fix now: split the link before decoding.
+- diff-bug #8: `src = "…"` in `<script>` text gives a false row — follow-up, "link check false positives".
+- diff-bug #9: a Latin-1 or unreadable `CITATION.cff` prints R warnings beside its row — fix now: catch warnings too.
+- diff-bug #10: the AC1 test builds its site with `quarto use template`, while AC1 names `create_supplement()` — fix now: the test uses `create_supplement()`.
+- diff-bug #11: the AC3 skip test checks only "Skipped", not the reason, and misses `rev-parse` printing `false` — fix now.
+- blame-history #1: a prefixed badge DOI gives a broken badge that the check does not report — reject, already recorded in "badge DOI form" in pass 1.
+- blame-history #2: hidden folders under `docs/` are not read — reject, already recorded in "link check false positives".
+- blame-history #3: P8 asked for a check of data files missing from a build, and old copies in `docs/` hide a failed data-free render — reject, false: D-008 stops a render with a missing data file, so a data-free render writes no `docs/`.
+- blame-history #4: a quoted value with a line break is not unwrapped, because `.` does not match a line break — fix now: `(?s)`.
+- blame-history #5: a `.DS_Store` in `execute-results/` counts as stored output — fix now: list without hidden files.
+- blame-history #6: `bare_doi()`'s new `file` argument reaches no message, since `doi_or_null()` drops the error — fix now: remove the argument.
+- blame-history #7: the trailing-separator pattern is now in three files, and `check_cff_doi()` copies `value()`'s space rule — fix now for the pattern (one helper); reject the copy, planned: it returns a row where `value()` stops.
+- prior-review #1: dangling report crash — fix now, same as diff-bug #1.
+- prior-review #2: a dangling `CITATION.cff` or `docs/*.html` gives no row, and a test expects that — fix now: a row for each.
+- prior-review #3: `doi: [10.5281/zenodo.9]` reads as one text value — fix now: read sequences as lists, as `read_supplement()` does.
+- prior-review #4: `bare_doi()` keeps a trailing no-break space — reject, not reached: every value goes through `clean_space()` first, whose `\h` matches Unicode spaces, and a badge id ends at `.svg`.
+- prior-review #5: `bare_doi()` accepts a final line break — reject, not reached in this diff, as the reviewer says.
