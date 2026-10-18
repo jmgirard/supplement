@@ -25,15 +25,15 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 
 ## Acceptance criteria
 
-- [ ] AC1: With `repo` unset, `create_supplement(path)` copies each template file to the same relative path under `path`, with identical bytes. `_gitignore` and `_README.md` keep those names. In a new folder, the recursive file list under `path` equals the template's file list. In an existing folder that holds `README.md`, `.gitignore`, and `data/other.csv`, those three files keep their bytes. A test checks both folders against `system.file("template", package = "supplement")`.
-- [ ] AC2: With `repo = "owner/name"`, the function writes `owner/name` in place of each `OWNER/REPO` in `_quarto.yml`. In `_README.md` it writes the GitHub Pages address `https://<owner>.github.io/<name>/` in place of `https://OWNER.github.io/REPO/`, with the owner in lowercase. If the name is `<owner>.github.io`, without regard to case, the address is `https://<owner>.github.io/`. A test uses `JDoe/my_site.v-2` and `jdoe/JDoe.github.io`. It finds the expected value at each replaced site, and it finds no `OWNER/REPO` and no `OWNER.github.io/REPO`.
-- [ ] AC3: In each case below, the function stops with an error of class `supplement_error` plus one subclass for the case, and it writes nothing. A `path` that did not exist before the call does not exist after it. An existing folder keeps its file list and its file bytes. A test fires each listed form and asserts the error class.
+- [x] AC1: With `repo` unset, `create_supplement(path)` copies each template file to the same relative path under `path`, with identical bytes. `_gitignore` and `_README.md` keep those names. In a new folder, the recursive file list under `path` equals the template's file list. In an existing folder that holds `README.md`, `.gitignore`, and `data/other.csv`, those three files keep their bytes. A test checks both folders against `system.file("template", package = "supplement")`.
+- [x] AC2: With `repo = "owner/name"`, the function writes `owner/name` in place of each `OWNER/REPO` in `_quarto.yml`. In `_README.md` it writes the GitHub Pages address `https://<owner>.github.io/<name>/` in place of `https://OWNER.github.io/REPO/`, with the owner in lowercase. If the name is `<owner>.github.io`, without regard to case, the address is `https://<owner>.github.io/`. A test uses `JDoe/my_site.v-2` and `jdoe/JDoe.github.io`. It finds the expected value at each replaced site, and it finds no `OWNER/REPO` and no `OWNER.github.io/REPO`.
+- [x] AC3: In each case below, the function stops with an error of class `supplement_error` plus one subclass for the case, and it writes nothing. A `path` that did not exist before the call does not exist after it. An existing folder keeps its file list and its file bytes. A test fires each listed form and asserts the error class.
   - `path` is not one non-empty string: a number, `c("a", "b")`, `NA`, and `""`. The class is `supplement_error_argument`.
   - `path` is an existing file.
   - `path` holds a file or a folder where the template writes a file: `analyses/example.qmd`, and a folder named `index.qmd`. Or `path` holds a file where the template needs a folder: a file named `data`. An existing `data/` folder without `example.csv` is not an error case, and the call succeeds.
   - `repo` is not one string `owner/name` of ASCII letters, digits, `-`, `_`, and `.`: no slash, two slashes, an empty owner, a space, and a non-ASCII letter.
-- [ ] AC4: For a site that `create_supplement()` makes with `repo` given, `quarto render` exits with status 0. The render writes `docs/index.html`, `docs/.nojekyll`, and `.gitignore`.
-- [ ] AC5: The package README describes `create_supplement()` as a way to start a site. Its help page has an example that writes to a temporary folder. NEWS.md has an entry for it.
+- [x] AC4: For a site that `create_supplement()` makes with `repo` given, `quarto render` exits with status 0. The render writes `docs/index.html`, `docs/.nojekyll`, and `.gitignore`.
+- [x] AC5: The package README describes `create_supplement()` as a way to start a site. Its help page has an example that writes to a temporary folder. NEWS.md has an entry for it.
 
 ## Coverage
 
@@ -71,3 +71,18 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 - 2026-10-18: claim audit: 37 claims read, 5 corrected — R/create-supplement.R, README.md (README merge wording, `_README.md` placeholder form, unclassed copy error, parent folders left after a failed write, "does the same as quarto use template").
 - 2026-10-18: implement: the claim audit fixes added the class `supplement_error_write` for a folder or copy failure and made a failed call remove the missing parents of `path` that it made; two tests cover them (full suite 636 passed). DESCRIPTION gained `Roxygen: list(markdown = TRUE)`, so the Rd lists and links render; `write_citation.Rd` and `write_zenodo.Rd` regenerated; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - 2026-10-18: implement complete: T1-T4 checked, verify clean; status review.
+- 2026-10-18: review: branch level with origin/main at 36954bf, no merge needed; no PR yet (route d); Copilot round off (no PROFILE line).
+
+## Decisions
+
+## Review
+
+Evidence run 2026-10-18 on m006-create-supplement at edae91d, `NOT_CRAN=true`, `testthat::test_file("tests/testthat/test-create-supplement.R")`: 12 tests, 96 expectations, 0 failed, 0 skipped.
+
+- AC1: "a new folder gets every template file with the same bytes" (21 expectations: file list equal to the template's, bytes equal per file, `_gitignore` and `_README.md` kept) and "an existing folder keeps its files and gains the template" (19: `README.md`, `.gitignore`, `data/other.csv` bytes kept, template files equal) pass.
+- AC2: "repo replaces the placeholders" (10: `JDoe/my_site.v-2` at each `_quarto.yml` site, `https://jdoe.github.io/my_site.v-2/` in `_README.md`, no `OWNER/REPO` or `OWNER.github.io/REPO` left, no other change) and "a user site repo gets the root Pages address" (4: `jdoe/JDoe.github.io` gives `https://jdoe.github.io/`) pass.
+- AC3: "a bad path stops with an argument error and writes nothing" (1, `c("a", "b")`, `NA_character_`, `NA`, `""`: class `supplement_error_argument`, folder unchanged), "an existing file at path stops and is kept" (`supplement_error_not_folder`), "a file or folder in the template's way stops before any write" (`analyses/example.qmd`, a folder `index.qmd`, a file `data`: `supplement_error_file_exists`, folder state equal before and after), and "a bad repo stops and leaves no new folder" (no slash, two slashes, empty owner, empty name, a space, a non-ASCII letter, length 2, `NA`, a number: `supplement_error_repo`, the new path absent after each call, an existing folder unchanged) pass. The existing `data/` folder case succeeds in the AC1 existing-folder test.
+- AC4: "a site made with repo renders" (6 expectations, Quarto 1.10.19, not skipped): `quarto render` status 0, `docs/index.html`, `docs/.nojekyll`, and `.gitignore` exist, and the navbar links to `https://github.com/jdoe/my-supplement`.
+- AC5: README.md:17-31 gives the R route with `supplement::create_supplement("my-supplement", repo = "owner/name")`; NEWS.md:11 has the entry; `man/create_supplement.Rd` has an example that writes to `file.path(tempdir(), "my-supplement")`, which `devtools::check()` ran with 0 errors, 0 warnings, 0 notes.
+
+Consistency gate: `cairn_validate.py` all checks passed; `devtools::document()` gives no diff; no README.Rmd and no `_pkgdown.yml`, so those checks do not apply; NEWS.md has the entry; no new top-level file; `devtools::check()` 0 errors, 0 warnings, 0 notes (45.7 s). No principle changed, so `cairn_impact` was skipped.
