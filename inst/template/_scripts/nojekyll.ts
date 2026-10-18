@@ -2,11 +2,12 @@
 //
 // GitHub Pages runs Jekyll on the published folder unless it holds a
 // `.nojekyll` file. A Quarto render does not write one, so this script does.
+//
+// Quarto passes the output folder as an absolute path (on Windows, for
+// example `C:\...\docs`), so the path is used as given.
 
-const projectDir = Deno.env.get("QUARTO_PROJECT_DIR") ?? ".";
 const outputDir = Deno.env.get("QUARTO_PROJECT_OUTPUT_DIR");
 
 if (outputDir) {
-  const dir = outputDir.startsWith("/") ? outputDir : `${projectDir}/${outputDir}`;
-  Deno.writeTextFileSync(`${dir}/.nojekyll`, "");
+  Deno.writeTextFileSync(`${outputDir}/.nojekyll`, "");
 }

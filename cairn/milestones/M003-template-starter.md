@@ -1,6 +1,6 @@
 # M003: Package skeleton and starter template
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -52,6 +52,7 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - [x] T5: Planted-defect check in a scratch copy, one at a time: no rename of `_gitignore`; no rename of `_README.md`; an existing `.gitignore` overwritten; `analyses/*.qmd` dropped from `render:`; a nested `analyses/_quarto.yml`; a changed `output-dir`; freeze removed. Each makes at least one test fail. Record the results in the work log.
 - [x] T6: Write `_README.md` with the AC6 facts, and the first-render note in `index.qmd`.
 - [x] T7: Repository `README.md` with the `quarto use template jmgirard/supplement/inst/template` route, a NEWS.md entry, then `devtools::check()`.
+- [x] T8: Fix review return 1: `nojekyll.ts` writes `.nojekyll` into `QUARTO_PROJECT_OUTPUT_DIR` as Quarto gives it, with no join to the project folder, so Windows absolute paths work.
 
 ## Work log
 
@@ -77,6 +78,8 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - 2026-10-18: claim audit: 30 claims read, 5 corrected — README.md, DESCRIPTION, inst/template/index.qmd, inst/template/_README.md, inst/template/LICENSE-CC-BY.md, inst/template/_scripts/setup.ts. The re-read of the 7 corrected or unverifiable claims found 0 wrong.
 - 2026-10-18: all tasks done; status set to review.
 - 2026-10-18: review return 1: `inst/template/_scripts/nojekyll.ts` joins `QUARTO_PROJECT_DIR` to `QUARTO_PROJECT_OUTPUT_DIR` unless the latter starts with `/`. Quarto passes an absolute output path, so on Windows (`C:\…\docs`) the write goes to a broken path and every render fails (diff-bug #1).
+- 2026-10-18: T8 added for review return 1 (minor amendment) and done: `nojekyll.ts` writes to `${QUARTO_PROJECT_OUTPUT_DIR}/.nojekyll` as given. Quarto's `projectOutputDir()` (quarto.js:76626) joins a relative `output-dir` onto the absolute project folder, so the value is always absolute. Tests 32 passed, 0 skips; `devtools::check()` 0/0/0. No macOS test can tell the old and new code apart, because both handle POSIX absolute paths; the Windows case is covered by the Quarto source read only. `setup.ts` joins with `/`, which Deno accepts on Windows.
+- 2026-10-18: all tasks done; status set to review.
 
 ## Decisions
 
