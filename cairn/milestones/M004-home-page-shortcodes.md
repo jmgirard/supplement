@@ -86,11 +86,11 @@ Evidence from a clean clone of the branch at 79a2e41 (scratchpad), 2026-10-18: `
 - Consistency gate: `cairn_validate.py` all checks passed (exit 0); no DESIGN principle changed, so no impact report; `devtools::document()` left no diff; no README.Rmd or `_pkgdown.yml`; NEWS.md has the entry; no new top-level files.
 - spawned: diff-bug, blame-history, prior-review
 - No finding shows a criterion failing; the defects below hit uncommon author input (folded YAML, odd file names, read-only folders, Windows), so none is judged load-bearing for a return, and the in-scope ones are fixed on the branch.
-- diff-bug #1: a folded or block YAML `description` (or a boolean) crashes the render in `pandoc.Plain` — fix now
-- diff-bug #2: Quarto parses `file` values as Markdown, so names with `--`, `'`, `...`, `*x*`, `_x_`, `^x^` are changed before the existence check and the error names a different file — fix now (naming rule in the guide and a hint in the error); reading raw values → follow-up row "shortcode edge cases"
-- diff-bug #3: `os.rename(p, p)` existence check fails in a read-only folder (error 13), so subfolder pages report existing files missing — fix now
-- diff-bug #4: a folder listed as a data file renders a row (`128 B`) on macOS and Linux instead of stopping — fix now
-- diff-bug #5: file names with `%` or `#` publish broken links, and the guide's "Quarto copies each file" is false for `%` — fix now (covered by the naming rule); href encoding → follow-up row "shortcode edge cases"
+- diff-bug #1: a folded or block YAML `description` (or a boolean) crashes the render in `pandoc.Plain` — fix now, fixed 6a5eadd
+- diff-bug #2: Quarto parses `file` values as Markdown, so names with `--`, `'`, `...`, `*x*`, `_x_`, `^x^` are changed before the existence check and the error names a different file — fix now, fixed 6a5eadd (naming rule in the guide and a hint in the error); reading raw values → follow-up row "shortcode edge cases"
+- diff-bug #3: `os.rename(p, p)` existence check fails in a read-only folder (error 13), so subfolder pages report existing files missing — fix now, fixed 6a5eadd
+- diff-bug #4: a folder listed as a data file renders a row (`128 B`) on macOS and Linux instead of stopping — fix now, fixed 6a5eadd
+- diff-bug #5: file names with `%` or `#` publish broken links, and the guide's "Quarto copies each file" is false for `%` — fix now, fixed 6a5eadd (covered by the naming rule); href encoding → follow-up row "shortcode edge cases"
 - diff-bug #6: the 1 GB size fixture is copied into `docs/` and may cost 1 GB off macOS — follow-up, absorbed into the "Windows check" row
 - diff-bug #7: files of 2 GiB or more may read as missing on Windows (32-bit `ftell`) — follow-up, absorbed into the "Windows check" row
 - diff-bug #8: licenses are set in the `_quarto.yml` footer and in `_supplement.yml` — follow-up row "license footer"
@@ -101,15 +101,18 @@ Evidence from a clean clone of the branch at 79a2e41 (scratchpad), 2026-10-18: `
 - diff-bug #13: a description written literally as `../data` shows as `data` on subfolder pages — follow-up row "shortcode edge cases"
 - diff-bug #14: sizes of 1 TB or more read in GB — reject, planned change (AC4 fixes the units B to GB)
 - diff-bug #15: `quarto-required: ">=1.4.0"` is untested below 1.10 — follow-up row "shortcode edge cases"
-- diff-bug #16: the DOI format is not stated, and a pasted `https://doi.org/` URL breaks the badge — fix now
+- diff-bug #16: the DOI format is not stated, and a pasted `https://doi.org/` URL breaks the badge — fix now, fixed 6a5eadd
 - diff-bug #17: `Config/roxygen2/version` rides along in DESCRIPTION — reject, false as a defect: the line keeps `devtools::document()` from making a diff, which the consistency gate requires
-- diff-bug #18: shortcode fixture tests skip without knitr and rmarkdown, which they do not use — fix now
+- diff-bug #18: shortcode fixture tests skip without knitr and rmarkdown, which they do not use — fix now, fixed 6a5eadd
 - blame-history #1: a missing data file stops the render, so a data-free rebuild (M002) no longer completes — reject, planned change: the plan gate chose the hard error over a marked row (work log), P8 says a data-free build must never be published, and M003 AC4 was changed to hide R instead of deleting data; the choice now gets a D-entry (blame-history #4)
 - blame-history #2: licenses duplicated against the single-source convention — follow-up row "license footer" (same as diff-bug #8)
-- blame-history #3: `os.rename` existence check likely false on Windows — fix now (same fix as diff-bug #3)
-- blame-history #4: no D-entry for the hard error, and DESIGN's convention allows only TypeScript scripts in the template — fix now (D-008, DESIGN Conventions line)
-- blame-history #5: the `_supplement.yml` pointer sits after "Then delete this box" — fix now
+- blame-history #3: `os.rename` existence check likely false on Windows — fix now, fixed 6a5eadd (same fix as diff-bug #3)
+- blame-history #4: no D-entry for the hard error, and DESIGN's convention allows only TypeScript scripts in the template — fix now, fixed 6a5eadd (D-008, DESIGN Conventions line)
+- blame-history #5: the `_supplement.yml` pointer sits after "Then delete this box" — fix now, fixed 6a5eadd
 - blame-history #6: a rewritten description loses Markdown — reject, false: Quarto rewrites only a value that names an existing path in full, and the shortcode now keeps the parsed inlines of every value it does not rewrite
 - prior-review #1: hard error contradicts M002's data-free rebuild and P8's routing to release checks — reject, planned change (same as blame-history #1)
-- prior-review #2: `os.rename` on Windows — fix now (same as diff-bug #3)
+- prior-review #2: `os.rename` on Windows — fix now, fixed 6a5eadd (same as diff-bug #3)
 - prior-review #3: meta rewrite on subfolder pages left unrecorded — follow-up row "shortcode edge cases" (same as diff-bug #9)
+- Found while fixing diff-bug #4: Quarto 1.10 redefines the global `error` in its filters to print a message and return (`share/filters/main.lua` line 2614). Before 6a5eadd the shortcode went on after "not found", and the render failed only because `format_size(nil)` then crashed; AC5's observable result held, but by that crash. 6a5eadd stops with `assert(false, message)`. A scratch copy with `error(message)` planted back fails two tests: the folder test (exit 0) and the missing-file test's new check that stderr holds no "attempt to" Lua error.
+- AC5 re-verified at 6a5eadd: the missing-file test passes (exit non-zero, stderr holds the message, no "attempt to"); full suite 180 pass, 0 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- Follow-ups written to ROADMAP: new rows "license footer" and "shortcode edge cases"; diff-bug #6 and #7 absorbed into the "Windows check" row. D-008 records the hard-error choice.
