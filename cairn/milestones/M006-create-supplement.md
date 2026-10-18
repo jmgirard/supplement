@@ -1,6 +1,6 @@
 # M006: create_supplement() makes a site from the template
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -72,6 +72,7 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 - 2026-10-18: implement: the claim audit fixes added the class `supplement_error_write` for a folder or copy failure and made a failed call remove the missing parents of `path` that it made; two tests cover them (full suite 636 passed). DESCRIPTION gained `Roxygen: list(markdown = TRUE)`, so the Rd lists and links render; `write_citation.Rd` and `write_zenodo.Rd` regenerated; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - 2026-10-18: implement complete: T1-T4 checked, verify clean; status review.
 - 2026-10-18: review: branch level with origin/main at 36954bf, no merge needed; no PR yet (route d); Copilot round off (no PROFILE line).
+- 2026-10-18: review return 1: AC3 fails for `create_supplement("f/")` with `f` an existing file (`supplement_error_write`, not `supplement_error_not_folder`; diff-bug #2). The same return carries the pass-1 fix-now findings listed in the Review section.
 
 ## Decisions
 
@@ -86,3 +87,25 @@ Evidence run 2026-10-18 on m006-create-supplement at edae91d, `NOT_CRAN=true`, `
 - AC5: README.md:17-31 gives the R route with `supplement::create_supplement("my-supplement", repo = "owner/name")`; NEWS.md:11 has the entry; `man/create_supplement.Rd` has an example that writes to `file.path(tempdir(), "my-supplement")`, which `devtools::check()` ran with 0 errors, 0 warnings, 0 notes.
 
 Consistency gate: `cairn_validate.py` all checks passed; `devtools::document()` gives no diff; no README.Rmd and no `_pkgdown.yml`, so those checks do not apply; NEWS.md has the entry; no new top-level file; `devtools::check()` 0 errors, 0 warnings, 0 notes (45.7 s). No principle changed, so `cairn_impact` was skipped.
+
+Pass 1 review, 2026-10-18. spawned: diff-bug, blame-history, prior-review.
+
+- diff-bug #1: `file.copy` keeps the template's file mode, so a read-only package install gives read-only site files, and `fill_repo()` then fails with an unclassed "Permission denied" — fix now.
+- diff-bug #2: `create_supplement("f/")` for an existing file `f` gives `supplement_error_write`, not `supplement_error_not_folder`, because `file.exists("f/")` is FALSE on macOS — fix now; AC3 fails for this form, so it is a floor return.
+- diff-bug #3: a `path` that is a link to a missing target gives `supplement_error_write`, not a documented class — fix now.
+- diff-bug #4: the `repo` pattern accepts `o/..`, `o/.`, and `-/_`, which GitHub rejects, and `o/..` writes `https://o.github.io/../` — fix now.
+- diff-bug #5: every file under the installed template is copied, hidden files included, so a stray `.DS_Store`, `.quarto/`, `docs/`, or `_freeze/` from a developer render would reach users — fix now.
+- diff-bug #6: failures inside `fill_repo()` are unclassed — fix now; the claim that the made files "were removed" without checking `unlink()` — reject: false in practice, because `unlink()` of files this call just made fails only if another process changes them, and the message stays accurate for the cases the function handles.
+- diff-bug #7: `Sys.readlink()` returns `""` on Windows, so a broken link or junction there is not seen; trailing separators on Windows are unchecked — follow-up: added to the "Windows check" row.
+- diff-bug #8: "It adds the template's rules" reads as if `create_supplement()` does it — fix now.
+- diff-bug #9: the "only the placeholders change" test compares text that lost its line endings — fix now.
+- diff-bug #10: no test fails partway through a copy into an existing folder and checks the class and the user's files — fix now.
+- diff-bug #11: the expected file list comes from the folder the function copies, so it cannot catch stray files — fix now.
+- diff-bug #12: the link test checks only one file, not the whole folder — fix now.
+- diff-bug #13: no tests for a trailing slash, a broken link at `path`, or `..` — fix now.
+- blame-history #1: refusing conflicts contradicts D-006's merge rule — reject: false, because D-006 governs `setup.ts` at the first render, and `create_supplement()` ships `_gitignore` and `_README.md` under names that never conflict, so the merge still happens.
+- blame-history #2: the README says "with this package installed" but gives no install command — fix now.
+- blame-history #3: ragged line wrap in README.md:28-30 — reject: style.
+- prior-review #1: new path code is untested on Windows — follow-up: added to the "Windows check" row.
+- prior-review #2: no render test of a `create_supplement()` site in a folder that already holds `README.md` and `.gitignore` — fix now.
+- prior-review #3: `occupied()` copies the link rule of `check_overwrite()` — fix now: one shared helper.
