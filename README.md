@@ -15,7 +15,8 @@ You need the [Quarto](https://quarto.org) command-line interface, and R
 with the knitr and rmarkdown packages, to render the site. You can make
 the site folder from R or from Quarto.
 
-From R, with this package installed, run:
+From R, install the package from GitHub with `pak::pak("jmgirard/supplement")`.
+Then run:
 
 ```r
 supplement::create_supplement("my-supplement", repo = "owner/name")

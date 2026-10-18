@@ -32,10 +32,14 @@ holds a file or a folder where the template writes a file, or a file
 where the template needs a folder, it stops before it writes anything.
 
 The template ships \verb{_gitignore} and \verb{_README.md} under those names. The
-first \verb{quarto render} gives them their real names. It adds the
-template's rules to an existing \code{.gitignore}. If \code{README.md} exists, the
-guide goes to \code{SUPPLEMENT.md} instead. Render the site once before your
-first commit.
+first \verb{quarto render} gives them their real names, and that render adds
+the template's rules to an existing \code{.gitignore}. If \code{README.md} exists,
+the render writes the guide to \code{SUPPLEMENT.md} instead. Render the site
+once before your first commit.
+
+Hidden files in the template folder, and the \code{docs}, \verb{_freeze}, and
+\verb{_site} folders that a render of the template folder itself would make,
+are not copied.
 }
 \section{Errors}{
 
@@ -45,15 +49,19 @@ The errors that the function raises itself have the class
 \item \code{supplement_error_argument}: \code{path} is not a single non-missing,
 non-empty character string.
 \item \code{supplement_error_repo}: \code{repo} is not \code{NULL} or a single string of
-the form \code{owner/name}, made of ASCII letters, digits, \code{-}, \verb{_}, and
-\code{.}.
-\item \code{supplement_error_not_folder}: \code{path} is an existing file.
+the form \code{owner/name}. The owner must be ASCII letters and digits,
+with single \code{-} between them. The name must be ASCII letters, digits,
+\code{-}, \verb{_}, and \code{.}, and must not be \code{.} or \code{..}.
+\item \code{supplement_error_not_folder}: \code{path} is an existing file, or a link
+whose target is missing. A \code{/} at the end of \code{path} does not change
+this.
 \item \code{supplement_error_file_exists}: \code{path} holds a file, a folder, or a
 link where the template writes a file, or a file where the template
 needs a folder.
-\item \code{supplement_error_write}: a folder could not be made or a file could
-not be copied, for example because a parent of \code{path} is a file. The
-function then removes the files and folders that it made.
+\item \code{supplement_error_write}: a folder could not be made, a file could not
+be copied, or the repository could not be written into a copied file,
+for example because a parent of \code{path} is a file. The function then
+removes the files and folders that it made.
 }
 }
 

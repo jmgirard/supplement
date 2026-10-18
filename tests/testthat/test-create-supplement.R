@@ -14,11 +14,24 @@ folder_state <- function(dir) {
   })
 }
 
-template_files <- function() {
+template_listing <- function() {
   sort(list.files(template_dir(), recursive = TRUE, all.files = TRUE, no.. = TRUE))
 }
 
+# The template's files as git tracks them, written out here so that the
+# test does not take its expectation from the folder that the function
+# copies.
+template_tracked <- c(
+  "LICENSE-CC-BY.md", "LICENSE.md", "_README.md",
+  "_extensions/supplement/_extension.yml", "_extensions/supplement/supplement.lua",
+  "_gitignore", "_quarto.yml", "_scripts/nojekyll.ts", "_scripts/setup.ts",
+  "_supplement.yml", "analyses/example.qmd", "data/example.csv", "index.qmd"
+)
+
 read_bytes <- function(path) readBin(path, "raw", file.size(path))
+
+# The whole file as one string, line endings and final newline kept.
+read_raw_text <- function(path) rawToChar(read_bytes(path))
 
 test_that("a new folder gets every template file with the same bytes", {
   site <- file.path(withr::local_tempdir(), "new", "site")
@@ -26,8 +39,8 @@ test_that("a new folder gets every template file with the same bytes", {
   expect_identical(out, site)
 
   copied <- sort(list.files(site, recursive = TRUE, all.files = TRUE, no.. = TRUE))
-  expect_identical(copied, template_files())
-  expect_gt(length(copied), 5)
+  expect_identical(copied, template_listing())
+  expect_setequal(copied, template_tracked)
   for (file in copied) {
     expect_identical(read_bytes(file.path(site, file)), read_bytes(file.path(template_dir(), file)), info = file)
   }
@@ -52,13 +65,23 @@ test_that("an existing folder keeps its files and gains the template", {
   for (file in kept) {
     expect_identical(read_bytes(file.path(site, file)), before[[file]], info = file)
   }
-  for (file in template_files()) {
+  for (file in template_tracked) {
     expect_identical(read_bytes(file.path(site, file)), read_bytes(file.path(template_dir(), file)), info = file)
   }
   expect_setequal(
     list.files(site, recursive = TRUE, all.files = TRUE, no.. = TRUE),
-    c(template_files(), "README.md", ".gitignore", "data/other.csv")
+    c(template_tracked, "README.md", ".gitignore", "data/other.csv")
   )
+})
+
+test_that("hidden files and render output in the template folder are not copied", {
+  template <- withr::local_tempdir()
+  for (f in c(".DS_Store", ".quarto/x", "docs/index.html", "_freeze/a/b.json",
+              "_site/x.html", "analyses/.DS_Store", "analyses/r.qmd", "index.qmd")) {
+    dir.create(dirname(file.path(template, f)), recursive = TRUE, showWarnings = FALSE)
+    writeLines("x", file.path(template, f))
+  }
+  expect_setequal(template_files(template), c("analyses/r.qmd", "index.qmd"))
 })
 
 test_that("repo replaces the placeholders", {
@@ -79,12 +102,29 @@ test_that("repo replaces the placeholders", {
     expect_false(grepl("OWNER/REPO", text, fixed = TRUE))
     expect_false(grepl("OWNER.github.io/REPO", text, fixed = TRUE))
   }
-  # Only the placeholders change.
-  expect_identical(gsub("JDoe/my_site.v-2", "OWNER/REPO", quarto, fixed = TRUE), template_quarto)
+  # Only the placeholders change, byte for byte.
   expect_identical(
-    gsub("https://jdoe.github.io/my_site.v-2/", "https://OWNER.github.io/REPO/", readme, fixed = TRUE),
-    read_text(file.path(template_dir(), "_README.md"))
+    gsub("JDoe/my_site.v-2", "OWNER/REPO", read_raw_text(file.path(site, "_quarto.yml")), fixed = TRUE),
+    read_raw_text(file.path(template_dir(), "_quarto.yml"))
   )
+  expect_identical(
+    gsub("https://jdoe.github.io/my_site.v-2/", "https://OWNER.github.io/REPO/",
+         read_raw_text(file.path(site, "_README.md")), fixed = TRUE),
+    read_raw_text(file.path(template_dir(), "_README.md"))
+  )
+})
+
+test_that("copied files are writable when the template is read-only", {
+  skip_on_os("windows")
+  template <- withr::local_tempdir()
+  file.copy(list.files(template_dir(), full.names = TRUE), template, recursive = TRUE)
+  files <- list.files(template, recursive = TRUE, full.names = TRUE)
+  Sys.chmod(files, "0444")
+  local_mocked_bindings(template_path = function() template)
+  site <- file.path(withr::local_tempdir(), "site")
+  expect_message(create_supplement(site, repo = "jdoe/site"), "Made a supplement site")
+  expect_match(read_text(file.path(site, "_quarto.yml")), "jdoe/site", fixed = TRUE)
+  expect_true(all(file.access(list.files(site, recursive = TRUE, full.names = TRUE), 2) == 0))
 })
 
 test_that("a user site repo gets the root Pages address", {
@@ -111,8 +151,30 @@ test_that("a bad path stops with an argument error and writes nothing", {
 test_that("an existing file at path stops and is kept", {
   file <- withr::local_tempfile(lines = "not a folder")
   before <- folder_state(file)
-  expect_error(create_supplement(file), class = "supplement_error_not_folder")
-  expect_identical(folder_state(file), before)
+  for (given in c(file, paste0(file, "/"), paste0(file, "//"))) {
+    expect_error(create_supplement(given), class = "supplement_error_not_folder", info = given)
+    expect_identical(folder_state(file), before, info = given)
+  }
+})
+
+test_that("a broken link at path stops as not a folder", {
+  skip_on_os("windows")
+  dir <- withr::local_tempdir()
+  link <- file.path(dir, "site")
+  file.symlink(file.path(dir, "missing"), link)
+  for (given in c(link, paste0(link, "/"))) {
+    expect_error(create_supplement(given), class = "supplement_error_not_folder", info = given)
+  }
+  expect_identical(list.files(dir, all.files = TRUE, no.. = TRUE), "site")
+  expect_false(file.exists(file.path(dir, "missing")))
+})
+
+test_that("a trailing slash on a new or existing folder works", {
+  dir <- withr::local_tempdir()
+  given <- paste0(file.path(dir, "site"), "/")
+  expect_message(out <- create_supplement(given), "Made a supplement site")
+  expect_identical(out, given)
+  expect_setequal(list.files(file.path(dir, "site"), recursive = TRUE), template_tracked)
 })
 
 test_that("a file or folder in the template's way stops before any write", {
@@ -141,8 +203,10 @@ test_that("a link at a template path stops, even when its target is missing", {
   skip_on_os("windows")
   site <- withr::local_tempdir()
   file.symlink(file.path(site, "missing"), file.path(site, "index.qmd"))
+  before <- list.files(site, recursive = TRUE, all.files = TRUE, no.. = TRUE, include.dirs = TRUE)
   expect_error(create_supplement(site), class = "supplement_error_file_exists")
-  expect_false(file.exists(file.path(site, "_quarto.yml")))
+  expect_identical(list.files(site, recursive = TRUE, all.files = TRUE, no.. = TRUE, include.dirs = TRUE), before)
+  expect_identical(Sys.readlink(file.path(site, "index.qmd")), file.path(site, "missing"))
 })
 
 test_that("a path under a file stops with a write error and leaves nothing", {
@@ -153,18 +217,29 @@ test_that("a path under a file stops with a write error and leaves nothing", {
   expect_identical(folder_state(dir), before)
 })
 
-test_that("a failed write removes the parent folders that the call made", {
-  dir <- withr::local_tempdir()
+test_that("a failed write removes what the call made and keeps the rest", {
   local_mocked_bindings(fill_repo = function(path, repo) stop("planted failure"))
-  expect_error(create_supplement(file.path(dir, "n1", "n2"), repo = "jdoe/site"), "planted failure")
+
+  dir <- withr::local_tempdir()
+  expect_error(create_supplement(file.path(dir, "n1", "n2"), repo = "jdoe/site"),
+               class = "supplement_error_write", regexp = "planted failure")
   expect_identical(list.files(dir, all.files = TRUE, no.. = TRUE), character())
+
+  existing <- withr::local_tempdir()
+  dir.create(file.path(existing, "data"))
+  writeLines("# Mine", file.path(existing, "README.md"))
+  writeLines("x\n1", file.path(existing, "data", "other.csv"))
+  before <- folder_state(existing)
+  expect_error(create_supplement(existing, repo = "jdoe/site"), class = "supplement_error_write")
+  expect_identical(folder_state(existing), before)
 })
 
 test_that("a bad repo stops and leaves no new folder", {
   parent <- withr::local_tempdir()
   site <- file.path(parent, "site")
   bad <- list("jdoe", "a/b/c", "/name", "owner/", "j doe/site", "jdöe/site",
-              c("a/b", "c/d"), NA_character_, 1)
+              c("a/b", "c/d"), NA_character_, 1, "o/..", "o/.", "-/_", "-jdoe/site",
+              "jdoe-/site", "jd--oe/site", "j_doe/site", "j.doe/site")
   for (repo in bad) {
     expect_error(create_supplement(site, repo = repo), class = "supplement_error_repo",
                  info = paste(format(repo), collapse = " "))
@@ -178,7 +253,11 @@ test_that("a bad repo stops and leaves no new folder", {
 
 test_that("a site made with repo renders", {
   skip_if_no_quarto()
-  site <- file.path(withr::local_tempdir(), "site")
+  # A clone of a new GitHub repository often holds these two files.
+  site <- withr::local_tempdir()
+  writeLines("# my-supplement", file.path(site, "README.md"))
+  writeLines("*.log", file.path(site, ".gitignore"))
+  readme_before <- read_bytes(file.path(site, "README.md"))
   expect_message(create_supplement(site, repo = "jdoe/my-supplement"), "Made a supplement site")
 
   rendered <- run_in(site, "quarto", "render")
@@ -186,6 +265,11 @@ test_that("a site made with repo renders", {
   expect_true(file.exists(file.path(site, "docs", "index.html")))
   expect_true(file.exists(file.path(site, "docs", ".nojekyll")))
   expect_true(file.exists(file.path(site, ".gitignore")))
+  expect_identical(read_bytes(file.path(site, "README.md")), readme_before)
+  expect_true(file.exists(file.path(site, "SUPPLEMENT.md")))
+  gitignore <- readLines(file.path(site, ".gitignore"))
+  expect_identical(gitignore[1], "*.log")
+  expect_identical(utils::tail(gitignore, 2), c("!docs/", "!_freeze/"))
   expect_match(
     quarto_header(read_text(file.path(site, "docs", "index.html"))),
     "https://github.com/jdoe/my-supplement", fixed = TRUE

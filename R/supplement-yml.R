@@ -233,11 +233,8 @@ check_overwrite <- function(file, overwrite, call = parent.frame()) {
       call = call
     )
   }
-  # file.exists() is FALSE for a link whose target is missing, and
-  # writing would follow the link.
-  link <- Sys.readlink(file)
-  exists <- file.exists(file) || (!is.na(link) && nzchar(link))
-  if (exists && !isTRUE(overwrite)) {
+  # Writing would follow a link, even one whose target is missing.
+  if (path_occupied(file) && !isTRUE(overwrite)) {
     cli::cli_abort(
       c("{.file {file}} already exists.",
         "i" = "Use {.code overwrite = TRUE} to replace it."),
@@ -246,6 +243,14 @@ check_overwrite <- function(file, overwrite, call = parent.frame()) {
     )
   }
   invisible(file)
+}
+
+# TRUE for each path that holds a file, a folder, or a link.
+# file.exists() is FALSE for a link whose target is missing, and
+# Sys.readlink() is NA for a path that does not exist.
+path_occupied <- function(paths) {
+  link <- Sys.readlink(paths)
+  file.exists(paths) | (!is.na(link) & nzchar(link))
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x

@@ -11,10 +11,14 @@
 #' where the template needs a folder, it stops before it writes anything.
 #'
 #' The template ships `_gitignore` and `_README.md` under those names. The
-#' first `quarto render` gives them their real names. It adds the
-#' template's rules to an existing `.gitignore`. If `README.md` exists, the
-#' guide goes to `SUPPLEMENT.md` instead. Render the site once before your
-#' first commit.
+#' first `quarto render` gives them their real names, and that render adds
+#' the template's rules to an existing `.gitignore`. If `README.md` exists,
+#' the render writes the guide to `SUPPLEMENT.md` instead. Render the site
+#' once before your first commit.
+#'
+#' Hidden files in the template folder, and the `docs`, `_freeze`, and
+#' `_site` folders that a render of the template folder itself would make,
+#' are not copied.
 #'
 #' @param path The folder for the site. It is made if it does not exist.
 #' @param repo The GitHub repository of the site, as `"owner/name"`, or
@@ -34,15 +38,19 @@
 #' * `supplement_error_argument`: `path` is not a single non-missing,
 #'   non-empty character string.
 #' * `supplement_error_repo`: `repo` is not `NULL` or a single string of
-#'   the form `owner/name`, made of ASCII letters, digits, `-`, `_`, and
-#'   `.`.
-#' * `supplement_error_not_folder`: `path` is an existing file.
+#'   the form `owner/name`. The owner must be ASCII letters and digits,
+#'   with single `-` between them. The name must be ASCII letters, digits,
+#'   `-`, `_`, and `.`, and must not be `.` or `..`.
+#' * `supplement_error_not_folder`: `path` is an existing file, or a link
+#'   whose target is missing. A `/` at the end of `path` does not change
+#'   this.
 #' * `supplement_error_file_exists`: `path` holds a file, a folder, or a
 #'   link where the template writes a file, or a file where the template
 #'   needs a folder.
-#' * `supplement_error_write`: a folder could not be made or a file could
-#'   not be copied, for example because a parent of `path` is a file. The
-#'   function then removes the files and folders that it made.
+#' * `supplement_error_write`: a folder could not be made, a file could not
+#'   be copied, or the repository could not be written into a copied file,
+#'   for example because a parent of `path` is a file. The function then
+#'   removes the files and folders that it made.
 #'
 #' @seealso [write_citation()] and [write_zenodo()] for the citation files.
 #' @export
@@ -54,15 +62,19 @@
 create_supplement <- function(path, repo = NULL) {
   check_path(path)
   check_repo(repo)
-  if (file.exists(path) && !dir.exists(path)) {
+  given <- path
+  # file.exists("file/") is FALSE on some systems, so drop the separators
+  # at the end (but keep a root such as "/").
+  path <- sub("(.)[/\\\\]+$", "\\1", path)
+  if (path_occupied(path) && !dir.exists(path)) {
     cli::cli_abort(
-      "{.path {path}} is a file, so the site cannot be made there.",
+      "{.path {path}} is a file or a broken link, so the site cannot be made there.",
       class = c("supplement_error_not_folder", "supplement_error")
     )
   }
 
-  template <- system.file("template", package = "supplement", mustWork = TRUE)
-  files <- list.files(template, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+  template <- template_path()
+  files <- template_files(template)
   folders <- template_folders(files)
   check_conflicts(path, files, folders)
 
@@ -81,13 +93,19 @@ create_supplement <- function(path, repo = NULL) {
   }
   for (file in files) {
     target <- file.path(path, file)
-    if (!file.copy(file.path(template, file), target, overwrite = FALSE)) {
+    # copy.mode = FALSE, so that the copies are writable even when the
+    # package is installed read-only.
+    if (!file.copy(file.path(template, file), target, overwrite = FALSE, copy.mode = FALSE)) {
       write_error("Could not copy {.file {file}} to {.path {path}}.")
     }
     made <- c(made, target)
   }
   if (!is.null(repo)) {
-    fill_repo(path, repo)
+    here <- environment()
+    tryCatch(fill_repo(path, repo), error = function(e) {
+      reason <- conditionMessage(e)
+      write_error("Could not write {.val {repo}} into the copied files: {reason}", call = here)
+    })
   }
   done <- TRUE
 
@@ -99,7 +117,19 @@ create_supplement <- function(path, repo = NULL) {
     "i" = "Put the paper facts in {.file _supplement.yml}.",
     "i" = "Run {.code quarto render} in {.path {path}} once before your first commit."
   ))
-  invisible(path)
+  invisible(given)
+}
+
+template_path <- function() {
+  system.file("template", package = "supplement", mustWork = TRUE)
+}
+
+# The template's files, as paths relative to `template`. Hidden files, and
+# the output of a render of the template folder itself, are left out.
+template_files <- function(template) {
+  files <- list.files(template, recursive = TRUE)
+  top <- sub("/.*$", "", files)
+  files[!top %in% c("docs", "_freeze", "_site")]
 }
 
 # `path` and each of its parents that does not exist, outermost first.
@@ -129,11 +159,16 @@ check_repo <- function(repo, call = parent.frame()) {
   if (is.null(repo)) {
     return(invisible())
   }
+  # GitHub owners are letters and digits with single hyphens between them.
+  # Repository names are letters, digits, "-", "_", and ".", but not "."
+  # or "..".
+  pattern <- "^[A-Za-z0-9]+(-[A-Za-z0-9]+)*/(?!\\.\\.?$)[A-Za-z0-9._-]+$"
   if (!is.character(repo) || length(repo) != 1 || is.na(repo) ||
-      !grepl("^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$", repo, perl = TRUE)) {
+      !grepl(pattern, repo, perl = TRUE)) {
     cli::cli_abort(
       c("{.arg repo} must be a GitHub repository written as {.val owner/name}.",
-        "i" = "Use only ASCII letters, digits, {.code -}, {.code _}, and {.code .} on each side of the {.code /}."),
+        "i" = "The owner is ASCII letters and digits, with single {.code -} between them.",
+        "i" = "The name is ASCII letters, digits, {.code -}, {.code _}, and {.code .}, and is not {.code .} or {.code ..}."),
       class = c("supplement_error_repo", "supplement_error"),
       call = call
     )
@@ -158,16 +193,11 @@ check_conflicts <- function(path, files, folders, call = parent.frame()) {
   if (!dir.exists(path)) {
     return(invisible())
   }
-  # file.exists() is FALSE for a link whose target is missing.
-  occupied <- function(target) {
-    link <- Sys.readlink(target)
-    file.exists(target) | (!is.na(link) & nzchar(link))
-  }
   file_targets <- file.path(path, files)
   folder_targets <- file.path(path, folders)
   conflicts <- c(
-    files[occupied(file_targets)],
-    folders[occupied(folder_targets) & !dir.exists(folder_targets)]
+    files[path_occupied(file_targets)],
+    folders[path_occupied(folder_targets) & !dir.exists(folder_targets)]
   )
   if (length(conflicts) > 0) {
     cli::cli_abort(

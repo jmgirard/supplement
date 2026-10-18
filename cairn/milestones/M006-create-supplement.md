@@ -39,7 +39,7 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 
 - AC1 → T1, T2
 - AC2 → T1, T2
-- AC3 → T1, T2
+- AC3 → T1, T2, T5
 - AC4 → T3
 - AC5 → T4
 
@@ -49,6 +49,7 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 - [x] T2: Write `tests/testthat/test-create-supplement.R` for AC1, AC2, and AC3. Take a snapshot of the folder's file list and file bytes before and after each error case.
 - [x] T3: Add a render test for a site made with `repo` given. Reuse the skip helpers in `tests/testthat/helper-template.R`, so that the test skips without Quarto, knitr, or rmarkdown.
 - [x] T4: Add roxygen documentation with an example that writes to `tempdir()`, and run `devtools::document()`. Add the R route to the README section "Start a new site", next to `quarto use template`. Add a NEWS.md entry.
+- [x] T5: Fix review return 1 and the pass-1 fix-now findings in the Review section: an existing file given with a trailing slash, a broken link at `path`, the copied file mode, unclassed `fill_repo()` errors, hidden and rendered files in the template folder, the `repo` owner and name rules, the help wording, the README install line, one shared link check, and the tests that pass with those defects present.
 
 ## Work log
 
@@ -73,6 +74,8 @@ Export `create_supplement()`, which makes a new site folder from the package's t
 - 2026-10-18: implement complete: T1-T4 checked, verify clean; status review.
 - 2026-10-18: review: branch level with origin/main at 36954bf, no merge needed; no PR yet (route d); Copilot round off (no PROFILE line).
 - 2026-10-18: review return 1: AC3 fails for `create_supplement("f/")` with `f` an existing file (`supplement_error_write`, not `supplement_error_not_folder`; diff-bug #2). The same return carries the pass-1 fix-now findings listed in the Review section.
+- 2026-10-18: implement: status in-progress; T5 added for review return 1 (minor amendment), Coverage AC3 now maps to T5 too.
+- 2026-10-18: T5 done: trailing separators are dropped before the checks, and a broken link at `path` is `supplement_error_not_folder`; copies use `copy.mode = FALSE`; `fill_repo()` errors become `supplement_error_write`; hidden files and `docs`, `_freeze`, `_site` are not copied, and `.Rbuildignore` keeps them out of the build; the owner must be letters and digits with single hyphens and the name must not be `.` or `..`; `path_occupied()` is shared with `check_overwrite()`; help wording and a README install line fixed; tests added for each, including a hard-written template file list and a render in a folder that holds `README.md` and `.gitignore`. Four planted defects (no slash strip, file mode kept, the old `repo` pattern, no copy filter) each failed tests. Full suite 674 passed; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 
 ## Decisions
 
