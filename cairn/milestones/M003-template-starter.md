@@ -25,13 +25,13 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 
 ## Acceptance criteria
 
-- [ ] AC1: On a clean checkout of the milestone branch, `Rscript -e 'devtools::check()'` reports 0 errors and 0 warnings, and no NOTE contains the text "hidden files".
-- [ ] AC2: With R, knitr, and rmarkdown installed, in a new empty folder, `quarto use template <local path to inst/template> --no-prompt` and then `quarto render` both exit 0. The folder then holds `.gitignore`, `README.md`, `index.qmd`, `analyses/example.qmd`, `data/example.csv`, `LICENSE.md`, `LICENSE-CC-BY.md`, and `docs/.nojekyll`, and holds no `_gitignore` or `_README.md`.
-- [ ] AC3: After the AC2 render, the element with `id="quarto-header"` in `docs/analyses/example.html` contains `href="../index.html"`, and `_freeze/analyses/example/` holds at least one file.
-- [ ] AC4: `quarto inspect` in the AC2 folder reports `.config.execute.freeze` as true and `.config.project["output-dir"]` as `docs`. A full `quarto render` run with R unreachable (environment cleared to `HOME` and `PATH=/usr/bin:/bin`) exits 0, and `docs/analyses/example.html` is then byte-identical to its copy from the AC2 render.
-- [ ] AC5: In the AC2 folder after `git init`, `git check-ignore analyses/fits/m.rds x.rds` prints both paths. `git check-ignore _freeze/analyses/example/execute-results/html.json docs/index.html data/example.csv` prints nothing and exits 1.
-- [ ] AC6: The rendered folder's `README.md` states each of these: a render by name always runs that report's code; on the data machine, check the `.rds` fit files before a full render and stage only `_freeze/` and `docs/`; call `set.seed(` before random draws such as `pp_check`; publish from one machine; a page leaves site search with `search: false`; a build with the data deleted is never published. `index.qmd` tells the user to run `quarto render` once before the first commit.
-- [ ] AC7: On this Mac, with quarto on PATH, `Rscript -e 'devtools::test()'` reports 0 failures and 0 skips.
+- [x] AC1: On a clean checkout of the milestone branch, `Rscript -e 'devtools::check()'` reports 0 errors and 0 warnings, and no NOTE contains the text "hidden files".
+- [x] AC2: With R, knitr, and rmarkdown installed, in a new empty folder, `quarto use template <local path to inst/template> --no-prompt` and then `quarto render` both exit 0. The folder then holds `.gitignore`, `README.md`, `index.qmd`, `analyses/example.qmd`, `data/example.csv`, `LICENSE.md`, `LICENSE-CC-BY.md`, and `docs/.nojekyll`, and holds no `_gitignore` or `_README.md`.
+- [x] AC3: After the AC2 render, the element with `id="quarto-header"` in `docs/analyses/example.html` contains `href="../index.html"`, and `_freeze/analyses/example/` holds at least one file.
+- [x] AC4: `quarto inspect` in the AC2 folder reports `.config.execute.freeze` as true and `.config.project["output-dir"]` as `docs`. A full `quarto render` run with R unreachable (environment cleared to `HOME` and `PATH=/usr/bin:/bin`) exits 0, and `docs/analyses/example.html` is then byte-identical to its copy from the AC2 render.
+- [x] AC5: In the AC2 folder after `git init`, `git check-ignore analyses/fits/m.rds x.rds` prints both paths. `git check-ignore _freeze/analyses/example/execute-results/html.json docs/index.html data/example.csv` prints nothing and exits 1.
+- [x] AC6: The rendered folder's `README.md` states each of these: a render by name always runs that report's code; on the data machine, check the `.rds` fit files before a full render and stage only `_freeze/` and `docs/`; call `set.seed(` before random draws such as `pp_check`; publish from one machine; a page leaves site search with `search: false`; a build with the data deleted is never published. `index.qmd` tells the user to run `quarto render` once before the first commit.
+- [x] AC7: On this Mac, with quarto on PATH, `Rscript -e 'devtools::test()'` reports 0 failures and 0 skips.
 
 ## Coverage
 
@@ -80,3 +80,13 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 ## Decisions
 
 ## Review
+
+- Sync: origin/main is 5726f3d, an ancestor of the branch. Copilot round off.
+- AC1 evidence (2026-10-18): fresh `git clone --branch m003-template-starter` at 958d968 into the scratchpad. `devtools::check()` there: 0 errors, 0 warnings, 0 notes, and "checking for hidden files and directories ... OK".
+- AC2 evidence (2026-10-18, scratchpad `m003-evidence.sh` on the clean clone's `inst/template`): `quarto use template … --no-prompt` exit 0, `quarto render` exit 0. All 8 listed files present, and `_gitignore` and `_README.md` absent.
+- AC3 evidence (2026-10-18): in `docs/analyses/example.html` the `<header id="quarto-header">` element was found and contains `href="../index.html"`. `_freeze/analyses/example/` holds 2 files.
+- AC4 evidence (2026-10-18): `quarto inspect` parsed as JSON gives `config.execute.freeze` True and `config.project.output-dir` docs. A full render under `env -i HOME=… PATH=/usr/bin:/bin` exited 0, and `cmp` found `docs/analyses/example.html` byte-identical to its AC2 copy.
+- AC5 evidence (2026-10-18): after `git init`, `git check-ignore analyses/fits/m.rds x.rds` printed both paths. The second `git check-ignore` printed nothing and exited 1.
+- AC6 evidence (2026-10-18): `grep -F` on the rendered folder's `README.md` finds each fact once: "A render by name, such as … always runs that report's code"; "Before a full render, check the `.rds` fit files"; "Stage only `_freeze/` and `docs/`"; "`set.seed(`"; "Render and push the site from one machine"; "`search: false`"; "Never publish a build that ran with the data deleted". `index.qmd` has the callout "Before your first commit" with "Run `quarto render` once in this folder" (line 9).
+- AC7 evidence (2026-10-18): `devtools::test()` on this Mac with quarto 1.10.19 on PATH: FAIL 0, WARN 0, SKIP 0, PASS 27.
+- Consistency gate (2026-10-18): `cairn_validate.py` all checks passed. r-package slot: no roxygen, so `document()` has nothing to regenerate; NEWS.md has an entry; README.md is plain markdown (no README.Rmd); no pkgdown site; `.Rbuildignore` covers the new top-level files (check gave 0 notes); `devtools::check()` 0/0/0 (AC1).
