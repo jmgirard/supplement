@@ -7,8 +7,8 @@ subtitle: "Paper Title Goes Here"
 ## Before your first commit
 
 Run `quarto render` once in this folder. The first render creates the
-`.gitignore` and `README.md` files, and `.gitignore` keeps fitted models
-and other large files out of git. Then delete this box.
+`README.md` file and adds the template's rules to `.gitignore`, which keep
+fitted models and other large files out of git. Then delete this box.
 :::
 
 This site hosts the supplemental analysis reports, code, and data for:

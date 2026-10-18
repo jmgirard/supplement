@@ -14,4 +14,4 @@ Full legal code: https://creativecommons.org/licenses/by/4.0/legalcode
 
 The source code in this repository is licensed separately under the MIT
 License (see `LICENSE.md`). The source code is the `.qmd` files in
-`analyses/` and the website configuration.
+`analyses/`, the scripts in `_scripts/`, and the website configuration.

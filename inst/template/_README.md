@@ -30,10 +30,12 @@ Commit `_freeze/` and `docs/` with the source files.
 If a report needs private data or saved model fits, render it on the
 machine that holds them.
 
-1. Before a full render, check the `.rds` fit files. A missing fit file
-   makes the report refit that model, which can take hours and gives new
-   estimates.
-2. Run `quarto render`.
+1. Before a full render, check the `.rds` fit files of each report that
+   has no stored output in `_freeze/` yet. Before a render by name, check
+   that report's fit files. A missing fit file can make a report refit its
+   model, which can take hours and give new estimates.
+2. Run `quarto render`, or `quarto render analyses/<name>.qmd` to re-run
+   one report.
 3. Stage only `_freeze/` and `docs/`, commit, and push:
 
    ```
@@ -48,14 +50,16 @@ files from `docs/`, so the download links break.
 ## Stable figures
 
 Call `set.seed(` with a fixed number before each random draw, for example
-before `pp_check()` or a bootstrap. Without a seed, every render redraws the
-figures. The numbers can stay the same while the figures change.
+before `pp_check()` or a bootstrap. Without a seed, every render that runs the
+report's code redraws the figures. The numbers can stay the same while the
+figures change.
 
 ## Publishing from one machine
 
-Render and push the site from one machine. Quarto names the theme file in
-`docs/site_libs/` differently on different machines, so a render on a
-second machine changes every page.
+Render and push the site from one machine. The theme file name in
+`docs/site_libs/` is a hash of the compiled theme, which can differ between
+machines, for example with another Quarto version. A render on a second
+machine can then change every page.
 
 ## Site search
 
@@ -68,7 +72,7 @@ search: false
 
 ## License
 
-- Code (the `.qmd` files in `analyses/` and the website configuration):
-  MIT, see `LICENSE.md`
+- Code (the `.qmd` files in `analyses/`, the scripts in `_scripts/`, and
+  the website configuration): MIT, see `LICENSE.md`
 - Content (rendered reports in `_freeze/` and `docs/`, website text, and
   data files): CC BY 4.0, see `LICENSE-CC-BY.md`

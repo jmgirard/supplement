@@ -72,17 +72,39 @@ test_that(".gitignore blocks fit files and keeps published output", {
   expect_length(kept$output, 0)
 })
 
-test_that("setup keeps an existing .gitignore", {
+test_that("setup adds the template rules to an existing .gitignore", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
   expect_equal(use_template(dir)$status, 0L)
   writeLines("mine", file.path(dir, ".gitignore"))
 
   expect_equal(run_in(dir, "quarto", "render")$status, 0L)
-  # Quarto itself appends its own entries; the template's entries must not
-  # replace or join the user's file.
   kept <- readLines(file.path(dir, ".gitignore"))
   expect_equal(kept[1], "mine")
-  expect_false("*.rds" %in% kept)
+  expect_true(all(c("*.rds", "analyses/fits/") %in% kept))
+  expect_equal(sum(kept == "*.rds"), 1L)
   expect_false(file.exists(file.path(dir, "_gitignore")))
+})
+
+test_that("fit files stay ignored when git init comes before the first render", {
+  skip_if_no_quarto()
+  skip_if(Sys.which("git") == "", "git is not on PATH")
+  dir <- withr::local_tempdir("site-")
+  expect_equal(use_template(dir)$status, 0L)
+  run_in(dir, "git", c("init", "-q"))
+
+  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
+  ignored <- run_in(dir, "git", c("check-ignore", "analyses/fits/m.rds", "x.rds"))
+  expect_setequal(ignored$output, c("analyses/fits/m.rds", "x.rds"))
+})
+
+test_that("setup keeps an existing README.md", {
+  skip_if_no_quarto()
+  dir <- withr::local_tempdir("site-")
+  expect_equal(use_template(dir)$status, 0L)
+  writeLines("my readme", file.path(dir, "README.md"))
+
+  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
+  expect_equal(readLines(file.path(dir, "README.md")), "my readme")
+  expect_false(file.exists(file.path(dir, "_README.md")))
 })
