@@ -12,6 +12,10 @@ Description: Provides a 'Quarto' website template for sharing the
 License: MIT + file LICENSE
 URL: https://github.com/jmgirard/supplement
 BugReports: https://github.com/jmgirard/supplement/issues
+Imports:
+    cli,
+    jsonlite,
+    yaml
 Suggests:
     knitr,
     rmarkdown,

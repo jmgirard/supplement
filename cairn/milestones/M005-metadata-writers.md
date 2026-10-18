@@ -1,13 +1,13 @@
 # M005: Metadata writers for CITATION.cff and .zenodo.json
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — exported R functions that write files Zenodo and GitHub read
-- **Branch/PR:** —
+- **Branch/PR:** m005-metadata-writers
 
 ## Goal
 
@@ -43,13 +43,13 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 
 ## Tasks
 
-- [ ] T1: DESCRIPTION Imports yaml, jsonlite, cli. Template `_supplement.yml`: authors as `family:` and `given:`, header comment updated (authors are now read by the two functions). `_README.md` paragraph on the two functions.
+- [x] T1: DESCRIPTION Imports yaml, jsonlite, cli. Template `_supplement.yml`: authors as `family:` and `given:`, header comment updated (authors are now read by the two functions).
 - [ ] T2: Internal reader in `R/supplement-yml.R`: read `<path>/_supplement.yml`, check the AC4 error cases, return the `supplement` map with empty strings and nulls treated alike. ORCID normalizer to the bare id.
 - [ ] T3: `write_citation()` in `R/write-citation.R`: build the list, drop empty values, write with `yaml::write_yaml()` in UTF-8. Tests with the AC1 and AC3 fixtures; write the expected values from the CFF 1.2.0 schema guide, not from the function's output.
 - [ ] T4: `write_zenodo()` in `R/write-zenodo.R`: build the list, write with `jsonlite::write_json(auto_unbox = TRUE, pretty = TRUE)`, keeping `creators` an array. A code comment cites Zenodo's license vocabulary (`https://zenodo.org/api/vocabularies/licenses/cc-by-4.0` gives id `cc-by-4.0`). Tests with the AC2 and AC3 fixtures.
 - [ ] T5: Error tests for every AC4 case on both functions, each with `expect_error(class =)` and a check that the output file is absent or unchanged.
 - [ ] T6: Template test (AC5) and planted-defect check in a scratch copy, one at a time, each in each function it applies to: `doi` from `version-doi` first; empty values kept (per file); `orcid` without the URL prefix in CFF and with it in Zenodo; authors reversed; Zenodo `name` as "Given Family"; Zenodo license from `code`; `creators` unboxed to an object for one author; `overwrite` ignored; one AC4 error without its class. Each must make a test fail; record the results in the work log.
-- [ ] T7: Roxygen help with examples that copy the template from `system.file()` into `tempdir()`; the `write_zenodo()` page says Zenodo shows only the content license and uses `.zenodo.json` over `CITATION.cff`. `devtools::document()`, NEWS.md entry (with the `name:` to `family:`/`given:` change), DESIGN.md Function Families and Architecture updated, then `devtools::check()`.
+- [ ] T7: `_README.md` paragraph on the two functions. Roxygen help with examples that copy the template from `system.file()` into `tempdir()`; the `write_zenodo()` page says Zenodo shows only the content license and uses `.zenodo.json` over `CITATION.cff`. `devtools::document()`, NEWS.md entry (with the `name:` to `family:`/`given:` change), DESIGN.md Function Families and Architecture updated, then `devtools::check()`.
 
 ## Work log
 
@@ -67,6 +67,8 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 - 2026-10-18: plan gate chose a hand-written expected list from the CFF 1.2.0 schema guide over a schema validator because no validator is installed and adding one is a dependency the question set did not cover; falsified by a written file that GitHub's citation widget or Zenodo rejects.
 - 2026-10-18: plan gate chose passing Markdown in `paper-title` and `citation` through unchanged over stripping or converting it because both need a Markdown parser the package does not have; falsified by authors who find literal asterisks on their Zenodo record a problem.
 - 2026-10-18: criteria audit (full mode, Opus): 11 findings, all fixed in the wording above. AC1 no longer names how the test oracle was made (moved to T3); `license` form, Markdown pass-through, and `&`/`*` fixture values stated; Zenodo's lowercase license id confirmed against its license vocabulary before the criterion was kept; AC3 split into `""` and absent/null fixtures, a recursive walk replaces the listed keys, and `creators` stays an array; ORCID pattern named; required fields per function stated; absent and empty authors' names both error; T6 probes widened per function; T7 examples copy the template.
+- 2026-10-18: implement started on branch m005-metadata-writers.
+- 2026-10-18: T1 done: Imports cli, jsonlite, yaml; template authors as `family:`/`given:` with an ORCID form comment. Minor amendment: the `_README.md` paragraph moved from T1 to T7, so it is written against the finished functions. devtools::test() 0 failures.
 
 ## Decisions
 
