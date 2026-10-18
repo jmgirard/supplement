@@ -1,6 +1,6 @@
 # M005: Metadata writers for CITATION.cff and .zenodo.json
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -25,12 +25,12 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 
 ## Acceptance criteria
 
-- [ ] AC1: For a fixture `_supplement.yml` with every field filled, two authors, a non-ASCII family name, a `paper-title` holding `:`, `"`, `&`, and `*text*`, and a `citation` holding `*Journal*`, `write_citation()` writes `CITATION.cff` that `yaml::read_yaml()` reads back as: `cff-version` "1.2.0"; a non-empty `message`; `title` "Supplemental materials for: " followed by `paper-title` exactly as written (Markdown is not converted); `authors` in file order, each with `family-names`, `given-names`, `orcid` as `https://orcid.org/<id>`, and `affiliation`; `doi` equal to `concept-doi`; `license` equal to `c(<code>, <content>)`.
-- [ ] AC2: For the same fixture, `write_zenodo()` writes `.zenodo.json` that `jsonlite::read_json()` reads back as: `title` as in AC1; `upload_type` "software"; `description` "Supplemental materials for: " followed by `citation` exactly as written; `creators` in file order, each with `name` "<family>, <given>", `orcid` as the bare id, and `affiliation`; `license` the content SPDX id in lowercase (Zenodo's license vocabulary form, such as `cc-by-4.0`).
-- [ ] AC3: Two fixtures hold one author and only the required fields: one gives every optional field as `""`, the other leaves the optional keys out or null and has no `zenodo:` map. For both, a recursive walk over each read-back file finds no `""`, null, or zero-length value, and `.zenodo.json` read with `simplifyVector = FALSE` has `creators` as a list of length 1. With `concept-doi` empty and `version-doi` set, `CITATION.cff` has `doi` equal to `version-doi`. With only one license set, or both set to the same id, `CITATION.cff` has `license` as that one id. An ORCID given as `https://orcid.org/<id>` gives the same files as the bare id.
+- [x] AC1: For a fixture `_supplement.yml` with every field filled, two authors, a non-ASCII family name, a `paper-title` holding `:`, `"`, `&`, and `*text*`, and a `citation` holding `*Journal*`, `write_citation()` writes `CITATION.cff` that `yaml::read_yaml()` reads back as: `cff-version` "1.2.0"; a non-empty `message`; `title` "Supplemental materials for: " followed by `paper-title` exactly as written (Markdown is not converted); `authors` in file order, each with `family-names`, `given-names`, `orcid` as `https://orcid.org/<id>`, and `affiliation`; `doi` equal to `concept-doi`; `license` equal to `c(<code>, <content>)`.
+- [x] AC2: For the same fixture, `write_zenodo()` writes `.zenodo.json` that `jsonlite::read_json()` reads back as: `title` as in AC1; `upload_type` "software"; `description` "Supplemental materials for: " followed by `citation` exactly as written; `creators` in file order, each with `name` "<family>, <given>", `orcid` as the bare id, and `affiliation`; `license` the content SPDX id in lowercase (Zenodo's license vocabulary form, such as `cc-by-4.0`).
+- [x] AC3: Two fixtures hold one author and only the required fields: one gives every optional field as `""`, the other leaves the optional keys out or null and has no `zenodo:` map. For both, a recursive walk over each read-back file finds no `""`, null, or zero-length value, and `.zenodo.json` read with `simplifyVector = FALSE` has `creators` as a list of length 1. With `concept-doi` empty and `version-doi` set, `CITATION.cff` has `doi` equal to `version-doi`. With only one license set, or both set to the same id, `CITATION.cff` has `license` as that one id. An ORCID given as `https://orcid.org/<id>` gives the same files as the bare id.
 - [ ] AC4: Each function stops with a `cli::cli_abort()` error of a class named in its help page, and a test fires each case on each function that reads the field and asserts its class: `_supplement.yml` is missing; it has no `supplement:` map; `paper-title` is absent or empty; for `write_zenodo()`, `citation` is absent or empty; `authors` is absent or empty; an author's `family` or `given` is absent or empty (an author with only `name:` gets a message naming `family:` and `given:`); an ORCID, after an optional `https://orcid.org/` prefix is removed, does not match `^[0-9]{4}-[0-9]{4}-[0-9]{4}-[0-9]{3}[0-9X]$`; the output file exists and `overwrite = FALSE`. In each case the test shows that the output file is absent or unchanged afterwards.
-- [ ] AC5: The template's `_supplement.yml` gives each author `family:` and `given:` in place of `name:`, and its comments and `_README.md` name the two functions. A test copies the template to a temporary folder, runs both functions there, and gets both files with no error.
-- [ ] AC6: Both functions are exported and have help pages whose examples write into `tempdir()`. NEWS.md has an entry for them. On a clean checkout, `Rscript -e 'devtools::check()'` reports 0 errors and 0 warnings, and `Rscript -e 'devtools::test()'` reports 0 failures.
+- [x] AC5: The template's `_supplement.yml` gives each author `family:` and `given:` in place of `name:`, and its comments and `_README.md` name the two functions. A test copies the template to a temporary folder, runs both functions there, and gets both files with no error.
+- [x] AC6: Both functions are exported and have help pages whose examples write into `tempdir()`. NEWS.md has an entry for them. On a clean checkout, `Rscript -e 'devtools::check()'` reports 0 errors and 0 warnings, and `Rscript -e 'devtools::test()'` reports 0 failures.
 
 ## Coverage
 
@@ -74,7 +74,41 @@ Export `write_citation()` and `write_zenodo()`, which write `CITATION.cff` and `
 - 2026-10-18: T7 done: `_README.md` "Citation files" section, NEWS.md entries (functions and the `name:` change), DESIGN.md Function Families and Architecture. devtools::document() no diff; devtools::check() 0 errors, 0 warnings, 0 notes; devtools::test() 0 failures.
 - 2026-10-18: claim audit: 52 claims read, 6 corrected — R/write-citation.R, R/write-zenodo.R, inst/template/_README.md, tests/testthat/test-write-metadata-errors.R. Fixes: YAML parse errors are not classed; values pass through the YAML parser (quote them); `.zenodo.json`'s `license` field, not a Zenodo record, holds one license; the authors error also covers a map; the guide names which file takes which values; one test name narrowed. The same reader re-read the six and found them correct.
 - 2026-10-18: implement complete; status set to review (commit 6c557a9 landed without this line and the claim-audit line; both added here).
+- 2026-10-18: review return 1: AC4 fails for a `_supplement.yml` whose top level is a scalar or a list of scalars (base `subscriptOutOfBoundsError`, not `supplement_error_no_map`; diff-bug #1). The fix-now findings of pass 1 (diff-bug #2-5, #7-9, #11, #14; prior-review #2) are fixed in the same return; see the Review section.
 
 ## Decisions
 
 ## Review
+
+Pass 1, 2026-10-18, branch m005-metadata-writers at 781c7d1, level with origin/main 67b0fe1. Full suite: 42 tests, 346 expectations, 0 failed, 0 errors, 0 skipped.
+
+- AC1: test-write-metadata.R "write_citation() writes every field of a full _supplement.yml" passes (4 expectations): the fixture in helper-metadata.R has two authors, family name "Müller" (`ü`), a paper-title with `:`, `"`, `&`, `*text*`, and a citation with `*Journal*`; read-back equals cff-version 1.2.0, the title, both authors with URL ORCIDs and affiliations, doi = concept-doi, license c("MIT", "CC-BY-4.0"); message non-empty.
+- AC2: test-write-metadata.R "write_zenodo() writes every field of a full _supplement.yml" passes (2 expectations): `read_json()` of the same fixture equals title, upload_type "software", description "Supplemental materials for: " plus the citation verbatim, creators "Doe, Jane Q." and "Müller, Änne" with bare ORCIDs and affiliations, license "cc-by-4.0".
+- AC3: test-write-metadata.R passes "empty and absent optional values are left out of both files" (18; three fixtures: all optional `""`, keys absent with no `zenodo:` map, keys null via `:`/`~`/`null` with no `zenodo:` map; `empty_paths()` recursive walk empty for both files), "one author is written as a list of one" (4; `creators` length 1 under `simplifyVector = FALSE`, raw text `"creators": [`), "the DOI falls back to version-doi" (1), "one license, or two equal ones, is written as one id" (7), "an ORCID iD as a URL gives the same files as the bare iD" (2, byte-equal lines).
+- AC4: all 10 tests in test-write-metadata-errors.R pass (114 expectations), each `expect_error(class =)` plus a file-absent check, on both functions for every case they read: no file; no map (3 forms); paper-title absent, `""`, blank; citation absent or `""` (zenodo refuses, citation writes); authors absent, empty list, `""`, a map; family or given absent or `""`, author as a bare string; `name:`-only author's message names `family:` and `given:`; 8 malformed ORCIDs; existing file kept byte-equal with `overwrite = FALSE`. grep: each of the 7 class names appears in man/write_citation.Rd and man/write_zenodo.Rd.
+- AC5: test "both files are written in a copy of the template" passes (8): every template author has `family` and `given` and no `name`; both functions run with no error in a copy of `inst/template`. grep: `inst/template/_supplement.yml:6` and `inst/template/_README.md:76-81` name both functions.
+- AC6: NAMESPACE exports `write_citation` and `write_zenodo`; both Rd files carry examples writing to `file.path(tempdir(), "my-supplement")`; NEWS.md:11 has the entry. A fresh `git clone` of the branch: `devtools::check()` 0 errors, 0 warnings, 0 notes (examples and tests run). `devtools::test()` in the checkout: 0 failures.
+- Consistency gate: `cairn_validate.py` all checks passed; no principle changed (cairn_impact skipped); `devtools::document()` no diff; no README.Rmd or `_pkgdown.yml`; NEWS.md entry present; no new top-level file needs `.Rbuildignore`; `devtools::check()` on a clean clone 0/0/0.
+- spawned: diff-bug, blame-history, prior-review
+- diff-bug #1: a top-level scalar or list of scalars in `_supplement.yml` gives base `subscriptOutOfBoundsError`, not `supplement_error_no_map` (supplement-yml.R:14) — fix now; demonstrates AC4 failing, so review return 1
+- diff-bug #2: a non-map `license` or `zenodo` value is dropped with no message — fix now (classed error)
+- diff-bug #3: a sequence where one text value is expected keeps its first item (`value()`) — fix now (classed error)
+- diff-bug #4: ORCID check digit (ISO 7064 MOD 11-2) not checked — fix now
+- diff-bug #5: a DOI with a `https://doi.org/` prefix is written as-is, invalid CFF `doi` — fix now (strip the prefix, as for ORCID); same as prior-review #1
+- diff-bug #6: license ids not checked against SPDX shape or Zenodo's vocabulary — follow-up, new row "metadata value checks"
+- diff-bug #7: strings such as `1e3` written unquoted read as numbers under YAML 1.2 parsers — fix now (quote every string in CITATION.cff)
+- diff-bug #8: `path` and `overwrite` not checked; a folder named CITATION.cff gives a base error — fix now
+- diff-bug #9: `authors` as a list of strings says "missing or empty" — fix now (message names the list form)
+- diff-bug #10: no `_pkgdown.yml` reference rows — follow-up, absorbed into the "docs site and walkthrough" row (no pkgdown site exists yet)
+- diff-bug #11: fixtures pass only through R's yaml writer; no `.na` or nonexistent-path case — fix now (hand-written full fixture, `.na`, missing path)
+- diff-bug #12: Markdown `&`/`<` in `citation` reach Zenodo's HTML description — reject, planned change (plan gate chose pass-through, falsifier recorded)
+- diff-bug #13: long CITATION.cff values fold across lines — reject, style (valid YAML)
+- diff-bug #14: DESIGN.md Architecture sentence has non-agreeing verbs — fix now
+- diff-bug #15: `%||%` defined in the package and a test helper — reject, style (harmless)
+- blame-history #1: template authors `name:` → `family:`/`given:` breaks M004-seeded sites — reject, planned change (AC5; NEWS line and error hint)
+- blame-history #2: D-005/D-007 text says no Imports — reject, false: history is not edited (IP4) and D-009's heading names the extension
+- blame-history #3: Markdown pass-through is not a D-entry — reject, planned change (milestone-local choice in the work log)
+- blame-history #4: CFF `license` as a list may be invalid — reject, false: CFF 1.2.0 allows a list of SPDX ids (criteria audit, high confidence)
+- prior-review #1: DOI URL prefix written into CITATION.cff (M004 diff-bug #16 shape) — fix now, with diff-bug #5
+- prior-review #2: a folded YAML value keeps its trailing newline in `.zenodo.json` (M004 diff-bug #1 shape) — fix now (trim values)
+- prior-review #3: Markdown kept as literal asterisks — reject, planned change
