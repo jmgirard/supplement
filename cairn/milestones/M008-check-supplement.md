@@ -98,6 +98,7 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: planted defects turned the T8 tests red: unguarded report read, hidden stored files, no dangling-page row, no tab strip, trailing `/` on a file, `%2F`, dangling `CITATION.cff`, `CITATION.cff` warnings, one-item sequences, unguarded `index.qmd` read, and the old skip reason.
 - 2026-10-18: claim audit: 52 claims read, 4 corrected — R/check-supplement.R, man/check_supplement.Rd, README.md, NEWS.md, inst/template/_README.md, tests/testthat/test-check-supplement.R. The first was a T8 regression: catching every warning from `read_yaml()` made a valid `CITATION.cff` with no final line break read as unreadable; it now reads through `read_page_text()` and `yaml.load()` with warnings muffled, with a test that the planted regression turns red. The others: the `%2F` comment, "not in a git work tree" in place of "not in a git repository", and the unreadable page and `CITATION.cff` cases in the README, `_README.md`, and NEWS lists. The re-read found all four correct.
 - 2026-10-18: implement done; status review. `devtools::test()` 1378 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: review pass 3 on 50295a7: 19 findings, none a criterion failure, so no return (defect returns stay at 2). Six fix-now items committed on the branch; `devtools::test()` 1381 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes. Follow-ups went to "link check false positives", "release check edge cases", and the new rows "YAML parse errors" and "testthat floor".
 
 ## Review
 
@@ -186,3 +187,39 @@ Review pass 2 findings. spawned: diff-bug, blame-history, prior-review.
 - prior-review #3: `doi: [10.5281/zenodo.9]` reads as one text value — fix now: read sequences as lists, as `read_supplement()` does.
 - prior-review #4: `bare_doi()` keeps a trailing no-break space — reject, not reached: every value goes through `clean_space()` first, whose `\h` matches Unicode spaces, and a badge id ends at `.svg`.
 - prior-review #5: `bare_doi()` accepts a final line break — reject, not reached in this diff, as the reviewer says.
+
+Every pass-2 fix-now item above: fixed 67ab1da (T8, review return 2); the `CITATION.cff` read was redone after the claim audit, fixed 50295a7.
+
+Review pass 3 (2026-10-18) evidence, on 50295a7, `test_file()` with `NOT_CRAN=true` and `/opt/homebrew/bin` first on PATH: 14 blocks, 0 failed, 0 skipped. The pass-1 and pass-2 lines above still hold, and:
+
+- AC1 (re-verified): block 1 (12 pass) now makes its site with `create_supplement()`, renders it with `quarto render` (status 0), makes it a git repository, and finds zero rows, then the five planted check values; blocks 2, 3, 12 pass.
+- AC2 (re-verified): blocks 4, 5, 6 pass (2, 1, 2).
+- AC3 (re-verified): the AC3 search of `R/` finds one line, `R/check-supplement.R:139` in `git_run()`; block 7 (2 pass); block 8 (18 pass) checks each printed reason and a `rev-parse` that prints `false`.
+- AC4 (re-verified): block 9 (2 pass) adds a hidden-only `execute-results/` (row) and a dangling report link (no row, no error); blocks 10, 11 pass.
+- AC5 (re-verified): block 13 (3 pass) adds a row for the dangling page, rows for `data/ok.csv/` and `data%2Fok.csv`, and no row for a link with a line break inside it.
+- AC6 (re-verified): block 14 (26 pass) adds rows for a dangling and a Latin-1 `CITATION.cff` with no warning, `not one text value` for a one-item sequence, no row for a map with a large number and no final line break, and no error for an unreadable `index.qmd`.
+- AC7 (re-verified): README.md, `inst/template/_README.md`, and NEWS.md list the new row cases; the help example ran under `devtools::check()`.
+
+Consistency gate, pass 3: `cairn_validate.py` all checks passed; `devtools::document()` leaves no diff; `devtools::test()` 1378 pass, 0 fail, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes on 50295a7's code; no new top-level file; NEWS entry present.
+
+Review pass 3 findings. spawned: diff-bug, blame-history, prior-review. No finding shows a criterion failing, so there is no return; fix-now items are committed on the branch before the merge question.
+
+- diff-bug #1: a `%` that starts no escape, before a non-ASCII character, makes `percent_decode()` print R warnings — fix now: `useBytes` on both hex tests, with a test that a planted regression turns red.
+- diff-bug #2: a `_supplement.yml` with a YAML syntax error stops with an unclassed yaml error, in `read_supplement()`, which this branch did not change — follow-up, "YAML parse errors".
+- diff-bug #3: a symlink loop in `docs/` repeats a page's rows once per loop level — follow-up, "link check false positives".
+- diff-bug #4: the trailing-separator test passes without the helper — fix now: a direct test of `drop_trailing_sep()` with roots and both separators.
+- diff-bug #5: on a Mac without developer tools, `git --version` from the `/usr/bin` stub may open an install dialog — follow-up, "release check edge cases" (not confirmed).
+- diff-bug #6: the AC1 end-to-end test compares only check names — fix now: it compares each check with its file.
+- diff-bug #7: no DOI test reads Quarto's own badge output — fix now: the AC1 site sets both DOIs and writes `CITATION.cff` before the render, and the test finds the rendered badge and zero rows.
+- diff-bug #8: an invalid DOI in `_supplement.yml` is found after the git and link work — reject, no defect: nothing is printed or written before that stop.
+- diff-bug #9: a report that `.gitignore` blocks still gets a `no-stored-output` row — follow-up, "release check edge cases".
+- diff-bug #10: the help does not say that the large-file check skips symbolic links — fix now.
+- blame-history #1: a UTF-16 `CITATION.cff` reads with its first key mangled and is judged, though GitHub reads only UTF-8 — follow-up, "release check edge cases".
+- blame-history #2: `\b(href|src)` also matches `data-src=` and `xlink:href=` — follow-up, "link check false positives" (AC5 names that pattern).
+- blame-history #3: `git_run()` keeps the user's global git excludes — reject, false as a defect: those rules also decide what `git add` sends, which is the set the check promises.
+- blame-history #4: the moved comment says "on some systems" where one old copy did not — reject, style.
+- blame-history #5: DESIGN.md does not name the path helpers in `R/supplement-yml.R` — fix now.
+- prior-review #1: `expect_no_error()` and `expect_no_warning()` need testthat 3.1.5, but DESCRIPTION says 3.0.0 — follow-up, "testthat floor": the main branch already uses `expect_no_error()`, and raising the floor is a dependency change.
+- prior-review #2: an unreadable `index.qmd` skips the missing-badge row, and its test asserts only no error — reject, planned: the test turned red on the planted crash it guards, and an unreadable source gives no shortcode to test.
+- prior-review #3: "Render it by name, then commit _freeze/" may not clear the row — reject, false: `quarto render analyses/example.qmd` on a new site wrote `_freeze/analyses/example/execute-results/html.json`, and the check then gave zero rows.
+- prior-review #4: hidden folders under `docs/` — reject, already recorded in "link check false positives".

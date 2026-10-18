@@ -56,7 +56,8 @@ None elicited yet. Run `/design-interview` to add them.
 
 R code: `R/supplement-yml.R` reads `<path>/_supplement.yml` and checks
 it, with classed cli errors (`supplement_error` plus one subclass per
-case). `write_citation()` writes `CITATION.cff` (CFF 1.2.0) and
+case). It also holds the path helpers that several functions share
+(`drop_trailing_sep()`, `path_occupied()`, `is_link()`). `write_citation()` writes `CITATION.cff` (CFF 1.2.0) and
 `write_zenodo()` writes `.zenodo.json` from that map. Both leave out
 empty values and refuse to replace an existing file unless
 `overwrite = TRUE`.

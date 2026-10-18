@@ -54,10 +54,18 @@ test_that("a rendered site in a git repository has no problems", {
   skip_if_no_quarto()
   skip_if_no_git()
   site <- new_site()
+  # With both DOIs, the home page shows a Zenodo badge from Quarto's own
+  # output, and CITATION.cff holds the concept DOI.
+  yml <- file.path(site, "_supplement.yml")
+  set_supplement_value(yml, "version-doi", "10.5281/zenodo.222")
+  set_supplement_value(yml, "concept-doi", "10.5281/zenodo.111")
+  write_citation(site)
   rendered <- run_in(site, "quarto", "render")
   expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
   local_plain_git()
   expect_identical(git_in(site, c("init", "-q"))$status, 0L)
+  expect_match(read_text(file.path(site, "docs", "index.html")),
+               "https://zenodo.org/badge/DOI/10.5281/zenodo.222.svg", fixed = TRUE)
 
   expect_message(result <- check_supplement(site), "No problems")
   expect_s3_class(result, "data.frame")
@@ -75,7 +83,16 @@ test_that("a rendered site in a git repository has no problems", {
   write_page(site, "extra.html", '<a href="missing.csv">x</a>')
   writeLines(c("doi: \"10.5281/zenodo.99\""), file.path(site, "CITATION.cff"))
   result <- check_quiet(site)
-  expect_setequal(result$check, c("large-file", "saved-object", "no-stored-output", "broken-link", "doi-mismatch"))
+  expect_setequal(
+    paste(result$check, result$file),
+    c("large-file data/big.csv", "saved-object fits-shared/model.qs2", "no-stored-output analyses/new.qmd",
+      "broken-link docs/extra.html", "doi-mismatch CITATION.cff")
+  )
+})
+
+test_that("separators at the end of a path are dropped, except for a root", {
+  expect_identical(drop_trailing_sep(c("site/", "site//", "a\\b\\", "/", "C:/", "C:\\", "site")),
+                   c("site", "site", "a\\b", "/", "C:/", "C:\\", "site"))
 })
 
 test_that("the result is returned invisibly and each problem is printed", {
@@ -280,6 +297,8 @@ test_that("links to files missing from the site give a broken-link row", {
     '<a href="data/upper.csv">wrong case</a>',
     '<a href="data/Upper.csv">right case</a>',
     '<a href="data/ok.csv/">file with a slash</a>',
+    # A `%` that starts no escape, before a non-ASCII character.
+    '<a href="a%20b%aé.html">stray percent</a>',
     '<a href="data%2Fok.csv">encoded slash</a>',
     # A browser drops tabs and line breaks from a link, so this one works.
     '<a href="data/\nok.csv">line break</a>'
@@ -289,7 +308,7 @@ test_that("links to files missing from the site give a broken-link row", {
   writeBin(latin, file.path(site, "docs", "latin.html"))
   file.symlink(file.path(site, "docs", "no-such-page.html"), file.path(site, "docs", "dangling.html"))
 
-  rows <- rows_of(check_quiet(site), "broken-link")
+  expect_warning(rows <- rows_of(check_quiet(site), "broken-link"), NA)
   # The page that is a link to a missing file gives its own row.
   unread <- !grepl("`", rows$problem, fixed = TRUE)
   expect_identical(rows$file[unread], "docs/dangling.html")
@@ -300,6 +319,7 @@ test_that("links to files missing from the site give a broken-link row", {
     paste(rows$file, links),
     c("docs/names.html `café.html`",
       "docs/names.html `data/ok.csv/`",
+      "docs/names.html `a%20b%aé.html`",
       "docs/names.html `data%2Fok.csv`",
       "docs/names.html `a%00b.html`",
       "docs/names.html `a%FFb.html`",

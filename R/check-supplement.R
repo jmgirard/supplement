@@ -7,7 +7,8 @@
 #' The checks, by the value in the `check` column:
 #'
 #' * `"large-file"`: a file larger than 100 MiB (104,857,600 bytes), which
-#'   GitHub refuses.
+#'   GitHub refuses. A symbolic link is not counted, because git stores
+#'   only the link.
 #' * `"saved-object"`: a saved R object (`.rds`, `.rda`, `.rdata`, `.qs`,
 #'   or `.qs2`, in any letter case). A fitted model saved this way can hold
 #'   the data it was fitted to.
@@ -361,7 +362,7 @@ exact_name <- function(dir, name) {
 # as macOS. On Linux such a link counts as broken even when the file
 # exists.
 percent_decode <- function(x) {
-  if (!grepl("%[0-9A-Fa-f]{2}", x)) {
+  if (!grepl("%[0-9A-Fa-f]{2}", x, useBytes = TRUE)) {
     return(x)
   }
   bytes <- charToRaw(x)
@@ -369,7 +370,8 @@ percent_decode <- function(x) {
   i <- 1L
   while (i <= length(bytes)) {
     hex <- if (i + 2L <= length(bytes)) rawToChar(bytes[(i + 1L):(i + 2L)]) else ""
-    if (bytes[i] == charToRaw("%") && grepl("^[0-9A-Fa-f]{2}$", hex)) {
+    # useBytes, because `hex` can hold half of a UTF-8 character.
+    if (bytes[i] == charToRaw("%") && grepl("^[0-9A-Fa-f]{2}$", hex, useBytes = TRUE)) {
       out <- c(out, as.raw(strtoi(hex, 16L)))
       i <- i + 3L
     } else {

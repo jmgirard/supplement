@@ -25,7 +25,8 @@ prints each problem it finds and returns all of them as a data frame.
 The checks, by the value in the \code{check} column:
 \itemize{
 \item \code{"large-file"}: a file larger than 100 MiB (104,857,600 bytes), which
-GitHub refuses.
+GitHub refuses. A symbolic link is not counted, because git stores
+only the link.
 \item \code{"saved-object"}: a saved R object (\code{.rds}, \code{.rda}, \code{.rdata}, \code{.qs},
 or \code{.qs2}, in any letter case). A fitted model saved this way can hold
 the data it was fitted to.
