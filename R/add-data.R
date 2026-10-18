@@ -5,9 +5,10 @@
 #' the home page of a site made from the template lists each file in that
 #' list, with its description, its size, and a download link.
 #'
-#' If `file` is already in the site's `data/` folder, the function copies
-#' nothing and only adds it to the list. Every file in `data/` is published
-#' on the site, so add only data that you can share.
+#' If `file` is directly in the site's `data/` folder, and not in a folder
+#' inside it, the function copies nothing and only adds it to the list.
+#' Every file in `data/` is published on the site, so add only data that
+#' you can share.
 #'
 #' The function adds lines to `_supplement.yml` as text, so the other lines
 #' of the file, its comments included, stay as they are. It finds the
@@ -25,8 +26,8 @@
 #' @return The path of the file in the site's `data/` folder, invisibly.
 #'
 #' @section Errors:
-#' The function writes and copies nothing when it stops. Its errors have the
-#' class `supplement_error` and one of these classes:
+#' The function writes and copies nothing when it stops. Its own errors have
+#' the class `supplement_error` and one of these classes:
 #'
 #' * `supplement_error_argument`: `path` is not a single non-empty string,
 #'   `file` is not a single string, or `description` is not a single
@@ -48,6 +49,12 @@
 #'   `_supplement.yml` as the old list with the new item added. The error
 #'   shows the lines to add by hand.
 #' * `supplement_error_encoding`: `_supplement.yml` is not UTF-8 text.
+#' * `supplement_error_write`: the `data` folder could not be made, or
+#'   `file` could not be copied.
+#'
+#' When a file cannot be written, for example a read-only
+#' `_supplement.yml`, R's own error is shown, and the function removes what
+#' it wrote.
 #'
 #' @seealso [add_report()] to add a report, and [create_supplement()] to
 #'   make a site.

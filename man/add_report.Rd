@@ -14,7 +14,8 @@ letters, digits, \code{-}, and \verb{_}, and starts with a letter or a digit.}
 on the home page.}
 
 \item{description}{A short description of the report for the home
-page. When it is \code{""}, the report has no \code{description}.}
+page. When it is \code{""}, the report has no \code{description}, and the home
+page shows the start of the report's text in its place.}
 
 \item{path}{The folder of the site.}
 }
@@ -42,12 +43,12 @@ name, for example \verb{quarto render analyses/<name>.qmd}.
 }
 \section{Errors}{
 
-The function writes nothing when it stops. Its errors have the class
+The function writes nothing when it stops. Its own errors have the class
 \code{supplement_error} and one of these classes:
 \itemize{
 \item \code{supplement_error_argument}: \code{path} is not a single non-empty string,
-\code{title} is not a single string with a character other than a space,
-or \code{description} is not a single string.
+\code{title} is not a single string with a character other than white
+space, or \code{description} is not a single string.
 \item \code{supplement_error_report_name}: \code{name} is not a single string of ASCII
 letters, digits, \code{-}, and \verb{_} that starts with a letter or a digit.
 \item \code{supplement_error_line_break}: \code{title} or \code{description} holds a line
@@ -61,7 +62,11 @@ block style. The error shows the lines to add by hand.
 \verb{_quarto.yml} as the old menu with the new item added. The error shows
 the lines to add by hand.
 \item \code{supplement_error_encoding}: \verb{_quarto.yml} is not UTF-8 text.
+\item \code{supplement_error_write}: the \code{analyses} folder could not be made.
 }
+
+When a file cannot be written, for example a read-only \verb{_quarto.yml},
+R's own error is shown, and the function removes what it wrote.
 }
 
 \examples{

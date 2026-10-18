@@ -1,12 +1,12 @@
 # Checks and errors that add_report() and add_data() share.
 
 # Stop unless `x` is one string. With `required = TRUE`, it must also
-# hold a character other than a space. A line break is always an error,
+# hold a character that is not white space. A line break is always an error,
 # because the value goes on one line of YAML.
 check_text <- function(x, arg, required = FALSE, call = parent.frame()) {
   if (!is.character(x) || length(x) != 1 || is.na(x) ||
       (required && !grepl("\\S", x, perl = TRUE))) {
-    what <- if (required) "one string that is not empty" else "one string"
+    what <- if (required) "one string with a character other than white space" else "one string"
     cli::cli_abort(
       "{.arg {arg}} must be {what}.",
       class = c("supplement_error_argument", "supplement_error"),
@@ -45,11 +45,12 @@ frame_call <- function(env) {
   if (length(i) > 0) sys.call(i[length(i)])
 }
 
-# The lines of `file` with `item` added as the last item of the list at
-# `paths[[1]]`, or else at the next path that exists. Stops before any
-# write when no path names a block-style list, or when the yaml package
-# does not read the result as the old list with the item added. `missing`
-# is the message for the first case. `hand` holds the lines to add by
+# A list with `read`, what read_text_lines() returned for `file`, and
+# `lines`, its lines with `item` added as the last item of the first list
+# in `paths` that is in block style. Stops before any write when no path
+# names a block-style list, or when the yaml package does not read the
+# result as the old list with the item added. `missing` is the message for
+# the first case. `hand` holds the lines to add by
 # hand, which both errors show.
 append_item <- function(file, paths, item, missing, missing_class, hand, call = parent.frame(),
                         .envir = parent.frame()) {

@@ -243,7 +243,8 @@ yaml_items <- function(lines, from, to) {
   Map(c, top, ends)
 }
 
-# The value of a one-line YAML scalar, or NULL when it is not one.
+# The value of a one-line YAML scalar when it is a string, or NULL
+# otherwise.
 yaml_scalar <- function(text) {
   value <- tryCatch(yaml::yaml.load(text), error = function(e) NULL)
   if (is.character(value) && length(value) == 1) value

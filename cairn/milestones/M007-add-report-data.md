@@ -1,6 +1,6 @@
 # M007: add_report() and add_data() list new site files
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M006
 - **Driving RR:** —
@@ -80,3 +80,5 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - 2026-10-18: T4 done: add_data() in R/add-data.R; tests cover the AC3 probes with a byte-for-byte copy, the no-copy route, AC4 shapes for _supplement.yml, and the AC5 add_data() cases. Suite 1127 pass, 0 skip.
 - 2026-10-18: T5 done: tests/testthat/test-add-render.R renders a create_supplement() site after add_report() and add_data(), and finds the listing row, the data table row, and the navbar link; it skips through skip_if_no_quarto(). 7 expectations pass.
 - 2026-10-18: T6 done: roxygen pages for add_report() and add_data() with tempdir() examples, both run by hand; README "Add reports and data" section; NEWS entries for both functions and the home page listing; the template's _README.md names both functions. No _pkgdown.yml exists, so no reference row. Suite 1134 pass, 0 skip; devtools::check() 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: claim audit: 98 claims read, 6 corrected — R/add-report.R, R/add-data.R, R/add-utils.R, R/yaml-insert.R, README.md, inst/template/_README.md (missing `supplement_error_write` and R's own write errors, white space in the title rule, "directly in data/", the listing text for a report with no description, two internal comments); the same reader confirmed each correction on its re-read.
+- 2026-10-18: implement done; status review. Suite 1134 pass, 0 skip.

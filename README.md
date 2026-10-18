@@ -75,7 +75,7 @@ Analyses menu in `_quarto.yml`. The home page lists each report in
 `analyses/` with its title and description.
 
 `add_data()` copies the file into `data/` and adds it to the `data` list
-in `_supplement.yml`. If the file is already in `data/`, the function does
+in `_supplement.yml`. If the file is directly in `data/`, the function does
 not copy it. The data table on the home page lists each file in that list.
 Every file in `data/` is published on the site.
 

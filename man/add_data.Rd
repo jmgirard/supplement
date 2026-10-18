@@ -26,9 +26,10 @@ the home page of a site made from the template lists each file in that
 list, with its description, its size, and a download link.
 }
 \details{
-If \code{file} is already in the site's \verb{data/} folder, the function copies
-nothing and only adds it to the list. Every file in \verb{data/} is published
-on the site, so add only data that you can share.
+If \code{file} is directly in the site's \verb{data/} folder, and not in a folder
+inside it, the function copies nothing and only adds it to the list.
+Every file in \verb{data/} is published on the site, so add only data that
+you can share.
 
 The function adds lines to \verb{_supplement.yml} as text, so the other lines
 of the file, its comments included, stay as they are. It finds the
@@ -38,8 +39,8 @@ quotes.
 }
 \section{Errors}{
 
-The function writes and copies nothing when it stops. Its errors have the
-class \code{supplement_error} and one of these classes:
+The function writes and copies nothing when it stops. Its own errors have
+the class \code{supplement_error} and one of these classes:
 \itemize{
 \item \code{supplement_error_argument}: \code{path} is not a single non-empty string,
 \code{file} is not a single string, or \code{description} is not a single
@@ -61,7 +62,13 @@ hand.
 \verb{_supplement.yml} as the old list with the new item added. The error
 shows the lines to add by hand.
 \item \code{supplement_error_encoding}: \verb{_supplement.yml} is not UTF-8 text.
+\item \code{supplement_error_write}: the \code{data} folder could not be made, or
+\code{file} could not be copied.
 }
+
+When a file cannot be written, for example a read-only
+\verb{_supplement.yml}, R's own error is shown, and the function removes what
+it wrote.
 }
 
 \examples{

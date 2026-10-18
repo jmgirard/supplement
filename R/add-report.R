@@ -22,18 +22,19 @@
 #' @param title The title of the report. It shows in the Analyses menu and
 #'   on the home page.
 #' @param description A short description of the report for the home
-#'   page. When it is `""`, the report has no `description`.
+#'   page. When it is `""`, the report has no `description`, and the home
+#'   page shows the start of the report's text in its place.
 #' @param path The folder of the site.
 #'
 #' @return The path of the new report file, invisibly.
 #'
 #' @section Errors:
-#' The function writes nothing when it stops. Its errors have the class
+#' The function writes nothing when it stops. Its own errors have the class
 #' `supplement_error` and one of these classes:
 #'
 #' * `supplement_error_argument`: `path` is not a single non-empty string,
-#'   `title` is not a single string with a character other than a space,
-#'   or `description` is not a single string.
+#'   `title` is not a single string with a character other than white
+#'   space, or `description` is not a single string.
 #' * `supplement_error_report_name`: `name` is not a single string of ASCII
 #'   letters, digits, `-`, and `_` that starts with a letter or a digit.
 #' * `supplement_error_line_break`: `title` or `description` holds a line
@@ -47,6 +48,10 @@
 #'   `_quarto.yml` as the old menu with the new item added. The error shows
 #'   the lines to add by hand.
 #' * `supplement_error_encoding`: `_quarto.yml` is not UTF-8 text.
+#' * `supplement_error_write`: the `analyses` folder could not be made.
+#'
+#' When a file cannot be written, for example a read-only `_quarto.yml`,
+#' R's own error is shown, and the function removes what it wrote.
 #'
 #' @seealso [add_data()] to add a data file, and [create_supplement()] to
 #'   make a site.
