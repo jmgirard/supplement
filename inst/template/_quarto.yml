@@ -1,0 +1,40 @@
+project:
+  type: website
+  output-dir: docs
+  # Every report renders as a page of this site. Computed output is stored in
+  # _freeze/ (commit it), so a full render reuses it and runs no report code.
+  # To re-run one report, render it by name; see README.md (or SUPPLEMENT.md
+  # when the folder already had a README.md).
+  render:
+    - index.qmd
+    - "analyses/*.qmd"
+  resources:
+    - "data/**"
+  # Quarto runs these scripts itself; they need no R. See README.md or
+  # SUPPLEMENT.md.
+  pre-render: _scripts/setup.ts
+  post-render: _scripts/nojekyll.ts
+
+execute:
+  freeze: true
+
+website:
+  title: "Supplemental Materials"
+  navbar:
+    left:
+      - href: index.qmd
+        text: Home
+      - text: Analyses
+        menu:
+          - href: analyses/example.qmd
+            text: Example Analysis
+    right:
+      - icon: github
+        href: https://github.com/OWNER/REPO
+  page-footer:
+    center: "Code: [MIT](https://github.com/OWNER/REPO/blob/main/LICENSE.md) · Content: [CC BY 4.0](https://github.com/OWNER/REPO/blob/main/LICENSE-CC-BY.md)"
+
+format:
+  html:
+    theme: cosmo
+    toc: true

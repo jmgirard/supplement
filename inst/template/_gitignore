@@ -1,0 +1,41 @@
+# R, RStudio, and Quarto
+.Rproj.user/
+.Rhistory
+.Rapp.history
+.RData
+.Renviron
+.quarto/
+*_cache/
+**/*.quarto_ipynb
+*.knit.md
+*.utf8.md
+*.rmarkdown
+rsconnect/
+.luarc.json
+.DS_Store
+.claude/
+
+# Fitted models and other saved R objects can embed the data. The bracket
+# patterns match any mix of upper and lower case, as on Linux git is
+# case-sensitive.
+*.[Rr][Dd][Ss]
+*.[Rr][Dd][Aa]
+*.[Rr][Dd][Aa][Tt][Aa]
+*.[Qq][Ss]
+*.[Qq][Ss]2
+analyses/fits/
+
+# Files that reports write next to their sources
+analyses/*.html
+analyses/*_files/
+analyses/*.pdf
+analyses/*.png
+
+# Private data. Keep it outside this folder, or put it here.
+private/
+
+# Published output. These lines undo rules elsewhere in this file (for
+# example the `docs/` rule in GitHub's R template) that would keep the site
+# out of git.
+!docs/
+!_freeze/

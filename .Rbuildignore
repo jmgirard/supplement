@@ -1,2 +1,5 @@
 ^cairn$
 ^CLAUDE\.md$
+^LICENSE\.md$
+^.*\.Rproj$
+^\.Rproj\.user$
