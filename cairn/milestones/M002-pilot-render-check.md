@@ -24,10 +24,10 @@ Show that the pilot site, after one full render on the machine that holds the fi
 
 ## Acceptance criteria
 
-- [ ] AC1: For each `analyses/<name>.qmd` that `git ls-files 'analyses/*.qmd'` lists on origin's `freeze-layout`, `git ls-files _freeze/analyses/<name>` lists at least one file.
-- [ ] AC2: In a fresh clone of origin's `freeze-layout` with `data/*.csv` deleted, `quarto render` exits 0 and `git status --porcelain _freeze` prints nothing. Each `docs/analyses/<name>.html` for the listed sources matches `id="quarto-header"`, and matches `href="[^"]*<other>\.html"` for every other listed source.
-- [ ] AC3: After the AC2 render, `find docs -name 'bootstrap*.min.css'` in the clone returns one file.
-- [ ] AC4: The Problems section of `cairn/references/pilot-port.md` has one entry for each `data-machine report:` line in this file's work log. Its path list matches `git diff --name-status main...origin/freeze-layout` run after the user's commits.
+- [x] AC1: For each `analyses/<name>.qmd` that `git ls-files 'analyses/*.qmd'` lists on origin's `freeze-layout`, `git ls-files _freeze/analyses/<name>` lists at least one file.
+- [x] AC2: In a fresh clone of origin's `freeze-layout` with `data/*.csv` deleted, `quarto render` exits 0 and `git status --porcelain _freeze` prints nothing. Each `docs/analyses/<name>.html` for the listed sources matches `id="quarto-header"`, and matches `href="[^"]*<other>\.html"` for every other listed source.
+- [x] AC3: After the AC2 render, `find docs -name 'bootstrap*.min.css'` in the clone returns one file.
+- [x] AC4: The Problems section of `cairn/references/pilot-port.md` has one entry for each `data-machine report:` line in this file's work log. Its path list matches `git diff --name-status main...origin/freeze-layout` run after the user's commits.
 
 ## Coverage
 
@@ -61,3 +61,19 @@ Show that the pilot site, after one full render on the machine that holds the fi
 ## Decisions
 
 ## Review
+
+- Sync: origin/main is c5013a0, an ancestor of the branch. Copilot round off.
+- AC1 evidence (2026-10-18): pilot checkout at dddad4a, equal to origin `freeze-layout`, clean tree. `git ls-files 'analyses/*.qmd'` lists 5 sources. `git ls-files _freeze/analyses/<name>` lists 1 file for demographics, 1 for feature_descriptives, and 12 each for verbal_analyses, visual_analyses, and vocal_analyses.
+- AC2 evidence (2026-10-18): a new fresh clone of origin `freeze-layout` at dddad4a, `data/*.csv` deleted, full `quarto render` exited 0. `git status --porcelain _freeze` printed nothing. All 5 report pages match `id="quarto-header"` once and link to each of the other 4 sources.
+- AC3 evidence (2026-10-18): after that render, `find docs -name 'bootstrap*.min.css'` in the clone returns 1 file, `docs/site_libs/bootstrap/bootstrap-445b8638c3d06994fee0907d791121c4.min.css`.
+- AC4 evidence (2026-10-18): the work log holds 0 lines that open with `data-machine report:`, because the user reported no problems, so the Problems section owes 0 new entries. A script compared the note's path block with `git diff --name-status main...origin/freeze-layout` at dddad4a, sorted: all 259 lines match.
+- Consistency gate (2026-10-18): `cairn_validate.py` all checks passed. The r-package toolchain checks are not applicable, because no package code exists yet. No principle changed.
+- spawned: diff-bug (one Opus reviewer, internal-tier docs-only primary diff; it also read the companion commit dddad4a and re-ran the no-data rebuild).
+- diff-bug #1: the 27 posterior predictive check figures differ from v1.1.0 because `pp_check(..., ndraws = 100)` draws without a seed (`analyses/verbal_analyses.qmd:393`), so a merge would change published figures. Checked: unnamed-chunk-8-1.png differs and unnamed-chunk-1-1.png matches — fix now: note entry P9 and a work-log correction.
+- diff-bug #2: a rebuild on this Mac writes `bootstrap-445b8638…` while the Windows render committed `bootstrap-172ba59…`, so `docs/` differs by machine. Checked with `git ls-tree` — fix now: note entry P10.
+- diff-bug #3: the claim that the only backslashes in `_freeze/` are the data paths is false, because R `\(x)` lambdas and `"\n"` strings add more — fix now: note open question corrected and a work-log correction.
+- diff-bug #4: `docs/search.json` now indexes the demographics page, including the drive paths and Table 1 counts that main's published page already shows — follow-up: note entry P11, routed to the "template extraction" row.
+- diff-bug #5: the data-free build deletes `docs/data/*.csv` — noted, no change: already P8.
+- diff-bug #6: the T3 number check omits feature_descriptives, which also matches — fix now: work-log line.
+- diff-bug #7: the ticked criteria and Review section were uncommitted during review — reject, false: they are this review's records, committed at the step-6 checkpoint.
+- Return floor: no finding shows a criterion failing, so status stays `review`.
