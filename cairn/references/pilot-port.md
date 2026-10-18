@@ -1,6 +1,6 @@
 # Pilot port of pilot-ptsd-markers to the freeze layout (M001)
 
-**Provenance.** Ingested 2026-10-18 by M001. Source: the port of `~/github/pilot-ptsd-markers` on branch `freeze-layout` (commits 63a8adb, c638e1f, 2a4a51e, f541444), done in this session.
+**Provenance.** Ingested 2026-10-18 by M001. Source: the port of `~/github/pilot-ptsd-markers` on branch `freeze-layout` (commits 63a8adb, c638e1f, 2a4a51e, f541444, 4b620d7), done in this session.
 Pagination: —.
 Extraction: first-hand record, nothing to re-verify against — observed 2026-10-18.
 
@@ -8,14 +8,15 @@ Extraction: first-hand record, nothing to re-verify against — observed 2026-10
 
 **Evidence snapshot.**
 
-- Pilot branch `freeze-layout` at f541444, pushed to origin. Origin `main` is still 54684dc — observed 2026-10-18.
+- Pilot branch `freeze-layout` at 4b620d7, pushed to origin. Origin `main` is still 54684dc — observed 2026-10-18.
 
 ## Paths changed
 
-Output of `git diff --name-status main...freeze-layout` in the pilot repo at f541444, with tabs shown as spaces:
+The lines that `git diff --name-status main...freeze-layout` prints in the pilot repo at 4b620d7, with tabs shown as spaces. The order is regrouped: source and configuration files first, then the removed per-report files.
 
 ```
 M .gitignore
+M LICENSE-CC-BY.md
 M README.md
 A _freeze/analyses/feature_descriptives/execute-results/html.json
 M _quarto.yml
@@ -143,13 +144,22 @@ D analyses/vocal_analyses_files/libs/tabwid-1.1.3/tabwid.js
 
 - P1: The fit files move with the reports. The reports call `file.path("fits", feature)`, and knitr runs each report from its own folder, so the fits must now sit in `analyses/fits/`. Fix: the README data-machine section tells the user to move `src/fits/` there, and `.gitignore` blocks `analyses/fits/`.
 - P2: A render by name ignores freeze and runs the report's code. Only a full project render reuses `_freeze/`. Fix: the smoke test renders `feature_descriptives` by name because it needs only the shared data. The README says that a render by name always runs the code.
-- P3: A render by name does not clean `docs/`. The old per-report `_files/` copies and the other old report pages stay in `docs/`, and `docs/site_libs/bootstrap/` holds two theme files. Fix: none in M001. The full render in M002 cleans `docs/`, and M002 AC3 checks that one theme file is left.
+- P3: A render by name does not clean `docs/`. The old per-report `_files/` copies and the other old report pages stay in `docs/`. So do the old `docs/index.html` with its old navbar and the old `docs/src/*.qmd` copies. `docs/site_libs/bootstrap/` holds two theme files. Fix: none in M001. The full render in M002 cleans `docs/`, and M002 AC3 checks that one theme file is left.
 - P4: A glob such as `"*.qmd"` in `render:` can pick up files that are not pages. Fix: `render:` lists `index.qmd` and `analyses/*.qmd`, so `README.md` stays out.
-- P5: Home-page links pointed at `analyses/<name>.html`. Fix: they point at `analyses/<name>.qmd`, and Quarto turns them into page links.
+- P5: Home-page links pointed at `analyses/<name>.html`. Those links also resolve in a website project, so this is a choice, not a defect. Fix: they point at `analyses/<name>.qmd`, so Quarto checks them against the source files.
 - P6: Git reports one deleted per-report library file as a rename into `_freeze/site_libs/`. Quarto stores shared libraries under `_freeze/site_libs/`. Fix: none needed. The template `.gitignore` must not block `_freeze/`.
+- P7: The data machine keeps old ignored render files in `src/`. Also, a full render with a missing fit file refits that model for hours and stores new estimates. Fix: `.gitignore` blocks `/src/`, and the README data-machine steps check the `.rds` files first and stage only `_freeze/` and `docs/` (4b620d7).
+- P8: A build with `data/*.csv` deleted drops `docs/data/*.csv`, so the home-page download buttons break. Fix: none in the pilot, where only M002's test clone deletes the data. A data-free build is a test and must never be published.
 
 ## Disposition
 
 - P1 and P2 → the "template extraction" candidate row: the template README carries both facts.
 - P3 → M002 AC3.
 - P4, P5, and P6 → the "template extraction" candidate row: the template `_quarto.yml`, `index.qmd`, and `.gitignore` take these forms.
+- P7 → the "template extraction" candidate row: the template README carries the fit check and the narrow `git add`.
+- P8 → the "release checks" candidate row: `check_supplement()` refuses to publish a build that lacks the data files `index.qmd` links to.
+
+## Open questions
+
+- Output that the data machine writes to `_freeze/` on Windows was not yet read on this Mac. M002 T3 shows whether backslash paths or CRLF line endings break the rebuild — observed 2026-10-18.
+- A re-render by name changes the random table ids that gt writes. Each such render shows a diff in `_freeze/` and `docs/` with no change in results — observed 2026-10-18.

@@ -98,3 +98,6 @@ Move pilot-ptsd-markers, on a branch, to one Quarto website project with freeze 
 - diff-bug #13: demographics `_freeze` holds only the aggregate tables the old page showed — noted, no defect.
 - diff-bug #14: the milestone file had uncommitted edits during review — reject, false: those are this Review section's evidence lines, committed at the step-6 checkpoint.
 - Return floor: no finding shows a criterion failing, so status stays `review`.
+- Fixes: diff-bug #1 to #4 fixed in pilot 4b620d7 (pushed). Diff-bug #5, #7, #9, and #10 fixed in `pilot-port.md` (P3, P8, path-list heading, P5), with P7 added for #1 and #2. Diff-bug #8 is in the note's Open questions. Diff-bug #12 is the candidate row "paper figure files".
+- AC6 re-check after the fixes (2026-10-18): the note's path block matches the fresh diff at 4b620d7, 123 lines. The Problems section has 8 entries, each with a `Fix:` clause.
+- AC5 re-check after the fixes (2026-10-18): origin `freeze-layout` is 4b620d7, equal to the local HEAD. Origin `main` is still 54684dc.
