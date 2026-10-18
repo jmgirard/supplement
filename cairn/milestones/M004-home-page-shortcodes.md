@@ -69,6 +69,7 @@ Drive the template's home page from one `_supplement.yml` file through a Quarto 
 - 2026-10-18: T6 done: `_README.md` gains a "Paper facts in `_supplement.yml`" section and two Contents lines, the package README one paragraph, NEWS.md one entry; DESIGN.md Architecture updated for the new files. `devtools::document()` added `Config/roxygen2/version: 8.1.0` to DESCRIPTION; kept, so the review's no-diff `document()` check holds. `devtools::check()`: 0 errors, 0 warnings, 0 notes, tests run inside it; `devtools::test()`: 167 pass, 0 skip.
 - 2026-10-18: claim audit: 62 claims read, 5 corrected — inst/template/_README.md, inst/template/_supplement.yml, tests/testthat/helper-template.R, README.md. The reader also found that Quarto rewrites a description naming an existing folder ("data" became "../data" on an `analyses/` page); fixed test-first in supplement.lua (`as_written`) with a new test, and the same reader confirmed all corrections on one re-read. Left as is: a `{{< meta >}}` value on a subfolder page whose text names an existing path is still rewritten by Quarto; the template shows those values only on the home page. Tests 170 pass, 0 skip.
 - 2026-10-18: all tasks done; status set to review.
+- 2026-10-18: step-7 approval: m004-home-page-shortcodes approved for merge
 
 ## Decisions
 
