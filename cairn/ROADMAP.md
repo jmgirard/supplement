@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M004 done and archived, template row graduated,
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M005 | Metadata writers for CITATION.cff and .zenodo.json | in-progress | — | high | milestones/M005-metadata-writers.md |
+| M005 | Metadata writers for CITATION.cff and .zenodo.json | review | — | high | milestones/M005-metadata-writers.md |
 | M004 | Home page from _supplement.yml with shortcodes | done | M003 | high | milestones/archive/M004-home-page-shortcodes.md |
 | M003 | Package skeleton and starter template | done | — | high | milestones/archive/M003-template-starter.md |
 | M002 | Pilot render on the data machine and data-free rebuild | done | M001 | high | milestones/archive/M002-pilot-render-check.md |

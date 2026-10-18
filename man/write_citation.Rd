@@ -30,18 +30,23 @@ The file holds:
 * `license`: the SPDX identifiers in `license.code` and
   `license.content`.
 
-Empty values are left out. Values are written as they are, so Markdown
-such as `*Journal*` keeps its asterisks.
+Empty values are left out. Values are written as the YAML parser reads
+them, so Markdown such as `*Journal*` keeps its asterisks. Put values in
+quotes in `_supplement.yml`, as the template does, so that YAML does not
+read a value such as `No` or `1.10` as true/false or a number.
 }
 \section{Errors}{
 
-Errors have the class `supplement_error` and one of these classes:
+A `_supplement.yml` that is not valid YAML gives the error of the YAML
+parser. The errors that these functions raise themselves have the class
+`supplement_error` and one of these classes:
 
 * `supplement_error_no_metadata`: `path` has no `_supplement.yml`.
 * `supplement_error_no_map`: the file has no `supplement:` map.
 * `supplement_error_missing_field`: `paper-title` is missing or empty.
   For [write_zenodo()], also `citation`.
-* `supplement_error_authors`: `authors` is missing or empty.
+* `supplement_error_authors`: `authors` is missing, empty, or not a list
+  of authors.
 * `supplement_error_author_name`: an author has no `family` or no
   `given` name.
 * `supplement_error_orcid`: an ORCID iD does not have the form

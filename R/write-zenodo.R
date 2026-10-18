@@ -14,11 +14,13 @@
 #' * `creators`: each author as "Family, Given", with the ORCID iD and the
 #'   affiliation, in the order of `_supplement.yml`.
 #' * `license`: the SPDX identifier in `license.content`, in lowercase.
-#'   A Zenodo record takes one license, so the code license is not
-#'   written.
+#'   The `license` field of `.zenodo.json` takes one license id, so the
+#'   code license is not written.
 #'
-#' Empty values are left out. Values are written as they are, so Markdown
-#' such as `*Journal*` keeps its asterisks.
+#' Empty values are left out. Values are written as the YAML parser reads
+#' them, so Markdown such as `*Journal*` keeps its asterisks. Put values in
+#' quotes in `_supplement.yml`, as the template does, so that YAML does not
+#' read a value such as `No` or `1.10` as true/false or a number.
 #'
 #' @inheritParams write_citation
 #' @inherit write_citation return

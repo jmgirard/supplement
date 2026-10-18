@@ -138,7 +138,7 @@ test_that("an existing file is kept when overwrite is FALSE", {
   }
 })
 
-test_that("every error also has the class supplement_error", {
+test_that("a missing _supplement.yml error also has the class supplement_error", {
   dir <- local_site()
   expect_error(write_citation(dir), class = "supplement_error")
   expect_error(write_zenodo(dir), class = "supplement_error")

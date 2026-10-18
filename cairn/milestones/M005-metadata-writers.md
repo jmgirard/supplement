@@ -1,6 +1,6 @@
 # M005: Metadata writers for CITATION.cff and .zenodo.json
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
