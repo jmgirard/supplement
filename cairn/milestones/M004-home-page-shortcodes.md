@@ -45,7 +45,7 @@ Drive the template's home page from one `_supplement.yml` file through a Quarto 
 ## Tasks
 
 - [x] T1: Write `inst/template/_supplement.yml` with the AC1 keys and empty DOI and archive values. Add `metadata-files` to `_quarto.yml`. Rewrite `index.qmd` to read the paper title and citation with `{{< meta >}}` and to use the three shortcodes.
-- [ ] T2: Extension skeleton `_extensions/supplement/_extension.yml` and Lua shortcodes `supplement-doi` (version DOI, then concept DOI, then nothing) and `supplement-download`.
+- [x] T2: Extension skeleton `_extensions/supplement/_extension.yml` and Lua shortcodes `supplement-doi` (version DOI, then concept DOI, then nothing) and `supplement-download`.
 - [ ] T3: `supplement-data-table`: read each file's size from the project root (`quarto.project.directory`), format it by the AC4 rule, write links relative to the page, and call `error()` with the file name when a file is missing.
 - [ ] T4: Tests: a fixture project in a temp folder covering AC2 to AC6, with the size fixtures outside the `resources` glob, and a sparse file for the 1000000000-byte case.
 - [ ] T5: Planted-defect check in a scratch copy, one at a time: the size rule switched to base 1024; the unit chosen before rounding; the `error()` on a missing file removed; links always written from the project root; the DOI fallback order swapped. Each makes at least one test fail. Record the results in the work log.
@@ -62,6 +62,7 @@ Drive the template's home page from one `_supplement.yml` file through a Quarto 
 - 2026-10-18: criteria audit (full mode, Opus): flagged missing authors and license keys against the DESIGN single-source convention (AC1), escaping and placeholder text (AC2), an empty DOI before the first release (AC3, AC6), an underspecified size rule and page-relative links (AC4), a conflict with M003's data-deletion check (AC5), and no probes (AC7). All fixed in the wording above; M003 AC4 now hides R instead of deleting data; probes in T5.
 - 2026-10-18: implement started on branch m004-home-page-shortcodes, cut from main at 7fb2527.
 - 2026-10-18: T1 done: `_supplement.yml` (licenses as SPDX ids `MIT` and `CC-BY-4.0`, two placeholder authors), `metadata-files` in `_quarto.yml`, `index.qmd` reads the title (as `subtitle`), citation, and contact with `{{< meta >}}`; a scratch render showed the meta values and the not-yet-defined shortcodes as raw text; tests 48 pass.
+- 2026-10-18: T2 done: all shortcodes live in one file, `_extensions/supplement/supplement.lua`; the badge is an image with alt text "DOI" inside a link, the download link text is "Download the archive from Zenodo"; a scratch render showed nothing for empty values, the concept DOI alone, then the version DOI over it; tests 48 pass.
 
 ## Decisions
 
