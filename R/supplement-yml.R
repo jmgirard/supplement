@@ -23,6 +23,12 @@ check_path <- function(path, call = parent.frame()) {
   invisible()
 }
 
+# file.exists("file/") is FALSE on some systems, so drop the separators at
+# the end. A root such as "/" or "C:/" keeps its separator.
+drop_trailing_sep <- function(path) {
+  sub("^(.*[^/\\\\:])[/\\\\]+$", "\\1", path)
+}
+
 read_supplement <- function(path, call = parent.frame()) {
   file <- file.path(path, "_supplement.yml")
   if (!file.exists(file) || dir.exists(file)) {

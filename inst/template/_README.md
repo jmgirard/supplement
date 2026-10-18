@@ -109,6 +109,33 @@ each author a `family` name and `given` names. When a file exists, the
 functions stop. To write it again after you change `_supplement.yml`, use
 `overwrite = TRUE`. Commit both files.
 
+## Checks before a release
+
+Before a GitHub release, run this in R from this folder:
+
+```r
+supplement::check_supplement()
+```
+
+It changes no file. It prints each problem and returns the problems as a
+data frame. It finds:
+
+- files larger than 100 MiB, which GitHub refuses
+- `.rds`, `.rda`, `.RData`, `.qs`, and `.qs2` files that git tracks or
+  does not ignore
+- reports directly in `analyses/` with code and no stored output in
+  `_freeze/`
+- a missing `docs/` folder
+- quoted relative links in `docs/` to files that are not in `docs/`, or to
+  folders there with no `index.html`
+- pages in `docs/` that cannot be read
+- a DOI in `CITATION.cff` or on the home page's badge that differs from
+  `_supplement.yml`, and a `CITATION.cff` that cannot be read
+
+The first two checks read the file list from git. When git cannot run or
+this folder is not in a git work tree, the function skips them and says
+so.
+
 ## How the site renders
 
 The site uses Quarto's freeze option (`execute: freeze: true`). A full

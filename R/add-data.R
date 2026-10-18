@@ -89,9 +89,7 @@ add_data <- function(file, description, path = ".") {
       class = c("supplement_error_argument", "supplement_error")
     )
   }
-  # file.exists("file/") is FALSE, so drop the separators at the end. A
-  # root such as "/" or "C:/" keeps its separator.
-  file <- sub("^(.*[^/\\\\:])[/\\\\]+$", "\\1", file)
+  file <- drop_trailing_sep(file)
   if (!file.exists(file) || dir.exists(file)) {
     cli::cli_abort(
       "{.path {file}} does not exist or is a folder.",

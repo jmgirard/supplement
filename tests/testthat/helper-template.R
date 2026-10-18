@@ -11,6 +11,10 @@ skip_if_no_quarto <- function(needs_r = TRUE) {
 
 skip_if_no_git <- function() {
   skip_if(Sys.which("git") == "", "git is not on PATH")
+  # A git that cannot run, such as the macOS git before the Xcode license
+  # is accepted, counts as no git.
+  status <- suppressWarnings(system2("git", "--version", stdout = FALSE, stderr = FALSE))
+  skip_if(status != 0L, "git --version fails")
 }
 
 template_dir <- function() {

@@ -56,7 +56,8 @@ None elicited yet. Run `/design-interview` to add them.
 
 R code: `R/supplement-yml.R` reads `<path>/_supplement.yml` and checks
 it, with classed cli errors (`supplement_error` plus one subclass per
-case). `write_citation()` writes `CITATION.cff` (CFF 1.2.0) and
+case). It also holds the path helpers that several functions share
+(`drop_trailing_sep()`, `path_occupied()`, `is_link()`). `write_citation()` writes `CITATION.cff` (CFF 1.2.0) and
 `write_zenodo()` writes `.zenodo.json` from that map. Both leave out
 empty values and refuse to replace an existing file unless
 `overwrite = TRUE`.
@@ -72,6 +73,15 @@ the first write, and refuse a linked `analyses/` or `data/` folder.
 `R/yaml-insert.R` adds a list item as lines of text, so comments stay
 (D-010); it re-reads the result with the yaml package before any write.
 `R/add-utils.R` holds the checks the two share.
+`R/check-supplement.R`: `check_supplement()` changes no file and returns
+its problems as a data frame (`check`, `file`, `problem`), with a
+`skipped` attribute. Its file size and saved-object checks read `git
+ls-files -z --cached --others --exclude-standard` through `git_run()`, the
+package's one place that starts a process. Its link check reads quoted
+`href` and `src` values in `docs/**/*.html` with a regular expression and
+resolves each link by path segments inside `docs/`, matching each name's
+letter case as GitHub Pages does. A bad DOI in `CITATION.cff` or on the
+badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in
