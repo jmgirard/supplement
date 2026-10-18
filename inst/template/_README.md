@@ -40,7 +40,8 @@ Quarto runs two scripts in `_scripts/` on each render. They need no R.
   `_gitignore` to `.gitignore` and `_README.md` to `README.md`, because
   `quarto use template` does not copy those names. When `.gitignore` already
   exists, it adds the rules that it lacks. When `README.md` already exists,
-  it writes this guide to `SUPPLEMENT.md` instead.
+  it writes this guide to `SUPPLEMENT.md` instead. If both files exist, it
+  writes no guide.
 - `nojekyll.ts` runs after the render and writes `docs/.nojekyll`, so that
   GitHub Pages serves the site as it is.
 

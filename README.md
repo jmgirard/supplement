@@ -32,7 +32,8 @@ quarto render
 The first render writes the template's rules into `.gitignore`. If
 `.gitignore` already exists, the render adds the rules that it lacks. The
 first render also writes the template's guide to `README.md`. If the folder
-already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. The template ships these files as `_gitignore` and `_README.md`, because
+already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. If
+both files exist, no guide is written. The template ships these files as `_gitignore` and `_README.md`, because
 `quarto use template` does not copy those file names. The new `README.md` explains how the site
 renders, how to render on the machine that holds private data, and how to
 publish.

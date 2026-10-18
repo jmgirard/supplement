@@ -79,6 +79,7 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - 2026-10-18: all tasks done; status set to review.
 - 2026-10-18: review return 1: `inst/template/_scripts/nojekyll.ts` joins `QUARTO_PROJECT_DIR` to `QUARTO_PROJECT_OUTPUT_DIR` unless the latter starts with `/`. Quarto passes an absolute output path, so on Windows (`C:\…\docs`) the write goes to a broken path and every render fails (diff-bug #1).
 - 2026-10-18: T8 added for review return 1 (minor amendment) and done: `nojekyll.ts` writes to `${QUARTO_PROJECT_OUTPUT_DIR}/.nojekyll` as given. Quarto's `projectOutputDir()` (quarto.js:76626) joins a relative `output-dir` onto the absolute project folder, so the value is always absolute. Tests 32 passed, 0 skips; `devtools::check()` 0/0/0. No macOS test can tell the old and new code apart, because both handle POSIX absolute paths; the Windows case is covered by the Quarto source read only. `setup.ts` joins with `/`, which Deno accepts on Windows.
+- 2026-10-18: claim audit: 21 claims read, 1 corrected — inst/template/_scripts/setup.ts, inst/template/_README.md, README.md (the guide is not written when README.md and SUPPLEMENT.md both exist). The re-read found the 4 affected statements hold. Tests 32 passed.
 - 2026-10-18: all tasks done; status set to review.
 
 ## Decisions

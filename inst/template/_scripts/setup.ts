@@ -7,7 +7,8 @@
 // before this script runs), the template's lines that it lacks are appended,
 // so the ignore rules for fitted models are never lost. An existing
 // README.md is kept as it is, and the template's README becomes
-// SUPPLEMENT.md instead.
+// SUPPLEMENT.md instead. If SUPPLEMENT.md also exists, the template's
+// README is removed and no guide is written.
 
 const projectDir = Deno.env.get("QUARTO_PROJECT_DIR") ?? ".";
 
