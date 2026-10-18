@@ -46,8 +46,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 
 - [x] T1: Add `version: ""` with a comment to `inst/template/_supplement.yml`. Add a version check to `R/supplement-yml.R`, and write `version` in `R/write-citation.R` and `R/write-zenodo.R`. Cite the CFF 1.2.0 schema and Zenodo's deposit metadata in code comments. Add the AC1 tests and update the two help pages.
 - [x] T2: Add a helper to `R/yaml-insert.R` that replaces the value on one line of a block-style map and checks the result with the yaml package, as D-010 asks of inserts. Test it directly against the AC4 fixture files. Append a D-entry that extends D-010 to a one-line value change.
-- [ ] T3: Write `tests/testthat/test-release-supplement.R` for AC2 to AC6. Mock `check_supplement()`, so the tests need no render, and add one test that searches `R/release-supplement.R` for the git helper's name.
-- [ ] T4: Write `R/release-supplement.R`. Check `bump`, `_supplement.yml`, and the `version:` line before `check_supplement()` runs, and reuse `write_checked()` from `R/yaml-insert.R` for the restore.
+- [x] T3: Write `tests/testthat/test-release-supplement.R` for AC2 to AC6. Mock `check_supplement()`, so the tests need no render, and add one test that searches `R/release-supplement.R` for the git helper's name.
+- [x] T4: Write `R/release-supplement.R`. Check `bump`, `_supplement.yml`, and the `version:` line before `check_supplement()` runs, and reuse `write_checked()` from `R/yaml-insert.R` for the restore.
 - [ ] T5: Add roxygen documentation and run `devtools::document()`. Describe the function and the field in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
 
 ## Work log
@@ -65,3 +65,6 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: implement started on branch m009-release-supplement.
 - 2026-10-18: T1 done: `read_version()` in `R/supplement-yml.R`, `version` written after `title` in both files; the error tests also refuse `1.00.0`, `1.0.0.0`, and `-1.0.0`; 1448 tests pass.
 - 2026-10-18: T2 done: `yaml_replace_lines()` and `yaml_replaced()` in `R/yaml-insert.R`, with the re-read moved to `yaml_read_lines()`; an empty value (`version:`) is also replaced; D-011 extends D-010.
+- 2026-10-18: T2 checkpoint commit c2759a3 went in after a `devtools::test()` run with 3 failures at `test-template.R:140` (`git check-ignore` output not empty); two later full runs and three runs of that file passed, so the failure did not repeat and its cause is unknown.
+- 2026-10-18: T3 done: `tests/testthat/test-release-supplement.R` mocks `check_supplement()`; planted defects (no restore, DOI row counted, skipped checks ignored, versions compared as text) each turn tests red.
+- 2026-10-18: T4 done: `R/release-supplement.R`. Choices: parts compare by length then as text, so parts beyond R's whole numbers stay exact; a failed write stops with a new class `supplement_error_release_write` whose `parent` is the write's error; a failed re-read stops with `supplement_error_yaml`, as in `add_report()`; the no-version error shows the line with the current value; an empty `version:` line is replaced; 1672 tests pass.
