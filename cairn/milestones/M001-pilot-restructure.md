@@ -1,6 +1,6 @@
 # M001: Pilot site restructure to the freeze layout
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -48,8 +48,8 @@ Move pilot-ptsd-markers, on a branch, to one Quarto website project with freeze 
 - [x] T3: Rewrite `_quarto.yml`: render all `.qmd` files, `execute: freeze: true`, `output-dir: docs`, an Analyses navbar menu with the five reports, and `resources` for `data/*.csv` only.
 - [x] T4: Point `index.qmd` links at the report pages. Run `quarto render analyses/feature_descriptives.qmd` (a single-file render, so no model report runs). Commit the source changes, `_freeze/analyses/feature_descriptives/`, and `docs/`.
 - [x] T5: Rewrite the README reproduce and publish sections. Add a data-machine section: move the fits folder to `analyses/fits/`, set the demographics environment variables, run a full `quarto render`, and commit `_freeze/` and `docs/`.
-- [ ] T6: Push `freeze-layout` to origin. Leave `main` untouched.
-- [ ] T7: Write `cairn/references/pilot-port.md` (synthesis note) with its INDEX line.
+- [x] T6: Push `freeze-layout` to origin. Leave `main` untouched.
+- [x] T7: Write `cairn/references/pilot-port.md` (synthesis note) with its INDEX line.
 
 ## Work log
 
@@ -65,6 +65,10 @@ Move pilot-ptsd-markers, on a branch, to one Quarto website project with freeze 
 - 2026-10-18: T1-T3 done in the pilot repo (commits "Move report sources into analyses/…" and "Render every report as a site page…"). The navbar splits reports into Tables and Analyses menus, matching the index page. `render:` lists `index.qmd` and `analyses/*.qmd` so README.md is not rendered.
 - 2026-10-18: T4 done (pilot 2a4a51e): smoke render exited 0, the page has the header and links to the other four reports, and `_freeze/analyses/feature_descriptives/execute-results/html.json` is tracked. A single-file render does not clean `docs/`, so the old per-report `_files/` copies stay until the full render in M002.
 - 2026-10-18: T5 done (pilot f541444): README documents the freeze layout and the data-machine steps. The citation sentence in the README stays over the plain-English length limit because it is a quoted reference.
+- 2026-10-18: T6 done: `freeze-layout` pushed to origin at f541444. Origin `main` unchanged at 54684dc.
+- 2026-10-18: T7 done: `cairn/references/pilot-port.md` written. Its 122-line path list was compared by script with the diff output and matches.
+- 2026-10-18: claim audit: not owed — internal tier.
+- 2026-10-18: all tasks done; status set to review.
 
 ## Decisions
 
