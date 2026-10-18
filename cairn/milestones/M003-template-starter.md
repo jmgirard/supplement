@@ -47,7 +47,7 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 
 - [x] T1: Package skeleton: DESCRIPTION (`supplement`, Authors@R with Jeffrey M. Girard and ORCID 0000-0002-7359-3746, `License: MIT + file LICENSE`, Suggests per D-005, `Config/testthat/edition: 3`), LICENSE, LICENSE.md, NAMESPACE, NEWS.md, and `.Rbuildignore` entries. No exported function yet.
 - [x] T2: Template files in `inst/template/` from the pilot branch: `_quarto.yml` (render list, `freeze: true`, `output-dir: docs`, Analyses menu, `resources: data/*.csv`, the two scripts), `index.qmd` with placeholder text, `analyses/example.qmd` (an R chunk over `../data/example.csv`, with a seeded random draw), `data/example.csv`, `LICENSE.md`, `LICENSE-CC-BY.md`, `_gitignore`.
-- [ ] T3: `_scripts/setup.ts` (pre-render: rename `_gitignore` and `_README.md` when the target is missing, and remove the underscore copy when the target exists) and `_scripts/nojekyll.ts` (post-render: write `.nojekyll` into `QUARTO_PROJECT_OUTPUT_DIR`).
+- [x] T3: `_scripts/setup.ts` (pre-render: rename `_gitignore` and `_README.md` when the target is missing, and remove the underscore copy when the target exists) and `_scripts/nojekyll.ts` (post-render: write `.nojekyll` into `QUARTO_PROJECT_OUTPUT_DIR`).
 - [ ] T4: `tests/testthat/test-template.R`: `skip_on_cran()`, skip when quarto is not on PATH, `withr::local_tempdir()`, and checks for AC2 to AC5.
 - [ ] T5: Planted-defect check in a scratch copy, one at a time: no rename of `_gitignore`; no rename of `_README.md`; an existing `.gitignore` overwritten; `analyses/*.qmd` dropped from `render:`; a nested `analyses/_quarto.yml`; a changed `output-dir`; freeze removed. Each makes at least one test fail. Record the results in the work log.
 - [ ] T6: Write `_README.md` with the AC6 facts, and the first-render note in `index.qmd`.
@@ -68,6 +68,7 @@ Ship a Quarto website template inside a minimal R package, so that one `quarto u
 - 2026-10-18: AC4's no-code check changed from deleting `data/example.csv` to hiding R, because M004 makes a missing data file stop the render. A frozen render of the pilot clone with `PATH=/usr/bin:/bin` exited 0 with `_freeze/` unchanged, so the new wording can be met.
 - 2026-10-18: T1 done: DESCRIPTION (maintainer email jmgirard@ku.edu, the contact address on the published pilot sites), LICENSE and LICENSE.md (MIT, unchanged legal text), an empty NAMESPACE, NEWS.md, `tests/testthat.R`, and `.Rbuildignore` entries. No R code yet, so `R/` is absent.
 - 2026-10-18: T2 done: `inst/template/` holds `_quarto.yml`, `index.qmd` (placeholders and the first-render callout), `analyses/example.qmd` (seeded bootstrap over `data/example.csv`), `data/example.csv`, `LICENSE.md`, `LICENSE-CC-BY.md`, and `_gitignore`. Footer and GitHub links use an `OWNER/REPO` placeholder, because relative links to repo files break on pages in `analyses/`.
+- 2026-10-18: T3 done: `_scripts/setup.ts` and `_scripts/nojekyll.ts`, wired as `pre-render` and `post-render` in `_quarto.yml`. Hand run in a scratch folder: `quarto use template <local inst/template> --no-prompt` copied 9 files, and `quarto render` exited 0 and left `.gitignore`, `README.md`, `docs/.nojekyll`, and `_freeze/analyses/example/`, with no underscore copies.
 
 ## Decisions
 
