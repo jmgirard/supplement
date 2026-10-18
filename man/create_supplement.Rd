@@ -9,47 +9,52 @@ create_supplement(path, repo = NULL)
 \arguments{
 \item{path}{The folder for the site. It is made if it does not exist.}
 
-\item{repo}{The GitHub repository of the site, as `"owner/name"`, or
-`NULL`. When given, it replaces each `OWNER/REPO` placeholder in
-`_quarto.yml`, and the GitHub Pages address in `_README.md` becomes
-`https://<owner>.github.io/<name>/` with the owner in lowercase. For a
-repository named `<owner>.github.io`, the address is
-`https://<owner>.github.io/`. When `NULL`, the placeholders stay for
+\item{repo}{The GitHub repository of the site, as \code{"owner/name"}, or
+\code{NULL}. When given, it replaces each \code{OWNER/REPO} placeholder in
+\verb{_quarto.yml}, and the GitHub Pages address in \verb{_README.md} becomes
+\verb{https://<owner>.github.io/<name>/} with the owner in lowercase. For a
+repository named \verb{<owner>.github.io}, the address is
+\verb{https://<owner>.github.io/}. When \code{NULL}, the placeholders stay for
 you to edit.}
 }
 \value{
-`path`, invisibly.
+\code{path}, invisibly.
 }
 \description{
-`create_supplement()` copies the package's Quarto website template into
-`path`. It does the same as `quarto use template
-jmgirard/supplement/inst/template`, but it needs no Quarto command-line
+\code{create_supplement()} copies the package's Quarto website template into
+\code{path}. It copies the same files as \verb{quarto use template jmgirard/supplement/inst/template}, but it needs no Quarto command-line
 interface and no network.
 }
 \details{
-`path` can be a new folder or an existing one, such as a clone of a new
-GitHub repository. The function never replaces a file: if `path` already
+\code{path} can be a new folder or an existing one, such as a clone of a new
+GitHub repository. The function never replaces a file: if \code{path} already
 holds a file or a folder where the template writes a file, or a file
 where the template needs a folder, it stops before it writes anything.
 
-The template ships `_gitignore` and `_README.md` under those names. The
-first `quarto render` gives them their real names and merges them into
-an existing `.gitignore` or `README.md`, so render the site once before
-your first commit.
+The template ships \verb{_gitignore} and \verb{_README.md} under those names. The
+first \verb{quarto render} gives them their real names. It adds the
+template's rules to an existing \code{.gitignore}. If \code{README.md} exists, the
+guide goes to \code{SUPPLEMENT.md} instead. Render the site once before your
+first commit.
 }
 \section{Errors}{
 
-The errors have the class `supplement_error` and one of these classes:
-
-* `supplement_error_argument`: `path` is not a single non-missing,
-  non-empty character string.
-* `supplement_error_repo`: `repo` is not `NULL` or a single string of
-  the form `owner/name`, made of ASCII letters, digits, `-`, `_`, and
-  `.`.
-* `supplement_error_not_folder`: `path` is an existing file.
-* `supplement_error_file_exists`: `path` holds a file, a folder, or a
-  link where the template writes a file, or a file where the template
-  needs a folder.
+The errors that the function raises itself have the class
+\code{supplement_error} and one of these classes:
+\itemize{
+\item \code{supplement_error_argument}: \code{path} is not a single non-missing,
+non-empty character string.
+\item \code{supplement_error_repo}: \code{repo} is not \code{NULL} or a single string of
+the form \code{owner/name}, made of ASCII letters, digits, \code{-}, \verb{_}, and
+\code{.}.
+\item \code{supplement_error_not_folder}: \code{path} is an existing file.
+\item \code{supplement_error_file_exists}: \code{path} holds a file, a folder, or a
+link where the template writes a file, or a file where the template
+needs a folder.
+\item \code{supplement_error_write}: a folder could not be made or a file could
+not be copied, for example because a parent of \code{path} is a file. The
+function then removes the files and folders that it made.
+}
 }
 
 \examples{
@@ -59,5 +64,5 @@ list.files(site, recursive = TRUE)
 unlink(site, recursive = TRUE)
 }
 \seealso{
-[write_citation()] and [write_zenodo()] for the citation files.
+\code{\link[=write_citation]{write_citation()}} and \code{\link[=write_zenodo]{write_zenodo()}} for the citation files.
 }

@@ -1,7 +1,7 @@
 #' Make a new supplement site from the template
 #'
 #' `create_supplement()` copies the package's Quarto website template into
-#' `path`. It does the same as `quarto use template
+#' `path`. It copies the same files as `quarto use template
 #' jmgirard/supplement/inst/template`, but it needs no Quarto command-line
 #' interface and no network.
 #'
@@ -11,9 +11,10 @@
 #' where the template needs a folder, it stops before it writes anything.
 #'
 #' The template ships `_gitignore` and `_README.md` under those names. The
-#' first `quarto render` gives them their real names and merges them into
-#' an existing `.gitignore` or `README.md`, so render the site once before
-#' your first commit.
+#' first `quarto render` gives them their real names. It adds the
+#' template's rules to an existing `.gitignore`. If `README.md` exists, the
+#' guide goes to `SUPPLEMENT.md` instead. Render the site once before your
+#' first commit.
 #'
 #' @param path The folder for the site. It is made if it does not exist.
 #' @param repo The GitHub repository of the site, as `"owner/name"`, or
@@ -27,7 +28,8 @@
 #' @return `path`, invisibly.
 #'
 #' @section Errors:
-#' The errors have the class `supplement_error` and one of these classes:
+#' The errors that the function raises itself have the class
+#' `supplement_error` and one of these classes:
 #'
 #' * `supplement_error_argument`: `path` is not a single non-missing,
 #'   non-empty character string.
@@ -38,6 +40,9 @@
 #' * `supplement_error_file_exists`: `path` holds a file, a folder, or a
 #'   link where the template writes a file, or a file where the template
 #'   needs a folder.
+#' * `supplement_error_write`: a folder could not be made or a file could
+#'   not be copied, for example because a parent of `path` is a file. The
+#'   function then removes the files and folders that it made.
 #'
 #' @seealso [write_citation()] and [write_zenodo()] for the citation files.
 #' @export
@@ -61,26 +66,23 @@ create_supplement <- function(path, repo = NULL) {
   folders <- template_folders(files)
   check_conflicts(path, files, folders)
 
-  # If a copy fails, remove what this call made, so that a failed call
-  # leaves the folder as it found it.
+  # If a write fails, remove the files and folders that this call made,
+  # the missing parents of `path` included.
   made <- character()
   done <- FALSE
   on.exit(if (!done) unlink(rev(made), recursive = TRUE))
-  if (!dir.exists(path)) {
-    dir.create(path, recursive = TRUE)
-    made <- path
-  }
-  for (folder in folders) {
-    target <- file.path(path, folder)
-    if (!dir.exists(target)) {
-      dir.create(target)
-      made <- c(made, target)
+  for (folder in c(missing_parents(path), file.path(path, folders))) {
+    if (!dir.exists(folder)) {
+      if (!dir.create(folder, showWarnings = FALSE)) {
+        write_error("Could not make the folder {.path {folder}}.")
+      }
+      made <- c(made, folder)
     }
   }
   for (file in files) {
     target <- file.path(path, file)
     if (!file.copy(file.path(template, file), target, overwrite = FALSE)) {
-      cli::cli_abort("Could not copy {.file {file}} to {.path {path}}.")
+      write_error("Could not copy {.file {file}} to {.path {path}}.")
     }
     made <- c(made, target)
   }
@@ -92,12 +94,35 @@ create_supplement <- function(path, repo = NULL) {
   cli::cli_inform(c(
     "v" = "Made a supplement site in {.path {path}}.",
     if (is.null(repo)) {
-      c("i" = "Replace {.code OWNER/REPO} in {.file _quarto.yml} and {.file _README.md} with your GitHub repository.")
+      c("i" = "Replace {.code OWNER/REPO} in {.file _quarto.yml}, and {.code OWNER} and {.code REPO} in the site address in {.file _README.md}, with your GitHub repository.")
     },
     "i" = "Put the paper facts in {.file _supplement.yml}.",
     "i" = "Run {.code quarto render} in {.path {path}} once before your first commit."
   ))
   invisible(path)
+}
+
+# `path` and each of its parents that does not exist, outermost first.
+missing_parents <- function(path) {
+  out <- character()
+  while (!dir.exists(path) && !file.exists(path)) {
+    out <- c(path, out)
+    parent <- dirname(path)
+    if (parent == path) {
+      break
+    }
+    path <- parent
+  }
+  out
+}
+
+write_error <- function(message, call = parent.frame(), .envir = parent.frame()) {
+  cli::cli_abort(
+    c(message, "i" = "The files and folders that this call made were removed."),
+    class = c("supplement_error_write", "supplement_error"),
+    call = call,
+    .envir = .envir
+  )
 }
 
 check_repo <- function(repo, call = parent.frame()) {

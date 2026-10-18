@@ -7,71 +7,73 @@
 write_zenodo(path = ".", overwrite = FALSE)
 }
 \arguments{
-\item{path}{The folder that holds `_supplement.yml`.}
+\item{path}{The folder that holds \verb{_supplement.yml}.}
 
-\item{overwrite}{If `TRUE`, replace an existing file.}
+\item{overwrite}{If \code{TRUE}, replace an existing file.}
 }
 \value{
 The path of the written file, invisibly.
 }
 \description{
-`write_zenodo()` reads `_supplement.yml` in `path` and writes a
-`.zenodo.json` file into the same folder. When Zenodo's GitHub
+\code{write_zenodo()} reads \verb{_supplement.yml} in \code{path} and writes a
+\code{.zenodo.json} file into the same folder. When Zenodo's GitHub
 integration archives a release, it reads this file for the record's
-metadata. When a repository has both `.zenodo.json` and `CITATION.cff`,
-Zenodo uses `.zenodo.json`.
+metadata. When a repository has both \code{.zenodo.json} and \code{CITATION.cff},
+Zenodo uses \code{.zenodo.json}.
 }
 \details{
 The file holds:
-
-* `title`: "Supplemental materials for: " and `paper-title`.
-* `upload_type`: `"software"`.
-* `description`: "Supplemental materials for: " and `citation`.
-* `creators`: each author as "Family, Given", with the ORCID iD and the
-  affiliation, in the order of `_supplement.yml`.
-* `license`: the SPDX identifier in `license.content`, in lowercase.
-  The `license` field of `.zenodo.json` takes one license id, so the
-  code license is not written.
+\itemize{
+\item \code{title}: "Supplemental materials for: " and \code{paper-title}.
+\item \code{upload_type}: \code{"software"}.
+\item \code{description}: "Supplemental materials for: " and \code{citation}.
+\item \code{creators}: each author as "Family, Given", with the ORCID iD and the
+affiliation, in the order of \verb{_supplement.yml}.
+\item \code{license}: the SPDX identifier in \code{license.content}, in lowercase.
+The \code{license} field of \code{.zenodo.json} takes one license id, so the
+code license is not written.
+}
 
 Empty values are left out. In each value, every run of spaces and line
 breaks becomes one space, and spaces at the start and end are removed.
 Values are otherwise written as they are, so Markdown such as
-`*Journal*` keeps its asterisks. YAML reads some values without quotes
-as numbers or as true/false, for example `No` or `1.10`. Such a value is
-an error, so put it in quotes in `_supplement.yml`, as the template
+\verb{*Journal*} keeps its asterisks. YAML reads some values without quotes
+as numbers or as true/false, for example \code{No} or \code{1.10}. Such a value is
+an error, so put it in quotes in \verb{_supplement.yml}, as the template
 does.
 }
 \section{Errors}{
 
-A `_supplement.yml` that is not valid YAML gives the error of the YAML
+A \verb{_supplement.yml} that is not valid YAML gives the error of the YAML
 parser. The errors that these functions raise themselves have the class
-`supplement_error` and one of these classes:
-
-* `supplement_error_argument`: `path` is not a single non-missing,
-  non-empty character string, or `overwrite` is not `TRUE` or `FALSE`.
-* `supplement_error_no_metadata`: `path` has no `_supplement.yml`.
-* `supplement_error_no_map`: the file has no `supplement:` map.
-* `supplement_error_missing_field`: `paper-title` is missing or empty.
-  For [write_zenodo()], also `citation`.
-* `supplement_error_field_type`: a value that the function reads is a
-  list (a one-item list included), a number, or true/false where one
-  text value belongs, or `license` (and, for [write_citation()],
-  `zenodo`) is not a map.
-* `supplement_error_doi`: for [write_citation()], `zenodo.concept-doi`
-  or `zenodo.version-doi`, with its prefix removed, is not `10.`, four
-  to nine digits, `/`, and a suffix with no spaces.
-* `supplement_error_authors`: `authors` is missing, empty, or not a list
-  of authors.
-* `supplement_error_author_name`: an author has no `family` or no
-  `given` name.
-* `supplement_error_orcid`: an ORCID iD does not have the form
-  `0000-0000-0000-0000`, with or without `https://orcid.org/` or
-  `http://orcid.org/` in front,
-  or its last character is not the iD's check digit. The last character
-  can be `X`.
-* `supplement_error_file_exists`: the output file (or a link with its
-  name) exists and `overwrite` is `FALSE`, or a folder has the output
-  file's name.
+\code{supplement_error} and one of these classes:
+\itemize{
+\item \code{supplement_error_argument}: \code{path} is not a single non-missing,
+non-empty character string, or \code{overwrite} is not \code{TRUE} or \code{FALSE}.
+\item \code{supplement_error_no_metadata}: \code{path} has no \verb{_supplement.yml}.
+\item \code{supplement_error_no_map}: the file has no \verb{supplement:} map.
+\item \code{supplement_error_missing_field}: \code{paper-title} is missing or empty.
+For \code{\link[=write_zenodo]{write_zenodo()}}, also \code{citation}.
+\item \code{supplement_error_field_type}: a value that the function reads is a
+list (a one-item list included), a number, or true/false where one
+text value belongs, or \code{license} (and, for \code{\link[=write_citation]{write_citation()}},
+\code{zenodo}) is not a map.
+\item \code{supplement_error_doi}: for \code{\link[=write_citation]{write_citation()}}, \code{zenodo.concept-doi}
+or \code{zenodo.version-doi}, with its prefix removed, is not \code{10.}, four
+to nine digits, \code{/}, and a suffix with no spaces.
+\item \code{supplement_error_authors}: \code{authors} is missing, empty, or not a list
+of authors.
+\item \code{supplement_error_author_name}: an author has no \code{family} or no
+\code{given} name.
+\item \code{supplement_error_orcid}: an ORCID iD does not have the form
+\code{0000-0000-0000-0000}, with or without \verb{https://orcid.org/} or
+\verb{http://orcid.org/} in front,
+or its last character is not the iD's check digit. The last character
+can be \code{X}.
+\item \code{supplement_error_file_exists}: the output file (or a link with its
+name) exists and \code{overwrite} is \code{FALSE}, or a folder has the output
+file's name.
+}
 }
 
 \examples{
@@ -86,5 +88,5 @@ readLines(file.path(site, ".zenodo.json"))
 unlink(site, recursive = TRUE)
 }
 \seealso{
-[write_citation()] for `CITATION.cff`.
+\code{\link[=write_citation]{write_citation()}} for \code{CITATION.cff}.
 }

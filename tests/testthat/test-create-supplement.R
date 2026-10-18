@@ -145,6 +145,21 @@ test_that("a link at a template path stops, even when its target is missing", {
   expect_false(file.exists(file.path(site, "_quarto.yml")))
 })
 
+test_that("a path under a file stops with a write error and leaves nothing", {
+  dir <- withr::local_tempdir()
+  writeLines("not a folder", file.path(dir, "file"))
+  before <- folder_state(dir)
+  expect_error(create_supplement(file.path(dir, "file", "site")), class = "supplement_error_write")
+  expect_identical(folder_state(dir), before)
+})
+
+test_that("a failed write removes the parent folders that the call made", {
+  dir <- withr::local_tempdir()
+  local_mocked_bindings(fill_repo = function(path, repo) stop("planted failure"))
+  expect_error(create_supplement(file.path(dir, "n1", "n2"), repo = "jdoe/site"), "planted failure")
+  expect_identical(list.files(dir, all.files = TRUE, no.. = TRUE), character())
+})
+
 test_that("a bad repo stops and leaves no new folder", {
   parent <- withr::local_tempdir()
   site <- file.path(parent, "site")
