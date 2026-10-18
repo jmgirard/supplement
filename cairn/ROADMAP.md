@@ -1,18 +1,18 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-18 (scaffold created from the scope draft)_
+_Last hygiene check: 2026-10-18 (M001 done and archived, pilot row narrowed to M002, figure row added)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M001 | Pilot site restructure to the freeze layout | review | — | high | milestones/M001-pilot-restructure.md |
 | M002 | Pilot render on the data machine and data-free rebuild | planned | M001 | high | milestones/M002-pilot-render-check.md |
+| M001 | Pilot site restructure to the freeze layout | done | — | high | milestones/archive/M001-pilot-restructure.md |
 
 ## Candidates
 
-- [high] freeze-layout pilot port: move pilot-ptsd-markers to one website project with `freeze: true`, so every report page has the navbar and a fresh clone builds without the private data. This proves the layout before the template is extracted. — added 2026-10-18 — started M001
+- [high] freeze-layout pilot port: show that a fresh clone of the ported pilot site builds without the private data, with the navbar on every report page. This proves the layout before the template is extracted. Narrowed 2026-10-18 by M001, which did the restructure. — added 2026-10-18 — started M002
 - template extraction: turn the ported pilot site into a `quarto use template` starter with `_supplement.yml` and license files. Add shortcodes for the citation, DOI badge, Zenodo download, and data-file rows. Add a `.gitignore` that blocks fit files and private-data folders. — added 2026-10-18
 - scaffolding functions: `create_supplement()`, `add_report()`, and `add_data()`, with tests. — added 2026-10-18
 - metadata writers: `write_citation()` and `write_zenodo()` generate `CITATION.cff` and `.zenodo.json` from `_supplement.yml`. — added 2026-10-18
