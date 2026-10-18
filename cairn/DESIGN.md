@@ -1,0 +1,61 @@
+# Design
+
+_Seeded by `/cairn-init` on 2026-10-18 from the scope draft (commit aef6a1a). Refine with `/design-interview`._
+
+## Purpose & Scope
+
+supplement helps authors publish the supplemental materials for a paper as a
+Quarto website. GitHub Pages serves the site, and Zenodo archives each GitHub
+release with a DOI. The audience is researchers who share analysis reports,
+code, and open data, in R or Python.
+
+The package replaces hand work that the first two sites
+(`jmgirard/llm-depression-assessment`, `jmgirard/pilot-ptsd-markers`) repeat
+almost line for line. Each analysis report renders as a page of the website,
+so every page shows the site navbar. Quarto freeze stores the computed output
+in `_freeze/`, so the site rebuilds without the private data and without R.
+
+Planned deliverables:
+
+- A Quarto template and extension. This layer works for any Quarto user.
+- An R package with scaffolding, metadata, check, and release helpers. This
+  layer works only from R.
+
+Distribution intent: CRAN, eventually. Keep `R CMD check` at 0 errors and 0
+warnings from the first commit of package code.
+
+Out of scope for version 1: data files over GitHub limits, calls to the
+Zenodo API, Python helper functions, and migration of existing sites.
+
+## Function Families
+
+None built yet. Three families are planned:
+
+- scaffolding: `create_supplement()`, `add_report()`, `add_data()`
+- metadata writers: `write_citation()`, `write_zenodo()`
+- release steps: `check_supplement()`, `release_supplement()`
+
+Status and order live in `ROADMAP.md`.
+
+## Conventions
+
+- Pure R, with no compiled code (chosen at init, 2026-10-18).
+- One metadata file (`_supplement.yml`) is the single source for citation,
+  authors, ORCIDs, DOIs, and licenses. `CITATION.cff` and `.zenodo.json`
+  are generated from it.
+- The package never runs `git tag`, `git push`, or a GitHub release. It
+  prints those commands for the author to run.
+- No oracle-verification rule for numeric results (declined at init,
+  2026-10-18).
+
+## Design Principles
+
+None elicited yet. Run `/design-interview` to add them.
+
+## Architecture
+
+Nothing built yet. The repository holds only tracking files.
+
+## Known issues
+
+None.

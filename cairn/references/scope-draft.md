@@ -1,6 +1,10 @@
-# Scope: a toolkit for supplemental-materials websites
+# Scope draft for the supplement toolkit
 
-Status: draft, 2026-10-18. Working name: TBD.
+**Provenance.** Ingested 2026-10-18 at `/cairn-init`. Sources: a read of `jmgirard/llm-depression-assessment` and `jmgirard/pilot-ptsd-markers` on GitHub, the Quarto CI docs, and a web search for related tools.
+Pagination: —.
+Extraction: a 2026-10-18 snapshot of the two sites and the related tools, which move on independently — observed 2026-10-18.
+
+**Scope.** This page is the scope draft written before the package had a name. It is a reference, not an authority. Status lives in `ROADMAP.md`, decisions in `DECISIONS.md`, and architecture in `DESIGN.md`. The open decisions and milestones below became ROADMAP candidate rows on 2026-10-18.
 
 ## Problem
 

@@ -1,0 +1,9 @@
+.Rproj.user/
+.Rhistory
+.RData
+.DS_Store
+
+# cairn
+cairn/references/sources/
+cairn/.merge-approved
+cairn/.merge-approved.pending
