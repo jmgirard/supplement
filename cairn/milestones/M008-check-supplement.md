@@ -1,6 +1,6 @@
 # M008: check_supplement() lists release problems
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -75,3 +75,5 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: `bare_doi()` gained a `file` argument, so an invalid DOI in `CITATION.cff` or the badge names that file; an unreadable `CITATION.cff` stops with the yaml package's error.
 - 2026-10-18: planted defects turned the new tests red: limit `>=`, no `-z`, no Python, no indent, case-sensitive DOIs, no shortcode test, no percent decoding, `href` only, and `..` dropped above `docs/`. The last needed a `docs/outside.html` fixture before it failed.
 - 2026-10-18: T6 done: help page, README and `_README.md` sections, NEWS entry, DESIGN Architecture paragraph. `devtools::test()` 1349 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: claim audit: 64 claims read, 6 corrected — R/check-supplement.R, man/check_supplement.Rd, README.md, NEWS.md, inst/template/_README.md, tests/testthat/test-check-supplement.R. Fixes: the Errors section lists `no_map` and `field_type`; an unreadable `CITATION.cff` now gives a `doi-mismatch` row, not an R error; `skipped` names only the git checks; the link and stored-output text names quoted relative links, folders without `index.html`, and reports directly in `analyses/`; the git text names all three commands; the git test fixtures also set `XDG_CONFIG_HOME`. The re-read found the Markdown link wording still short, fixed with the reader's wording.
+- 2026-10-18: implement done; status review. `devtools::test()` 1351 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.

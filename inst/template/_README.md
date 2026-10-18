@@ -123,9 +123,11 @@ data frame. It finds:
 - files larger than 100 MiB, which GitHub refuses
 - `.rds`, `.rda`, `.RData`, `.qs`, and `.qs2` files that git tracks or
   does not ignore
-- reports in `analyses/` with code and no stored output in `_freeze/`
-- a missing `docs/` folder, and links in `docs/` to files that are not in
-  the site
+- reports directly in `analyses/` with code and no stored output in
+  `_freeze/`
+- a missing `docs/` folder
+- quoted relative links in `docs/` to files that are not in `docs/`, or to
+  folders there with no `index.html`
 - a DOI in `CITATION.cff` or on the home page's badge that differs from
   `_supplement.yml`
 

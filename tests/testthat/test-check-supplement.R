@@ -4,15 +4,25 @@ check_quiet <- function(path) suppressMessages(check_supplement(path))
 
 rows_of <- function(result, check) result[result$check == check, , drop = FALSE]
 
+# Turn off git's global and system configuration and the user's ignore
+# file in $XDG_CONFIG_HOME/git/ignore, so that only a repository's own
+# rules decide what git ignores.
+local_plain_git <- function(env = parent.frame()) {
+  empty <- withr::local_tempfile(.local_envir = env)
+  file.create(empty)
+  config <- withr::local_tempdir(.local_envir = env)
+  withr::local_envvar(
+    c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1", XDG_CONFIG_HOME = config),
+    .local_envir = env
+  )
+}
+
 # A site made by create_supplement() in a git repository, with the
-# template's .gitignore and with git's global and system configuration
-# turned off, so that only the site's own rules decide what is ignored.
+# template's .gitignore, under local_plain_git().
 git_site <- function(env = parent.frame()) {
   site <- new_site(env)
   file.copy(file.path(site, "_gitignore"), file.path(site, ".gitignore"))
-  empty <- withr::local_tempfile(.local_envir = env)
-  file.create(empty)
-  withr::local_envvar(c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1"), .local_envir = env)
+  local_plain_git(env)
   inited <- git_in(site, c("init", "-q"))
   stopifnot(inited$status == 0L)
   site
@@ -44,9 +54,7 @@ test_that("a rendered site in a git repository has no problems", {
   skip_if_no_quarto()
   skip_if_no_git()
   site <- site_copy()$dir
-  empty <- withr::local_tempfile()
-  file.create(empty)
-  withr::local_envvar(c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1"))
+  local_plain_git()
   expect_identical(git_in(site, c("init", "-q"))$status, 0L)
 
   expect_message(result <- check_supplement(site), "No problems")
@@ -274,4 +282,10 @@ test_that("DOIs that differ between files give a doi-mismatch row", {
   expect_identical(nrow(doi_rows(site_with("10.5281/zenodo.2", badges = character(), shortcode = FALSE))), 0L)
   # No CITATION.cff and no docs/index.html: nothing to compare.
   expect_identical(nrow(doi_rows(site_with("10.5281/zenodo.2"))), 0L)
+  # A CITATION.cff that is not a YAML map, or not YAML at all.
+  for (text in c("just text", "doi: [unclosed")) {
+    site <- site_with("10.5281/zenodo.2")
+    writeLines(text, file.path(site, "CITATION.cff"))
+    expect_match(doi_rows(site)$problem, "cannot be read as a YAML map")
+  }
 })

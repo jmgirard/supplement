@@ -11,33 +11,38 @@
 #' * `"saved-object"`: a saved R object (`.rds`, `.rda`, `.rdata`, `.qs`,
 #'   or `.qs2`, in any letter case). A fitted model saved this way can hold
 #'   the data it was fitted to.
-#' * `"no-stored-output"`: a report in `analyses/` with an R, Python, or
-#'   Julia code chunk and no stored output in `_freeze/`. A full render
-#'   then runs its code, which needs the data.
+#' * `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
+#'   a folder inside it, with an R, Python, or Julia code chunk and no
+#'   stored output in `_freeze/`. A full render then runs its code, which
+#'   needs the data.
 #' * `"not-rendered"`: the site has no `docs/` folder.
-#' * `"broken-link"`: a link on a page in `docs/` to a file or folder that
-#'   is not in `docs/`. Only links inside the site are checked, and no web
-#'   address is requested.
+#' * `"broken-link"`: a quoted `href` or `src` link on a page in `docs/` to
+#'   a file that is not in `docs/`, or to a folder there with no
+#'   `index.html`. Links that start with `/`, `#`, or a scheme such as
+#'   `https:` are not checked, and no web address is requested.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
 #'   `zenodo.concept-doi` when that is empty). A home page whose source uses
 #'   `{{< supplement-doi >}}` but that shows no badge, while
-#'   `_supplement.yml` has a DOI, also counts.
+#'   `_supplement.yml` has a DOI, also counts, and so does a `CITATION.cff`
+#'   that cannot be read as a YAML map.
 #'
 #' The first two checks look at the files that git tracks or does not
-#' ignore, which `git ls-files --cached --others --exclude-standard` lists, so files
-#' that `.gitignore` blocks are left out. For these two checks the function
-#' runs git, but only to read the file list. When git is not on the PATH,
-#' cannot run, or the folder is not in a git repository, it skips these two
-#' checks and says so.
+#' ignore, which `git ls-files --cached --others --exclude-standard` lists,
+#' so files that `.gitignore` blocks are left out. For these two checks the
+#' function runs git only to read: `git --version`, `git rev-parse
+#' --is-inside-work-tree`, and `git ls-files`. When git is not on the PATH,
+#' one of these commands fails, or the folder is not in a git repository,
+#' it skips these two checks and says so.
 #'
 #' @param path The folder of the site.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
 #'   zero rows when the function finds no problem. Its `skipped` attribute
-#'   names the checks that did not run.
+#'   names the git checks (`"large-file"` and `"saved-object"`) that did not
+#'   run, and is empty when they ran.
 #'
 #' @section Errors:
 #' The function stops with an error of class `supplement_error` and one of
@@ -45,6 +50,9 @@
 #'
 #' * `supplement_error_argument`: `path` is not a single non-empty string.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
+#' * `supplement_error_no_map`: `_supplement.yml` has no `supplement:` map.
+#' * `supplement_error_field_type`: a DOI in `_supplement.yml` is not one
+#'   text value, or `zenodo` is not a map.
 #' * `supplement_error_doi`: a DOI in `_supplement.yml`, `CITATION.cff`, or
 #'   the badge on `docs/index.html` is not a DOI.
 #'
@@ -305,7 +313,14 @@ check_dois <- function(path, meta, call = parent.frame()) {
 }
 
 check_cff_doi <- function(cff, expected, call) {
-  doi <- yaml::read_yaml(cff)[["doi"]]
+  doc <- tryCatch(yaml::read_yaml(cff), error = function(e) NULL)
+  if (!is_map(doc)) {
+    return(problem_rows(
+      "doi-mismatch", "CITATION.cff",
+      "It cannot be read as a YAML map. Run write_citation(overwrite = TRUE)."
+    ))
+  }
+  doi <- doc[["doi"]]
   if (!is.null(doi) && (!is.character(doi) || length(doi) != 1)) {
     return(problem_rows("doi-mismatch", "CITATION.cff", "Its doi is not one text value."))
   }

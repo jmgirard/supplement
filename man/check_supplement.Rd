@@ -13,7 +13,8 @@ check_supplement(path = ".")
 A data frame with one row per problem and the character columns
 \code{check}, \code{file} (the path in the site), and \code{problem}, invisibly. It has
 zero rows when the function finds no problem. Its \code{skipped} attribute
-names the checks that did not run.
+names the git checks (\code{"large-file"} and \code{"saved-object"}) that did not
+run, and is empty when they ran.
 }
 \description{
 \code{check_supplement()} looks for problems that can break a release of a
@@ -28,27 +29,30 @@ GitHub refuses.
 \item \code{"saved-object"}: a saved R object (\code{.rds}, \code{.rda}, \code{.rdata}, \code{.qs},
 or \code{.qs2}, in any letter case). A fitted model saved this way can hold
 the data it was fitted to.
-\item \code{"no-stored-output"}: a report in \verb{analyses/} with an R, Python, or
-Julia code chunk and no stored output in \verb{_freeze/}. A full render
-then runs its code, which needs the data.
+\item \code{"no-stored-output"}: a \code{.qmd} report directly in \verb{analyses/}, not in
+a folder inside it, with an R, Python, or Julia code chunk and no
+stored output in \verb{_freeze/}. A full render then runs its code, which
+needs the data.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
-\item \code{"broken-link"}: a link on a page in \verb{docs/} to a file or folder that
-is not in \verb{docs/}. Only links inside the site are checked, and no web
-address is requested.
+\item \code{"broken-link"}: a quoted \code{href} or \code{src} link on a page in \verb{docs/} to
+a file that is not in \verb{docs/}, or to a folder there with no
+\code{index.html}. Links that start with \code{/}, \verb{#}, or a scheme such as
+\verb{https:} are not checked, and no web address is requested.
 \item \code{"doi-mismatch"}: the DOI in \code{CITATION.cff} differs from the one that
 \code{\link[=write_citation]{write_citation()}} writes from \verb{_supplement.yml}, or the DOI badge on
 \code{docs/index.html} differs from \code{zenodo.version-doi} (or
 \code{zenodo.concept-doi} when that is empty). A home page whose source uses
 \verb{\{\{< supplement-doi >\}\}} but that shows no badge, while
-\verb{_supplement.yml} has a DOI, also counts.
+\verb{_supplement.yml} has a DOI, also counts, and so does a \code{CITATION.cff}
+that cannot be read as a YAML map.
 }
 
 The first two checks look at the files that git tracks or does not
-ignore, which \verb{git ls-files --cached --others --exclude-standard} lists, so files
-that \code{.gitignore} blocks are left out. For these two checks the function
-runs git, but only to read the file list. When git is not on the PATH,
-cannot run, or the folder is not in a git repository, it skips these two
-checks and says so.
+ignore, which \verb{git ls-files --cached --others --exclude-standard} lists,
+so files that \code{.gitignore} blocks are left out. For these two checks the
+function runs git only to read: \code{git --version}, \verb{git rev-parse --is-inside-work-tree}, and \verb{git ls-files}. When git is not on the PATH,
+one of these commands fails, or the folder is not in a git repository,
+it skips these two checks and says so.
 }
 \section{Errors}{
 
@@ -57,6 +61,9 @@ these classes:
 \itemize{
 \item \code{supplement_error_argument}: \code{path} is not a single non-empty string.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
+\item \code{supplement_error_no_map}: \verb{_supplement.yml} has no \verb{supplement:} map.
+\item \code{supplement_error_field_type}: a DOI in \verb{_supplement.yml} is not one
+text value, or \code{zenodo} is not a map.
 \item \code{supplement_error_doi}: a DOI in \verb{_supplement.yml}, \code{CITATION.cff}, or
 the badge on \code{docs/index.html} is not a DOI.
 }

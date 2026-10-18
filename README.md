@@ -97,13 +97,16 @@ finds:
 
 - files larger than GitHub's limit of 100 MiB
 - saved R objects, such as `.rds` files, that git tracks or does not ignore
-- reports with code and no stored output in `_freeze/`
+- reports directly in `analyses/` with code and no stored output in
+  `_freeze/`
 - a site with no `docs/` folder
-- links in `docs/` to files that are not in the site
+- quoted relative links in `docs/` to files that are not in `docs/`, or to
+  folders there with no `index.html`
 - DOIs in `CITATION.cff` or on the home page that differ from
   `_supplement.yml`
 
-It checks only links inside the site. For the
+It checks only relative links, which point inside the site. It does not
+check links that start with `/` and requests no web address. For the
 file size and saved object checks, it reads the file list from git. When
 git cannot run or the folder is not in a git repository, it skips those two
 checks and says so.
