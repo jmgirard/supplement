@@ -1,5 +1,6 @@
 ---
 title: "Example Analysis"
+description: "A short example report. Replace it with your own."
 ---
 
 This report shows the parts of an analysis page. Replace it with your own

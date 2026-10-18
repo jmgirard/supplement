@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M006 done and archived, M003 row pruned, scaffo
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M007 | add_report() and add_data() list new site files | planned | M006 | high | milestones/M007-add-report-data.md |
+| M007 | add_report() and add_data() list new site files | in-progress | M006 | high | milestones/M007-add-report-data.md |
 | M006 | create_supplement() makes a site from the template | done | — | high | milestones/archive/M006-create-supplement.md |
 | M005 | Metadata writers for CITATION.cff and .zenodo.json | done | — | high | milestones/archive/M005-metadata-writers.md |
 | M004 | Home page from _supplement.yml with shortcodes | done | M003 | high | milestones/archive/M004-home-page-shortcodes.md |

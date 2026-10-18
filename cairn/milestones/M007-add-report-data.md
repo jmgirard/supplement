@@ -1,13 +1,13 @@
 # M007: add_report() and add_data() list new site files
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** M006
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — new exported R functions and a change to the template's home page
-- **Branch/PR:** —
+- **Branch/PR:** m007-add-report-data
 
 ## Goal
 
@@ -49,7 +49,7 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 
 ## Tasks
 
-- [ ] T1: In `inst/template/index.qmd`, replace the "Analysis Reports" table with a Quarto listing of `analyses/*.qmd` in table form, with the title and description fields. Add a `description:` to `analyses/example.qmd`. Change `_README.md` text that tells authors to edit the table. Update `tests/testthat/test-template.R`, and add the AC1 render check.
+- [x] T1: In `inst/template/index.qmd`, replace the "Analysis Reports" table with a Quarto listing of `analyses/*.qmd` in table form, with the title and description fields. Add a `description:` to `analyses/example.qmd`. Change `_README.md` text that tells authors to edit the table. Update `tests/testthat/test-template.R`, and add the AC1 render check.
 - [ ] T2: Write an internal helper that inserts one item at the end of a block-style YAML list as text. It finds the list by its key path, reads the indent of the items, double-quotes and escapes each string, and keeps the file's other lines. Test it directly against the AC4 fixture files, because its logic stands apart from the two callers.
 - [ ] T3: Write `add_report()` in `R/add-report.R`, with tests for AC2 and its AC5 cases. Check every argument and the menu before the first write.
 - [ ] T4: Write `add_data()` in `R/add-data.R`, with tests for AC3 and its AC5 cases. Check every argument and `_supplement.yml` before the copy.
@@ -70,3 +70,5 @@ Export `add_report()` and `add_data()`, which add an analysis report or a data f
 - 2026-10-18: criteria audit (full mode, fresh Opus reader) returned 10 findings on the M007 draft and 3 across both milestones. Fixed all: AC2 reads only the front matter, double-quotes values, and probes YAML 1.1 forms; AC3 handles a file already in `data/`; AC4 limits its promise to block-style lists and names its fixture shapes; AC5 adds argument, already-listed, and leading-dot cases, names the not-found errors, reuses classes, and checks before the copy; AC6 drops its test-skip clause, which T5 now carries; AC7 adds help page examples. The home page gap became AC1.
 - 2026-10-18: re-audit (full mode, same fresh reader) of AC1 and AC2 after the question set returned 6 findings. Fixed all: AC1 names the listing's fields and matches the link by its end; AC2 double-quotes the menu text and writes UTF-8; AC5 rejects an empty title and line breaks; AC6 renders plain values and compares cell text without tags, because Quarto reads these values as Markdown.
 - 2026-10-18: inbox sweep: no open issues or pull requests.
+- 2026-10-18: implement started on branch m007-add-report-data.
+- 2026-10-18: T1 done: index.qmd lists analyses/*.qmd in a table listing (id `reports`, title column named Report, sort and filter controls off); example.qmd has a description; _README.md has a Reports section; static and render tests added. Suite 696 pass, 0 skip.
