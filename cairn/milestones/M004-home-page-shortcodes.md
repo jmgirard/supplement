@@ -49,7 +49,7 @@ Drive the template's home page from one `_supplement.yml` file through a Quarto 
 - [x] T3: `supplement-data-table`: read each file's size from the project root (`quarto.project.directory`), format it by the AC4 rule, write links relative to the page, and call `error()` with the file name when a file is missing.
 - [x] T4: Tests: a fixture project in a temp folder covering AC2 to AC6, with the size fixtures outside the `resources` glob, and a sparse file for the 1000000000-byte case.
 - [x] T5: Planted-defect check in a scratch copy, one at a time: the size rule switched to base 1024; the unit chosen before rounding; the `error()` on a missing file removed; links always written from the project root; the DOI fallback order swapped. Each makes at least one test fail. Record the results in the work log.
-- [ ] T6: `_README.md` section on `_supplement.yml` and the shortcodes, a NEWS.md entry, then `devtools::check()`.
+- [x] T6: `_README.md` section on `_supplement.yml` and the shortcodes, a NEWS.md entry, then `devtools::check()`.
 
 ## Work log
 
@@ -66,6 +66,7 @@ Drive the template's home page from one `_supplement.yml` file through a Quarto 
 - 2026-10-18: T3 done: table columns File (a download link showing the base name), Description, Size; links use `quarto.project.offset`. Found that Quarto rewrites an existing metadata path to be page-relative and leaves a missing one as written (`toInputRelativePaths` in quarto.js), so the shortcode strips the offset back off before it reads the size. Also found that Quarto copies every linked local file into `docs/`, so the size fixtures are copied whatever glob they sit outside. A scratch render showed the seven AC4 sizes, `../data/example.csv` from `analyses/`, and exit 1 with the missing name on stderr only; tests 48 pass.
 - 2026-10-18: T4 done: `test-shortcodes.R` with 8 tests and helpers in `helper-template.R`; the AC3 to AC5 tests use a small fixture site with the extension and no R code, the AC2 test edits a fresh `quarto use template` folder, and the AC6 test reads the shared rendered site. The 1000000000-byte fixture is a sparse file made by `seek()`; Quarto copies it into `docs/` because the table links it, which was cheap on this Mac (APFS) and may not be on Linux. Full suite 167 pass, 0 skip.
 - 2026-10-18: T5 done: each defect planted alone in a `git archive` copy of fb2edac, shortcode tests run there. Base 1024: 5 failures at the size cell (test-shortcodes.R:105). Unit before rounding: 2 failures at the size cell (the 999950 case on both pages). `error()` removed: render still exits non-zero, 1 failure at the stderr message match (line 123). Root links: 5 failures at the link match (line 102). DOI order swapped: 2 failures (lines 24, 25).
+- 2026-10-18: T6 done: `_README.md` gains a "Paper facts in `_supplement.yml`" section and two Contents lines, the package README one paragraph, NEWS.md one entry; DESIGN.md Architecture updated for the new files. `devtools::document()` added `Config/roxygen2/version: 8.1.0` to DESCRIPTION; kept, so the review's no-diff `document()` check holds. `devtools::check()`: 0 errors, 0 warnings, 0 notes, tests run inside it; `devtools::test()`: 167 pass, 0 skip.
 
 ## Decisions
 
