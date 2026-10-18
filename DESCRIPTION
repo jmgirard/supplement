@@ -13,6 +13,8 @@ License: MIT + file LICENSE
 URL: https://github.com/jmgirard/supplement
 BugReports: https://github.com/jmgirard/supplement/issues
 Suggests:
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0),
     withr
 Config/testthat/edition: 3

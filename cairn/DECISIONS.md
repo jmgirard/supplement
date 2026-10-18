@@ -38,3 +38,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** In a git repository, Quarto writes its own `.gitignore` before pre-render scripts run, and GitHub's R `.gitignore` template ignores `docs/`. D-004's rename alone then left fit files unignored or the site uncommitted.
 **Decision:** When `.gitignore` exists, `setup.ts` appends the template's missing lines, and the template's `.gitignore` ends with `!docs/` and `!_freeze/`. When `README.md` exists, the guide goes to `SUPPLEMENT.md`.
 **Consequences:** Setup edits an author's existing `.gitignore` by appending only. Existing lines are never removed or reordered.
+
+### D-007 (2026-10-18): knitr and rmarkdown are suggested dependencies (extends D-005)
+
+**Context:** The template tests render the example report, which needs knitr and rmarkdown, and skip without them. Packages that tests use belong in DESCRIPTION.
+**Decision:** DESCRIPTION lists knitr and rmarkdown under Suggests. The user granted this at the M003 merge gate.
+**Consequences:** No package is added to Imports. Users of the template still need knitr and rmarkdown to render R reports.
