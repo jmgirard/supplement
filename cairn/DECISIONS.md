@@ -50,3 +50,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** The pilot showed that a build without `data/` drops the download files from `docs/` (pilot-port P8), and P8's disposition left the guard to a later release check. The template's data table now lists each data file from `_supplement.yml`.
 **Decision:** The `supplement-data-table` shortcode stops the render when a listed file is missing or is a folder, and names it. The user chose this at the M004 plan gate over a table row marked as missing.
 **Consequences:** A clone without its listed data files no longer renders, so a data-free rebuild is no longer a test of the full site. A site whose data files are fetched after the render would need another approach. The release check can still look for the same problem.
+
+### D-009 (2026-10-18): yaml, jsonlite, and cli are imported dependencies (extends D-005, D-007)
+
+**Context:** The first exported functions read `_supplement.yml`, write `.zenodo.json`, and need user-facing errors, which the r-package profile asks to come from cli.
+**Decision:** DESCRIPTION lists yaml, jsonlite, and cli under Imports. The user granted this at the M005 plan gate.
+**Consequences:** Installing the package now installs these three. The template itself still needs no R package beyond those D-007 names for rendering R reports.

@@ -7,6 +7,7 @@ _Last hygiene check: 2026-10-18 (M004 done and archived, template row graduated,
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
+| M005 | Metadata writers for CITATION.cff and .zenodo.json | planned | — | high | milestones/M005-metadata-writers.md |
 | M004 | Home page from _supplement.yml with shortcodes | done | M003 | high | milestones/archive/M004-home-page-shortcodes.md |
 | M003 | Package skeleton and starter template | done | — | high | milestones/archive/M003-template-starter.md |
 | M002 | Pilot render on the data machine and data-free rebuild | done | M001 | high | milestones/archive/M002-pilot-render-check.md |
@@ -14,7 +15,7 @@ _Last hygiene check: 2026-10-18 (M004 done and archived, template row graduated,
 ## Candidates
 
 - scaffolding functions: `create_supplement()`, `add_report()`, and `add_data()`, with tests. — added 2026-10-18
-- metadata writers: `write_citation()` and `write_zenodo()` generate `CITATION.cff` and `.zenodo.json` from `_supplement.yml`. — added 2026-10-18
+- metadata writers: `write_citation()` and `write_zenodo()` generate `CITATION.cff` and `.zenodo.json` from `_supplement.yml`. — added 2026-10-18 — started M005
 - release checks: `check_supplement()` finds files over 100 MB, tracked `.rds` files, reports with no freeze output, broken links, and mismatched DOIs. `release_supplement()` bumps the version and prints the tag and release commands. — added 2026-10-18
 - template install from GitHub: recommend a pinned tag (`@vX.Y.Z`) in the README once a release exists. Narrowed 2026-10-18: the untagged route ran after the M003 merge and rendered. From the M003 review. — added 2026-10-18
 - Windows check: run the template tests and a render on Windows (CI or by hand), including the no-R test, which skips there, and `nojekyll.ts` with a `C:\` output path. From the M003 review. Also from the M004 review: data files of 2 GiB or more may read as missing (32-bit `ftell` in Windows Lua), and the 1 GB sparse size fixture may cost 1 GB of disk off macOS when Quarto copies it into `docs/`. — added 2026-10-18
