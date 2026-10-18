@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (scaffold created from the scope draft)_
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M001 | Pilot site restructure to the freeze layout | planned | — | high | milestones/M001-pilot-restructure.md |
+| M001 | Pilot site restructure to the freeze layout | review | — | high | milestones/M001-pilot-restructure.md |
 | M002 | Pilot render on the data machine and data-free rebuild | planned | M001 | high | milestones/M002-pilot-render-check.md |
 
 ## Candidates
@@ -21,4 +21,5 @@ _Last hygiene check: 2026-10-18 (scaffold created from the scope draft)_
 - site output location: `docs/` on the default branch keeps rendered reports in the Zenodo archive. A `gh-pages` branch built by GitHub Actions keeps rendered files out of the source. Recommendation from the scope draft: `docs/`, with an optional Actions workflow. — added 2026-10-18
 - freeze level: `freeze: true` never re-runs a report on a project render. `freeze: auto` re-runs a changed report. If the data is absent, that re-run fails. Recommendation from the scope draft: `true`. — added 2026-10-18
 - extension packaging: one repository that is the R package, with `_extensions/` at the root (in `.Rbuildignore`) copied into `inst/` at build time, or two repositories. Recommendation from the scope draft: one. — added 2026-10-18
+- paper figure files: the model reports write the paper figures with ggsave to `analyses/*.pdf` and `analyses/*.png`, which `.gitignore` blocks, so the site does not publish them. Decide if the template gives figures a tracked, published folder. From the M001 review. — added 2026-10-18
 - [low] existing-site migration: a helper that converts a site with the old `src/` and `analyses/` layout to the freeze layout. Out of scope for version 1. — added 2026-10-18
