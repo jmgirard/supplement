@@ -287,6 +287,9 @@ R100 analyses/visual_analyses_files/libs/tabwid-1.1.3/tabwid.js docs/site_libs/t
 - P6: Git reports some deleted per-report files as renames into `_freeze/` and `docs/site_libs/`. Quarto stores figures and shared libraries there. Fix: none needed. The template `.gitignore` must not block `_freeze/`.
 - P7: The data machine keeps old ignored render files in `src/`. Also, a full render with a missing fit file refits that model for hours and stores new estimates. Fix: `.gitignore` blocks `/src/`, and the README data-machine steps check the `.rds` files first and stage only `_freeze/` and `docs/` (4b620d7).
 - P8: A build with `data/*.csv` deleted drops `docs/data/*.csv`, so the home-page download buttons break. Fix: none in the pilot, where only M002's test clone deletes the data. A data-free build is a test and must never be published.
+- P9: The posterior predictive check figures change on every render, because `pp_check(..., ndraws = 100)` draws without a seed (`analyses/verbal_analyses.qmd:393`, and the same call in the vocal and visual reports). The dddad4a render changed all 27 of them, while the 6 other model figures and every printed number match v1.1.0. Fix: none in the pilot, because a merge is not planned. Seeding the draws (`set.seed()` before each call) makes the figures stable.
+- P10: The theme file name depends on the machine. The Windows render wrote `docs/site_libs/bootstrap/bootstrap-172ba59….min.css`, the same name as on main. A rebuild on this Mac, with the same Quarto 1.10.19, writes `bootstrap-445b8638….min.css` and changes the link in every page. Fix: none in the pilot. A site gets one publishing machine, or CI builds `docs/`.
+- P11: `docs/search.json` now indexes the demographics page, including the default private drive paths in its code and the Table 1 counts. Main's published page already shows that text, so nothing new is public, but site search now finds it. Fix: none in the pilot. A page can leave the search index with `search: false`.
 
 No problems came from the data-machine render: the user reported none, so this section has no entry for it.
 
@@ -296,9 +299,10 @@ No problems came from the data-machine render: the user reported none, so this s
 - P3 → closed by the data-machine render, as M002 shows.
 - P4, P5, and P6 → the "template extraction" candidate row: the template `_quarto.yml`, `index.qmd`, and `.gitignore` take these forms.
 - P7 → the "template extraction" candidate row: the template README carries the fit check and the narrow `git add`.
+- P9, P10, and P11 → the "template extraction" candidate row: the template README tells authors to seed random draws in reports, to publish from one machine, and how to keep a page out of search.
 - P8 → the "release checks" candidate row: `check_supplement()` refuses to publish a build that lacks the data files `index.qmd` links to.
 
 ## Open questions
 
-- Windows output in `_freeze/` (answered M002): `_freeze/` from the data machine holds no CR characters. Its only backslashes are the default data paths in the demographics source. The rebuild on this Mac passed — observed 2026-10-18.
+- Windows output in `_freeze/` (answered M002, corrected M002 review): `_freeze/` from the data machine holds no CR characters and no user paths. Its backslashes come from the source code, such as the default data paths, R `\(x)` lambdas, and `"\n"` strings. The rebuild on this Mac passed — observed 2026-10-18.
 - A re-render by name changes the random table ids that gt writes. Each such render shows a diff in `_freeze/` and `docs/` with no change in results — observed 2026-10-18.
