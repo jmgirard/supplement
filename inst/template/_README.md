@@ -128,11 +128,12 @@ data frame. It finds:
 - a missing `docs/` folder
 - quoted relative links in `docs/` to files that are not in `docs/`, or to
   folders there with no `index.html`
+- pages in `docs/` that cannot be read
 - a DOI in `CITATION.cff` or on the home page's badge that differs from
-  `_supplement.yml`
+  `_supplement.yml`, and a `CITATION.cff` that cannot be read
 
 The first two checks read the file list from git. When git cannot run or
-this folder is not in a git repository, the function skips them and says
+this folder is not in a git work tree, the function skips them and says
 so.
 
 ## How the site renders

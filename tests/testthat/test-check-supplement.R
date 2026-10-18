@@ -389,6 +389,11 @@ test_that("DOIs that differ between files give a doi-mismatch row", {
   writeBin(c(charToRaw("title: caf"), as.raw(0xe9), charToRaw("\n")), file.path(site, "CITATION.cff"))
   expect_no_warning(rows <- doi_rows(site))
   expect_length(rows$problem, 1L)
+  # A readable map with no final line break, or with a number that YAML
+  # warns about, still compares its DOI.
+  site <- site_with("", "10.5281/zenodo.9", cff = "")
+  writeBin(charToRaw("count: 99999999999999999999\ndoi: \"10.5281/zenodo.9\""), file.path(site, "CITATION.cff"))
+  expect_identical(nrow(doi_rows(site)), 0L)
   # A one-item sequence is not one text value.
   site <- site_with("", "10.5281/zenodo.9", cff = "")
   writeLines("doi: [10.5281/zenodo.9]", file.path(site, "CITATION.cff"))

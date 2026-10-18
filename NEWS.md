@@ -24,8 +24,9 @@
   objects that git tracks or does not ignore. It finds reports with code
   and no stored output, and a missing `docs/` folder. It also finds
   quoted relative links in `docs/` to files that are not in `docs/`, and
-  DOIs that differ from
-  `_supplement.yml`. It returns the problems as a data frame.
+  pages there that cannot be read. It finds DOIs that differ from
+  `_supplement.yml`, and a `CITATION.cff` that cannot be read. It returns
+  the problems as a data frame.
 * `write_citation()` and `write_zenodo()` write `CITATION.cff` and
   `.zenodo.json` from `_supplement.yml`.
 * Authors in the template's `_supplement.yml` now have `family:` and

@@ -1,6 +1,6 @@
 # M008: check_supplement() lists release problems
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -96,6 +96,8 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: T8 done. Reports and `index.qmd` are read inside `tryCatch()`; a dangling or unreadable `docs/` page gives a `broken-link` row; `CITATION.cff` is found with `path_occupied()` and read with list sequences and warnings caught; tabs and line breaks are dropped from link values, as the URL standard's parser does, in place of keeping them; a file link ending in `/` is broken; a link is split at `/` before decoding; `execute-results/` is listed without hidden files; `bare_doi()` is back to its main form and `drop_trailing_sep()` serves three callers; the AC1 test renders a site made by `create_supplement()`; the AC3 test checks each reason and a `rev-parse` that prints `false`. `devtools::test()` 1377 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - 2026-10-18: implement chose to drop tabs and line breaks from a link over unwrapping them as part of the name, because browsers request the link without them; falsified by a host that serves such a link as written.
 - 2026-10-18: planted defects turned the T8 tests red: unguarded report read, hidden stored files, no dangling-page row, no tab strip, trailing `/` on a file, `%2F`, dangling `CITATION.cff`, `CITATION.cff` warnings, one-item sequences, unguarded `index.qmd` read, and the old skip reason.
+- 2026-10-18: claim audit: 52 claims read, 4 corrected — R/check-supplement.R, man/check_supplement.Rd, README.md, NEWS.md, inst/template/_README.md, tests/testthat/test-check-supplement.R. The first was a T8 regression: catching every warning from `read_yaml()` made a valid `CITATION.cff` with no final line break read as unreadable; it now reads through `read_page_text()` and `yaml.load()` with warnings muffled, with a test that the planted regression turns red. The others: the `%2F` comment, "not in a git work tree" in place of "not in a git repository", and the unreadable page and `CITATION.cff` cases in the README, `_README.md`, and NEWS lists. The re-read found all four correct.
+- 2026-10-18: implement done; status review. `devtools::test()` 1378 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 
 ## Review
 

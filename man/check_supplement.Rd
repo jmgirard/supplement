@@ -59,7 +59,7 @@ The first two checks look at the files that git tracks or does not
 ignore, which \verb{git ls-files --cached --others --exclude-standard} lists,
 so files that \code{.gitignore} blocks are left out. For these two checks the
 function runs git only to read: \code{git --version}, \verb{git rev-parse --is-inside-work-tree}, and \verb{git ls-files}. When git is not on the PATH,
-one of these commands fails, or the folder is not in a git repository,
+one of these commands fails, or the folder is not in a git work tree,
 it skips these two checks and says so.
 }
 \section{Errors}{

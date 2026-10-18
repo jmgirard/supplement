@@ -41,7 +41,7 @@
 #' so files that `.gitignore` blocks are left out. For these two checks the
 #' function runs git only to read: `git --version`, `git rev-parse
 #' --is-inside-work-tree`, and `git ls-files`. When git is not on the PATH,
-#' one of these commands fails, or the folder is not in a git repository,
+#' one of these commands fails, or the folder is not in a git work tree,
 #' it skips these two checks and says so.
 #'
 #' @param path The folder of the site.
@@ -304,8 +304,8 @@ link_ok <- function(link, docs, page) {
   if (!nzchar(target)) {
     return(TRUE)
   }
-  # Split at `/` before decoding, because a web server reads `%2F` as part
-  # of a name, not as a folder separator.
+  # Split at `/` before decoding, so that `%2F` is not taken as a folder
+  # separator. No file name can hold `/`, so such a link counts as broken.
   decoded <- vapply(strsplit(target, "/", fixed = TRUE)[[1]], percent_decode, character(1))
   if (anyNA(decoded) || any(grepl("/", decoded, fixed = TRUE))) {
     return(FALSE)
@@ -410,12 +410,17 @@ check_dois <- function(path, meta, call = parent.frame()) {
 }
 
 check_cff_doi <- function(cff, expected) {
-  # Read every sequence as a list, as read_supplement() does, so that
-  # `doi: [x]` is not one text value.
-  doc <- tryCatch(
-    yaml::read_yaml(cff, handlers = list(seq = function(x) as.list(x))),
-    error = function(e) NULL, warning = function(w) NULL
-  )
+  # read_page_text() returns NULL for a file that cannot be read, such as a
+  # link to a missing file. Read every sequence as a list, as
+  # read_supplement() does, so that `doi: [x]` is not one text value. A
+  # warning, such as for a large number, does not make the file unreadable.
+  text <- read_page_text(cff)
+  doc <- if (!is.null(text)) {
+    tryCatch(
+      suppressWarnings(yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)))),
+      error = function(e) NULL
+    )
+  }
   if (!is_map(doc)) {
     return(problem_rows(
       "doi-mismatch", "CITATION.cff",
