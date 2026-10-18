@@ -69,6 +69,7 @@ Move pilot-ptsd-markers, on a branch, to one Quarto website project with freeze 
 - 2026-10-18: T7 done: `cairn/references/pilot-port.md` written. Its 122-line path list was compared by script with the diff output and matches.
 - 2026-10-18: claim audit: not owed — internal tier.
 - 2026-10-18: all tasks done; status set to review.
+- 2026-10-18: step-7 approval: m001-pilot-restructure approved for merge. The companion branch `freeze-layout` is not merged and gets no PR, per the branch-fate answer in the question set.
 
 ## Decisions
 
