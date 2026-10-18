@@ -36,7 +36,9 @@ needs the data.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
 \item \code{"broken-link"}: a quoted \code{href} or \code{src} link on a page in \verb{docs/} to
 a file that is not in \verb{docs/}, or to a folder there with no
-\code{index.html}. Links that start with \code{/}, \verb{#}, or a scheme such as
+\code{index.html}, or a link that ends with \code{/} to a file. A page that
+cannot be read, such as a link to a missing file, also counts. Links
+that start with \code{/}, \verb{#}, or a scheme such as
 \verb{https:} are not checked, and no web address is requested. GitHub
 Pages matches letter case, so a link whose case differs from the file
 name counts as broken, also on a disk that ignores case. A link that
@@ -48,8 +50,9 @@ as \code{e} plus an accent) is not caught.
 \code{zenodo.concept-doi} when that is empty). A home page whose source uses
 \verb{\{\{< supplement-doi >\}\}} but that shows no badge, while
 \verb{_supplement.yml} has a DOI, also counts. So does a \code{CITATION.cff}
-that cannot be read as a YAML map, and a DOI in \code{CITATION.cff} or on
-the badge that is not a DOI.
+that cannot be read or is not a YAML map (a link to a missing file
+included), and a DOI in \code{CITATION.cff} or on the badge that is not a
+DOI.
 }
 
 The first two checks look at the files that git tracks or does not

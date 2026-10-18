@@ -53,7 +53,9 @@ touch <- function(path) {
 test_that("a rendered site in a git repository has no problems", {
   skip_if_no_quarto()
   skip_if_no_git()
-  site <- site_copy()$dir
+  site <- new_site()
+  rendered <- run_in(site, "quarto", "render")
+  expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
   local_plain_git()
   expect_identical(git_in(site, c("init", "-q"))$status, 0L)
 
@@ -154,17 +156,23 @@ test_that("git runs only through its helper", {
 
 test_that("the git checks are skipped when git cannot run", {
   site <- new_site()
+  rev_parse <- function(status, out) {
+    function(args, dir) {
+      if (identical(args, "--version")) list(status = 0L, stdout = charToRaw("git version 2"))
+      else list(status = status, stdout = charToRaw(out))
+    }
+  }
   cases <- list(
     "not on the PATH" = function(args, dir) NULL,
-    "--version fails" = function(args, dir) list(status = 69L, stdout = raw()),
-    "not in a work tree" = function(args, dir) {
-      if (identical(args, "--version")) list(status = 0L, stdout = charToRaw("git version 2"))
-      else list(status = 128L, stdout = raw())
-    }
+    "`git --version` failed" = function(args, dir) list(status = 69L, stdout = raw()),
+    "`git rev-parse` failed, or the folder is not in a git work tree" = rev_parse(128L, ""),
+    # Inside .git/, rev-parse exits 0 and prints false.
+    "`git rev-parse` failed, or the folder is not in a git work tree" = rev_parse(0L, "false\n")
   )
-  for (case in names(cases)) {
+  for (i in seq_along(cases)) {
+    case <- names(cases)[i]
     calls <- list()
-    mock <- cases[[case]]
+    mock <- cases[[i]]
     local_mocked_bindings(git_run = function(args, dir) {
       calls[[length(calls) + 1]] <<- args
       mock(args, dir)
@@ -172,7 +180,9 @@ test_that("the git checks are skipped when git cannot run", {
     msgs <- testthat::capture_messages(result <- check_supplement(site))
     expect_identical(attr(result, "skipped"), c("large-file", "saved-object"), info = case)
     expect_false(any(result$check %in% c("large-file", "saved-object")), info = case)
-    expect_match(paste(msgs, collapse = ""), "Skipped", info = case)
+    # cli wraps long lines, so compare with each run of spaces as one.
+    shown <- gsub("\\s+", " ", paste(msgs, collapse = " "))
+    expect_true(grepl("Skipped", shown, fixed = TRUE) && grepl(case, shown, fixed = TRUE), info = case)
     for (args in calls) {
       expect_true(identical(args, "--version") || identical(args, c("rev-parse", "--is-inside-work-tree")),
                   info = case)
@@ -192,10 +202,17 @@ test_that("reports with code but no stored output give a no-stored-output row", 
   qmd("rust-block", c("```{rust}", "fn main() {}", "```"))
   qmd("stored", c("````{r label}", "1 + 1", "````"))
   touch(file.path(site, "_freeze", "analyses", "stored", "execute-results", "html.json"))
+  # A hidden file is not stored output.
+  qmd("hidden-only", c("```{r}", "1 + 1", "```"))
+  touch(file.path(site, "_freeze", "analyses", "hidden-only", "execute-results", ".DS_Store"))
+  # A report that is a link to a missing file cannot be read and gives no
+  # row and no error.
+  file.symlink(file.path(site, "no-such.qmd"), file.path(site, "analyses", "dangling.qmd"))
 
-  rows <- rows_of(check_quiet(site), "no-stored-output")
+  expect_no_error(rows <- rows_of(check_quiet(site), "no-stored-output"))
   # example.qmd from the template has R chunks and no stored output yet.
-  expect_setequal(rows$file, file.path("analyses", c("r-chunk.qmd", "python-chunk.qmd", "callout.qmd", "example.qmd")))
+  expect_setequal(rows$file, file.path("analyses", c("r-chunk.qmd", "python-chunk.qmd", "callout.qmd",
+                                                      "hidden-only.qmd", "example.qmd")))
 })
 
 test_that("glob characters in the site path do not hide reports", {
@@ -261,7 +278,11 @@ test_that("links to files missing from the site give a broken-link row", {
     '<a href="a%00b.html">nul</a>',
     '<a href="a%FFb.html">not UTF-8</a>',
     '<a href="data/upper.csv">wrong case</a>',
-    '<a href="data/Upper.csv">right case</a>'
+    '<a href="data/Upper.csv">right case</a>',
+    '<a href="data/ok.csv/">file with a slash</a>',
+    '<a href="data%2Fok.csv">encoded slash</a>',
+    # A browser drops tabs and line breaks from a link, so this one works.
+    '<a href="data/\nok.csv">line break</a>'
   ))
   # A page in Latin-1 with a NUL byte, and a link to a missing page.
   latin <- c(charToRaw('<p>caf'), as.raw(0xe9), as.raw(0), charToRaw('</p><a href="gone-latin.csv">x</a>'))
@@ -269,10 +290,17 @@ test_that("links to files missing from the site give a broken-link row", {
   file.symlink(file.path(site, "docs", "no-such-page.html"), file.path(site, "docs", "dangling.html"))
 
   rows <- rows_of(check_quiet(site), "broken-link")
+  # The page that is a link to a missing file gives its own row.
+  unread <- !grepl("`", rows$problem, fixed = TRUE)
+  expect_identical(rows$file[unread], "docs/dangling.html")
+  expect_match(rows$problem[unread], "cannot be read")
+  rows <- rows[!unread, ]
   links <- regmatches(rows$problem, regexpr("`[^`]*`$", rows$problem))
   expect_setequal(
     paste(rows$file, links),
     c("docs/names.html `café.html`",
+      "docs/names.html `data/ok.csv/`",
+      "docs/names.html `data%2Fok.csv`",
       "docs/names.html `a%00b.html`",
       "docs/names.html `a%FFb.html`",
       "docs/names.html `data/upper.csv`",
@@ -350,6 +378,26 @@ test_that("DOIs that differ between files give a doi-mismatch row", {
   for (text in c("just text", "doi: [unclosed")) {
     site <- site_with("10.5281/zenodo.2")
     writeLines(text, file.path(site, "CITATION.cff"))
-    expect_match(doi_rows(site)$problem, "cannot be read as a YAML map")
+    expect_match(doi_rows(site)$problem, "cannot be read, or it is not a YAML map")
   }
+  # A CITATION.cff that is a link to a missing file, or that holds Latin-1
+  # bytes, gives the same row and no warning.
+  site <- site_with("10.5281/zenodo.2")
+  file.symlink(file.path(site, "no-such.cff"), file.path(site, "CITATION.cff"))
+  expect_match(doi_rows(site)$problem, "cannot be read, or it is not a YAML map")
+  site <- site_with("10.5281/zenodo.2")
+  writeBin(c(charToRaw("title: caf"), as.raw(0xe9), charToRaw("\n")), file.path(site, "CITATION.cff"))
+  expect_no_warning(rows <- doi_rows(site))
+  expect_length(rows$problem, 1L)
+  # A one-item sequence is not one text value.
+  site <- site_with("", "10.5281/zenodo.9", cff = "")
+  writeLines("doi: [10.5281/zenodo.9]", file.path(site, "CITATION.cff"))
+  expect_match(doi_rows(site)$problem, "not one text value")
+  # An index.qmd that cannot be read stops nothing.
+  site <- site_with("10.5281/zenodo.2", badges = character())
+  index <- file.path(site, "index.qmd")
+  Sys.chmod(index, "000")
+  withr::defer(Sys.chmod(index, "644"))
+  skip_if(file.access(index, 4) == 0, "the file can still be read, as for root")
+  expect_no_error(doi_rows(site))
 })

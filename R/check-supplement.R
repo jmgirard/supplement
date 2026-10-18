@@ -18,7 +18,9 @@
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: a quoted `href` or `src` link on a page in `docs/` to
 #'   a file that is not in `docs/`, or to a folder there with no
-#'   `index.html`. Links that start with `/`, `#`, or a scheme such as
+#'   `index.html`, or a link that ends with `/` to a file. A page that
+#'   cannot be read, such as a link to a missing file, also counts. Links
+#'   that start with `/`, `#`, or a scheme such as
 #'   `https:` are not checked, and no web address is requested. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
 #'   name counts as broken, also on a disk that ignores case. A link that
@@ -30,8 +32,9 @@
 #'   `zenodo.concept-doi` when that is empty). A home page whose source uses
 #'   `{{< supplement-doi >}}` but that shows no badge, while
 #'   `_supplement.yml` has a DOI, also counts. So does a `CITATION.cff`
-#'   that cannot be read as a YAML map, and a DOI in `CITATION.cff` or on
-#'   the badge that is not a DOI.
+#'   that cannot be read or is not a YAML map (a link to a missing file
+#'   included), and a DOI in `CITATION.cff` or on the badge that is not a
+#'   DOI.
 #'
 #' The first two checks look at the files that git tracks or does not
 #' ignore, which `git ls-files --cached --others --exclude-standard` lists,
@@ -72,9 +75,7 @@
 #' unlink(site, recursive = TRUE)
 check_supplement <- function(path = ".") {
   check_path(path)
-  # Drop the separators at the end, as create_supplement() does. A root such
-  # as "/" or "C:/" keeps its separator.
-  path <- sub("^(.*[^/\\\\:])[/\\\\]+$", "\\1", path)
+  path <- drop_trailing_sep(path)
   meta <- read_supplement(path)
 
   git <- git_files(path)
@@ -234,11 +235,15 @@ check_stored_output <- function(path) {
   reports <- file.path(dir, names[!startsWith(names, ".")])
   reports <- reports[!dir.exists(reports)]
   missing <- vapply(reports, function(report) {
-    lines <- readLines(report, warn = FALSE, encoding = "UTF-8")
+    # A report that cannot be read, such as a link whose target is missing,
+    # has no code that a render could run.
+    lines <- tryCatch(readLines(report, warn = FALSE, encoding = "UTF-8"),
+                      error = function(e) character(), warning = function(w) character())
     has_code <- any(grepl("^\\s*`{3,}\\{(r|python|julia)[\\s,}]", lines, perl = TRUE, useBytes = TRUE))
     name <- sub("\\.qmd$", "", basename(report))
+    # Hidden files such as .DS_Store are not stored output.
     stored <- list.files(file.path(path, "_freeze", "analyses", name, "execute-results"),
-                         recursive = TRUE, all.files = TRUE)
+                         recursive = TRUE)
     has_code && length(stored) == 0
   }, logical(1))
   files <- file.path("analyses", basename(reports[missing]))
@@ -259,6 +264,12 @@ check_links <- function(path) {
   pages <- list.files(docs, pattern = "\\.html$", recursive = TRUE)
   rows <- lapply(pages, function(page) {
     links <- page_links(file.path(docs, page))
+    if (is.null(links)) {
+      return(problem_rows(
+        "broken-link", file.path("docs", page),
+        "The page cannot be read, or it is a link to a missing file."
+      ))
+    }
     broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page)]
     problem_rows(
       "broken-link", rep_len(file.path("docs", page), length(broken)),
@@ -269,16 +280,19 @@ check_links <- function(path) {
 }
 
 # The quoted href and src values on a page that point to a place inside
-# the site, each once.
-# A page that cannot be read, such as a link whose target is missing, has
-# no links.
+# the site, each once, or NULL when the page cannot be read, such as a
+# link whose target is missing.
 page_links <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
-    return(character())
+    return(NULL)
   }
   attrs <- regmatches(html, gregexpr("\\b(href|src)\\s*=\\s*(\"[^\"]*\"|'[^']*')", html, perl = TRUE))[[1]]
-  values <- sub("^[^=]*=\\s*.(.*).$", "\\1", attrs, perl = TRUE)
+  # (?s) lets `.` match a line break inside the quotes. A browser drops
+  # tabs and line breaks from a link (the URL standard's parser does), so
+  # they are dropped here too.
+  values <- sub("(?s)^[^=]*=\\s*.(.*).$", "\\1", attrs, perl = TRUE)
+  values <- gsub("[\t\n\r]", "", values)
   skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
   unique(values[!skip])
 }
@@ -290,12 +304,15 @@ link_ok <- function(link, docs, page) {
   if (!nzchar(target)) {
     return(TRUE)
   }
-  decoded <- percent_decode(target)
-  if (is.na(decoded)) {
+  # Split at `/` before decoding, because a web server reads `%2F` as part
+  # of a name, not as a folder separator.
+  decoded <- vapply(strsplit(target, "/", fixed = TRUE)[[1]], percent_decode, character(1))
+  if (anyNA(decoded) || any(grepl("/", decoded, fixed = TRUE))) {
     return(FALSE)
   }
-  parts <- c(strsplit(dirname(page), "/", fixed = TRUE)[[1]],
-             strsplit(decoded, "/", fixed = TRUE)[[1]])
+  # A link that ends with `/` must reach a folder.
+  wants_folder <- endsWith(target, "/")
+  parts <- c(strsplit(dirname(page), "/", fixed = TRUE)[[1]], decoded)
   kept <- character()
   for (part in parts) {
     if (part %in% c("", ".")) next
@@ -310,6 +327,8 @@ link_ok <- function(link, docs, page) {
   }
   if (dir.exists(file.path(docs, paste(kept, collapse = "/")))) {
     kept <- c(kept, "index.html")
+  } else if (wants_folder) {
+    return(FALSE)
   }
   # GitHub Pages matches letter case, so each part must match the name on
   # disk, also on a disk that ignores case.
@@ -379,7 +398,8 @@ check_dois <- function(path, meta, call = parent.frame()) {
 
   rows <- list(problem_rows())
   cff <- file.path(path, "CITATION.cff")
-  if (file.exists(cff) && !dir.exists(cff)) {
+  # path_occupied() also finds a link whose target is missing.
+  if (path_occupied(cff) && !dir.exists(cff)) {
     rows <- c(rows, list(check_cff_doi(cff, cite_doi)))
   }
   index <- file.path(path, "docs", "index.html")
@@ -390,11 +410,16 @@ check_dois <- function(path, meta, call = parent.frame()) {
 }
 
 check_cff_doi <- function(cff, expected) {
-  doc <- tryCatch(yaml::read_yaml(cff), error = function(e) NULL)
+  # Read every sequence as a list, as read_supplement() does, so that
+  # `doi: [x]` is not one text value.
+  doc <- tryCatch(
+    yaml::read_yaml(cff, handlers = list(seq = function(x) as.list(x))),
+    error = function(e) NULL, warning = function(w) NULL
+  )
   if (!is_map(doc)) {
     return(problem_rows(
       "doi-mismatch", "CITATION.cff",
-      "It cannot be read as a YAML map. Run write_citation(overwrite = TRUE)."
+      "It cannot be read, or it is not a YAML map. Run write_citation(overwrite = TRUE)."
     ))
   }
   doi <- doc[["doi"]]
@@ -408,7 +433,7 @@ check_cff_doi <- function(cff, expected) {
     if (is.na(doi) || !nzchar(doi)) doi <- NULL
   }
   if (!is.null(doi)) {
-    bare <- doi_or_null(doi, "doi", "CITATION.cff")
+    bare <- doi_or_null(doi)
     if (is.null(bare)) {
       return(problem_rows(
         "doi-mismatch", "CITATION.cff",
@@ -434,7 +459,7 @@ check_badge_doi <- function(path, index, expected) {
   }
   ids <- regmatches(html, gregexpr("https://zenodo\\.org/badge/DOI/([^\"'<>[:space:]]+?)\\.svg", html, perl = TRUE))[[1]]
   ids <- unique(sub("^https://zenodo\\.org/badge/DOI/(.*)\\.svg$", "\\1", ids))
-  bare <- lapply(ids, doi_or_null, field = "DOI badge", file = "docs/index.html")
+  bare <- lapply(ids, doi_or_null)
   if (length(ids) == 0) {
     if (!is.null(expected) && uses_doi_shortcode(file.path(path, "index.qmd"))) {
       return(problem_rows(
@@ -464,8 +489,8 @@ check_badge_doi <- function(path, index, expected) {
 
 # The DOI from bare_doi(), or NULL when it is not a DOI, so that a bad DOI
 # outside _supplement.yml gives a row and not an error.
-doi_or_null <- function(doi, field, file) {
-  tryCatch(bare_doi(doi, field, file = file), supplement_error_doi = function(e) NULL)
+doi_or_null <- function(doi) {
+  tryCatch(bare_doi(doi, "doi"), supplement_error_doi = function(e) NULL)
 }
 
 same_doi <- function(doi, expected) {
@@ -476,6 +501,7 @@ uses_doi_shortcode <- function(file) {
   if (!file.exists(file) || dir.exists(file)) {
     return(FALSE)
   }
-  lines <- readLines(file, warn = FALSE, encoding = "UTF-8")
+  lines <- tryCatch(readLines(file, warn = FALSE, encoding = "UTF-8"),
+                    error = function(e) character(), warning = function(w) character())
   any(grepl("\\{\\{<\\s*supplement-doi(\\s|>)", lines, perl = TRUE, useBytes = TRUE))
 }

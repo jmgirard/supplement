@@ -65,9 +65,7 @@ create_supplement <- function(path, repo = NULL) {
   check_path(path)
   check_repo(repo)
   given <- path
-  # file.exists("file/") is FALSE on some systems, so drop the separators
-  # at the end. A root such as "/" or "C:/" keeps its separator.
-  path <- sub("^(.*[^/\\\\:])[/\\\\]+$", "\\1", path)
+  path <- drop_trailing_sep(path)
   if (path_occupied(path) && !dir.exists(path)) {
     cli::cli_abort(
       "{.path {path}} is a file or a broken link, so the site cannot be made there.",

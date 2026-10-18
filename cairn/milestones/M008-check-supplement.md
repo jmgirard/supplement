@@ -35,12 +35,12 @@ Export `check_supplement()`, which lists the problems in a site that would break
 
 ## Coverage
 
-- AC1 → T1, T2, T7
-- AC2 → T1, T3, T7
-- AC3 → T1, T3, T7
-- AC4 → T1, T4, T7
-- AC5 → T1, T4, T7
-- AC6 → T1, T5, T7
+- AC1 → T1, T2, T7, T8
+- AC2 → T1, T3, T7, T8
+- AC3 → T1, T3, T7, T8
+- AC4 → T1, T4, T7, T8
+- AC5 → T1, T4, T7, T8
+- AC6 → T1, T5, T7, T8
 - AC7 → T6
 
 ## Tasks
@@ -52,6 +52,7 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - [x] T5: Write the DOI check. Reuse `bare_doi()` from `R/supplement-yml.R` and read `CITATION.cff` with the yaml package.
 - [x] T6: Add roxygen documentation with an example that writes to `tempdir()`, and run `devtools::document()`. Describe the function in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
 - [x] T7: Review return 1. Read pages as UTF-8 with NUL bytes dropped and invalid bytes replaced, so non-ASCII, Latin-1, and NUL pages give rows, not errors; treat a link whose decoded path holds a NUL or invalid UTF-8 as broken; skip a page that cannot be read; match each link path part by its exact name. Find reports with `list.files()` in `analyses/`, not a glob over the site path. Turn an invalid DOI in `CITATION.cff` or the badge into a `doi-mismatch` row, and clean spaces in the `CITATION.cff` doi first. Keep a `C:/` root, match git names with `useBytes`, name `rev-parse` failure in the skip reason, and print sizes with one decimal. Add a test for each.
+- [x] T8: Review return 2. Read reports and `index.qmd` only when they can be read, and give a row for a dangling `CITATION.cff` or `docs/` page. Catch warnings when `CITATION.cff` is read, and read its sequences as lists. Unwrap quoted values that hold a line break, refuse a trailing `/` on a file link, and split a link at `/` before decoding. Ignore hidden files in `execute-results/`. Remove `bare_doi()`'s `file` argument, and share one trailing-separator helper. Make the AC1 test site with `create_supplement()`, and test each AC3 skip reason and a `rev-parse` that prints `false`.
 
 ## Work log
 
@@ -91,6 +92,10 @@ Export `check_supplement()`, which lists the problems in a site that would break
 - 2026-10-18: review pass 2 started on a2793cb; main has not moved.
 - 2026-10-18: review return 2: a report in `analyses/` that is a dangling link or cannot be read stops `check_supplement()` with an unclassed error (AC1). Fix with it the other pass-2 fix-now items: an unreadable `index.qmd`, file links with a trailing `/`, `%2F`, `CITATION.cff` warnings and one-item sequences, dangling `CITATION.cff` and `docs/` pages as rows, line breaks in quoted values, hidden files in `execute-results/`, the unused `bare_doi()` argument, one trailing-separator helper, the AC1 test site made with `create_supplement()`, and the AC3 skip reasons.
 - 2026-10-18: review pass 2 follow-ups went to the rows "link check false positives" and "release check edge cases". The thrash count is now 2 defect returns.
+- 2026-10-18: implement resumed for review return 2; T8 added (minor amendment) and mapped in Coverage to AC1 to AC6.
+- 2026-10-18: T8 done. Reports and `index.qmd` are read inside `tryCatch()`; a dangling or unreadable `docs/` page gives a `broken-link` row; `CITATION.cff` is found with `path_occupied()` and read with list sequences and warnings caught; tabs and line breaks are dropped from link values, as the URL standard's parser does, in place of keeping them; a file link ending in `/` is broken; a link is split at `/` before decoding; `execute-results/` is listed without hidden files; `bare_doi()` is back to its main form and `drop_trailing_sep()` serves three callers; the AC1 test renders a site made by `create_supplement()`; the AC3 test checks each reason and a `rev-parse` that prints `false`. `devtools::test()` 1377 pass, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: implement chose to drop tabs and line breaks from a link over unwrapping them as part of the name, because browsers request the link without them; falsified by a host that serves such a link as written.
+- 2026-10-18: planted defects turned the T8 tests red: unguarded report read, hidden stored files, no dangling-page row, no tab strip, trailing `/` on a file, `%2F`, dangling `CITATION.cff`, `CITATION.cff` warnings, one-item sequences, unguarded `index.qmd` read, and the old skip reason.
 
 ## Review
 
