@@ -26,6 +26,33 @@ test_that("report pages carry the site navbar and stored output", {
   expect_gt(length(frozen), 0)
 })
 
+test_that("the home page lists the reports through a Quarto listing", {
+  index <- file.path(template_dir(), "index.qmd")
+  listing <- front_matter(index)$listing
+  expect_identical(listing$type, "table")
+  expect_identical(listing$contents, "analyses/*.qmd")
+  expect_identical(listing$fields, c("title", "description"))
+  body <- readLines(index)
+  expect_true(any(body == paste0("::: {#", listing$id, "}")))
+  # The hand-written table is gone.
+  expect_false(any(grepl("^\\s*\\|", body)))
+
+  example <- front_matter(file.path(template_dir(), "analyses", "example.qmd"))
+  expect_true(is.character(example$description) && nzchar(example$description))
+})
+
+test_that("the rendered home page lists the example report", {
+  skip_if_no_quarto()
+  site <- site_copy()
+
+  html <- read_text(file.path(site$dir, "docs", "index.html"))
+  rows <- listing_rows(html)
+  expect_length(rows, 1)
+  example <- front_matter(file.path(template_dir(), "analyses", "example.qmd"))
+  expect_identical(rows[[1]]$cells, c(example$title, example$description))
+  expect_true(any(grepl("(^|/)analyses/example\\.html$", rows[[1]]$links)))
+})
+
 test_that("the project freezes output and renders into docs", {
   skip_if_no_quarto()
   site <- site_copy()

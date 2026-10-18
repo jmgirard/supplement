@@ -60,6 +60,29 @@ Put the paper title, citation, Zenodo DOIs, and data files in
 `_supplement.yml`. The home page reads them from that file. The guide
 lists the values and describes the shortcodes that show them.
 
+## Add reports and data
+
+In R, run these functions in the site folder:
+
+```r
+supplement::add_report("models", "Model Comparison", "Fits and compares the models.")
+supplement::add_data("path/to/scores.csv", "Scores of each participant")
+```
+
+`add_report()` writes `analyses/models.qmd`, with the title and the
+description in its front matter. It also adds a link to the report to the
+Analyses menu in `_quarto.yml`. The home page lists each report in
+`analyses/` with its title and description.
+
+`add_data()` copies the file into `data/` and adds it to the `data` list
+in `_supplement.yml`. If the file is directly in `data/`, the function does
+not copy it. The data table on the home page lists each file in that list.
+Every file in `data/` is published on the site.
+
+Both functions add lines to these files as text, so the other lines and
+the comments stay as they are. If a function cannot find the menu or the
+list, it stops, writes nothing, and shows the lines to add by hand.
+
 ## License
 
 MIT. See `LICENSE.md`.

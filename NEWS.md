@@ -12,6 +12,13 @@
   the Quarto command-line interface. With `repo = "owner/name"`, it also
   writes the GitHub repository into the site's links. If the folder already
   holds a file that the template writes, it stops and writes nothing.
+* The template's home page lists the reports in `analyses/` through a
+  Quarto listing, with the title and the description from the front
+  matter of each report, in place of a hand-written table.
+* `add_report()` writes a new report file in `analyses/` and adds it to
+  the Analyses menu in `_quarto.yml`. `add_data()` copies a data file into
+  `data/` and adds it to the `data` list in `_supplement.yml`. Both
+  functions add lines as text, so the comments in these files stay.
 * `write_citation()` and `write_zenodo()` write `CITATION.cff` and
   `.zenodo.json` from `_supplement.yml`.
 * Authors in the template's `_supplement.yml` now have `family:` and

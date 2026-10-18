@@ -15,6 +15,27 @@ Website: https://OWNER.github.io/REPO/
 - `_extensions/supplement/`: the shortcodes that show the DOI badge, the download link, and the data table
 - `docs/`: rendered website, served by GitHub Pages
 
+## Reports
+
+The home page lists each `.qmd` file in `analyses/` in a table, with the
+`title` and the `description` from the front matter of the file. A report
+with no `description` shows the start of its text there. The title links
+to the report's page. To add a report, put its `.qmd` file in
+`analyses/` with a `title` and a `description`. Then add a link to it under
+`Analyses` in the navbar in `_quarto.yml`.
+
+The supplement R package does these steps for you. Run these in R from
+this folder:
+
+```r
+supplement::add_report("models", "Model Comparison", "Fits and compares the models.")
+supplement::add_data("path/to/scores.csv", "Scores of each participant")
+```
+
+`add_report()` writes `analyses/models.qmd` and adds it to the Analyses
+menu. `add_data()` copies the file into `data/` and adds it to the `data`
+list in `_supplement.yml`.
+
 ## Paper facts in `_supplement.yml`
 
 `_supplement.yml` holds the facts about the paper under one `supplement`

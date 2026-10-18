@@ -151,6 +151,36 @@ supplement_value <- function(path, key) {
   sub('^[^:]*:\\s*"(.*)"\\s*$', "\\1", lines[i])
 }
 
+# The YAML front matter of a .qmd file, read with the yaml package.
+front_matter <- function(path) {
+  lines <- readLines(path, encoding = "UTF-8", warn = FALSE)
+  ends <- which(lines == "---")
+  stopifnot(length(ends) >= 2, ends[1] == 1)
+  yaml::yaml.load(paste(lines[2:(ends[2] - 1)], collapse = "\n"))
+}
+
+strip_tags <- function(x) {
+  x <- gsub("<[^>]+>", "", x)
+  trimws(gsub("\\s+", " ", x))
+}
+
+# The rows of the report listing on the home page. Each row is a list with
+# `cells`, the text of each cell with its HTML tags removed, and `links`,
+# the link targets in the row.
+listing_rows <- function(html) {
+  listing <- regmatches(html, regexpr('<div id="listing-reports"[\\s\\S]*?</table>', html, perl = TRUE))
+  if (length(listing) == 0) {
+    return(list())
+  }
+  rows <- regmatches(listing, gregexpr("<tr[^>]*>[\\s\\S]*?</tr>", listing, perl = TRUE))[[1]]
+  rows <- rows[grepl("<td", rows, fixed = TRUE)]
+  lapply(rows, function(row) {
+    cells <- regmatches(row, gregexpr("<td[^>]*>[\\s\\S]*?</td>", row, perl = TRUE))[[1]]
+    links <- regmatches(row, gregexpr('href="[^"]*"', row))[[1]]
+    list(cells = strip_tags(cells), links = sub('^href="([^"]*)"$', "\\1", links))
+  })
+}
+
 # The page header that holds the site navbar, or "" when the page has none.
 quarto_header <- function(html) {
   m <- regmatches(html, regexpr('<header id="quarto-header"[\\s\\S]*?</header>', html, perl = TRUE))

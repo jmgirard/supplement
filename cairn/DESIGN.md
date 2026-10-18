@@ -29,10 +29,9 @@ Zenodo API, Python helper functions, and migration of existing sites.
 
 ## Function Families
 
-- metadata writers (built): `write_citation()`, `write_zenodo()`
-- scaffolding: `create_supplement()` (built), `add_report()` and
-  `add_data()` (planned)
-- release steps (planned): `check_supplement()`, `release_supplement()`
+- metadata writers: `write_citation()`, `write_zenodo()`
+- scaffolding: `create_supplement()`, `add_report()`, `add_data()`
+- release steps: `check_supplement()`, `release_supplement()`
 
 Status and order live in `ROADMAP.md`.
 
@@ -65,6 +64,14 @@ empty values and refuse to replace an existing file unless
 template into a folder, refuses any file, folder, or link in its way
 before it writes, removes what it made when a write fails, and with
 `repo` fills the GitHub placeholders. It never runs git.
+`R/add-report.R` and `R/add-data.R`: `add_report()` writes a report stub
+in `analyses/` and adds it to the Analyses menu in `_quarto.yml`;
+`add_data()` copies a file into `data/` and adds it to the `data` list in
+`_supplement.yml`. Both check every argument and the target file before
+the first write, and refuse a linked `analyses/` or `data/` folder.
+`R/yaml-insert.R` adds a list item as lines of text, so comments stay
+(D-010); it re-reads the result with the yaml package before any write.
+`R/add-utils.R` holds the checks the two share.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in
@@ -85,7 +92,8 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   `supplement-download`, and `supplement-data-table`. Quarto rewrites any
   metadata value that names an existing path to be page-relative, so the
   data table undoes that for each file and description.
-- `index.qmd` reads its paper facts from `_supplement.yml`.
+- `index.qmd` reads its paper facts from `_supplement.yml` and lists the
+  reports in `analyses/` through a Quarto table listing.
   `analyses/example.qmd`, `data/example.csv`, and license files are starter
   content for the author to replace.
 

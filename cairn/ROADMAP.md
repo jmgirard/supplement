@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M006 done and archived, M003 row pruned, scaffo
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M007 | add_report() and add_data() list new site files | planned | M006 | high | milestones/M007-add-report-data.md |
+| M007 | add_report() and add_data() list new site files | review | M006 | high | milestones/M007-add-report-data.md |
 | M006 | create_supplement() makes a site from the template | done | — | high | milestones/archive/M006-create-supplement.md |
 | M005 | Metadata writers for CITATION.cff and .zenodo.json | done | — | high | milestones/archive/M005-metadata-writers.md |
 | M004 | Home page from _supplement.yml with shortcodes | done | M003 | high | milestones/archive/M004-home-page-shortcodes.md |
@@ -24,4 +24,6 @@ _Last hygiene check: 2026-10-18 (M006 done and archived, M003 row pruned, scaffo
 - badge DOI form: the `supplement-doi` shortcode writes a DOI as given, so `https://doi.org/10.5281/zenodo.1` in `_supplement.yml` breaks the badge, while `write_citation()` strips that prefix. Strip it, or stop the render, so the two agree. From the M005 review. — added 2026-10-18
 - docs site and walkthrough: a package site built with the toolkit itself, plus a first-time guide to GitHub Pages and Zenodo. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review). — added 2026-10-18
 - paper figure files: the model reports write the paper figures with ggsave to `analyses/*.pdf` and `analyses/*.png`, which `.gitignore` blocks, so the site does not publish them. Decide if the template gives figures a tracked, published folder. From the M001 review. — added 2026-10-18
+- YAML insert edge shapes: from the M007 review. `#` lines inside a block scalar, and `|+` trailing blank lines, at the end of the last item make add_report() and add_data() refuse valid YAML. A menu that already lists `analyses/<name>.qmd` with the file gone gets a second item. A file with old Mac line endings (CR only) reads as one line, so its menu or list reads as missing. A block-scalar value at the very end of a file with no final line break gains a trailing line break after the insert. — added 2026-10-18
+- Windows-safe names: from the M007 review. add_report() accepts names that Windows reserves, such as `con`, and add_data() accepts base names that end in `.`, which Windows strips. `is_link()` reads `Sys.readlink()`, which returns `""` for a junction, so a junction `data/` or `analyses/` is not refused (see "Windows check"). — added 2026-10-18
 - [low] existing-site migration: a helper that converts a site with the old `src/` and `analyses/` layout to the freeze layout. Out of scope for version 1. — added 2026-10-18
