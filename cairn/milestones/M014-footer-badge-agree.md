@@ -51,7 +51,7 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - [x] T5: Make `supplement-license` return the name as a link to the SPDX page, with the SPDX spelling for the eight listed ids. Change the footer in `inst/template/_quarto.yml` to `Code: {{< supplement-license code >}} · Content: {{< supplement-license content >}}`. Replace the footer test at `tests/testthat/test-shortcodes.R:294-314`, and confirm that the `OWNER/REPO` test in `test-create-supplement.R` still passes.
 - [x] T6: Update the roxygen of `write_citation()` and `write_zenodo()` and run `devtools::document()`. Update the license and DOI comments in `inst/template/_supplement.yml`, `inst/template/_README.md` (about lines 71-75 and 112-115), `NEWS.md`, and the Lua lines in DESIGN.md's Architecture section.
 - [x] T7: (review return 1) State the new id rule in the `supplement-license` text of `inst/template/_README.md` and in the license bullets of `NEWS.md`.
-- [ ] T8: (review return 2) In `supplement.lua`, read a null value as empty and a one-paragraph Blocks value as its inlines for licenses and DOIs; stop on a DOI of more than one block and on a named argument to `supplement-license`; give the `--`/`...` hint only when it applies. Add render tests for each. Add `info` to the two refusal assertions in test-agreement.R. Fix `_README.md:118-119`, the spdx.org link wording in `_README.md` and NEWS.md, and the "no SPDX id" comment in `R/supplement-yml.R`.
+- [x] T8: (review return 2) In `supplement.lua`, read a null value as empty and a one-paragraph Blocks value as its inlines for licenses and DOIs; stop on a DOI of more than one block and on a named argument to `supplement-license`; give the `--`/`...` hint only when it applies. Add render tests for each. Add `info` to the two refusal assertions in test-agreement.R. Fix `_README.md:118-119`, the spdx.org link wording in `_README.md` and NEWS.md, and the "no SPDX id" comment in `R/supplement-yml.R`.
 
 ## Work log
 
@@ -84,6 +84,8 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - 2026-10-19: claim audit: 10 claims read, 0 corrected — NEWS.md, inst/template/_README.md (the T7 lines).
 - 2026-10-19: all tasks done; status set to review.
 - 2026-10-19: review return 2: blame-history #1 — a blank YAML value (null) in `license.code`, `license.content`, `zenodo.version-doi`, or `zenodo.concept-doi` stops the render, so AC1 and AC3 fail for an empty value; the return also carries the review's fix-now items (Review section, pass 2).
+- 2026-10-19: implementation choice: a probe render showed Quarto gives Lua a YAML null as the Lua string "", a block or folded string as Blocks with one Para, and named arguments in `kwargs`; new `simple_value()` reads null and empty forms as empty and one-paragraph Blocks as their inlines, and both `plain_text()` and `checked_doi()` use it.
+- 2026-10-19: T8 done: null and block values, a two-paragraph DOI, a named argument, and the conditional `--`/`...` hint; new render tests in test-shortcodes.R and a null-and-block agreement test in test-agreement.R failed 25 of 58 expectations against the pre-T8 Lua and pass now; `info` on both refusal checks; `_README.md`, NEWS.md, and the `license_id()` comment fixed; `devtools::document()` no diff; `devtools::test()` clean.
 
 ## Decisions
 

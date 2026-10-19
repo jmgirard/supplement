@@ -12,6 +12,27 @@ local function node_at(meta, ...)
   return node
 end
 
+-- A metadata value with its empty and one-paragraph forms made plain: nil
+-- for an empty value (unset, YAML null, which Quarto gives as the Lua
+-- string "", "", or an empty list or map), the inlines of a block or
+-- folded YAML string, which arrives as one paragraph, and the value
+-- itself otherwise. supplement::write_citation() also reads these forms
+-- as empty or as their text.
+local function simple_value(node)
+  if node == nil or node == "" then
+    return nil
+  end
+  local kind = pandoc.utils.type(node)
+  if kind == "string" then
+    return pandoc.Inlines(node)
+  elseif (kind == "Inlines" or kind == "Blocks" or kind == "List" or kind == "table") and next(node) == nil then
+    return nil
+  elseif kind == "Blocks" and #node == 1 and (node[1].t == "Para" or node[1].t == "Plain") then
+    return node[1].content
+  end
+  return node
+end
+
 -- The text of the value at `supplement.<keys...>`, or "" when it is unset.
 local function value(meta, ...)
   local node = node_at(meta, ...)
@@ -55,21 +76,15 @@ end
 -- is the rule of bare_doi() in R/supplement-yml.R.
 local function checked_doi(meta, key)
   local field = "supplement.zenodo." .. key
-  local node = node_at(meta, "zenodo", key)
-  local kind = pandoc.utils.type(node)
-  local text
+  local node = simple_value(node_at(meta, "zenodo", key))
   if node == nil then
-    text = ""
-  elseif kind == "Inlines" or kind == "Blocks" then
-    text = pandoc.utils.stringify(node)
-  elseif (kind == "List" or kind == "table") and next(node) == nil then
-    text = ""
-  else
-    stop("supplement-doi: " .. field .. " in _supplement.yml must be one DOI in quotes, not a list, a map, or true or false")
-  end
-  if text == "" then
     return ""
   end
+  if pandoc.utils.type(node) ~= "Inlines" then
+    stop("supplement-doi: " .. field .. " in _supplement.yml must be one DOI in quotes,"
+      .. " not a list, a map, true or false, or more than one paragraph")
+  end
+  local text = pandoc.utils.stringify(node)
   local id = bare_doi(text)
   local registrant, suffix = id:match("^10%.(%d+)/(.+)$")
   if registrant == nil or #registrant < 4 or #registrant > 9 or suffix:find("%s") then
@@ -203,25 +218,18 @@ local function is_license_id(id)
 end
 
 -- The text of a metadata value that must be one plain word, such as a
--- license id: "" for an unset or empty value or an empty list or map, and
--- nil for any other value that is not a single run of text. Quarto reads
--- metadata as Markdown, so `CC BY 4.0`, `*MIT*`, and `` `MIT` `` arrive
--- as several elements or as a format, and a list, a map, or `true` arrives
--- as a Lua table or value.
+-- license id: "" for an empty value (see simple_value()), and nil for any
+-- other value that is not a single run of text. Quarto reads metadata as
+-- Markdown, so `CC BY 4.0`, `*MIT*`, and `` `MIT` `` arrive as several
+-- elements or as a format, and a list, a map, or `true` arrives as a Lua
+-- table or value.
 local function plain_text(node)
+  node = simple_value(node)
   if node == nil then
     return ""
   end
-  local kind = pandoc.utils.type(node)
-  if kind == "Inlines" then
-    if #node == 0 then
-      return ""
-    elseif #node == 1 and node[1].t == "Str" then
-      return node[1].text
-    end
-    return nil
-  elseif (kind == "List" or kind == "table") and next(node) == nil then
-    return ""
+  if pandoc.utils.type(node) == "Inlines" and #node == 1 and node[1].t == "Str" then
+    return node[1].text
   end
   return nil
 end
@@ -237,7 +245,7 @@ end
 -- supplement::write_citation(). An unquoted number or yes still renders,
 -- because Quarto reads it as text, while write_citation() refuses it.
 local function license(args, kwargs, meta)
-  local key = #args == 1 and pandoc.utils.stringify(args[1]) or ""
+  local key = #args == 1 and next(kwargs) == nil and pandoc.utils.stringify(args[1]) or ""
   if key ~= "code" and key ~= "content" then
     stop("supplement-license: give one argument, code or content, as in {{< supplement-license code >}}")
   end
@@ -245,7 +253,7 @@ local function license(args, kwargs, meta)
   local text = plain_text(node_at(meta, "license", key))
   if text == nil then
     stop("supplement-license: " .. field .. " in _supplement.yml must be one SPDX license id, such as \"CC-BY-4.0\","
-      .. " in quotes. It is a list, a map, true or false, or text with spaces or Markdown: '"
+      .. " in quotes. It is a list, a map, true or false, more than one paragraph, or text with spaces or Markdown: '"
       .. pandoc.utils.stringify(node_at(meta, "license", key)) .. "'")
   end
   local id = as_written(text, quarto.project.offset or ".")
@@ -253,9 +261,15 @@ local function license(args, kwargs, meta)
     return pandoc.Inlines({})
   end
   if not is_license_id(id) then
+    -- Quarto makes "--" an en dash and "..." an ellipsis, so the id in the
+    -- message is not what the file holds. Say so when that happened.
+    local hint = ""
+    if id:find("\u{2013}", 1, true) or id:find("\u{2014}", 1, true) or id:find("\u{2026}", 1, true) then
+      hint = " Quarto reads -- as a dash and ... as one character."
+    end
     stop("supplement-license: " .. field .. " in _supplement.yml is not an SPDX license id: '" .. id .. "'."
       .. " Write letters and digits, with one . or - between groups and at most one + at the end, such as CC-BY-4.0."
-      .. " Quarto reads -- as a dash and ... as one character.")
+      .. hint)
   end
   local listed = listed_licenses[id:lower()] or { id = id, name = id }
   return pandoc.Link(pandoc.Inlines(listed.name), "https://spdx.org/licenses/" .. listed.id .. ".html")

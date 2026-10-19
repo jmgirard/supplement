@@ -5,8 +5,8 @@
 
 # A site that holds `meta` as `_supplement.yml`, the supplement extension,
 # and one page with `body`.
-agreement_site <- function(meta, body, env = parent.frame()) {
-  dir <- local_site(meta, env = env)
+agreement_site <- function(meta, body, text = NULL, env = parent.frame()) {
+  dir <- local_site(meta, text = text, env = env)
   dir.create(file.path(dir, "_extensions"))
   file.copy(file.path(template_dir(), "_extensions", "supplement"), file.path(dir, "_extensions"),
             recursive = TRUE)
@@ -70,7 +70,7 @@ test_that("write_citation() and the license shortcode accept and refuse the same
       cff <- citation_result(dir)
       rendered <- render_result(dir)
       if (is.na(shown)) {
-        expect_s3_class(cff, "supplement_error_license")
+        expect_true(inherits(cff, "supplement_error_license"), info = info)
         expect_match(conditionMessage(cff), paste0("supplement.license.", field), fixed = TRUE, info = info)
         expect_false(rendered$status == 0L, info = info)
         expect_match(rendered$stderr, paste0("supplement-license: supplement.license.", field, " "),
@@ -123,7 +123,7 @@ test_that("write_citation() and the DOI badge accept and refuse the same DOIs", 
       cff <- citation_result(dir)
       rendered <- render_result(dir)
       if (is.na(expected)) {
-        expect_s3_class(cff, doi_shapes[[shape]][[3]])
+        expect_true(inherits(cff, doi_shapes[[shape]][[3]]), info = info)
         expect_match(conditionMessage(cff), field, fixed = TRUE, info = info)
         expect_false(rendered$status == 0L, info = info)
         expect_match(rendered$stderr, paste0("supplement-doi: ", field, " "), fixed = TRUE, info = info)
@@ -135,4 +135,67 @@ test_that("write_citation() and the DOI badge accept and refuse the same DOIs", 
       }
     }
   }
+})
+
+# The text of `_supplement.yml` with full_supplement()'s other values and
+# `license` and `zenodo` maps written as the given YAML lines, indented
+# under `supplement:`.
+supplement_text <- function(license, zenodo) {
+  meta <- full_supplement()
+  meta$license <- NULL
+  meta$zenodo <- NULL
+  base <- strsplit(yaml::as.yaml(list(supplement = quoted(meta))), "\n")[[1]]
+  c(base, paste0("  ", c("license:", license, "zenodo:", zenodo)))
+}
+
+test_that("write_citation() and the shortcodes read null and block values alike", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  page <- "BEFORE {{< supplement-license code >}} MID {{< supplement-license content >}} DOI {{< supplement-doi >}} AFTER"
+  content <- '  content: "CC-BY-4.0"'
+  no_doi <- c('  version-doi: ""', '  concept-doi: ""')
+  bare <- "10.5281/zenodo.333"
+
+  # A null license is empty on both sides.
+  dir <- agreement_site(NULL, page, text = supplement_text(c("  code:", content), no_doi))
+  cff <- citation_result(dir)
+  rendered <- render_result(dir)
+  expect_false(inherits(cff, "error"))
+  expect_identical(read_cff(dir)$license, "CC-BY-4.0")
+  expect_equal(rendered$status, 0L, info = rendered$stderr)
+  expect_equal(strip_tags(between_markers(rendered$html)), "BEFORE MID CC BY 4.0 DOI AFTER")
+
+  # A block license is its text on both sides.
+  dir <- agreement_site(NULL, page, text = supplement_text(c("  code: |", "    MIT", content), no_doi))
+  cff <- citation_result(dir)
+  rendered <- render_result(dir)
+  expect_false(inherits(cff, "error"))
+  expect_identical(read_cff(dir)$license, c("MIT", "CC-BY-4.0"))
+  expect_equal(rendered$status, 0L, info = rendered$stderr)
+  expect_equal(strip_tags(between_markers(rendered$html)), "BEFORE MIT MID CC BY 4.0 DOI AFTER")
+
+  # A license of two paragraphs is refused on both sides.
+  dir <- agreement_site(NULL, page, text = supplement_text(c("  code: |", "    MIT", "", "    X", content), no_doi))
+  cff <- citation_result(dir)
+  rendered <- render_result(dir)
+  expect_true(inherits(cff, "supplement_error_license"))
+  expect_false(rendered$status == 0L)
+  expect_match(rendered$stderr, "supplement-license: supplement.license.code ", fixed = TRUE)
+
+  # A null DOI is empty, and a folded DOI is its text, on both sides.
+  dir <- agreement_site(NULL, page, text = supplement_text(content, c("  version-doi:", "  concept-doi: >", paste0("    ", bare))))
+  cff <- citation_result(dir)
+  rendered <- render_result(dir)
+  expect_false(inherits(cff, "error"))
+  expect_identical(read_cff(dir)$doi, bare)
+  expect_equal(rendered$status, 0L, info = rendered$stderr)
+  expect_match(rendered$html, doi_badge_rx(bare), perl = TRUE)
+
+  # A DOI of two paragraphs is refused on both sides.
+  dir <- agreement_site(NULL, page, text = supplement_text(content, c("  version-doi: |", "    10.5281/zenodo.1", "", "    2")))
+  cff <- citation_result(dir)
+  rendered <- render_result(dir)
+  expect_true(inherits(cff, "supplement_error_doi"))
+  expect_false(rendered$status == 0L)
+  expect_match(rendered$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
 })

@@ -74,7 +74,8 @@ The home page shows the values with these shortcodes:
   `license.content`. The page footer in `_quarto.yml` uses them. A common
   id shows as a readable name, for example `CC-BY-4.0` as CC BY 4.0. Any
   other id shows as written, and an empty value shows nothing. Each name
-  links to the id's page at spdx.org. Write each id as letters and
+  links to `https://spdx.org/licenses/<id>.html`, a page that exists
+  only for ids on the SPDX License List. Write each id as letters and
   digits, with one `.` or `-` between groups and at most one `+` at the
   end. Other values, for example `CC BY 4.0`, `GPL--3.0`, or a list, stop
   the render with an error that names the field. `write_citation()`
@@ -115,7 +116,8 @@ citation for the repository. `write_zenodo()` writes `.zenodo.json`. When
 Zenodo archives a GitHub release, it reads that file. Both files take the
 title, the version, and the authors from `_supplement.yml`, and they
 leave out an empty version. `CITATION.cff` also takes
-both licenses and the concept DOI. If the concept DOI is empty, it takes
+both licenses and the concept DOI. When the two license ids differ only
+in letter case, it takes one of them. If the concept DOI is empty, it takes
 the version DOI. `.zenodo.json` also takes the citation. Its
 `license` field holds one license, so it gets the content license. Give
 each author a `family` name and `given` names. When a file exists, the

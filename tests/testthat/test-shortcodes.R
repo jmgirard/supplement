@@ -59,6 +59,24 @@ test_that("a DOI value that is not a DOI stops the render and names the field", 
   expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
 })
 
+test_that("a null or block DOI value reads as empty or as its text, and two paragraphs stop", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  for (empty_value in c("", "~", "null")) {
+    page <- render_doi_page(c("zenodo:", paste("  version-doi:", empty_value), paste("  concept-doi:", empty_value)))
+    expect_equal(page$status, 0L, info = paste(empty_value, page$stderr))
+    expect_no_match(page$html, "zenodo.org/badge", fixed = TRUE, info = empty_value)
+  }
+
+  page <- render_doi_page(c("zenodo:", "  version-doi: >", "    10.5281/zenodo.333"))
+  expect_equal(page$status, 0L, info = page$stderr)
+  expect_match(page$html, doi_badge_rx("10.5281/zenodo.333"), perl = TRUE)
+
+  page <- render_doi_page(c("zenodo:", "  version-doi: |", "    10.5281/zenodo.1", "", "    2"))
+  expect_false(page$status == 0L)
+  expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
+})
+
 test_that("empty DOI and archive values render nothing", {
   skip_if_no_quarto(needs_r = FALSE)
 
@@ -129,8 +147,9 @@ test_that("the license shortcode shows nothing for an empty value or no license 
   expect_equal(absent$status, 0L, info = absent$stderr)
   expect_equal(between_markers(absent$html), "BEFORE MID AFTER")
 
-  # An empty list or map is empty, as it is for write_citation().
-  for (empty_value in c("[]", "{}")) {
+  # An empty list or map, or a YAML null, is empty, as it is for
+  # write_citation().
+  for (empty_value in c("[]", "{}", "", "~", "null")) {
     page <- render_license_page(c("license:", paste("  code:", empty_value), paste("  content:", empty_value)))
     expect_equal(page$status, 0L, info = paste(empty_value, page$stderr))
     expect_equal(between_markers(page$html), "BEFORE MID AFTER", info = empty_value)
@@ -173,11 +192,33 @@ test_that("a license value that is not one SPDX id stops the render and names th
   }
 })
 
+test_that("a block or folded license value reads as its text, and two paragraphs stop", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  page <- render_license_page(c("license:", "  code: |", "    MIT", "  content: >", "    CC-BY-4.0"))
+  expect_equal(page$status, 0L, info = page$stderr)
+  expect_equal(strip_tags(between_markers(page$html)), "BEFORE MIT MID CC BY 4.0 AFTER")
+
+  page <- render_license_page(c("license:", "  code: |", "    MIT", "", "    X", '  content: "MIT"'))
+  expect_license_stop(page, "supplement.license.code ", "two paragraphs")
+})
+
+test_that("the license id error explains -- and ... only when Quarto changed them", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  hint <- "Quarto reads -- as a dash"
+  page <- render_license_page(license_field_yaml("code", '"GPL--3.0"'))
+  expect_license_stop(page, hint, "two hyphens")
+  page <- render_license_page(license_field_yaml("code", '"MIT."'))
+  expect_license_stop(page, "not an SPDX license id: 'MIT.'", "final dot")
+  expect_no_match(page$stderr, hint, fixed = TRUE)
+})
+
 test_that("the license shortcode stops unless its one argument is code or content", {
   skip_if_no_quarto(needs_r = FALSE)
 
   calls <- c("{{< supplement-license >}}", "{{< supplement-license other >}}",
-             "{{< supplement-license code content >}}")
+             "{{< supplement-license code content >}}", "{{< supplement-license code foo=bar >}}")
   for (call in calls) {
     dir <- shortcode_site(license_yaml("MIT", "CC-BY-4.0"), list("index.qmd" = call))
     page <- run_split(dir, "quarto", "render")

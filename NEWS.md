@@ -53,7 +53,8 @@
   `license.content` of `_supplement.yml`, in place of a fixed MIT and
   CC BY 4.0. A new `supplement-license` shortcode shows a readable name
   for common ids, such as CC BY 4.0 for `CC-BY-4.0`, and any other id as
-  written. Each name links to the id's page at spdx.org, in place of
+  written. Each name links to `https://spdx.org/licenses/<id>.html`,
+  which exists only for ids on the SPDX License List, in place of
   links to `LICENSE.md` and `LICENSE-CC-BY.md`. A license value that is
   not one SPDX id stops the render. Examples are `CC BY 4.0`, `GPL--3.0`,
   and a list. A call without `code` or `content` as its one argument also
