@@ -181,12 +181,13 @@ release_supplement <- function(bump, path = ".") {
   invisible(commands)
 }
 
-# The bytes of each output file, or NULL for a file that does not exist
-# or is a folder. A link, a file that cannot be read or written, or a
-# missing file whose folder cannot be written stops before any write: the
-# release would write through the link, maybe outside the site, could not
-# put back a file that it cannot read, and would stop at a file that it
-# cannot write only after it changed _supplement.yml.
+# The bytes of each output file, or NULL for a file that does not exist.
+# A link, a folder, a file that cannot be read or written, or a missing
+# file whose folder cannot be written stops before any write: the release
+# would write through the link, maybe outside the site, could not write a
+# file where a folder is, could not put back a file that it cannot read,
+# and would stop at a file that it cannot write only after it changed
+# _supplement.yml.
 read_outputs <- function(outputs, call = parent.frame()) {
   lapply(outputs, function(output) {
     if (is_link(output)) {
@@ -198,7 +199,12 @@ read_outputs <- function(outputs, call = parent.frame()) {
       )
     }
     if (dir.exists(output)) {
-      return(NULL)
+      cli::cli_abort(
+        c("{.file {basename(output)}} is a folder, so nothing was changed.",
+          "i" = "Move or remove the folder, and run this function again."),
+        class = c("supplement_error_file_exists", "supplement_error"),
+        call = call
+      )
     }
     if (!file.exists(output)) {
       # The release makes the file, so its folder must be writable.

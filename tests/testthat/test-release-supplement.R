@@ -588,6 +588,9 @@ test_that("a value that stops a writer stops the release before the check and be
     writeLines("old citation", file.path(dir, "CITATION.cff"))
     before <- folder_state(dir)
     err <- expect_error(release("patch", path = dir), class = bad$class)
+    # expect_error() also matches the class of a parent error, so check the
+    # error itself.
+    expect_true(inherits(err, bad$class), label = bad$class)
     expect_false(inherits(err, "supplement_error_release_write"), label = bad$class)
     expect_identical(calls$n, 0L, label = bad$class)
     expect_identical(folder_state(dir), before, label = bad$class)
@@ -748,6 +751,61 @@ test_that("a check that reads the files but changes none lets the release finish
   expect_identical(read_cff(dir)$version, "1.2.4")
   expect_identical(jsonlite::read_json(file.path(dir, ".zenodo.json"))$version, "1.2.4")
   expect_true(any(grepl("git tag v1.2.4", msgs, fixed = TRUE)))
+})
+
+# Folders at an output --------------------------------------------------------
+
+# Expect the release of `dir` to stop with supplement_error_file_exists,
+# the folder to be in the state `state`, and no command printed.
+expect_folder_stop <- function(dir, state) {
+  out <- new.env()
+  out$msgs <- character()
+  err <- expect_error(
+    capture_messages_to(release_supplement("patch", path = dir), out),
+    class = "supplement_error_file_exists"
+  )
+  # expect_error() also matches the class of a parent error, so check the
+  # error itself.
+  expect_s3_class(err, "supplement_error_file_exists")
+  expect_false(inherits(err, "supplement_error_release_write"))
+  expect_false(is.null(state))
+  expect_identical(folder_state(dir), state)
+  expect_false(any(grepl("git tag", out$msgs, fixed = TRUE)))
+}
+
+test_that("a folder at an output before the release stops it before the check", {
+  for (name in c("CITATION.cff", ".zenodo.json")) {
+    calls <- mock_check()
+    dir <- release_site('  version: "1.2.3"')
+    dir.create(file.path(dir, name))
+    expect_folder_stop(dir, folder_state(dir))
+    expect_identical(calls$n, 0L, label = name)
+  }
+})
+
+test_that("a folder made at an output during the check stops the release", {
+  for (name in c("CITATION.cff", ".zenodo.json")) {
+    for (file_before in c(FALSE, TRUE)) {
+      seen <- mock_check_edit(function(path) {
+        target <- file.path(path, name)
+        if (file.exists(target)) file.remove(target)
+        dir.create(target)
+      })
+      dir <- release_site('  version: "1.2.3"')
+      if (file_before) writeLines("old", file.path(dir, name))
+      expect_folder_stop(dir, seen$state)
+      expect_true(dir.exists(file.path(dir, name)), label = paste(name, file_before))
+    }
+  }
+})
+
+test_that("a folder made during the check stops the release also when _supplement.yml changed", {
+  seen <- mock_check_edit(function(path) {
+    edit_yml('^  paper-title: .*$', '  paper-title: "Saved during the check"')(path)
+    dir.create(file.path(path, "CITATION.cff"))
+  })
+  dir <- release_site('  version: "1.2.3"')
+  expect_folder_stop(dir, seen$state)
 })
 
 # Commands ------------------------------------------------------------------
