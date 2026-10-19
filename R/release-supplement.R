@@ -27,7 +27,10 @@
 #' its comments and the rest of its text stay as they are. The new value is
 #' written in double quotes. The line must be a one-line `version:` value
 #' directly under `supplement:`, as in the template. When it is missing,
-#' add `version: ""` under `supplement:` by hand.
+#' add `version: ""` under `supplement:` by hand. The function reads
+#' `_supplement.yml` before it runs [check_supplement()] and writes that
+#' text back with the new version, so a change saved to the file while the
+#' function runs is lost.
 #'
 #' Before it changes any file, the function stops when `CITATION.cff` or
 #' `.zenodo.json` is a link, because a write would go through the link, or
@@ -110,6 +113,8 @@ release_supplement <- function(bump, path = ".") {
     bump <- NULL
   }
   check_bump(bump)
+  # Drop names and a class, so that the version written is a plain string.
+  bump <- as.vector(unclass(bump))
   check_path(path)
   path <- drop_trailing_sep(path)
   meta <- read_supplement(path)

@@ -45,7 +45,10 @@ Only the value on the \verb{version:} line of \verb{_supplement.yml} changes, so
 its comments and the rest of its text stay as they are. The new value is
 written in double quotes. The line must be a one-line \verb{version:} value
 directly under \verb{supplement:}, as in the template. When it is missing,
-add \code{version: ""} under \verb{supplement:} by hand.
+add \code{version: ""} under \verb{supplement:} by hand. The function reads
+\verb{_supplement.yml} before it runs \code{\link[=check_supplement]{check_supplement()}} and writes that
+text back with the new version, so a change saved to the file while the
+function runs is lost.
 
 Before it changes any file, the function stops when \code{CITATION.cff} or
 \code{.zenodo.json} is a link, because a write would go through the link, or

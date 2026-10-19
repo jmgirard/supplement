@@ -58,7 +58,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - [x] T12: In `read_outputs()`, refuse a missing `CITATION.cff` or `.zenodo.json` whose folder cannot be written, with a test that skips as root, and say so in the help and in DESIGN Architecture (pass 4 diff-bug #2).
 - [x] T13: Move the unwritable-file tests into their own `test_that()` with their own skips (pass 4 diff-bug #3).
 - [x] T14: In `restore()`, remove a file the release made with `file.remove()`, not `unlink()`, so that `[`, `*`, and `?` in the site path are not read as patterns, and add a restore test whose site path holds `[` beside a sibling folder that the pattern would match (review return 5).
-- [ ] T15: Make the pass-5 fix-now items: strip attributes from `bump`, so a named or classed string works (diff-bug #1); compare `folder_state()` in the skipped-plus-row probe (diff-bug #4); check `calls$n` per unwritable-file probe (diff-bug #5); and say in the help that `_supplement.yml` is read before the checks run (prior-review #3).
+- [x] T15: Make the pass-5 fix-now items: strip attributes from `bump`, so a named or classed string works (diff-bug #1); compare `folder_state()` in the skipped-plus-row probe (diff-bug #4); check `calls$n` per unwritable-file probe (diff-bug #5); and say in the help that `_supplement.yml` is read before the checks run (prior-review #3).
 
 ## Work log
 
@@ -130,6 +130,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: review return 5: AC5's stated rule "removes `CITATION.cff` or `.zenodo.json` when it did not exist before the release" fails for a site path with `[`, `*`, or `?`, because `restore()` calls `unlink()`, which expands them, and can remove a file in another folder (pass 5 blame-history #1, confirmed); the same `unlink()` cleanup is in `create_supplement()`, `add_report()`, and `add_data()` on main. This is the fifth defect return, after a re-cut and an escalation, so the thrash rule (a) stops the run, and the disposition goes to the user. Owed on resume: `file.remove()` in place of `unlink()` with a test on a `[` path, and the pass-5 fix-now items.
 - 2026-10-18: override: at the fifth-return stop the user chose "Fix and review again" over the recommended park; added T14 and T15 (minor amendment); status in-progress; review pass 6 keeps RR01's disposition rule.
 - 2026-10-18: T14 done: `restore()` removes a made output with `file.remove()`; the new test with the site at `site[ab]` beside `sitea` failed red first (the made `CITATION.cff` stayed and the sibling's was deleted) and passes now; no other `unlink()` call is in R/release-supplement.R; 227 release-test expectations pass.
+- 2026-10-18: T15 done: `bump` loses its names and class after `check_bump()` (the named and classed test errored red first); the skipped-plus-row probe compares `folder_state()`; each unwritable-file probe checks `calls$n`; the help says that `_supplement.yml` is read before the checks and a change saved meanwhile is lost; 1759 tests pass.
 
 ## Decisions
 

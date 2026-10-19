@@ -78,6 +78,18 @@ test_that("a word raises that part of the version and sets the later parts to 0"
   }
 })
 
+test_that("a bump with names or a class works as the plain string", {
+  mock_check()
+  bumps <- list(c(v = "1.3.0"), structure("1.3.0", class = "my_class"),
+                c(v = "minor"), structure("minor", class = "my_class"))
+  for (bump in bumps) {
+    dir <- release_site('  version: "1.2.3"')
+    out <- release(bump, path = dir)
+    expect_identical(site_version(dir), "1.3.0")
+    expect_identical(out, expected_commands("1.3.0"))
+  }
+})
+
 test_that("a version in bump is accepted only when it is greater, part by part as numbers", {
   mock_check()
   accepted <- list(
@@ -204,6 +216,7 @@ test_that("skipped git checks stop the release", {
   err <- expect_error(release("patch", path = dir), class = "supplement_error_release_check")
   expect_match(conditionMessage(err), "1 problem ", fixed = TRUE)
   expect_match(conditionMessage(err), "saved-object", fixed = TRUE)
+  expect_identical(folder_state(dir), before)
 })
 
 test_that("a release that only the CITATION.cff DOI row would block goes ahead", {
@@ -413,6 +426,7 @@ test_that("an output file, or a folder for a missing one, that cannot be written
     err <- expect_error(release("patch", path = dir), class = "supplement_error_write")
     expect_match(conditionMessage(err), "Could not write", fixed = TRUE)
     expect_identical(folder_state(dir), before)
+    expect_identical(calls$n, 0L)
   }
 
   # A site folder that cannot be written, with a writable _supplement.yml
