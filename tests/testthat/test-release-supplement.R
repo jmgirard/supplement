@@ -557,7 +557,9 @@ test_that("an interrupt puts back the files, and a failed put-back is reported",
   mock_check()
   interrupt <- function() signalCondition(structure(class = c("interrupt", "condition"), list()))
   dir <- release_site('  version: "1.2.3"')
-  writeLines("old citation", file.path(dir, "CITATION.cff"))
+  # writeBin(), because writeLines() writes CRLF on Windows and the mock
+  # below matches these bytes.
+  writeBin(charToRaw("old citation\n"), file.path(dir, "CITATION.cff"))
   before <- folder_state(dir)
   # The write of .zenodo.json is interrupted after CITATION.cff is written.
   real_write_utf8 <- write_utf8

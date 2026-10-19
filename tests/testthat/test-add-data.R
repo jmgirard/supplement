@@ -162,7 +162,10 @@ test_that("a bad description stops and writes nothing", {
 })
 
 test_that("a file name that Quarto reads as Markdown stops", {
-  for (name in c("a b.csv", "it's.csv", "a--b.csv", "a._b.csv", ".hidden", "café.csv", "_x_.csv", "x.csv\n", "_data_", "_x-y_")) {
+  names <- c("a b.csv", "it's.csv", "a--b.csv", "a._b.csv", ".hidden", "café.csv", "_x_.csv", "x.csv\n", "_data_", "_x-y_")
+  # Windows does not allow a line break in a file name.
+  if (.Platform$OS.type == "windows") names <- setdiff(names, "x.csv\n")
+  for (name in names) {
     file <- source_file(name)
     expect_data_error("supplement_error_file_name", file = file, description = "D")
   }

@@ -204,7 +204,8 @@ test_that("a link where the template needs a folder stops, so nothing is written
 
 test_that("on Windows, a junction at a template folder path stops, so nothing is written outside", {
   skip_on_os(c("mac", "linux", "solaris"))
-  folders <- setdiff(unique(dirname(template_tracked)), ".")
+  parents <- unique(dirname(template_tracked))
+  folders <- setdiff(unique(c(parents, dirname(parents))), ".")
   expect_setequal(folders, c("_extensions", "_extensions/supplement", "_scripts", "analyses", "data"))
   for (folder in folders) {
     site <- withr::local_tempdir()

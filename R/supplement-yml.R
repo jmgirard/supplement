@@ -299,7 +299,31 @@ path_occupied <- function(paths) {
 
 is_link <- function(paths) {
   link <- Sys.readlink(paths)
-  !is.na(link) & nzchar(link)
+  found <- !is.na(link) & nzchar(link)
+  if (.Platform$OS.type == "windows") {
+    found <- found | vapply(paths, is_reparse_point, logical(1), USE.NAMES = FALSE)
+  }
+  found
+}
+
+# On Windows, Sys.readlink() gives "" for a junction and for a symbolic
+# link, so a path counts as a link when its parent folder lists it but it
+# does not exist (a link to a missing target), or when it resolves to a
+# place other than its parent folder plus its own name.
+is_reparse_point <- function(path) {
+  path <- drop_trailing_sep(path)
+  parent <- dirname(path)
+  name <- basename(path)
+  listed <- tolower(name) %in% tolower(list.files(parent, all.files = TRUE, no.. = TRUE))
+  if (!listed) {
+    return(FALSE)
+  }
+  if (!file.exists(path)) {
+    return(TRUE)
+  }
+  resolved <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  expected <- file.path(normalizePath(parent, winslash = "/", mustWork = FALSE), name)
+  !identical(tolower(resolved), tolower(expected))
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x

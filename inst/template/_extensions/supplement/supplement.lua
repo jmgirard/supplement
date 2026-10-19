@@ -161,6 +161,23 @@ local function file_size(path)
     return nil
   end
   local size = handle:seek("end")
+  if size == nil or size < 0 then
+    -- The Lua in Quarto for Windows keeps file offsets in 32 bits, so seek
+    -- gives -1 for a file of 2 GiB or more. Count the bytes instead.
+    size = 0
+    handle:close()
+    handle = io.open(path, "rb")
+    if handle == nil then
+      return nil
+    end
+    while true do
+      local block = handle:read(1048576)
+      if block == nil then
+        break
+      end
+      size = size + #block
+    end
+  end
   handle:close()
   return size
 end
