@@ -49,7 +49,7 @@
 - [x] T2: Tests first for AC2 and AC3. In `release_supplement()`, after the no-metadata check, read the file once with `read_text_lines()`, parse the `supplement` map from those lines with the same sequence handler as `read_supplement()` (a shared helper), and take the current version from it. After the version line is replaced, parse the new lines and build both texts, all before `read_outputs()` and `check_supplement()`. Change the empty-citation test at `test-release-supplement.R:552` from "is put back" to "is refused before any write".
 - [x] T3: Tests first for AC4. `read_outputs()` refuses a folder with `supplement_error_file_exists`. Update the M011 tests and comments that read a folder as no file.
 - [x] T4: `write_release_files()` writes the three built texts with `write_checked()` inside the guard. Move the failure tests off `write_utf8()` and `write_zenodo()` mocks to `write_checked()` mocks, and add the failed `_supplement.yml` write (AC6). Add the AC3 byte test.
-- [ ] T5: Tests first for AC5. Call `report_release()` after `write_release_files()` returns. Replace the test at `test-release-supplement.R:519`.
+- [x] T5: Tests first for AC5. Call `report_release()` after `write_release_files()` returns. Replace the test at `test-release-supplement.R:519`.
 - [ ] T6: Rewrite the passages AC7 names, run `devtools::document()` and `devtools::check()`.
 
 ## Work log
@@ -73,6 +73,7 @@
 - 2026-10-18: implementation choice: a non-UTF-8 `_supplement.yml` now gives `supplement_error_encoding` before the YAML parser runs, because the one read is `read_text_lines()`; the Errors list names classes, not this pair's order.
 - 2026-10-18: T3 done: `read_outputs()` refuses a folder with `supplement_error_file_exists`, so before the check and at the re-read after it. The AC4 tests (before the call, made by the mock with and without a file there, and with `_supplement.yml` also changed) failed on the T2 code and pass now. No M011 test read a folder as no file. Found that `expect_error(class =)` also matches a parent error's class, so the AC2 and AC4 helpers now check `inherits()` on the error itself. `devtools::test()` clean.
 - 2026-10-18: T4 done: `write_release_files()` takes the built `texts` and writes them with `write_utf8()`; the failed-write test now mocks `write_checked()` once per file over all three files, and the pattern-path and interrupt tests mock `write_utf8()` for `.zenodo.json` in place of `write_zenodo()`. The AC3 byte test covers LF, CRLF, and a BOM site per `probe_values` entry; a planted defect (texts built from the pre-bump map) failed it at line 353 and five other tests, then was restored. `devtools::test()` clean.
+- 2026-10-18: T5 done: `write_release_files()` lost its `report` argument; `release_supplement()` calls `report_release()` after it returns. The two AC5 tests failed on the T4 code and pass now. The release-write message dropped "even if a message above says that they were written", since nothing prints inside the guard now. `devtools::test()` clean.
 
 ## Decisions
 

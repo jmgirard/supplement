@@ -174,10 +174,10 @@ release_supplement <- function(bump, path = ".") {
   check_unchanged(file, read$bytes, outputs, old)
   check_release_problems(problems)
 
+  write_release_files(read, lines, file, outputs, texts, old)
+  # The files are the release, so a failure while printing keeps them.
   commands <- release_commands(new)
-  write_release_files(read, lines, file, outputs, texts, old, report = function() {
-    report_release(path, new, commands)
-  })
+  report_release(path, new, commands)
   invisible(commands)
 }
 
@@ -370,13 +370,12 @@ check_release_problems <- function(problems, call = parent.frame()) {
 }
 
 # Write `lines` to `_supplement.yml`, then `texts` to CITATION.cff and
-# .zenodo.json, then call `report()`. `old` holds the bytes of each output
-# before the release, or NULL for an output that did not exist, from
-# read_outputs(). When any of these steps stops, or the function is
-# interrupted, each file whose bytes changed gets its old bytes back, and
-# each file that did not exist before is removed. A file that is as it
-# was is not written again.
-write_release_files <- function(read, lines, file, outputs, texts, old, report, call = parent.frame()) {
+# .zenodo.json. `old` holds the bytes of each output before the release,
+# or NULL for an output that did not exist, from read_outputs(). When a
+# write stops, or the function is interrupted, each file whose bytes
+# changed gets its old bytes back, and each file that did not exist
+# before is removed. A file that is as it was is not written again.
+write_release_files <- function(read, lines, file, outputs, texts, old, call = parent.frame()) {
   files <- c(file, outputs)
   before <- c(list(read$bytes), old)
   # The names of the files that could not be put back, or an empty vector.
@@ -423,7 +422,6 @@ write_release_files <- function(read, lines, file, outputs, texts, old, report, 
       write_text_lines(read, lines, file)
       write_utf8(texts[[1]], outputs[1])
       write_utf8(texts[[2]], outputs[2])
-      report()
     },
     error = function(e) {
       failed <- restore()
@@ -431,7 +429,7 @@ write_release_files <- function(read, lines, file, outputs, texts, old, report, 
       cli::cli_abort(
         if (length(failed) == 0) {
           c("The release stopped before it finished, so nothing was changed.",
-            "i" = "{.file _supplement.yml}, {.file CITATION.cff}, and {.file .zenodo.json} are as they were before the release, even if a message above says that they were written.")
+            "i" = "{.file _supplement.yml}, {.file CITATION.cff}, and {.file .zenodo.json} are as they were before the release.")
         } else {
           c("The release stopped before it finished, and {.file {failed}} could not be put back.",
             "!" = "Check {.file {failed}} by hand, for example with {.code git diff}.")

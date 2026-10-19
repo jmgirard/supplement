@@ -569,14 +569,34 @@ test_that("an interrupt puts back the files, and a failed put-back is reported",
   )
 })
 
-test_that("a failure while printing the commands puts back the files", {
+expect_released <- function(dir, version) {
+  expect_identical(site_version(dir), version)
+  expect_identical(read_cff(dir)$version, version)
+  expect_identical(read_zenodo(dir)$version, version)
+}
+
+test_that("a failure while printing the commands keeps the released files", {
   mock_check()
   dir <- release_site('  version: "1.2.3"')
-  before <- folder_state(dir)
   local_mocked_bindings(report_release = function(...) stop("console closed"))
-  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
-  expect_match(conditionMessage(err$parent), "console closed", fixed = TRUE)
-  expect_identical(folder_state(dir), before)
+  err <- expect_error(release("patch", path = dir))
+  expect_identical(conditionMessage(err), "console closed")
+  expect_identical(class(err), c("simpleError", "error", "condition"))
+  expect_released(dir, "1.2.4")
+})
+
+test_that("an interrupt while printing the commands keeps the released files", {
+  mock_check()
+  dir <- release_site('  version: "1.2.3"')
+  local_mocked_bindings(report_release = function(...) {
+    signalCondition(structure(class = c("interrupt", "condition"), list()))
+  })
+  ran <- FALSE
+  expect_no_warning(
+    tryCatch(release("patch", path = dir), interrupt = function(c) ran <<- TRUE)
+  )
+  expect_true(ran)
+  expect_released(dir, "1.2.4")
 })
 
 test_that("an empty current version is named as empty in the not-greater error", {
