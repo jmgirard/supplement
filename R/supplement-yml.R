@@ -231,6 +231,27 @@ bare_doi <- function(doi, field, call = parent.frame()) {
   bare
 }
 
+# Return the license id, or NULL. An id must have the shape of an SPDX
+# short identifier (https://spdx.org/licenses/): a letter or digit, then
+# letters, digits, ".", or "-", and at most one "+" at the end. A license
+# name with spaces, such as "CC BY 4.0", or an expression of two ids is an
+# error. The shape check does not test that SPDX or Zenodo knows the id
+# (D-012).
+license_id <- function(id, field, call = parent.frame()) {
+  if (is.null(id)) {
+    return(NULL)
+  }
+  if (!grepl("\\A[A-Za-z0-9][A-Za-z0-9.-]*\\+?\\z", id, perl = TRUE)) {
+    cli::cli_abort(
+      c("{.field {field}} in {.file _supplement.yml} is not an SPDX license id: {.val {id}}.",
+        "i" = "Write one id of letters, digits, {.code .}, and {.code -}, with at most one {.code +} at the end, such as {.val CC-BY-4.0} or {.val MIT}. See {.url https://spdx.org/licenses/}."),
+      class = c("supplement_error_license", "supplement_error"),
+      call = call
+    )
+  }
+  id
+}
+
 check_overwrite <- function(file, overwrite, call = parent.frame()) {
   if (dir.exists(file)) {
     cli::cli_abort(

@@ -1,9 +1,8 @@
 # Facts about the paper and this site. The home page shows the title,
 # citation, contact, Zenodo values, and data files, so edit them here and
-# not in index.qmd. No page shows preprint, license, or authors yet; the
-# license names in the page footer are set in _quarto.yml. Values are
-# Markdown, so *Journal* gives italics. Leave a value as "" until you have
-# it. In R, supplement::write_citation() and supplement::write_zenodo()
+# not in index.qmd. The page footer shows the two licenses. No page shows
+# preprint or authors yet. Values are Markdown, so *Journal* gives
+# italics. Leave a value as "" until you have it. In R, supplement::write_citation() and supplement::write_zenodo()
 # write CITATION.cff and .zenodo.json from the title, citation, version,
 # licenses, authors, and DOIs in this file.
 supplement:
@@ -17,6 +16,8 @@ supplement:
   preprint: ""
   contact: "Your Name, Your Institution. Your email address."
   # SPDX license identifiers. LICENSE.md and LICENSE-CC-BY.md hold the texts.
+  # The page footer shows a readable name for common ids, such as CC BY 4.0
+  # for CC-BY-4.0, and any other id as written.
   license:
     code: "MIT"
     content: "CC-BY-4.0"
@@ -34,8 +35,9 @@ supplement:
   # With Zenodo's GitHub integration turned on for the repository, Zenodo
   # gives these after the next GitHub release. version-doi names one
   # release, and concept-doi names all of them. The badge shows version-doi,
-  # or concept-doi when version-doi is empty. Write a DOI without
-  # "https://doi.org/", for example "10.5281/zenodo.1234567".
+  # or concept-doi when version-doi is empty. Write a DOI such as
+  # "10.5281/zenodo.1234567". A "https://doi.org/" or "doi:" in front is
+  # removed.
   zenodo:
     version-doi: ""
     concept-doi: ""

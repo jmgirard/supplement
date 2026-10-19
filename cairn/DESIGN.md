@@ -58,7 +58,8 @@ R code: `R/supplement-yml.R` reads `<path>/_supplement.yml` and checks
 it, with classed cli errors (`supplement_error` plus one subclass per
 case). It also holds the path helpers that several functions share
 (`drop_trailing_sep()`, `path_occupied()`, `is_link()`). `write_citation()` writes `CITATION.cff` (CFF 1.2.0) and
-`write_zenodo()` writes `.zenodo.json` from that map. Both leave out
+`write_zenodo()` writes `.zenodo.json` from that map. Both check each
+license id they write with `license_id()`, a shape check only (D-012). Both leave out
 empty values and refuse to replace an existing file unless
 `overwrite = TRUE`.
 `R/create-supplement.R`: `create_supplement()` copies the installed
@@ -109,9 +110,12 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
 - `_supplement.yml`: the `supplement:` map (title, citation, authors,
   licenses, Zenodo DOIs, data files), loaded through `metadata-files`.
 - `_extensions/supplement/supplement.lua`: shortcodes `supplement-doi`,
-  `supplement-download`, and `supplement-data-table`. Quarto rewrites any
-  metadata value that names an existing path to be page-relative, so the
-  data table undoes that for each file and description.
+  `supplement-download`, `supplement-data-table`, and
+  `supplement-license`. Quarto rewrites any metadata value that names an
+  existing path to be page-relative, so the data table and the license
+  shortcode undo that. The DOI badge removes a `doi:` or doi.org prefix.
+  The page footer in `_quarto.yml` shows the licenses through
+  `supplement-license`.
 - `index.qmd` reads its paper facts from `_supplement.yml` and lists the
   reports in `analyses/` through a Quarto table listing.
   `analyses/example.qmd`, `data/example.csv`, and license files are starter

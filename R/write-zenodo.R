@@ -52,7 +52,8 @@ write_zenodo <- function(path = ".", overwrite = FALSE) {
   # Zenodo's license ids are lowercase SPDX ids:
   # https://zenodo.org/api/vocabularies/licenses/cc-by-4.0 has the id
   # "cc-by-4.0".
-  content <- value(license[["content"]], "supplement.license.content")
+  field <- "supplement.license.content"
+  content <- license_id(value(license[["content"]], field), field)
   # `version` is a string in Zenodo's deposit metadata, which suggests a
   # semantic version such as "2.1.5":
   # https://developers.zenodo.org/#representation

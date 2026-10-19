@@ -36,8 +36,10 @@ website:
     right:
       - icon: github
         href: https://github.com/OWNER/REPO
+  # The license names come from license.code and license.content in
+  # _supplement.yml.
   page-footer:
-    center: "Code: [MIT](https://github.com/OWNER/REPO/blob/main/LICENSE.md) · Content: [CC BY 4.0](https://github.com/OWNER/REPO/blob/main/LICENSE-CC-BY.md)"
+    center: "Code: [{{< supplement-license code >}}](https://github.com/OWNER/REPO/blob/main/LICENSE.md) · Content: [{{< supplement-license content >}}](https://github.com/OWNER/REPO/blob/main/LICENSE-CC-BY.md)"
 
 format:
   html:

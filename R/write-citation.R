@@ -47,6 +47,12 @@
 #' * `supplement_error_doi`: for [write_citation()], `zenodo.concept-doi`
 #'   or `zenodo.version-doi`, with its prefix removed, is not `10.`, four
 #'   to nine digits, `/`, and a suffix with no spaces.
+#' * `supplement_error_license`: `license.content` (and, for
+#'   [write_citation()], `license.code`) is not empty and does not have the
+#'   shape of an SPDX license id: a letter or digit, then letters, digits,
+#'   `.`, or `-`, and at most one `+` at the end. For example, `CC BY 4.0`
+#'   has spaces, so it is an error, and `CC-BY-4.0` is not. The check does
+#'   not test that SPDX or Zenodo knows the id.
 #' * `supplement_error_version`: `version` is not empty and is not three
 #'   whole numbers joined by `.`, each `0` or without a leading zero, such
 #'   as `1.0.0` or `0.10.2`.
@@ -96,9 +102,11 @@ write_citation <- function(path = ".", overwrite = FALSE) {
   version <- read_version(meta)
 
   license <- map_field(meta, "license")
+  code <- "supplement.license.code"
+  content <- "supplement.license.content"
   licenses <- unique(c(
-    value(license[["code"]], "supplement.license.code"),
-    value(license[["content"]], "supplement.license.content")
+    license_id(value(license[["code"]], code), code),
+    license_id(value(license[["content"]], content), content)
   ))
 
   cff <- compact(list(
