@@ -134,6 +134,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: claim audit: 6 claims read, 0 corrected — R/release-supplement.R, man/release_supplement.Rd, tests/testthat/test-release-supplement.R (the T14 and T15 diff, same reader).
 - 2026-10-18: status review; handing off to /milestone-review under RR01's disposition rule.
 - 2026-10-18: correction: in pass 6 the AC5 tick was committed in b22a4ff before its evidence line, because the edit that wrote the evidence failed; the evidence line landed in the next commit, and the tests behind it had already run fresh in that pass.
+- 2026-10-18: step-7 approval: m009-release-supplement approved for merge
 
 ## Decisions
 
