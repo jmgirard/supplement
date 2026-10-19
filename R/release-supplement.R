@@ -27,10 +27,14 @@
 #' its comments and the rest of its text stay as they are. The new value is
 #' written in double quotes. The line must be a one-line `version:` value
 #' directly under `supplement:`, as in the template. When it is missing,
-#' add `version: ""` under `supplement:` by hand. The function reads
-#' `_supplement.yml` before it runs [check_supplement()] and writes that
-#' text back with the new version, so a change saved to the file while the
-#' function runs is lost.
+#' add `version: ""` under `supplement:` by hand.
+#'
+#' The function reads `_supplement.yml`, `CITATION.cff`, and `.zenodo.json`
+#' before it runs [check_supplement()], and reads them again after the
+#' check. When one of them changed while the check ran, for example
+#' because you saved `_supplement.yml`, the function stops and writes none
+#' of the three files, so you can run it again. A change saved after the
+#' check, while the function writes the files, can still be lost.
 #'
 #' Before it changes any file, the function stops when `CITATION.cff` or
 #' `.zenodo.json` is a link, because a write would go through the link, or
@@ -85,6 +89,9 @@
 #'   `version:` value directly under `supplement:`.
 #' * `supplement_error_yaml`: the yaml package does not read the changed
 #'   `_supplement.yml` as the old file with the new version.
+#' * `supplement_error_changed`: `_supplement.yml`, `CITATION.cff`, or
+#'   `.zenodo.json` changed while [check_supplement()] ran. This error
+#'   comes before a `supplement_error_release_check` error.
 #' * `supplement_error_release_check`: [check_supplement()] found a problem
 #'   other than a `"doi-mismatch"` problem for `CITATION.cff`, or it
 #'   skipped its git checks.

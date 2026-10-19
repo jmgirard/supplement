@@ -45,10 +45,14 @@ Only the value on the \verb{version:} line of \verb{_supplement.yml} changes, so
 its comments and the rest of its text stay as they are. The new value is
 written in double quotes. The line must be a one-line \verb{version:} value
 directly under \verb{supplement:}, as in the template. When it is missing,
-add \code{version: ""} under \verb{supplement:} by hand. The function reads
-\verb{_supplement.yml} before it runs \code{\link[=check_supplement]{check_supplement()}} and writes that
-text back with the new version, so a change saved to the file while the
-function runs is lost.
+add \code{version: ""} under \verb{supplement:} by hand.
+
+The function reads \verb{_supplement.yml}, \code{CITATION.cff}, and \code{.zenodo.json}
+before it runs \code{\link[=check_supplement]{check_supplement()}}, and reads them again after the
+check. When one of them changed while the check ran, for example
+because you saved \verb{_supplement.yml}, the function stops and writes none
+of the three files, so you can run it again. A change saved after the
+check, while the function writes the files, can still be lost.
 
 Before it changes any file, the function stops when \code{CITATION.cff} or
 \code{.zenodo.json} is a link, because a write would go through the link, or
@@ -98,6 +102,9 @@ version, or the version in \code{bump} is not greater than it.
 \verb{version:} value directly under \verb{supplement:}.
 \item \code{supplement_error_yaml}: the yaml package does not read the changed
 \verb{_supplement.yml} as the old file with the new version.
+\item \code{supplement_error_changed}: \verb{_supplement.yml}, \code{CITATION.cff}, or
+\code{.zenodo.json} changed while \code{\link[=check_supplement]{check_supplement()}} ran. This error
+comes before a \code{supplement_error_release_check} error.
 \item \code{supplement_error_release_check}: \code{\link[=check_supplement]{check_supplement()}} found a problem
 other than a \code{"doi-mismatch"} problem for \code{CITATION.cff}, or it
 skipped its git checks.
