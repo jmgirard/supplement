@@ -1,6 +1,6 @@
 # M014: The footer and the DOI badge refuse the values that write_citation() refuses
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -74,6 +74,8 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - 2026-10-18: T4 done: new `tests/testthat/test-agreement.R` runs 13 license shapes and 12 DOI shapes in each field through `write_citation()` and a render of the same quoted `_supplement.yml` (192 expectations, about 58 s); each shape's expected text or bare DOI is stated in the table. `doi_badge_rx()` and `between_markers()` moved to `helper-template.R`. The tables fail against main's Lua; `devtools::test()` clean.
 - 2026-10-18: T5 done: `listed_licenses` holds each listed id's SPDX spelling and name; `supplement-license` returns a link to `https://spdx.org/licenses/<id>.html`; the template footer has no repo links. The footer test now renders two cases (CC0-1.0 with cc-by-sa-4.0, and EUPL-1.2 with an empty value) and checks text and links on both pages; its link checks fail against main's Lua and `_quarto.yml`. The `OWNER/REPO` test in `test-create-supplement.R` passes (the navbar keeps one placeholder). `devtools::test()` clean.
 - 2026-10-19: T6 done: roxygen of `write_citation()` (license entry, id rule; `write_zenodo()` inherits the Errors section), template `_supplement.yml` comments, `_README.md` shortcode bullets, NEWS.md (edited the unreleased entries in place), DESIGN.md Lua bullet; `devtools::document()` rewrote both Rd files; the simple-english lint is clean on NEWS.md and `_README.md`; `devtools::test()` clean.
+- 2026-10-19: claim audit: 36 claims read, 7 corrected — supplement.lua, R/supplement-yml.R, NEWS.md, inst/template/_README.md, test-write-metadata-errors.R, test-agreement.R. The parity claims now name the refused examples, not "the same values": an unquoted number or `yes` in a license value renders while `write_citation()` refuses it (added to the "shortcode edge cases" row). The re-read found all 7 correct.
+- 2026-10-19: all tasks done; `devtools::test()` clean and `devtools::document()` gives no diff; status set to review.
 
 ## Decisions
 

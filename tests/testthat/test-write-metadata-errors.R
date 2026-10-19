@@ -300,8 +300,8 @@ bad_license_ids <- c(
   "two final plus signs" = "GPL-2.0++",
   "plus between letters" = "A+B",
   "leading hyphen" = "-MIT",
-  # Quarto reads `--` as an en dash and `...` as an ellipsis, so the footer
-  # could not show these ids as written.
+  # No SPDX id has these shapes. Quarto reads `--` as an en dash and `...`
+  # as an ellipsis, so the footer could not show those two as written.
   "two hyphens" = "GPL--3.0",
   "two dots" = "GPL-3..0",
   "three dots" = "MIT...",

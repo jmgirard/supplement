@@ -1,7 +1,7 @@
 # The site's shortcodes (Lua) and write_citation() (R) read the same
 # license and DOI values. These tests run each value shape in each field
-# through both and check that both accept it, with the same result, or both
-# refuse it.
+# through both and check that both accept it (for DOIs, with the same bare
+# DOI), or both refuse it.
 
 # A site that holds `meta` as `_supplement.yml`, the supplement extension,
 # and one page with `body`.

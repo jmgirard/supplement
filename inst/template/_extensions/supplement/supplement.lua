@@ -231,9 +231,11 @@ end
 -- `supplement.license.content`: the readable name of a listed id, any other
 -- id as written, and nothing for an empty value. The name links to the
 -- id's page at spdx.org, with the SPDX spelling of a listed id. The page
--- of an id that SPDX does not list does not exist. A value that
--- supplement::write_citation() refuses stops the render, so the footer
--- never shows a license that CITATION.cff does not hold.
+-- of an id that SPDX does not list does not exist. A value that is not one
+-- SPDX-shaped id (a list, a map, true or false, text with spaces or
+-- Markdown, or text that breaks the id rule) stops the render, as it stops
+-- supplement::write_citation(). An unquoted number or yes still renders,
+-- because Quarto reads it as text, while write_citation() refuses it.
 local function license(args, kwargs, meta)
   local key = #args == 1 and pandoc.utils.stringify(args[1]) or ""
   if key ~= "code" and key ~= "content" then

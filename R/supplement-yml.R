@@ -247,9 +247,9 @@ bare_doi <- function(doi, field, call = parent.frame()) {
 # groups of one "." or "-" and more letters or digits, and at most one "+"
 # at the end. A license name with spaces, such as "CC BY 4.0", or an
 # expression of two ids is an error. So are "--", "..", and a "." or "-"
-# at the end, which no SPDX id has, because Quarto reads "--" and "..." as
-# dashes and dots, and the page footer then shows another text. The
-# template's supplement-license shortcode applies the same rule. The shape
+# at the end, which no SPDX id has. Quarto would also show "--" as a dash
+# and "..." as an ellipsis in the page footer. The template's
+# supplement-license shortcode applies the same rule. The shape
 # check does not test that SPDX or Zenodo knows the id (D-012).
 license_id <- function(id, field, call = parent.frame()) {
   if (is.null(id)) {

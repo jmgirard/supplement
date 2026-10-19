@@ -77,7 +77,7 @@ The home page shows the values with these shortcodes:
   links to the id's page at spdx.org. Some values are not one SPDX id, for
   example `CC BY 4.0`, `GPL--3.0`, or a list. Such a value stops the
   render with an error that names the field. `write_citation()` refuses
-  the same values.
+  these values too.
 
 If you turn on Zenodo's GitHub integration for this repository, Zenodo
 gives the DOIs after the next GitHub release. The version DOI names
