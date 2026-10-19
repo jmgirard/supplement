@@ -74,3 +74,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** `write_citation()` and `write_zenodo()` write license ids from `_supplement.yml` as given. A check could test the SPDX id shape, or also test each id against a copy of Zenodo's license list shipped with the package.
 **Decision:** The writers check only the shape of each id. The user chose this at the M010 plan gate, because a shipped copy of the list can fall out of date as Zenodo adds ids.
 **Consequences:** A well-formed id that Zenodo or the CFF 1.2.0 license list does not know still writes, so the output can fail their own checks. Ids with spaces, such as `CC BY 4.0`, stop the writers.
+
+### D-013 (2026-10-18): The testthat floor in Suggests is 3.2.0 (supersedes D-005's floor)
+
+**Context:** D-005 set `testthat (>= 3.0.0)`. The tests call `expect_no_error()` and `expect_no_warning()`, new in testthat 3.1.5, and `local_mocked_bindings()`, new in 3.1.7. The floor could be the lowest release that the tests pass under, or 3.2.0, the release whose NEWS calls these functions stable.
+**Decision:** DESCRIPTION lists `testthat (>= 3.2.0)` under Suggests. The user chose 3.2.0 at the M013 plan gate. The floor is not a claim that 3.2.0 is the oldest release that works. The rest of D-005 stands.
+**Consequences:** Someone who runs the tests with testthat 3.1.7 to 3.1.10 is asked for a newer release. A later test that calls a function newer than 3.2.0 needs the floor raised by hand.
