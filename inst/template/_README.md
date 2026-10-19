@@ -9,6 +9,7 @@ Website: https://OWNER.github.io/REPO/
 
 - `analyses/`: Quarto source files (`.qmd`), one per report
 - `data/`: shared data files
+- `figures/`: figures for the paper, saved by the reports and published on the site
 - `_freeze/`: stored output of each report, so the site rebuilds without running report code
 - `_supplement.yml`: facts about the paper, such as its title, citation, DOIs, and data files
 - `index.qmd`, `_quarto.yml`: website source
@@ -203,7 +204,7 @@ time you save its file.
 After you delete or rename a report, run a full render. It clears `docs/`,
 so the old page does not stay on the site.
 
-Commit `_freeze/` and `docs/` with the source files.
+Commit `_freeze/`, `docs/`, and `figures/` with the source files.
 
 ## Setup scripts
 
@@ -235,10 +236,10 @@ code reads them as `file.path("fits", ...)`.
    model, which can take hours and give new estimates.
 2. Run `quarto render`, or `quarto render analyses/<name>.qmd` to re-run
    one report.
-3. Stage only `_freeze/` and `docs/`, commit, and push:
+3. Stage only `_freeze/`, `docs/`, and `figures/`, commit, and push:
 
    ```
-   git add _freeze docs
+   git add _freeze docs figures
    git commit -m "Render reports"
    git push
    ```
@@ -259,6 +260,30 @@ Call `set.seed(` with a fixed number before each random draw, for example
 before `pp_check()` or a bootstrap. Without a seed, every render that runs the
 report's code redraws the figures. The numbers can stay the same while the
 figures change.
+
+## Paper figures
+
+Save each figure for the paper in `figures/`. A report runs from its own
+folder, so its code writes there as `file.path("..", "figures", ...)`, for
+example:
+
+```r
+png(file.path("..", "figures", "model-fit.png"), width = 6, height = 4,
+    units = "in", res = 300)
+```
+
+The example report saves `figures/bootstrap-means.png` this way.
+If the folder is missing, the report makes it. Quarto copies `figures/`
+into `docs/`, so each figure has a web address such as
+`https://OWNER.github.io/REPO/figures/model-fit.png`.
+
+Each render copies only the figures that were in `figures/` at its start. After a
+render saves a figure under a new name, run `quarto render` again, so that
+`docs/` holds it. Commit `figures/` with `_freeze/` and `docs/`.
+
+PNG and PDF files saved directly in `analyses/` are not committed, because
+`.gitignore` blocks `analyses/*.png` and `analyses/*.pdf`. Save paper
+figures in `figures/` instead.
 
 ## Publishing from one machine
 

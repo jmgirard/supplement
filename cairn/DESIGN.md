@@ -115,7 +115,9 @@ The package ships a Quarto website template in
 jmgirard/supplement/inst/template` or with `create_supplement()`.
 
 - `_quarto.yml`: a website project with `freeze: true` (D-002), output in
-  `docs/` (D-001), an Analyses navbar menu, and `data/**` as resources.
+  `docs/` (D-001), an Analyses navbar menu, and `data/**` and `figures/**`
+  as resources. A render copies the files in `figures/` at its start, so a
+  figure saved under a new name reaches `docs/` on the next render.
 - `_scripts/setup.ts` (pre-render): gives `_gitignore` and `_README.md`
   their real names, merges missing rules into an existing `.gitignore`, and
   writes the guide to `SUPPLEMENT.md` beside an existing README (D-004,
@@ -138,7 +140,9 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
 - `index.qmd` reads its paper facts from `_supplement.yml` and lists the
   reports in `analyses/` through a Quarto table listing.
   `analyses/example.qmd`, `data/example.csv`, and license files are starter
-  content for the author to replace.
+  content for the author to replace. The example report saves
+  `figures/bootstrap-means.png` and makes `figures/` when it is missing; the
+  template ships no `figures/` folder.
 
 Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when quarto is missing.

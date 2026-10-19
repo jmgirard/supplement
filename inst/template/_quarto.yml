@@ -8,8 +8,9 @@ project:
   render:
     - index.qmd
     - "analyses/*.qmd"
-  # Data files and paper figures are published as they are. A figure that a
-  # report saves to figures/ reaches docs/ on the next full render.
+  # Data files and paper figures are published as they are. After a render
+  # saves a figure under a new name in figures/, render again to copy it
+  # into docs/.
   resources:
     - "data/**"
     - "figures/**"

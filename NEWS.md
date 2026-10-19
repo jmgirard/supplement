@@ -99,3 +99,7 @@
   `supplement_error_yaml`, the class for a changed file that does not read
   back as planned. For a key line indented with a tab, `add_data()` gave
   `supplement_error_no_data_list`.
+* The template publishes paper figures from a `figures/` folder, which git
+  tracks. The example report saves `figures/bootstrap-means.png` there, and
+  the site's README says how a report writes a figure to `figures/`. Git
+  still ignores `.png` and `.pdf` files saved directly in `analyses/`.
