@@ -176,11 +176,13 @@ because the release writes that file again. It then changes the version
 in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json` again.
 Last, it prints the git and GitHub commands that commit the site, tag it,
 push it, and make the GitHub release. It runs none of them. Run them yourself in this folder.
-The printed `git status -- .`, `git add -A -- .`, and
-`git commit -m "Release vX.Y.Z" -- .` stage and commit only files under
-this folder, the files that the git checks of `check_supplement()` read. If this folder
+The printed `git status -- .` shows only files under this folder, and
+`git add -A -- .` and `git commit -m "Release vX.Y.Z" -- .` stage and
+commit only these files. These are the files that the git checks of
+`check_supplement()` read. If this folder
 is a subfolder of its repository, changes outside it stay out of the
-release commit.
+release commit. A file outside this folder that was staged before the
+release stays staged, so a later `git commit` adds it.
 After Zenodo archives the release, add the new version DOI to
 `_supplement.yml` and render the site again.
 

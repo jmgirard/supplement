@@ -69,3 +69,24 @@ For a site in a subfolder of its git repository, the commands that `release_supp
 - AC4: `grep -n "git add -A"` over the four named files gives 5 hits, all `git add -A -- .` (R:62, R:483, Rd:80, README.md:150, _README.md:179). Each file says the commands stage and commit only files under the site folder: R:65 (roxygen) and R:496 (message), Rd:83, README.md:159, _README.md:180. NEWS.md:48 says the same.
 - AC5: `devtools::document()` left `git status` clean. `devtools::test()`: 239 tests, 0 failed, 1 skipped (the case-sensitive-disk test in `test-add-data.R`, which skips on macOS), 0 errors.
 - Gate: `cairn_validate.py` all checks passed. `devtools::check()` 0 errors, 0 warnings, 0 notes. `document()` no diff. No README.Rmd and no `_pkgdown.yml`, so those checks do not apply. NEWS.md has the entry. No new top-level file. No DESIGN principle changed, so `cairn_impact` skipped.
+- spawned: diff-bug, blame-history, prior-review, ripple.
+- diff-bug #1: the new tests are the first to commit, and a git older than 2.32 reads the global config, so `commit.gpgsign` or `core.hooksPath` there can fail or hang them — fix now (`git_repo()` sets both in the repository).
+- diff-bug #2: `git_in()` keeps an inherited `GIT_DIR`, `GIT_WORK_TREE`, or `GIT_INDEX_FILE`, so a run inside a git hook could add and commit in another repository — fix now (`git_in()` unsets them).
+- diff-bug #3: `git commit -- .` also stops during a cherry-pick or revert — follow-up, new row "release pathspec edge cases".
+- diff-bug #4: an ignored site folder with forced files makes `git add -A -- .` exit 1 — follow-up, same row.
+- diff-bug #5: the printed message said "They stage and commit", which also covered tag and push — fix now (names `git add` and `git commit`).
+- diff-bug #6: the docs said `git status -- .` stages and commits — fix now (roxygen and Rd, README.md, `_README.md`, NEWS.md say `git status` shows, `git add` and `git commit` stage and commit).
+- diff-bug #7: the docs did not say a file staged outside the site stays staged — fix now (same as blame-history #1).
+- diff-bug #8: the subfolder test did not check `site/.zenodo.json` — fix now; a deleted site file is git's own behavior, rejected (no defect in the change; the claim audit's experiment showed it committed).
+- diff-bug #9: `run_release_commit()` did not check it ran two commands — fix now (`expect_length()`).
+- diff-bug #10: `write_site_yml()` ignored the result of `file.copy()` — fix now (`expect_true()`).
+- diff-bug #11: running add and commit again with nothing changed exits 1 and lists outside files — follow-up, row "release pathspec edge cases".
+- diff-bug #12: PowerShell may drop `--` (from memory, untested) — follow-up, same row.
+- blame-history #1: the docs do not say a file staged outside the site before the release stays staged, so the next plain `git commit` adds it — fix now (roxygen and Rd, README.md, `_README.md`).
+- blame-history #2: no D-entry records the move from a whole-repository view to the pathspec — rejected, planned change: the user chose it at the plan question set, and the work log records it; it binds one function, not a cross-cutting rule.
+- blame-history #3: the printed `git status -- .` no longer shows outside changes, and no test runs it — rejected, planned change (AC1 fixes the command text, and the test compares it).
+- blame-history #4: the template's render steps stage only `_freeze` and `docs` while the release stages the whole site folder — rejected, false: these are two separate workflows and the diff does not touch the render steps.
+- blame-history #5: the merge-in-progress refusal — noted, already the row "release during a merge".
+- prior-review: no prior-review evidence against the diff (archive Review lines of M008, M009, M011, M012 read; PR comment probe empty).
+- ripple: no ripple evidence; ROADMAP row "release from a subfolder" still states the old behavior, and post-merge hygiene graduates it.
+- After the fixes: `devtools::document()` rebuilt `release_supplement.Rd`; `devtools::test()` 239 tests, 0 failed, 1 skipped (the same macOS case-sensitivity test).

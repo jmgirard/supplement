@@ -35,13 +35,16 @@ run_in <- function(dir, command, args, env = character()) {
 
 # Run git without the user's global or system configuration and without a
 # global excludes file, so that only the repository's own .gitignore
-# decides what is ignored.
+# decides what is ignored. GIT_DIR, GIT_WORK_TREE, and GIT_INDEX_FILE are
+# unset, so that a run inside a git hook does not act on another
+# repository.
 git_in <- function(dir, args) {
   empty <- tempfile("gitconfig-")
   file.create(empty)
   on.exit(unlink(empty))
   withr::with_envvar(
-    c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1"),
+    c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1",
+      GIT_DIR = NA, GIT_WORK_TREE = NA, GIT_INDEX_FILE = NA),
     run_in(dir, "git", c("-c", paste0("core.excludesFile=", shQuote(empty)), args))
   )
 }

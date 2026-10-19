@@ -919,11 +919,16 @@ test_that("the release commands are printed and returned", {
 })
 
 # A git repository in a new temporary folder, with a local user so that
-# git_in() can commit.
+# git_in() can commit. Commit signing and hooks are turned off in the
+# repository, because a git older than 2.32 still reads the user's global
+# configuration.
 git_repo <- function(env = parent.frame()) {
   repo <- withr::local_tempdir("release-repo-", .local_envir = env)
+  hooks <- withr::local_tempdir("release-hooks-", .local_envir = env)
   for (args in list(c("init", "-q"), c("config", "user.name", "Test"),
-                    c("config", "user.email", "test@example.com"))) {
+                    c("config", "user.email", "test@example.com"),
+                    c("config", "commit.gpgsign", "false"),
+                    c("config", "core.hooksPath", shQuote(hooks)))) {
     expect_identical(git_in(repo, args)$status, 0L)
   }
   repo
@@ -932,13 +937,15 @@ git_repo <- function(env = parent.frame()) {
 # Write the template's _supplement.yml with version 1.2.3 into `dir`.
 write_site_yml <- function(dir) {
   dir.create(dir, showWarnings = FALSE, recursive = TRUE)
-  file.copy(file.path(release_site('  version: "1.2.3"'), "_supplement.yml"), dir)
+  expect_true(file.copy(file.path(release_site('  version: "1.2.3"'), "_supplement.yml"), dir))
 }
 
 # Run the printed `git add` and `git commit` commands in `dir`. scan()
 # splits each command at spaces and keeps the quoted message whole.
 run_release_commit <- function(commands, dir) {
-  for (command in commands[startsWith(commands, "git add") | startsWith(commands, "git commit")]) {
+  run <- commands[startsWith(commands, "git add") | startsWith(commands, "git commit")]
+  expect_length(run, 2)
+  for (command in run) {
     args <- scan(text = command, what = "", quiet = TRUE)
     out <- git_in(dir, shQuote(args[-1]))
     expect_identical(out$status, 0L, label = paste(c(command, out$output), collapse = "\n"))
@@ -974,7 +981,7 @@ test_that("for a site in a subfolder, the release commit holds only files of the
 
   paths <- committed_paths(repo)
   expect_true(all(startsWith(paths, "site/")), label = paste(paths, collapse = ", "))
-  expect_true(all(c("site/CITATION.cff", "site/_supplement.yml") %in% paths))
+  expect_true(all(c("site/CITATION.cff", "site/.zenodo.json", "site/_supplement.yml") %in% paths))
   status <- git_in(repo, c("status", "--porcelain"))$output
   expect_true(all(c(" M tracked.txt", "?? untracked.txt", "A  staged.txt") %in% status),
               label = paste(status, collapse = ", "))

@@ -62,13 +62,15 @@
 #' `git add -A -- .`, `git commit -m "Release vX.Y.Z" -- .`,
 #' `git tag vX.Y.Z`, `git push`, `git push origin vX.Y.Z`, and
 #' `gh release create vX.Y.Z --generate-notes`. The `-- .` limits the first
-#' three commands to the site folder, so they stage and commit only files
-#' under the site folder. These are the files that the git checks of
+#' three commands to the site folder: `git status` shows, and `git add` and
+#' `git commit` stage and commit, only files under the site folder. These
+#' are the files that the git checks of
 #' [check_supplement()] read, so `docs/` and `_freeze/` reach the release
 #' when git does not ignore them, as in the template.
 #' When the site is a subfolder of its repository, a change outside the
 #' site folder, also one that was staged before, stays out of the release
-#' commit. The last command
+#' commit. A file outside the site folder that was staged before the
+#' release stays staged, so a later `git commit` adds it. The last command
 #' needs the GitHub command-line tool (`gh`). When Zenodo's GitHub
 #' integration is turned on for the repository, Zenodo archives the release
 #' and gives it a version DOI. Add that DOI to `zenodo.version-doi` in
@@ -493,7 +495,7 @@ report_release <- function(path, version, commands) {
   cli::cli_alert_success(
     "Set {.field version} to {.val {version}} in {.file _supplement.yml}, and wrote {.file CITATION.cff} and {.file .zenodo.json}."
   )
-  cli::cli_text("Run these commands in {.path {path}} to make the release. They stage and commit only the files in this folder, and {.code git status -- .} shows them.")
+  cli::cli_text("Run these commands in {.path {path}} to make the release. The {.code git add} and {.code git commit} commands stage and commit only the files in this folder, and {.code git status -- .} shows them.")
   cli::cli_code(commands)
   cli::cli_text(
     "After Zenodo archives the release, add its new version DOI to {.field zenodo.version-doi} in {.file _supplement.yml}, and render the site again."

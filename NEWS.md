@@ -45,8 +45,8 @@
   greater version. It writes `CITATION.cff` and `.zenodo.json` again with
   the new version. It prints the git and GitHub commands that make the
   release, and runs none of them. The printed `git status`, `git add`, and
-  `git commit` commands end in `-- .`. These commands stage and commit only
-  files under the site folder. This is also true for a site in a subfolder
+  `git commit` commands end in `-- .`. So `git add` and `git commit` stage
+  and commit only files under the site folder. This is also true for a site in a subfolder
   of its repository. If a write stops, the files get
   their old text back. The commands are printed after the files are
   written, so an error while printing keeps the files.
