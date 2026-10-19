@@ -44,7 +44,7 @@
 - [x] T1: Add a mock helper to `tests/testthat/test-release-supplement.R` that runs a function on the site folder inside the mocked `check_supplement()`, then write the AC1 and AC2 tests. Run them against the code on main and see each one fail for the reason it names.
 - [x] T2: In `release_supplement()` (`R/release-supplement.R:151`), right after `check_supplement()` returns and before `check_release_problems()`, read the raw bytes of `_supplement.yml` and call `read_outputs()` again, and stop with `supplement_error_changed` when any value is not `identical()` to its pre-check value. Leave the refusals before the check where they are.
 - [x] T3: Update the help page text at `R/release-supplement.R:26-42` and its Errors section, the NEWS.md `release_supplement()` bullet, and the DESIGN.md Architecture paragraph. Run `devtools::document()`.
-- [ ] T4: Run `devtools::test()` and `devtools::check()`, and confirm `git diff -- man NAMESPACE` is empty after `devtools::document()`.
+- [x] T4: Run `devtools::test()` and `devtools::check()`, and confirm `git diff -- man NAMESPACE` is empty after `devtools::document()`.
 
 ## Work log
 
@@ -65,3 +65,4 @@
 - 2026-10-18: T2 done: `check_unchanged()` in `R/release-supplement.R`, called between `check_supplement()` and `check_release_problems()`, compares `read_bytes_or_null()` of `_supplement.yml` and a second `read_outputs()` call with the pre-check values; the message names each changed file. devtools::test(): 219 tests, 0 failures, 1 skip.
 - 2026-10-18: agent decided the second `read_outputs()` call keeps its refusals, so a link made at an output during the check stops with `supplement_error_file_exists`; no criterion promises it and the "release edge cases" row keeps the case.
 - 2026-10-18: T3 done: help Details paragraph (the stop, and that a change saved while the files are written can still be lost) and an Errors item for `supplement_error_changed`, the NEWS.md bullet, and the DESIGN.md Architecture paragraph; `devtools::document()` rewrote only `man/release_supplement.Rd`.
+- 2026-10-18: T4 done: after `devtools::document()`, `git diff -- man NAMESPACE` is empty; devtools::test() 219 tests, 0 failures, 1 skip; devtools::check() 0 errors, 0 warnings, 0 notes.
