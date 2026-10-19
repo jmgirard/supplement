@@ -1,20 +1,18 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-18 (M012 done: graduated release write order; narrowed release snapshot remainder and footer and badge edge cases; added release write order remainder; pruned the M009 row; validate green)_
+_Last hygiene check: 2026-10-19 (M013 done: graduated testthat floor; pruned the M010 row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M013 | DESCRIPTION asks for testthat 3.3.0, and the tests pass under it | review | — | high | milestones/M013-testthat-floor.md |
+| M013 | DESCRIPTION asks for testthat 3.3.0, and the tests pass under it | done | — | high | milestones/archive/M013-testthat-floor.md |
 | M012 | release_supplement() checks every value before it writes a file | done | — | high | milestones/archive/M012-release-write-order.md |
 | M011 | release_supplement() stops when a file changes during the check | done | — | high | milestones/archive/M011-release-snapshot-gap.md |
-| M010 | The footer, the DOI badge, and the citation files agree with _supplement.yml | done | — | normal | milestones/archive/M010-license-doi-agree.md |
 
 ## Candidates
 
-- [high] testthat floor: tests use `expect_no_error()` and `expect_no_warning()`, which need testthat 3.1.5, while DESCRIPTION says `testthat (>= 3.0.0)`. Raise the floor (a dependency change) or use `expect_error(x, NA)`. From the M008 review. The M009 review adds: `local_mocked_bindings()`, used in the add, check, and release tests, first appears in testthat's NEWS at 3.1.7. — added 2026-10-18 — started M013
 - [high] footer and badge edge cases: from the M010 review. See "shortcode edge cases". The footer link targets stay `LICENSE.md` and `LICENSE-CC-BY.md`, so `content: CC0-1.0` shows "CC0 1.0" linked to the CC BY text. The writers accept an id with `--`, which the footer shows with an en dash, and the footer shows an id that the writers refuse, such as `CC BY 4.0`, with no stop. A list value such as `code: [MIT, Apache-2.0]` shows as `MITApache-2.0`, while the writers raise `supplement_error_field_type`. `write_citation()` writes both `MIT` and `mit` when the two fields differ only in letter case. A version DOI that is only a prefix (`doi:`) makes the badge fall back to the concept DOI, while `bare_doi()` stops, and no test ties the Lua and R prefix rules together. Narrowed 2026-10-18 by M012 (the release help page now says a bad license id stops it before any write). — added 2026-10-18
 - Windows check: run the template tests and a render on Windows (CI or by hand), including the no-R test, which skips there, and `nojekyll.ts` with a `C:\` output path. From the M003 review. Also from the M004 review: data files of 2 GiB or more may read as missing (32-bit `ftell` in Windows Lua), and the 1 GB sparse size fixture may cost 1 GB of disk off macOS when Quarto copies it into `docs/`. Also from the M006 review: `create_supplement()` path handling on Windows (a broken link or junction at a template path, where `Sys.readlink()` returns `""`, and trailing separators). — added 2026-10-18
 - shortcode edge cases: from the M004 review. `file` values are read as Markdown, so read the raw value or encode it (names with `%`, `#`, `--`, `_x_` break). A `data` map instead of a list renders nothing, and bare strings give `not found: ''`. A path outside the project or an absolute path renders but is not published. A `{{< meta >}}` value that names an existing path is rewritten on subfolder pages, and a description written as `../data` shows as `data` there. A fresh site has an empty paragraph under "Archived Version". `quarto-required: ">=1.4.0"` is untested below 1.10. From the M010 plan: `supplement-license` with no argument, or one other than `code` or `content`, has no defined result. — added 2026-10-18
