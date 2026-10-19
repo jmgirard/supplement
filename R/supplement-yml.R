@@ -270,10 +270,43 @@ compact <- function(x) {
   x[!vapply(x, is.null, logical(1))]
 }
 
-write_utf8 <- function(text, file) {
-  con <- file(file, open = "wb")
-  on.exit(close(con))
-  writeLines(enc2utf8(text), con, useBytes = TRUE)
+# Write each line of `text` with "\n" after it. write_checked() stops with
+# `supplement_error_write` on a warning (R only warns when the disk is
+# full) or a file of another size.
+write_utf8 <- function(text, file, call = parent.frame()) {
+  bytes <- charToRaw(paste0(paste(enc2utf8(text), collapse = "\n"), "\n"))
+  write_checked(bytes, file, call = call)
+}
+
+# The site version in `supplement.version`, or NULL when it is empty. A
+# version is three whole numbers joined by ".", as in "1.0.0", each "0"
+# or without a leading zero. Any other value is an error.
+read_version <- function(meta, call = parent.frame()) {
+  version <- value(meta[["version"]], "supplement.version", call)
+  if (!is.null(version) && !is_version(version)) {
+    version_error(
+      "{.field supplement.version} in {.file _supplement.yml} is not a version: {.val {version}}.",
+      version = version,
+      call = call
+    )
+  }
+  version
+}
+
+# The whole text must match. With perl = TRUE, `$` also matches before a
+# final "\n", so the pattern ends with `\z`.
+is_version <- function(x) {
+  grepl("\\A(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\z", x, perl = TRUE)
+}
+
+version_error <- function(message, version, call) {
+  cli::cli_abort(
+    c(message,
+      "i" = "Write a version as three whole numbers joined by {.code .}, such as {.val 1.0.0}, with no leading zero."),
+    class = c("supplement_error_version", "supplement_error"),
+    call = call,
+    .envir = environment()
+  )
 }
 
 supplement_title <- function(meta, call = parent.frame()) {

@@ -18,6 +18,7 @@ test_that("write_citation() writes every field of a full _supplement.yml", {
   expect_equal(cff, list(
     "cff-version" = "1.2.0",
     title = title,
+    version = "1.10.0",
     authors = list(
       list(
         "family-names" = "Doe",
@@ -44,6 +45,7 @@ test_that("write_zenodo() writes every field of a full _supplement.yml", {
   expect_equal(out, file.path(dir, ".zenodo.json"))
   expect_equal(read_zenodo(dir), list(
     title = title,
+    version = "1.10.0",
     upload_type = "software",
     description = "Supplemental materials for: Doe, J., & Müller, Ä. (2026). Effects. *Journal*.",
     creators = list(
@@ -88,6 +90,7 @@ minimal_supplement <- function(optional) {
     meta$license <- list(code = "", content = "")
     meta$zenodo <- list("version-doi" = "", "concept-doi" = "", "archive-url" = "")
     meta$preprint <- ""
+    meta$version <- ""
   }
   meta
 }
@@ -98,6 +101,7 @@ test_that("empty and absent optional values are left out of both files", {
     "  paper-title: A paper",
     "  citation: Doe, J. (2026). A paper.",
     "  preprint:",
+    "  version:",
     "  license:",
     "    code:",
     "    content: ~",
@@ -125,6 +129,21 @@ test_that("empty and absent optional values are left out of both files", {
     expect_equal(cff$authors, list(list("family-names" = "Doe", "given-names" = "Jane")))
     expect_named(zenodo, c("title", "upload_type", "description", "creators"))
     expect_equal(zenodo$creators, list(list(name = "Doe, Jane")))
+  }
+})
+
+test_that("the version is written to both files", {
+  for (version in c("1.0.0", "0.10.2", "0.0.0", "12.345.6789")) {
+    meta <- full_supplement()
+    meta$version <- version
+    dir <- local_site(meta)
+    write_citation(dir)
+    write_zenodo(dir)
+
+    expect_identical(read_cff(dir)$version, version)
+    expect_identical(read_zenodo(dir)$version, version)
+    # Quoted, so that no reader takes 0.10.2 for a number.
+    expect_true(any(readLines(file.path(dir, "CITATION.cff")) == sprintf('version: "%s"', version)))
   }
 })
 
@@ -211,6 +230,12 @@ test_that("both files are written in a copy of the template", {
   expect_no_error(write_zenodo(dir))
   expect_equal(read_cff(dir)$title, "Supplemental materials for: Title of the paper")
   expect_equal(read_zenodo(dir)$creators[[1]]$name, "Author, A. A.")
+
+  # The template's version is "" until the first release, so neither file
+  # has one.
+  expect_identical(yaml::read_yaml(file.path(dir, "_supplement.yml"))$supplement$version, "")
+  expect_false("version" %in% names(read_cff(dir)))
+  expect_false("version" %in% names(read_zenodo(dir)))
 })
 
 test_that("a hand-written _supplement.yml gives the same files as the R-written one", {
@@ -218,6 +243,7 @@ test_that("a hand-written _supplement.yml gives the same files as the R-written 
     "supplement:",
     "  paper-title: 'Effects: a \"close\" look at *text* & more'",
     "  citation: \"Doe, J., & Müller, Ä. (2026). Effects. *Journal*.\"",
+    "  version: '1.10.0'",
     "  preprint: https://osf.io/abcde",
     "  contact: Jane Doe, University A.",
     "  license: {code: MIT, content: CC-BY-4.0}",

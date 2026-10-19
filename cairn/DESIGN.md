@@ -71,7 +71,8 @@ in `analyses/` and adds it to the Analyses menu in `_quarto.yml`;
 `_supplement.yml`. Both check every argument and the target file before
 the first write, and refuse a linked `analyses/` or `data/` folder.
 `R/yaml-insert.R` adds a list item as lines of text, so comments stay
-(D-010); it re-reads the result with the yaml package before any write.
+(D-010), and replaces a one-line map value on its line (D-011); it
+re-reads the result with the yaml package before any write.
 `R/add-utils.R` holds the checks the two share.
 `R/check-supplement.R`: `check_supplement()` changes no file and returns
 its problems as a data frame (`check`, `file`, `problem`), with a
@@ -82,6 +83,15 @@ package's one place that starts a process. Its link check reads quoted
 resolves each link by path segments inside `docs/`, matching each name's
 letter case as GitHub Pages does. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
+`R/release-supplement.R`: `release_supplement()` checks `bump`, the
+current `supplement.version`, and the `version:` line, refuses a
+`CITATION.cff` or `.zenodo.json` that is a link or cannot be read or
+written, or that is missing in a folder it cannot write, then runs `check_supplement()`, and stops on any problem but a
+`CITATION.cff` DOI row. It then writes `_supplement.yml`, `CITATION.cff`,
+and `.zenodo.json` and prints the git and `gh` release commands. When any
+of those steps stops, or on an interrupt, it puts back each file whose
+bytes changed and removes each file it made. It starts no process
+itself.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in

@@ -279,3 +279,103 @@ test_that("quoted values read back as written", {
     expect_identical(yaml::yaml.load(yaml_quote(value)), enc2utf8(value), label = value)
   }
 })
+
+# Value replacement -------------------------------------------------------
+
+version_path <- c("supplement", "version")
+
+# Write `bytes` to a temporary file, set the version to "1.3.0" with the
+# helpers, and check that the bytes after are `bytes` with `old` replaced
+# by `new` once, and that the yaml package reads the new version.
+expect_version_replaced <- function(bytes, old, new) {
+  file <- withr::local_tempfile(fileext = ".yml")
+  writeBin(bytes, file)
+  read <- read_text_lines(file)
+  lines <- yaml_replace_lines(read$lines, version_path, "1.3.0")
+  expect_false(is.null(lines))
+  expect_true(yaml_replaced(read$lines, lines, version_path, "1.3.0"))
+  write_text_lines(read, lines, file)
+  after <- readBin(file, "raw", file.size(file))
+
+  # The bytes before and after the changed line are the same.
+  text <- rawToChar(bytes)
+  at <- regexpr(old, text, fixed = TRUE)
+  expect_true(at > 0)
+  expect_identical(
+    after,
+    c(bytes[seq_len(at - 1)], charToRaw(new), bytes[-seq_len(at - 1 + nchar(old, "bytes"))])
+  )
+  expect_identical(yaml::read_yaml(file, readLines.warn = FALSE)$supplement$version, "1.3.0")
+}
+
+test_that("the version in the template's _supplement.yml is replaced", {
+  file <- file.path(template_dir(), "_supplement.yml")
+  bytes <- readBin(file, "raw", file.size(file))
+  expect_version_replaced(bytes, '  version: ""\n', '  version: "1.3.0"\n')
+})
+
+test_that("a comment, CRLF line endings, and quoted or plain values are kept or replaced", {
+  head <- "# A comment\nsupplement:\n  paper-title: \"A paper\"\n"
+  tail <- "  license:\n    code: MIT\n"
+  cases <- list(
+    comment = c('  version: "1.2.3"   # the site version\n', '  version: "1.3.0"   # the site version\n'),
+    single = c("  version: '1.2.3'\n", '  version: "1.3.0"\n'),
+    plain = c("  version: 1.2.3\n", '  version: "1.3.0"\n'),
+    plain_comment = c("  version: 1.2.3 # c\n", '  version: "1.3.0" # c\n'),
+    empty = c("  version:\n", '  version: "1.3.0"\n'),
+    empty_comment = c("  version:  # none yet\n", '  version: "1.3.0"  # none yet\n'),
+    wide = c('  version:    ""\n', '  version:    "1.3.0"\n'),
+    quoted_key = c('  "version": "1.2.3"\n', '  "version": "1.3.0"\n')
+  )
+  for (name in names(cases)) {
+    old <- cases[[name]][1]
+    new <- cases[[name]][2]
+    expect_version_replaced(charToRaw(paste0(head, old, tail)), old, new)
+  }
+
+  crlf <- function(x) gsub("\n", "\r\n", x, fixed = TRUE)
+  expect_version_replaced(
+    charToRaw(crlf(paste0(head, '  version: "1.2.3"\n', tail))),
+    '  version: "1.2.3"\r\n', '  version: "1.3.0"\r\n'
+  )
+  # The last line of a file with no line break at the end.
+  expect_version_replaced(
+    charToRaw(paste0(head, '  version: "1.2.3"')),
+    '  version: "1.2.3"', '  version: "1.3.0"'
+  )
+})
+
+test_that("a version that is not a one-line value of the supplement map is not found", {
+  missing <- list(
+    no_key = c("supplement:", "  paper-title: A"),
+    other_map = c("supplement:", "  zenodo:", "    version: \"1.2.3\""),
+    top_level = c("version: \"1.2.3\"", "supplement:", "  paper-title: A"),
+    deeper = c("supplement:", "  paper-title: A", "    version: \"1.2.3\""),
+    flow_map = c("supplement: {version: \"1.2.3\"}"),
+    flow_value = c("supplement:", "  version: [1.2.3]"),
+    literal = c("supplement:", "  version: |", "    1.2.3"),
+    folded = c("supplement:", "  version: >-", "    1.2.3"),
+    continued = c("supplement:", "  version: 1.2", "    .3"),
+    nested = c("supplement:", "  version:", "    major: 1"),
+    anchor = c("supplement:", "  version: &v 1.2.3"),
+    tag = c("supplement:", "  version: !!str 1.2.3"),
+    open_quote = c("supplement:", "  version: \"1.2.3")
+  )
+  for (name in names(missing)) {
+    expect_null(yaml_replace_lines(missing[[name]], version_path, "1.3.0"), label = name)
+  }
+})
+
+test_that("yaml_replaced() rejects a result that is not the old map with the new value", {
+  before <- c("supplement:", "  paper-title: A", "  version: \"1.2.3\"")
+  after <- c("supplement:", "  paper-title: B", "  version: \"1.3.0\"")
+  expect_false(yaml_replaced(before, after, version_path, "1.3.0"))
+  expect_false(yaml_replaced(before, before, version_path, "1.3.0"))
+  # A key that the old file does not have.
+  expect_false(yaml_replaced(before[1:2], c(before[1:2], "  version: \"1.3.0\""), version_path, "1.3.0"))
+  after[2] <- "  paper-title: A"
+  expect_true(yaml_replaced(before, after, version_path, "1.3.0"))
+  # A file with a duplicate key does not read.
+  dup <- c(before, "  version: \"1.2.3\"")
+  expect_false(yaml_replaced(dup, yaml_replace_lines(dup, version_path, "1.3.0"), version_path, "1.3.0"))
+})

@@ -23,6 +23,7 @@ GitHub reads this file to show a citation for the repository.
 The file holds:
 \itemize{
 \item \code{title}: "Supplemental materials for: " and \code{paper-title}.
+\item \code{version}: \code{version}, the version of the site, such as \code{"1.0.0"}.
 \item \code{authors}: each author's \code{family} and \code{given} names, ORCID iD, and
 affiliation, in the order of \verb{_supplement.yml}.
 \item \code{doi}: \code{zenodo.concept-doi}, which names every release. When it is
@@ -59,6 +60,9 @@ text value belongs, or \code{license} (and, for \code{\link[=write_citation]{wri
 \item \code{supplement_error_doi}: for \code{\link[=write_citation]{write_citation()}}, \code{zenodo.concept-doi}
 or \code{zenodo.version-doi}, with its prefix removed, is not \code{10.}, four
 to nine digits, \code{/}, and a suffix with no spaces.
+\item \code{supplement_error_version}: \code{version} is not empty and is not three
+whole numbers joined by \code{.}, each \code{0} or without a leading zero, such
+as \verb{1.0.0} or \verb{0.10.2}.
 \item \code{supplement_error_authors}: \code{authors} is missing, empty, or not a list
 of authors.
 \item \code{supplement_error_author_name}: an author has no \code{family} or no
@@ -71,6 +75,9 @@ can be \code{X}.
 \item \code{supplement_error_file_exists}: the output file (or a link with its
 name) exists and \code{overwrite} is \code{FALSE}, or a folder has the output
 file's name.
+\item \code{supplement_error_write}: the output file was opened, but writing it
+gave an error or a warning (R warns when the disk is full), or the
+file then has another size than the text.
 }
 }
 

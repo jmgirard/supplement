@@ -178,6 +178,36 @@ test_that("a one-item list, a number, or true/false where text belongs is refuse
   expect_match(conditionMessage(err), "quotes", fixed = TRUE)
 })
 
+test_that("a version that is not three whole numbers is refused", {
+  bad <- c("1.0", "v1.0.0", "01.0.0", "1.0.0-rc1", "1. 0.0", "1.00.0", "1.0.0.0", "-1.0.0")
+  for (version in bad) {
+    dir <- local_site(with_change(function(m) {
+      m$version <- version
+      m
+    }))
+    for (file in names(writers)) {
+      expect_refused(dir, file, "supplement_error_version")
+    }
+    err <- expect_error(write_zenodo(dir), class = "supplement_error_version")
+    expect_match(conditionMessage(err), version, fixed = TRUE)
+  }
+})
+
+test_that("an unquoted version that YAML reads as a number is refused", {
+  dir <- local_site(text = c(
+    "supplement:",
+    "  paper-title: A paper",
+    "  citation: A citation",
+    "  version: 1.10",
+    "  authors:",
+    "    - family: Doe",
+    "      given: Jane"
+  ))
+  for (file in names(writers)) {
+    expect_refused(dir, file, "supplement_error_field_type")
+  }
+})
+
 test_that("write_citation() refuses a DOI that is not a DOI", {
   bad <- c(
     "zenodo.1234567",

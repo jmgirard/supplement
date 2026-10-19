@@ -1,9 +1,11 @@
 # Add one item to the end of a block-style YAML list by inserting lines of
-# text, so that every other line of the file, its comments included, stays
-# as it was. The scanner reads only the indentation and the keys of lines,
-# so it knows the block style that the template uses and not every YAML
-# form. yaml_appended() reads the result with the yaml package, so that a
-# form the scanner reads wrongly stops the caller before it writes.
+# text, or change the value on one line of a block-style map, so that every
+# other line of the file, its comments included, stays as it was. The
+# scanner reads only the indentation and the keys of lines, so it knows the
+# block style that the template uses and not every YAML form.
+# yaml_appended() and yaml_replaced() read the result with the yaml
+# package, so that a form the scanner reads wrongly stops the caller before
+# it writes.
 
 # The lines of a UTF-8 text file, split at each "\n". A line keeps its
 # "\r" when the file has CRLF line endings, and a file that ends with a
@@ -138,23 +140,90 @@ yaml_append_lines <- function(lines, path, item) {
 # TRUE when the yaml package reads `new` as `old` with `item` added as the
 # last item of the list that `path` names, and with nothing else changed.
 yaml_appended <- function(old, new, path, item) {
-  read <- function(lines) {
-    # End the text with a line break either way, so that a block scalar at
-    # the end of the file reads the same before and after the insert.
-    text <- paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
-    tryCatch(
-      yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x))),
-      error = function(e) NULL
-    )
-  }
-  old_doc <- read(old)
-  new_doc <- read(new)
+  old_doc <- yaml_read_lines(old)
+  new_doc <- yaml_read_lines(new)
   before <- yaml_get(old_doc, path)
   after <- yaml_get(new_doc, path)
   n <- length(after)
   is.list(before) && is.list(after) && n == length(before) + 1 &&
     identical(after[-n], before) && identical(after[[n]], as.list(item)) &&
     identical(yaml_set(new_doc, path, after[-n]), old_doc)
+}
+
+# The lines read with the yaml package, or NULL when they are not valid
+# YAML. Every sequence is read as a list, as read_supplement() does.
+yaml_read_lines <- function(lines) {
+  # End the text with a line break either way, so that a block scalar at
+  # the end of the file reads the same before and after an insert.
+  text <- paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
+  tryCatch(
+    yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x))),
+    error = function(e) NULL
+  )
+}
+
+# `lines` with the value of the key that `path`, a vector of map keys,
+# names replaced by `value` in double quotes. Only the value's text on the
+# key's line changes, so the spaces and a comment after it stay. NULL when
+# a step of the path is missing or not in block form, or when the value is
+# not a one-line scalar on the key's line: a block, a block scalar (`|` or
+# `>`), a flow list or map, an anchor, an alias, or a tag. An empty value,
+# as in `version:`, is replaced too.
+yaml_replace_lines <- function(lines, path, value) {
+  plain <- sub("\r$", "", lines)
+  from <- 1L
+  to <- length(plain)
+  for (step in path[-length(path)]) {
+    k <- yaml_find_key(plain, from, to, step)
+    if (is.null(k) || !grepl("^\\s*(#.*)?$", k$rest)) {
+      return(NULL)
+    }
+    block <- yaml_child(plain, k$line)
+    if (is.null(block)) {
+      return(NULL)
+    }
+    from <- block[1]
+    to <- block[2]
+  }
+  k <- yaml_find_key(plain, from, to, path[length(path)])
+  # A more indented line below the key would continue its value.
+  if (is.null(k) || !is.null(yaml_child(plain, k$line))) {
+    return(NULL)
+  }
+  # The spaces before the value, the value (double-quoted, single-quoted,
+  # plain, or empty), and the spaces and comment after it.
+  rx <- paste0(
+    "^(\\s*)",
+    "(\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^']|'')*'|[^\\s#|>\\[\\]{}&*!%@`'\",][^#]*?|)",
+    "(\\s*(?:\\s#.*)?)$"
+  )
+  m <- regmatches(k$rest, regexec(rx, k$rest, perl = TRUE))[[1]]
+  if (length(m) == 0) {
+    return(NULL)
+  }
+  line <- plain[k$line]
+  key <- substr(line, 1, nchar(line) - nchar(k$rest))
+  # An empty value goes one space after the colon, before the old spaces
+  # and comment.
+  new <- if (nzchar(m[3])) {
+    paste0(key, m[2], yaml_quote(value), m[4])
+  } else {
+    paste0(key, " ", yaml_quote(value), k$rest)
+  }
+  cr <- if (endsWith(lines[k$line], "\r")) "\r" else ""
+  lines[k$line] <- paste0(new, cr)
+  lines
+}
+
+# TRUE when the yaml package reads `new` as `old` with the value at `path`
+# set to `value`, and with nothing else changed.
+yaml_replaced <- function(old, new, path, value) {
+  old_doc <- yaml_read_lines(old)
+  new_doc <- yaml_read_lines(new)
+  parent <- yaml_get(old_doc, path[-length(path)])
+  is_map(parent) && path[length(path)] %in% names(parent) &&
+    identical(yaml_get(new_doc, path), value) &&
+    identical(yaml_set(old_doc, path, value), new_doc)
 }
 
 # `doc` with the value at `path` replaced by `value`.

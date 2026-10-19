@@ -27,8 +27,21 @@
   pages there that cannot be read. It finds DOIs that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It returns
   the problems as a data frame.
+* `release_supplement()` prepares a release. It runs
+  `check_supplement()`. When that finds a problem or skips its git checks,
+  the function stops. A DOI in `CITATION.cff` that differs from
+  `_supplement.yml` does not stop it. It then raises the version in
+  `_supplement.yml` by `"patch"`, `"minor"`, or `"major"`, or sets a given
+  greater version. It writes `CITATION.cff` and `.zenodo.json` again with
+  the new version. It prints the git and GitHub commands that make the
+  release, and runs none of them. If a write stops, the files get
+  their old text back.
 * `write_citation()` and `write_zenodo()` write `CITATION.cff` and
   `.zenodo.json` from `_supplement.yml`.
+* The template's `_supplement.yml` has a `version` field for the site
+  version, such as `"1.0.0"`. When it is not empty, `write_citation()`
+  and `write_zenodo()` write it. They stop for a value that is not three
+  whole numbers joined by `.`, or that has a leading zero.
 * Authors in the template's `_supplement.yml` now have `family:` and
   `given:` in place of `name:`. Both functions stop with an error for an
   author without them.

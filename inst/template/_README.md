@@ -41,7 +41,7 @@ list in `_supplement.yml`.
 `_supplement.yml` holds the facts about the paper under one `supplement`
 key: the paper title, the citation, a preprint link, a contact line, the
 licenses, the authors, the Zenodo DOIs and archive link, and the data
-files. `_quarto.yml` loads the file with `metadata-files`, so every page can
+files. It also holds the site version. `_quarto.yml` loads the file with `metadata-files`, so every page can
 read its values. The home page shows the title, the citation, the
 contact, the Zenodo values, and the data files. Change them in
 `_supplement.yml`, not in `index.qmd`. No page shows the preprint,
@@ -101,7 +101,8 @@ supplement::write_zenodo()
 `write_citation()` writes `CITATION.cff`, which GitHub reads to show a
 citation for the repository. `write_zenodo()` writes `.zenodo.json`. When
 Zenodo archives a GitHub release, it reads that file. Both files take the
-title and the authors from `_supplement.yml`. `CITATION.cff` also takes
+title, the version, and the authors from `_supplement.yml`, and they
+leave out an empty version. `CITATION.cff` also takes
 both licenses and the concept DOI. If the concept DOI is empty, it takes
 the version DOI. `.zenodo.json` also takes the citation. Its
 `license` field holds one license, so it gets the content license. Give
@@ -135,6 +136,32 @@ data frame. It finds:
 The first two checks read the file list from git. When git cannot run or
 this folder is not in a git work tree, the function skips them and says
 so.
+
+## Make a release
+
+`version` in `_supplement.yml` is the version of this site, written as
+three whole numbers such as `"1.0.0"`. Leave it `""` until the first
+release. To make a release, run this in R from this folder:
+
+```r
+supplement::release_supplement("major")
+```
+
+Give `"patch"`, `"minor"`, `"major"`, or a version such as `"1.0.0"`. A
+word raises that part of the version and sets the parts after it to 0, and
+an empty version counts as `0.0.0`. Before it changes any file, the
+function runs `check_supplement()`. When that finds a problem or skips its
+git checks, the function stops and changes no file. A DOI in
+`CITATION.cff` that differs from `_supplement.yml` does not stop it,
+because the release writes that file again. It then changes the version
+in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json` again.
+Last, it prints the git and GitHub commands that commit the site, tag it,
+push it, and make the GitHub release. It runs none of them. Run them yourself in this folder.
+`git add -A` stages every file that git does not ignore in the whole
+repository. If this folder is a subfolder of its repository, look for
+files outside it in the `git status` output before you commit.
+After Zenodo archives the release, add the new version DOI to
+`_supplement.yml` and render the site again.
 
 ## How the site renders
 

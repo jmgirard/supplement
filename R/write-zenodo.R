@@ -9,6 +9,7 @@
 #' The file holds:
 #'
 #' * `title`: "Supplemental materials for: " and `paper-title`.
+#' * `version`: `version`, the version of the site, such as `"1.0.0"`.
 #' * `upload_type`: `"software"`.
 #' * `description`: "Supplemental materials for: " and `citation`.
 #' * `creators`: each author as "Family, Given", with the ORCID iD and the
@@ -52,9 +53,14 @@ write_zenodo <- function(path = ".", overwrite = FALSE) {
   # https://zenodo.org/api/vocabularies/licenses/cc-by-4.0 has the id
   # "cc-by-4.0".
   content <- value(license[["content"]], "supplement.license.content")
+  # `version` is a string in Zenodo's deposit metadata, which suggests a
+  # semantic version such as "2.1.5":
+  # https://developers.zenodo.org/#representation
+  version <- read_version(meta)
 
   zenodo <- compact(list(
     title = supplement_title(meta),
+    version = version,
     upload_type = "software",
     description = paste0(
       "Supplemental materials for: ",

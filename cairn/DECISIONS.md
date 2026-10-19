@@ -62,3 +62,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** `add_report()` and `add_data()` add an item to `_quarto.yml` and `_supplement.yml`. A rewrite with the yaml package drops every comment in the template's files and can change how values are quoted.
 **Decision:** A function that changes a site's YAML file inserts lines of text and leaves the other lines as they are. Before it writes, it reads the result with the yaml package and stops if the result is not the old file with the change. The user chose text insertion at the M007 plan gate.
 **Consequences:** Such a function handles block-style YAML and refuses other forms, such as a flow-style list, with the lines to add by hand. Later writers of these files follow the same rule.
+
+### D-011 (2026-10-18): A one-line value change follows the same text-edit rule (extends D-010)
+
+**Context:** `release_supplement()` changes the value of `supplement.version` in `_supplement.yml`. D-010 covers only inserted lines.
+**Decision:** A function that changes one value in a site's YAML file replaces only the value's text on its key's line, writes the new value in double quotes, and keeps the spaces and comment after it. Before it writes, it reads the result with the yaml package and stops unless the result is the old map with only that value changed.
+**Consequences:** Such a function handles a one-line scalar in a block-style map and refuses other forms, such as a block scalar, a flow map, or a value on the next line, with the line to add by hand.
