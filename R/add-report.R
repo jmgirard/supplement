@@ -146,7 +146,7 @@ add_report <- function(name, title, description = "", path = ".") {
 
   made <- character()
   done <- FALSE
-  on.exit(if (!done) unlink(rev(made), recursive = TRUE))
+  on.exit(if (!done) remove_made(made))
   if (!dir.exists(folder)) {
     if (!dir.create(folder, showWarnings = FALSE)) {
       write_error("Could not make the folder {.path {folder}}.")

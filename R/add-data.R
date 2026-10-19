@@ -188,7 +188,7 @@ add_data <- function(file, description, path = ".") {
 
   made <- character()
   done <- FALSE
-  on.exit(if (!done) unlink(rev(made), recursive = TRUE))
+  on.exit(if (!done) remove_made(made))
   if (!same) {
     if (!dir.exists(folder)) {
       if (!dir.create(folder, showWarnings = FALSE)) {

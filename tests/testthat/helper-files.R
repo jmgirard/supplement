@@ -42,6 +42,12 @@ yaml_list <- function(lines, path) {
   doc
 }
 
+# Folder names that unlink() reads as patterns that match "sitea". Windows
+# does not allow `?` or `*` in a file name.
+pattern_names <- function() {
+  if (.Platform$OS.type == "windows") "site[ab]" else c("site[ab]", "site?", "site*")
+}
+
 # A new site made by create_supplement() in a temporary folder.
 new_site <- function(env = parent.frame()) {
   site <- withr::local_tempdir("site-", .local_envir = env)

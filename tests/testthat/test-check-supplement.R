@@ -426,3 +426,19 @@ test_that("DOIs that differ between files give a doi-mismatch row", {
   skip_if(file.access(index, 4) == 0, "the file can still be read, as for root")
   expect_no_error(doi_rows(site))
 })
+
+test_that("git output in a folder with pattern characters removes only its own file", {
+  skip_if_not(nzchar(Sys.which("git")), "git is not on the PATH")
+  base <- withr::local_tempdir()
+  # "tmp[ab]" read as a pattern matches "tmpa".
+  dir.create(file.path(base, "tmp[ab]"))
+  dir.create(file.path(base, "tmpa"))
+  writeLines("mine", file.path(base, "tmpa", "git-out"))
+  out <- file.path(base, "tmp[ab]", "git-out")
+  local_mocked_bindings(git_out_file = function() out)
+  result <- git_run("--version", base)
+  expect_identical(result$status, 0L)
+  expect_match(rawToChar(result$stdout), "^git version")
+  expect_false(file.exists(out))
+  expect_identical(readLines(file.path(base, "tmpa", "git-out")), "mine")
+})

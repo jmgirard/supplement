@@ -357,6 +357,32 @@ test_that("a block-scalar description at the end of _supplement.yml does not sto
                    c('    - file: "data/scores.csv"', '      description: "Scores"'))
 })
 
+test_that("a failed write in a site path with pattern characters removes only its own copy", {
+  file <- source_file()
+  sites <- list()
+  for (name in pattern_names()) {
+    base <- withr::local_tempdir()
+    site <- file.path(base, name)
+    dir.create(site)
+    suppressMessages(create_supplement(site))
+    sibling <- file.path(base, "sitea")
+    dir.create(file.path(sibling, "data"), recursive = TRUE)
+    writeLines("mine", file.path(sibling, "data", "scores.csv"))
+    sites[[name]] <- list(site = site, sibling = sibling)
+  }
+  # The data file is copied, then the edit of _supplement.yml fails.
+  local_mocked_bindings(write_text_lines = function(...) stop("planted failure"))
+  for (name in names(sites)) {
+    site <- sites[[name]]$site
+    sibling <- sites[[name]]$sibling
+    before <- folder_state(site)
+    sibling_before <- folder_state(sibling)
+    expect_error(add_data(file, "D", path = site), regexp = "planted failure")
+    expect_identical(folder_state(site), before, info = name)
+    expect_identical(folder_state(sibling), sibling_before, info = name)
+  }
+})
+
 test_that("a _supplement.yml that does not parse stops with a yaml error", {
   expect_data_error(
     "supplement_error_yaml", file = source_file(), description = "D",

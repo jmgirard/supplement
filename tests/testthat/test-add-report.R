@@ -295,6 +295,31 @@ test_that("a _quarto.yml that is not UTF-8 or does not parse stops and writes no
   )
 })
 
+test_that("a failed write in a site path with pattern characters removes only its own report", {
+  sites <- list()
+  for (name in pattern_names()) {
+    base <- withr::local_tempdir()
+    site <- file.path(base, name)
+    dir.create(site)
+    suppressMessages(create_supplement(site))
+    sibling <- file.path(base, "sitea")
+    dir.create(file.path(sibling, "analyses"), recursive = TRUE)
+    writeLines("mine", file.path(sibling, "analyses", "x.qmd"))
+    sites[[name]] <- list(site = site, sibling = sibling)
+  }
+  # The report file is written, then the edit of _quarto.yml fails.
+  local_mocked_bindings(write_text_lines = function(...) stop("planted failure"))
+  for (name in names(sites)) {
+    site <- sites[[name]]$site
+    sibling <- sites[[name]]$sibling
+    before <- folder_state(site)
+    sibling_before <- folder_state(sibling)
+    expect_error(add_report("x", "X", path = site), regexp = "planted failure")
+    expect_identical(folder_state(site), before, info = name)
+    expect_identical(folder_state(sibling), sibling_before, info = name)
+  }
+})
+
 test_that("a folder that cannot be made stops with a write error", {
   skip_on_os("windows")
   skip_if(Sys.info()[["user"]] == "root", "root can write to read-only folders")

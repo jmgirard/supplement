@@ -45,3 +45,8 @@
 * Authors in the template's `_supplement.yml` now have `family:` and
   `given:` in place of `name:`. Both functions stop with an error for an
   author without them.
+* When a write fails, `create_supplement()`, `add_report()`, and
+  `add_data()` remove only the files and folders that they made. Before,
+  these functions read `[`, `*`, and `?` in a site path as a pattern. For
+  a site path such as `site[ab]`, the cleanup then removed files in
+  another folder, such as `sitea`, and kept its own.
