@@ -85,3 +85,26 @@ A failing template test prints the output of the command it checked, and a cause
 - AC3 evidence (2026-10-19): `grep -nE 'expect_length\([^,]*output, 0' tests/testthat/*.R` lists nothing (exit 1); the three checks at 7f789c5 lines 121, 136, 183 are now `expect_status(kept, 1L, output = character())` (HEAD lines 145, 159, 205). `testthat::test_file(desc = "a check for no output shows the lines the command printed")`: `expect_failure(..., "docs/index.html", fixed = TRUE)` for output `"docs/index.html"`, 2 expectations, 0 failed; with the planted defect, 1 of 2 failed. T3's in-place plant (`analyses/plot.png`) failed with that path in the message.
 - AC4 evidence (2026-10-19): one T4 run failed in `test-template.R` (full run 5); its output was "Running script '_scripts/setup.ts'" and exit 1, with no message. Quarto 1.10.19 `runScripts()` (`/Applications/quarto/bin/quarto.js`, `throw new Error()` on a failed script) explains the bare output; a `setup.ts` that throws prints its error, and 1,000 full renders plus 400 runs of the failed sequence exited 0, so the output names no cause in this repo. The condition does not hold, so no fix or NEWS entry is owed; `git diff main --name-only -- inst/ NEWS.md R/` lists nothing.
 - AC5 evidence (2026-10-19): `git diff main -- tests/ | grep -E '^\+' | grep -nE 'skip|retry|repeat|while|for \(|Sys.sleep|tryCatch|try\('` lists nothing (exit 1); the added lines hold no retry loop and no `skip()` call.
+- AC5 re-check after the review fixes (2026-10-19, fb7a260): the same grep lists two added lines: `skip_on_cran()` as the first line of "a failed status check shows what the command printed" (before any command runs), and `for (status in list(NULL, NA_integer_, 0.5, "0", c(0L, 0L)))`, which loops over hand-built results and runs no command. Neither retries a command or skips after a command fails; AC5 holds.
+- Gate (2026-10-19, fb7a260): `cairn_validate.py` all checks passed; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes; `devtools::test()` 251 tests, 0 failed, 0 errors, 5 skipped. No README.Rmd or `_pkgdown.yml`; no new top-level files; no NEWS entry owed (tests and tracking only).
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the subprocess test has never run on Windows or Linux (branch not pushed; the CI runs were on main) — fix now: the branch CI at step 8 (AC6) runs it on all three systems before merge.
+- diff-bug #2: T4 and the ROADMAP row present the 3 CI runs on main as runs with the new diagnostics — fix now, fixed fb7a260 (row wording; work-log correction line).
+- diff-bug #3: `expect_status()` gives an empty message when `result$status` is NULL — fix now, fixed fb7a260 (`deparse()` in `command_failure()`; test).
+- diff-bug #4: `expect_command_fails()` passes on a NULL or NA status — fix now, fixed fb7a260 (`exit_status()`; test).
+- diff-bug #5: `as.integer()` coercion lets 0.5 or "0" pass as 0 — fix now, fixed fb7a260 (`exit_status()` takes one whole number only; test).
+- diff-bug #6: a non-empty `output` mismatch does not show the expected lines — fix now, fixed fb7a260 ("and this output:" plus the lines; test).
+- diff-bug #7: the AC2 precondition `expect_equal(printed$status, 1L)` loses the output — fix now, fixed fb7a260 (`info =`).
+- diff-bug #8: the subprocess test has no CRAN skip and DESIGN.md does not name the helpers — fix now, fixed fb7a260 (`skip_on_cran()`; DESIGN.md sentence).
+- diff-bug #9: four `git check-ignore` results that should match have no status check — fix now, fixed fb7a260 (`expect_status()` before each `expect_setequal()`).
+- diff-bug #10: T4 ran `devtools::test(filter = "template")`, which uses `load_all()`, not `test_file()` — fix now, fixed fb7a260 (work-log correction line).
+- diff-bug #11: the run counts cannot be checked from the repo — reject (planned change): T4 says to write the counts in the work log, and records summarize rather than paste output; the stress scripts stayed in the session scratchpad.
+- diff-bug #12: the row calls the M009 failure unexplained though exit 1 with printed lines points to git stderr — fix now, fixed fb7a260 (row names it as most likely stderr).
+- diff-bug #13: the T1 line says R 4.6 `system2()` quotes the command, but older releases do too — fix now, fixed fb7a260 (work-log correction line).
+- blame-history #1: the subprocess test is unverified on Windows — fix now: same as diff-bug #1, step 8 CI.
+- blame-history #2: wrapping the four `git init` results makes a failed init a new hard failure point — reject (planned change): AC1 asks for these checks.
+- blame-history #3: a non-empty expected output is not shown in the message — fix now, fixed fb7a260 (same as diff-bug #6).
+- blame-history #4: `expect_command_fails()` passes on an NA status where the old `expect_false(x == 0L)` failed — fix now, fixed fb7a260 (same as diff-bug #4).
+- prior-review #1: possible Windows failure of the extension-less Rscript path — fix now: same as diff-bug #1, step 8 CI.
+- prior-review #2: the non-empty `output` branch is never exercised — fix now, fixed fb7a260 (new test).
+- ripple #1: row "status check output" says the other files' checks show no output, but several pass `info =` — fix now, fixed fb7a260 (row narrowed to checks without `info =`, counts 15, 8, 4 by grep).
