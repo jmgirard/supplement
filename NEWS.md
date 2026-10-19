@@ -38,6 +38,17 @@
   their old text back.
 * `write_citation()` and `write_zenodo()` write `CITATION.cff` and
   `.zenodo.json` from `_supplement.yml`.
+* The template's page footer shows the licenses in `license.code` and
+  `license.content` of `_supplement.yml`, in place of a fixed MIT and
+  CC BY 4.0. A new `supplement-license` shortcode shows a readable name
+  for common ids, such as CC BY 4.0 for `CC-BY-4.0`, and any other id as
+  written.
+* The `supplement-doi` badge removes a `doi:` or `https://doi.org/` in
+  front of a DOI, as `write_citation()` does, so a DOI written as a link
+  no longer breaks the badge.
+* `write_citation()` and `write_zenodo()` stop with
+  `supplement_error_license` for a license value that does not have the
+  shape of an SPDX id, such as `CC BY 4.0` with spaces.
 * The template's `_supplement.yml` has a `version` field for the site
   version, such as `"1.0.0"`. When it is not empty, `write_citation()`
   and `write_zenodo()` write it. They stop for a value that is not three

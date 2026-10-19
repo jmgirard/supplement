@@ -59,7 +59,8 @@ The home page shows the values with these shortcodes:
 - `{{< supplement-doi >}}` shows a Zenodo DOI badge that links to
   `https://doi.org/` and the DOI. It uses `zenodo.version-doi`. When that
   value is empty, it uses `zenodo.concept-doi`. When both are empty, it
-  shows nothing.
+  shows nothing. A `doi:` or `https://doi.org/` in front of the DOI is
+  removed.
 - `{{< supplement-download >}}` shows a link to `zenodo.archive-url`. When
   that value is empty, it shows nothing.
 - `{{< supplement-data-table >}}`, on a line by itself, shows a table with
@@ -77,7 +78,8 @@ If you turn on Zenodo's GitHub integration for this repository, Zenodo
 gives the DOIs after the next GitHub release. The version DOI names
 one release, and the concept DOI names every release. Add them and the
 archive link to `_supplement.yml`, then render the site again. Write each
-DOI without `https://doi.org/`, for example `10.5281/zenodo.1234567`.
+DOI as, for example, `10.5281/zenodo.1234567`. A `https://doi.org/` in
+front is also accepted.
 
 If a file under `data` does not exist, or names a folder, the render stops
 with an error that names it. A site without its data files must not be
