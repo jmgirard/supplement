@@ -47,6 +47,25 @@ test_that("the DOI badge removes a doi: or doi.org link prefix", {
   expect_match(page$html, doi_badge_rx(bare), perl = TRUE)
 })
 
+test_that("a DOI value that is not a DOI stops the render and names the field", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  good <- "10.5281/zenodo.111"
+  # A prefix with no DOI after it does not fall back to the other DOI.
+  page <- render_doi_page(zenodo_yaml(version = "doi:", concept = good))
+  expect_false(page$status == 0L)
+  expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
+
+  # The value that the badge does not show is checked too.
+  page <- render_doi_page(zenodo_yaml(version = good, concept = "10.528/zenodo.1"))
+  expect_false(page$status == 0L)
+  expect_match(page$stderr, "supplement-doi: supplement.zenodo.concept-doi ", fixed = TRUE)
+
+  page <- render_doi_page(c("zenodo:", paste0("  version-doi: [", good, "]")))
+  expect_false(page$status == 0L)
+  expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
+})
+
 test_that("empty DOI and archive values render nothing", {
   skip_if_no_quarto(needs_r = FALSE)
 

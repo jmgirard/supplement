@@ -41,13 +41,52 @@ local function bare_doi(id)
   return id
 end
 
--- The DOI badge links to the version DOI. Before Zenodo mints one, it links
--- to the concept DOI, and with neither it shows nothing.
-local function doi(args, kwargs, meta)
-  local id = bare_doi(value(meta, "zenodo", "version-doi"))
-  if id == "" then
-    id = bare_doi(value(meta, "zenodo", "concept-doi"))
+-- Quarto replaces the global `error` with a function that only prints a
+-- message, so the render would go on. `assert` still raises an error,
+-- which stops the render.
+local function stop(message)
+  assert(false, message)
+end
+
+-- The DOI in `supplement.zenodo.<key>` without its prefix, or "" when the
+-- value is empty. A value that supplement::write_citation() refuses stops
+-- the render: a list, a map, or true or false, or a value that is not
+-- then "10.", four to nine digits, "/", and a suffix with no spaces. This
+-- is the rule of bare_doi() in R/supplement-yml.R.
+local function checked_doi(meta, key)
+  local field = "supplement.zenodo." .. key
+  local node = node_at(meta, "zenodo", key)
+  local kind = pandoc.utils.type(node)
+  local text
+  if node == nil then
+    text = ""
+  elseif kind == "Inlines" or kind == "Blocks" then
+    text = pandoc.utils.stringify(node)
+  elseif (kind == "List" or kind == "table") and next(node) == nil then
+    text = ""
+  else
+    stop("supplement-doi: " .. field .. " in _supplement.yml must be one DOI in quotes, not a list, a map, or true or false")
   end
+  if text == "" then
+    return ""
+  end
+  local id = bare_doi(text)
+  local registrant, suffix = id:match("^10%.(%d+)/(.+)$")
+  if registrant == nil or #registrant < 4 or #registrant > 9 or suffix:find("%s") then
+    stop("supplement-doi: " .. field .. " in _supplement.yml is not a DOI: '" .. text .. "'."
+      .. " Write it as 10.5281/zenodo.1234567.")
+  end
+  return id
+end
+
+-- The DOI badge links to the version DOI. Before Zenodo mints one, it links
+-- to the concept DOI, and with neither it shows nothing. Both values are
+-- checked, so a bad concept DOI stops the render even while the badge shows
+-- the version DOI.
+local function doi(args, kwargs, meta)
+  local version_id = checked_doi(meta, "version-doi")
+  local concept_id = checked_doi(meta, "concept-doi")
+  local id = version_id ~= "" and version_id or concept_id
   if id == "" then
     return pandoc.Inlines({})
   end
@@ -94,13 +133,6 @@ end
 
 local function cell(content)
   return { pandoc.Plain(content) }
-end
-
--- Quarto replaces the global `error` with a function that only prints a
--- message, so the render would go on. `assert` still raises an error,
--- which stops the render.
-local function stop(message)
-  assert(false, message)
 end
 
 local function is_folder(path)
