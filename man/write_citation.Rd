@@ -45,13 +45,16 @@ or \code{1.10}. Such a value is an error, so put it in quotes in
 }
 \section{Errors}{
 
-A \verb{_supplement.yml} that is not valid YAML gives the error of the YAML
-parser. The errors that these functions raise themselves have the class
+The errors that these functions raise themselves have the class
 \code{supplement_error} and one of these classes:
 \itemize{
 \item \code{supplement_error_argument}: \code{path} is not a single non-missing,
 non-empty character string, or \code{overwrite} is not \code{TRUE} or \code{FALSE}.
 \item \code{supplement_error_no_metadata}: \code{path} has no \verb{_supplement.yml}.
+\item \code{supplement_error_parse}: the yaml package cannot read
+\verb{_supplement.yml}. Examples are a \code{[} or a \verb{\{} that is not closed, a key
+line indented with a tab, and a key given twice in one map. The
+message names the file and gives the message of the yaml package.
 \item \code{supplement_error_no_map}: the file has no \verb{supplement:} map.
 \item \code{supplement_error_missing_field}: \code{paper-title} is missing or empty.
 For \code{\link[=write_zenodo]{write_zenodo()}}, also \code{citation}.

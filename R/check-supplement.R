@@ -59,6 +59,8 @@
 #'
 #' * `supplement_error_argument`: `path` is not a single non-empty string.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
+#' * `supplement_error_parse`: the yaml package cannot read
+#'   `_supplement.yml`, as for [write_citation()].
 #' * `supplement_error_no_map`: `_supplement.yml` has no `supplement:` map.
 #' * `supplement_error_field_type`: a DOI in `_supplement.yml` is not one
 #'   text value, or `zenodo` is not a map.

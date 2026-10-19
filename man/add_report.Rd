@@ -54,6 +54,10 @@ letters, digits, \code{-}, and \verb{_} that starts with a letter or a digit.
 \item \code{supplement_error_line_break}: \code{title} or \code{description} holds a line
 break.
 \item \code{supplement_error_no_config}: \code{path} holds no \verb{_quarto.yml}.
+\item \code{supplement_error_parse}: the yaml package cannot read \verb{_quarto.yml}.
+Examples are a \code{[} or a \verb{\{} that is not closed, a key line indented
+with a tab, and a key given twice in one map. The message names the file and
+gives the message of the yaml package.
 \item \code{supplement_error_file_exists}: the report file exists, or a file
 whose name differs from it only in letter case; \code{analyses} is not a
 folder or is a link; or \verb{_freeze/analyses/<name>} exists, which holds

@@ -31,10 +31,13 @@ drop_trailing_sep <- function(path) {
 
 read_supplement <- function(path, call = parent.frame()) {
   file <- supplement_file(path, call = call)
-  # Read every sequence as a list, so that a one-item sequence such as
-  # [A paper] is not taken for a single value.
-  doc <- yaml::read_yaml(file, handlers = list(seq = function(x) as.list(x)))
-  supplement_map(doc, call = call)
+  # Read the text as yaml::read_yaml() does, which warns when the last line
+  # has no line break. yaml_read_file_text() reads every sequence as a
+  # list, so that a one-item sequence such as [A paper] is not taken for a
+  # single value.
+  con <- file(file, "rt", encoding = "UTF-8")
+  text <- tryCatch(paste(readLines(con), collapse = "\n"), finally = close(con))
+  supplement_map(yaml_read_file_text(text, file, call = call), call = call)
 }
 
 # The path of `_supplement.yml` in `path`, which must be a file.

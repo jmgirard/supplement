@@ -66,14 +66,15 @@ frame_call <- function(env) {
 
 # A list with `read`, what read_text_lines() returned for `file`, and
 # `lines`, its lines with `item` added as the last item of the first list
-# in `paths` that is in block style. Stops before any write when no path
-# names a block-style list, or when the yaml package does not read the
-# result as the old list with the item added. `missing` is the message for
-# the first case. `hand` holds the lines to add by
-# hand, which both errors show.
+# in `paths` that is in block style. Stops before any write when the yaml
+# package cannot read the file, when no path names a block-style list, or
+# when the yaml package does not read the result as the old list with the
+# item added. `missing` is the message for the second case. `hand` holds
+# the lines to add by hand, which the last two errors show.
 append_item <- function(file, paths, item, missing, missing_class, hand, call = parent.frame(),
                         .envir = parent.frame()) {
   read <- read_text_lines(file, call = call)
+  yaml_read_file_text(yaml_lines_text(read$lines), file, call = call)
   for (path in paths) {
     new <- yaml_append_lines(read$lines, path, item)
     if (!is.null(new)) {

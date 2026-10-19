@@ -290,7 +290,7 @@ test_that("a _quarto.yml that is not UTF-8 or does not parse stops and writes no
     }
   )
   expect_report_error(
-    "supplement_error_yaml", name = "x", title = "X",
+    "supplement_error_parse", name = "x", title = "X",
     setup = function(site) write("format: [unclosed", file.path(site, "_quarto.yml"), append = TRUE)
   )
 })
