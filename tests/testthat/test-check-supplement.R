@@ -70,7 +70,11 @@ test_that("a rendered site in a git repository has no problems", {
   expect_message(result <- check_supplement(site), "No problems")
   expect_s3_class(result, "data.frame")
   expect_identical(names(result), c("check", "file", "problem"))
-  expect_identical(nrow(result), 0L, info = paste(result$file, result$problem, collapse = "\n"))
+  expect_identical(nrow(result), 0L, info = paste(c(
+    paste(result$file, result$problem),
+    list.files(file.path(site, "docs", "analyses"), recursive = TRUE, all.files = TRUE),
+    grep("<img", readLines(file.path(site, "docs", "analyses", "example.html"), warn = FALSE), value = TRUE)
+  ), collapse = "\n"))
   expect_identical(attr(result, "skipped"), character())
   for (col in names(result)) expect_type(result[[col]], "character")
 

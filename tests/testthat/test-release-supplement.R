@@ -465,6 +465,11 @@ test_that("a linked or unreadable output file is refused before any write", {
         list(names, Sys.readlink(file.path(dir, names)), read_bytes(file.path(dir, "_supplement.yml")))
       }
       before <- state()
+      link <- file.path(dir, name)
+      expect_true(is_link(link), info = paste(
+        target, file.exists(link), file.info(link, extra_cols = FALSE)$isdir,
+        normalizePath(link, winslash = "/", mustWork = FALSE), file.access(link, 4)
+      ))
       expect_error(release("patch", path = dir), class = "supplement_error_file_exists")
       expect_identical(state(), before)
       expect_identical(file.exists(outside), target == "present")
