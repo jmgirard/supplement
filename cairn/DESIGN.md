@@ -87,8 +87,12 @@ badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
 `R/release-supplement.R`: `release_supplement()` checks `bump`, the
 current `supplement.version`, and the `version:` line, refuses a
 `CITATION.cff` or `.zenodo.json` that is a link or cannot be read or
-written, or that is missing in a folder it cannot write, then runs `check_supplement()`, and stops on any problem but a
-`CITATION.cff` DOI row. It then writes `_supplement.yml`, `CITATION.cff`,
+written, or that is missing in a folder it cannot write, then runs
+`check_supplement()`. It reads the three files again and stops
+(`supplement_error_changed`) when one of them changed, or was made or
+removed as a file, during the check; a folder at an output reads as no
+file both times. It then stops on any problem but a `CITATION.cff` DOI
+row. It then writes `_supplement.yml`, `CITATION.cff`,
 and `.zenodo.json` and prints the git and `gh` release commands. When any
 of those steps stops, or on an interrupt, it puts back each file whose
 bytes changed and removes each file it made. It starts no process

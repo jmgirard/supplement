@@ -17,7 +17,8 @@ The release commands as a character vector, invisibly.
 }
 \description{
 \code{release_supplement()} prepares a release of a site. It runs
-\code{\link[=check_supplement]{check_supplement()}} and stops when that finds a problem. It then raises
+\code{\link[=check_supplement]{check_supplement()}} and stops when that finds a problem, or when one
+of the files that it writes changes while the check runs. It then raises
 \code{version} in \verb{_supplement.yml}, writes \code{CITATION.cff} and \code{.zenodo.json}
 again with the new version, and prints the git and GitHub commands that
 make the release. It runs none of these commands, so you can read them
@@ -39,16 +40,24 @@ version, compared part by part as numbers, so \verb{1.10.0} is greater than
 The function stops, and changes no file, when \code{\link[=check_supplement]{check_supplement()}}
 finds a problem or skips its git checks. A \code{"doi-mismatch"} problem for
 \code{CITATION.cff} does not stop it, because the release writes that file
-again.
+again. A change to \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json}
+during the check also stops it, as described below.
 
 Only the value on the \verb{version:} line of \verb{_supplement.yml} changes, so
 its comments and the rest of its text stay as they are. The new value is
 written in double quotes. The line must be a one-line \verb{version:} value
 directly under \verb{supplement:}, as in the template. When it is missing,
-add \code{version: ""} under \verb{supplement:} by hand. The function reads
-\verb{_supplement.yml} before it runs \code{\link[=check_supplement]{check_supplement()}} and writes that
-text back with the new version, so a change saved to the file while the
-function runs is lost.
+add \code{version: ""} under \verb{supplement:} by hand.
+
+The function reads \verb{_supplement.yml}, \code{CITATION.cff}, and \code{.zenodo.json}
+before it runs \code{\link[=check_supplement]{check_supplement()}}, and reads them again after the
+check. When the bytes of one of these files changed while the check
+ran, or one of them was made or removed as a file, for example because
+you saved \verb{_supplement.yml}, the function stops and writes none of the
+three files, so you can run it again. A folder made or removed at
+\code{CITATION.cff} or \code{.zenodo.json} is not seen as a change. A change saved
+after the function reads the files again, until it finishes, can still
+be lost.
 
 Before it changes any file, the function stops when \code{CITATION.cff} or
 \code{.zenodo.json} is a link, because a write would go through the link, or
@@ -98,6 +107,12 @@ version, or the version in \code{bump} is not greater than it.
 \verb{version:} value directly under \verb{supplement:}.
 \item \code{supplement_error_yaml}: the yaml package does not read the changed
 \verb{_supplement.yml} as the old file with the new version.
+\item \code{supplement_error_changed}: \verb{_supplement.yml}, \code{CITATION.cff}, or
+\code{.zenodo.json} changed while \code{\link[=check_supplement]{check_supplement()}} ran. This error
+comes before a \code{supplement_error_release_check} error. A change that
+makes \code{CITATION.cff} or \code{.zenodo.json} a link, or a file that cannot
+be read or written, gives the \code{supplement_error_file_exists} or
+\code{supplement_error_write} error instead.
 \item \code{supplement_error_release_check}: \code{\link[=check_supplement]{check_supplement()}} found a problem
 other than a \code{"doi-mismatch"} problem for \code{CITATION.cff}, or it
 skipped its git checks.

@@ -1,7 +1,8 @@
 #' Raise the site version and print the release commands
 #'
 #' `release_supplement()` prepares a release of a site. It runs
-#' [check_supplement()] and stops when that finds a problem. It then raises
+#' [check_supplement()] and stops when that finds a problem, or when one
+#' of the files that it writes changes while the check runs. It then raises
 #' `version` in `_supplement.yml`, writes `CITATION.cff` and `.zenodo.json`
 #' again with the new version, and prints the git and GitHub commands that
 #' make the release. It runs none of these commands, so you can read them
@@ -21,16 +22,24 @@
 #' The function stops, and changes no file, when [check_supplement()]
 #' finds a problem or skips its git checks. A `"doi-mismatch"` problem for
 #' `CITATION.cff` does not stop it, because the release writes that file
-#' again.
+#' again. A change to `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`
+#' during the check also stops it, as described below.
 #'
 #' Only the value on the `version:` line of `_supplement.yml` changes, so
 #' its comments and the rest of its text stay as they are. The new value is
 #' written in double quotes. The line must be a one-line `version:` value
 #' directly under `supplement:`, as in the template. When it is missing,
-#' add `version: ""` under `supplement:` by hand. The function reads
-#' `_supplement.yml` before it runs [check_supplement()] and writes that
-#' text back with the new version, so a change saved to the file while the
-#' function runs is lost.
+#' add `version: ""` under `supplement:` by hand.
+#'
+#' The function reads `_supplement.yml`, `CITATION.cff`, and `.zenodo.json`
+#' before it runs [check_supplement()], and reads them again after the
+#' check. When the bytes of one of these files changed while the check
+#' ran, or one of them was made or removed as a file, for example because
+#' you saved `_supplement.yml`, the function stops and writes none of the
+#' three files, so you can run it again. A folder made or removed at
+#' `CITATION.cff` or `.zenodo.json` is not seen as a change. A change saved
+#' after the function reads the files again, until it finishes, can still
+#' be lost.
 #'
 #' Before it changes any file, the function stops when `CITATION.cff` or
 #' `.zenodo.json` is a link, because a write would go through the link, or
@@ -85,6 +94,12 @@
 #'   `version:` value directly under `supplement:`.
 #' * `supplement_error_yaml`: the yaml package does not read the changed
 #'   `_supplement.yml` as the old file with the new version.
+#' * `supplement_error_changed`: `_supplement.yml`, `CITATION.cff`, or
+#'   `.zenodo.json` changed while [check_supplement()] ran. This error
+#'   comes before a `supplement_error_release_check` error. A change that
+#'   makes `CITATION.cff` or `.zenodo.json` a link, or a file that cannot
+#'   be read or written, gives the `supplement_error_file_exists` or
+#'   `supplement_error_write` error instead.
 #' * `supplement_error_release_check`: [check_supplement()] found a problem
 #'   other than a `"doi-mismatch"` problem for `CITATION.cff`, or it
 #'   skipped its git checks.
@@ -149,6 +164,7 @@ release_supplement <- function(bump, path = ".") {
   old <- read_outputs(outputs)
 
   problems <- check_supplement(path)
+  check_unchanged(file, read$bytes, outputs, old)
   check_release_problems(problems)
 
   commands <- release_commands(new)
@@ -207,6 +223,31 @@ read_outputs <- function(outputs, call = parent.frame()) {
     }
     bytes
   })
+}
+
+# Stop when _supplement.yml or an output is not as it was before
+# check_supplement() ran: the release would write the old text of
+# _supplement.yml over a change saved in that time, and the check may not
+# have read the files as they are now. The bytes are compared as they
+# are, not decoded, so a change to a comment or to the encoding counts.
+check_unchanged <- function(file, bytes, outputs, old, call = parent.frame()) {
+  changed <- character()
+  if (!identical(read_bytes_or_null(file), bytes)) {
+    changed <- basename(file)
+  }
+  now <- read_outputs(outputs, call = call)
+  for (i in seq_along(outputs)) {
+    if (!identical(now[[i]], old[[i]])) changed <- c(changed, basename(outputs[i]))
+  }
+  if (length(changed) == 0) {
+    return(invisible())
+  }
+  cli::cli_abort(
+    c("{.file {changed}} changed while {.fn check_supplement} ran, so nothing was changed.",
+      "i" = "Run this function again, so that the checks read the files as they are now."),
+    class = c("supplement_error_changed", "supplement_error"),
+    call = call
+  )
 }
 
 read_bytes_or_null <- function(file) {

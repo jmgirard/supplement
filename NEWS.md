@@ -29,8 +29,13 @@
   the problems as a data frame.
 * `release_supplement()` prepares a release. It runs
   `check_supplement()`. When that finds a problem or skips its git checks,
-  the function stops. A DOI in `CITATION.cff` that differs from
-  `_supplement.yml` does not stop it. It then raises the version in
+  the function stops. If `_supplement.yml`, `CITATION.cff`, or
+  `.zenodo.json` changes while the check runs, the function stops and
+  writes none of these files. A file made or removed counts as a
+  change. The
+  change that you saved then stays in the file. A change saved after the
+  function reads the files again can still be lost. A DOI in
+  `CITATION.cff` that differs from `_supplement.yml` does not stop it. It then raises the version in
   `_supplement.yml` by `"patch"`, `"minor"`, or `"major"`, or sets a given
   greater version. It writes `CITATION.cff` and `.zenodo.json` again with
   the new version. It prints the git and GitHub commands that make the
