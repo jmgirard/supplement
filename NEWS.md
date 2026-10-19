@@ -103,3 +103,10 @@
   tracks. The example report saves `figures/bootstrap-means.png` there, and
   the site's README says how a report writes a figure to `figures/`. Git
   still ignores `.png` and `.pdf` files saved directly in `analyses/`.
+* Fixes on Windows. `create_supplement()`, `add_report()`, and `add_data()`
+  now stop with `supplement_error_file_exists` for a junction where the
+  site needs a folder, as they do for a link. Before, they wrote through
+  the junction into the folder it points to. The data table shortcode
+  shows the size of a data file of 2 GiB or more. Before, it showed
+  "-1 B". When git lists a file name that is not valid UTF-8,
+  `check_supplement()` no longer stops with an error.
