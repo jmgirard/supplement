@@ -262,6 +262,17 @@ test_that("a folder with no _supplement.yml is refused", {
   expect_identical(list.files(dir, all.files = TRUE, no.. = TRUE), character())
 })
 
+test_that("a _supplement.yml that is not valid YAML gives a parser error that names the file", {
+  calls <- mock_check()
+  dir <- withr::local_tempdir("release-")
+  writeLines(c("supplement:", '  citation: [x'), file.path(dir, "_supplement.yml"))
+  before <- folder_state(dir)
+  err <- expect_error(release("patch", path = dir), "Parser error")
+  expect_match(conditionMessage(err), "_supplement.yml", fixed = TRUE)
+  expect_identical(folder_state(dir), before)
+  expect_identical(calls$n, 0L)
+})
+
 # The version line --------------------------------------------------------
 
 test_that("only the value on the version line changes", {
@@ -520,6 +531,7 @@ test_that("a write that only warns, as on a full disk, puts back the files", {
   })
   err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
   expect_s3_class(err$parent, "supplement_error_write")
+  expect_identical(err$parent$call[[1]], quote(release_supplement))
   expect_identical(folder_state(dir), before)
 })
 
@@ -851,7 +863,8 @@ test_that("a folder at an output before the release stops it before the check", 
     calls <- mock_check()
     dir <- release_site('  version: "1.2.3"')
     dir.create(file.path(dir, name))
-    expect_folder_stop(dir, folder_state(dir))
+    before <- folder_state(dir)
+    expect_folder_stop(dir, before)
     expect_identical(calls$n, 0L, label = name)
   }
 })

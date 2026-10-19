@@ -157,13 +157,13 @@ yaml_read_lines <- function(lines) {
 }
 
 # The lines read with the yaml package. Text that is not valid YAML gives
-# the parser's error. Every sequence is read as a list, as
-# read_supplement() does.
-yaml_parse_lines <- function(lines) {
+# the parser's error, which names `label`, as yaml::read_yaml() names its
+# file. Every sequence is read as a list, as read_supplement() does.
+yaml_parse_lines <- function(lines, label = NULL) {
   # End the text with a line break either way, so that a block scalar at
   # the end of the file reads the same before and after an insert.
   text <- paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
-  yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)))
+  yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)), error.label = label)
 }
 
 # `lines` with the value of the key that `path`, a vector of map keys,

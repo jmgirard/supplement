@@ -164,7 +164,7 @@ release_supplement <- function(bump, path = ".") {
   # text of both outputs, so that all of them come from the same bytes.
   file <- supplement_file(path)
   read <- read_text_lines(file)
-  meta <- supplement_map(yaml_parse_lines(read$lines))
+  meta <- supplement_map(yaml_parse_lines(read$lines, label = file))
   current <- read_version(meta)
   new <- next_version(current, bump)
 
@@ -445,9 +445,9 @@ write_release_files <- function(read, lines, file, outputs, texts, old, call = p
   )
   tryCatch(
     {
-      write_text_lines(read, lines, file)
-      write_utf8(texts[[1]], outputs[1])
-      write_utf8(texts[[2]], outputs[2])
+      write_text_lines(read, lines, file, call = call)
+      write_utf8(texts[[1]], outputs[1], call = call)
+      write_utf8(texts[[2]], outputs[2], call = call)
     },
     error = function(e) {
       failed <- restore()
