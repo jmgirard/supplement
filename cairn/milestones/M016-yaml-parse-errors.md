@@ -1,6 +1,6 @@
 # M016: A site YAML file with a syntax error gives a supplement error
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -57,5 +57,7 @@ When the yaml package cannot read `_supplement.yml` or `_quarto.yml`, the packag
 - 2026-10-19: minor amendment to T3: two existing tests (`test-add-data.R`, `test-add-report.R`) expected `supplement_error_yaml` for an unclosed flow sequence; they now expect `supplement_error_parse`.
 - 2026-10-19: T1 to T3 in one checkpoint commit, because the T1 tests stay red until T2 and T3; `devtools::test()` clean (1 skip on a case-insensitive disk), 160 expectations in the new file.
 - 2026-10-19: T4: added `supplement_error_parse` to the Errors sections of the six functions (`write_zenodo()` inherits `write_citation()`'s), removed the "error of the YAML parser" sentences, added a NEWS.md entry and a DESIGN.md Architecture note on `yaml_read_file_text()`. `devtools::document()` rewrote six Rd files and a second run wrote none; the AC3 grep finds nothing; `devtools::test()` clean.
+- 2026-10-19: claim audit: 32 claims read, 2 corrected — NEWS.md (`add_data()` gave `supplement_error_no_data_list`, not `supplement_error_yaml`, for the tab shape before the fix), R/yaml-insert.R (`yaml_lines_text()` removes only the `\r` at the end of each line); the same reader re-read both as true.
+- 2026-10-19: status review; `devtools::document()` no diff, `devtools::test()` clean.
 
 ## Decisions

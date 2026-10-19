@@ -97,4 +97,5 @@
   and `add_report()` gives it for `_quarto.yml`. Before, the first four
   gave the yaml package's own error. `add_data()` and `add_report()` gave
   `supplement_error_yaml`, the class for a changed file that does not read
-  back as planned.
+  back as planned. For a key line indented with a tab, `add_data()` gave
+  `supplement_error_no_data_list`.

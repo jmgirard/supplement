@@ -163,9 +163,9 @@ yaml_parse_lines <- function(lines) {
   yaml_load_list(yaml_lines_text(lines))
 }
 
-# The lines as one text, with "\r" removed. The text ends with a line
-# break either way, so that a block scalar at the end of the file reads the
-# same before and after an insert.
+# The lines as one text, with the "\r" at the end of each line removed.
+# The text ends with a line break either way, so that a block scalar at the
+# end of the file reads the same before and after an insert.
 yaml_lines_text <- function(lines) {
   paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
 }
