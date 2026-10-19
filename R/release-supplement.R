@@ -224,7 +224,7 @@ check_release_problems <- function(problems, call = parent.frame()) {
   cli::cli_abort(
     c("{.fn check_supplement} found {n} problem{?s} that the release does not fix, so nothing was changed.",
       if (length(skipped) > 0) "It skipped the {.val {skipped}} check{?s}, and a release needs every check.",
-      "i" = "Fix the problems that {.fn check_supplement} printed, and run this function again."),
+      "i" = "Fix what {.fn check_supplement} printed, and run this function again."),
     class = c("supplement_error_release_check", "supplement_error"),
     call = call
   )
