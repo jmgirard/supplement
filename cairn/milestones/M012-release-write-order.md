@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M012: release_supplement() checks every value before it writes a file
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes the errors, the stop order, and the printing step of the exported `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m012-release-write-order
 
 ## Goal
 
@@ -45,7 +45,7 @@
 
 ## Tasks
 
-- [ ] T1: In `R/write-citation.R` and `R/write-zenodo.R`, move the code from `require_fields()` to the text into `citation_text(meta, call)` and `zenodo_text(meta, call)`. The wrappers keep `check_args()`, `read_supplement()`, `check_overwrite()`, and `write_utf8()`, and pass their own frame as `call`. Add the `err$call` tests (AC1).
+- [x] T1: In `R/write-citation.R` and `R/write-zenodo.R`, move the code from `require_fields()` to the text into `citation_text(meta, call)` and `zenodo_text(meta, call)`. The wrappers keep `check_args()`, `read_supplement()`, `check_overwrite()`, and `write_utf8()`, and pass their own frame as `call`. Add the `err$call` tests (AC1).
 - [ ] T2: Tests first for AC2 and AC3. In `release_supplement()`, after the no-metadata check, read the file once with `read_text_lines()`, parse the `supplement` map from those lines with the same sequence handler as `read_supplement()` (a shared helper), and take the current version from it. After the version line is replaced, parse the new lines and build both texts, all before `read_outputs()` and `check_supplement()`. Change the empty-citation test at `test-release-supplement.R:552` from "is put back" to "is refused before any write".
 - [ ] T3: Tests first for AC4. `read_outputs()` refuses a folder with `supplement_error_file_exists`. Update the M011 tests and comments that read a folder as no file.
 - [ ] T4: `write_release_files()` writes the three built texts with `write_checked()` inside the guard. Move the failure tests off `write_utf8()` and `write_zenodo()` mocks to `write_checked()` mocks, and add the failed `_supplement.yml` write (AC6). Add the AC3 byte test.
@@ -67,6 +67,8 @@
 - 2026-10-18: plan gate chose printing outside the restore guard over keeping it inside because the files are the product and a print failure should not undo them (RR01 recommendation 6); falsified by a report of a user who ran the printed commands after a release that the function then put back, or of a release kept after a failure that left the files wrong.
 - 2026-10-18: plan chose building both texts before `check_supplement()` over building them after it because a bad value then stops before the slow check, and M011's re-read makes the early build safe; falsified by a value whose check depends on a file that `check_supplement()` or the user changes during the check.
 - 2026-10-18: plan chose in-memory builders over temporary files and rename because RR01 rejected the rename (no atomic rename across three files, Windows rename, a stray temp file that `git add -A` stages); falsified by a write failure that the byte restore cannot undo.
+- 2026-10-18: implement started; branch m012-release-write-order cut from main at 0f2dc40.
+- 2026-10-18: T1 done: `citation_text()` and `zenodo_text()` take `meta` and `call` and pass `call` to every value helper; the writer tests pass unchanged; the writer `err$call` test went into a new file, `tests/testthat/test-write-metadata-call.R`, so the two AC1 test files stay unchanged. `devtools::test()` clean.
 
 ## Decisions
 

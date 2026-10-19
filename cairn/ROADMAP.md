@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M011 done: graduated release snapshot gap; narr
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M012 | release_supplement() checks every value before it writes a file | planned | — | high | milestones/M012-release-write-order.md |
+| M012 | release_supplement() checks every value before it writes a file | in-progress | — | high | milestones/M012-release-write-order.md |
 | M011 | release_supplement() stops when a file changes during the check | done | — | high | milestones/archive/M011-release-snapshot-gap.md |
 | M010 | The footer, the DOI badge, and the citation files agree with _supplement.yml | done | — | normal | milestones/archive/M010-license-doi-agree.md |
 | M009 | release_supplement() raises the version and prints release commands | done | M008 | high | milestones/archive/M009-release-supplement.md |

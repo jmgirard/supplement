@@ -87,32 +87,42 @@
 write_citation <- function(path = ".", overwrite = FALSE) {
   check_args(path, overwrite)
   meta <- read_supplement(path)
-  require_fields(meta, "paper-title")
-  authors <- read_authors(meta)
+  text <- citation_text(meta)
+  file <- file.path(path, "CITATION.cff")
+  check_overwrite(file, overwrite)
+  write_utf8(text, file)
+  invisible(file)
+}
 
-  zenodo <- map_field(meta, "zenodo")
+# The lines of CITATION.cff for the `supplement` map `meta`. An error
+# names `call`, the function that the user called.
+citation_text <- function(meta, call = parent.frame()) {
+  require_fields(meta, "paper-title", call = call)
+  authors <- read_authors(meta, call = call)
+
+  zenodo <- map_field(meta, "zenodo", call = call)
   dois <- lapply(c("concept-doi", "version-doi"), function(key) {
     field <- paste0("supplement.zenodo.", key)
-    bare_doi(value(zenodo[[key]], field), field)
+    bare_doi(value(zenodo[[key]], field, call = call), field, call = call)
   })
   doi <- dois[[1]] %||% dois[[2]]
   # `version` is "the version of the software or dataset" in the CFF 1.2.0
   # schema guide:
   # https://github.com/citation-file-format/citation-file-format/blob/main/schema-guide.md#version
-  version <- read_version(meta)
+  version <- read_version(meta, call = call)
 
-  license <- map_field(meta, "license")
+  license <- map_field(meta, "license", call = call)
   code <- "supplement.license.code"
   content <- "supplement.license.content"
   licenses <- unique(c(
-    license_id(value(license[["code"]], code), code),
-    license_id(value(license[["content"]], content), content)
+    license_id(value(license[["code"]], code, call = call), code, call = call),
+    license_id(value(license[["content"]], content, call = call), content, call = call)
   ))
 
   cff <- compact(list(
     "cff-version" = "1.2.0",
     message = "If you use these materials, please cite them using the metadata from this file.",
-    title = supplement_title(meta),
+    title = supplement_title(meta, call = call),
     version = version,
     authors = lapply(authors, function(author) {
       compact(list(
@@ -126,15 +136,12 @@ write_citation <- function(path = ".", overwrite = FALSE) {
     license = licenses
   ))
 
-  file <- file.path(path, "CITATION.cff")
-  check_overwrite(file, overwrite)
   text <- c(
     "# Written by supplement::write_citation() from _supplement.yml.",
     "# Change _supplement.yml and write this file again.",
     yaml::as.yaml(quote_strings(cff), indent.mapping.sequence = TRUE)
   )
-  write_utf8(sub("\n$", "", text), file)
-  invisible(file)
+  sub("\n$", "", text)
 }
 
 # Mark every string to be written in double quotes, so that no YAML
