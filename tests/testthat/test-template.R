@@ -113,6 +113,41 @@ test_that(".gitignore blocks fit files and keeps published output", {
   expect_length(kept$output, 0)
 })
 
+test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
+  skip_if_no_quarto()
+  skip_if_no_git()
+  site <- site_copy()
+
+  git_in(site$dir, c("init", "-q"))
+  in_analyses <- c("analyses/plot.pdf", "analyses/plot.png")
+  ignored <- git_in(site$dir, c("check-ignore", in_analyses))
+  expect_setequal(ignored$output, in_analyses)
+
+  kept <- git_in(site$dir, c("check-ignore", "figures/plot.pdf", "figures/plot.png"))
+  expect_equal(kept$status, 1L)
+  expect_length(kept$output, 0)
+})
+
+test_that("the example report saves a figure that the next full render publishes", {
+  skip_if_no_quarto()
+  dir <- withr::local_tempdir("site-")
+  expect_equal(use_template(dir)$status, 0L)
+  expect_false(dir.exists(file.path(dir, "figures")))
+
+  by_name <- run_in(dir, "quarto", c("render", "analyses/example.qmd"))
+  expect_equal(by_name$status, 0L, info = paste(by_name$output, collapse = "\n"))
+  full <- run_in(dir, "quarto", "render")
+  expect_equal(full$status, 0L, info = paste(full$output, collapse = "\n"))
+
+  png_signature <- as.raw(c(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a))
+  for (path in c("figures/bootstrap-means.png", "docs/figures/bootstrap-means.png")) {
+    full_path <- file.path(dir, path)
+    expect_true(file.exists(full_path), info = path)
+    start <- if (file.exists(full_path)) readBin(full_path, "raw", 8L) else raw(0)
+    expect_identical(start, png_signature, info = path)
+  }
+})
+
 test_that("setup adds the template rules to an existing .gitignore", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")

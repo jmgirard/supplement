@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-19 (M016 done: graduated YAML parse errors; added p
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M017 | The template publishes paper figures from a figures folder | planned | — | normal | milestones/M017-paper-figures.md |
+| M017 | The template publishes paper figures from a figures folder | in-progress | — | normal | milestones/M017-paper-figures.md |
 | M016 | A site YAML file with a syntax error gives a supplement error | done | — | normal | milestones/archive/M016-yaml-parse-errors.md |
 | M015 | The release commands stage and commit only the site folder | done | — | high | milestones/archive/M015-release-site-folder.md |
 | M014 | The footer and the DOI badge refuse the values that write_citation() refuses | done | — | high | milestones/archive/M014-footer-badge-agree.md |
