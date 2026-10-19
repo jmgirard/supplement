@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (status audit after hotfix #10: all checks green
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M010 | The footer, the DOI badge, and the citation files agree with _supplement.yml | in-progress | — | normal | milestones/M010-license-doi-agree.md |
+| M010 | The footer, the DOI badge, and the citation files agree with _supplement.yml | review | — | normal | milestones/M010-license-doi-agree.md |
 | M009 | release_supplement() raises the version and prints release commands | done | M008 | high | milestones/archive/M009-release-supplement.md |
 | M008 | check_supplement() lists release problems | done | — | high | milestones/archive/M008-check-supplement.md |
 | M007 | add_report() and add_data() list new site files | done | M006 | high | milestones/archive/M007-add-report-data.md |

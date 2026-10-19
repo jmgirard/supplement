@@ -1,6 +1,6 @@
 # M010: The footer, the DOI badge, and the citation files agree with _supplement.yml
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -72,6 +72,8 @@ The page footer, the DOI badge, and the two citation files agree with the licens
 - 2026-10-18: T3 done. A Lua `bare_doi()` removes the prefixes from both DOI values before the badge is built, and the `_supplement.yml` DOI comment says so. The render test has the six AC3 prefixes plus a concept-DOI case. With main's Lua planted, all 7 cases failed. `devtools::test()` clean.
 - 2026-10-18: T4 done. `license_id()` in `R/supplement-yml.R` matches `\A[A-Za-z0-9][A-Za-z0-9.-]*\+?\z` (perl) after `value()` trims spaces, and both writers call it before `check_overwrite()`. The tests run the six AC4 shapes per writer and field with an old file and `overwrite = TRUE`. With `license_id()` replaced by a no-op, the test failed. `devtools::document()` updated both Rd files. `devtools::test()` clean.
 - 2026-10-18: T5 done. Three NEWS.md bullets, and DESIGN.md Architecture names the license shortcode, the badge prefix, and `license_id()`. The re-read found two more `_README.md` DOI passages that said to write a DOI without the prefix, and both now say it is removed (minor, inside AC5's intent). `devtools::document()` no diff, `devtools::test()` clean.
+- 2026-10-18: claim audit: 50 claims read, 2 corrected — NEWS.md (the badge bullet now names every prefix removed, and the license bullet says `write_zenodo()` checks only `license.content`). The same reader re-read both and found them true.
+- 2026-10-18: all tasks done, status set to review.
 
 ## Decisions
 

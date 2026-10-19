@@ -43,12 +43,14 @@
   CC BY 4.0. A new `supplement-license` shortcode shows a readable name
   for common ids, such as CC BY 4.0 for `CC-BY-4.0`, and any other id as
   written.
-* The `supplement-doi` badge removes a `doi:` or `https://doi.org/` in
-  front of a DOI, as `write_citation()` does, so a DOI written as a link
-  no longer breaks the badge.
-* `write_citation()` and `write_zenodo()` stop with
-  `supplement_error_license` for a license value that does not have the
-  shape of an SPDX id, such as `CC BY 4.0` with spaces.
+* The `supplement-doi` badge removes the prefixes in front of a DOI that
+  `write_citation()` removes: `doi:`, and `http://` or `https://` with
+  `doi.org/`, `dx.doi.org/`, or `www.doi.org/`. A DOI written as such a
+  doi.org address no longer breaks the badge.
+* `write_citation()` stops with `supplement_error_license` for a
+  `license.code` or `license.content` value that does not have the shape
+  of an SPDX id, such as `CC BY 4.0` with spaces. `write_zenodo()` does
+  the same for `license.content`.
 * The template's `_supplement.yml` has a `version` field for the site
   version, such as `"1.0.0"`. When it is not empty, `write_citation()`
   and `write_zenodo()` write it. They stop for a value that is not three
