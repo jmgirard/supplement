@@ -88,3 +88,39 @@
 - 2026-10-19: review deviation: pushed the branch at review start (CI run 39307109221 on 9d8364d) to get Windows evidence on the final code before the merge question; the question set allowed early pushes, and the workflow runs on push.
 - 2026-10-19: correction to the plan line "1 GB fixture copied into `docs/` refuted at plan": it was wrong. Quarto copies each file the data table links into `docs/`; on the Mac `docs/sizes/f.bin` for a 2 GiB fixture exists and uses 4 KB. The item goes to the new candidate row "Windows large data files".
 - 2026-10-19: review fix-now on the branch: the Windows `is_link()` drops a drive root's separator before the join (diff-bug #1), filters names that are not valid UTF-8 before `tolower()` (prior-review #1); the Lua byte count gives nil on a read error; the size fixture falls back to the seek write when fsutil fails; the skip list also matches `{knitr}` and `{rmarkdown}` and fails when no expectation passed; NEWS wording; two comments and the `check_supplement()` help.
+
+## Decisions
+
+## Review
+
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: Windows `is_link()` joins a drive root as `D://data`, so a site at `D:\` has its `data/` and `analyses/` refused as links — fix now, fixed d727c59
+- diff-bug #2: the 8.3 short-name render problem is hidden by `long_dir()` and not recorded — follow-up, new candidate row "Windows short folder names"
+- diff-bug #3: a listed name that `file.exists()` cannot read (trailing space or `.`, a path over 260 characters) counts as a link on Windows — follow-up, added to candidate row "Windows file links"
+- diff-bug #4: NEWS "as they do for a link" reads as if links were refused on Windows before — fix now (wording now "as they already did on other systems for a link"), fixed d727c59
+- diff-bug #5: on Windows a git name that is not valid UTF-8 gets no size and no skipped note — reject, false: Windows file names are UTF-16, so such a name can come only from the git index and has no file on disk to measure, as for a staged file that was deleted on any system
+- diff-bug #6: a read error in the Lua byte count gives a partial size — fix now (nil on a read error), fixed d727c59
+- diff-bug #7: the Lua byte count reads each file of 2 GiB or more on every Windows render, and the plan's one-minute falsifier was not measured — follow-up, new candidate row "Windows large data files"
+- diff-bug #8: the skip-list step passes when every test skips for a reason not on its list — fix now (fails when no expectation passed), fixed d727c59; its other part (the step reads a second test run, not the R CMD check run) — reject, false: AC2 names testthat's results for that job, which this run is
+- diff-bug #9: the size fixture stops when fsutil fails, for example without admin rights — fix now (falls back to the seek write), fixed d727c59
+- diff-bug #10: the no-R test matches Quarto's exact message — reject, planned change: the rulebook's failure-identity rule asks the test to name which failure
+- diff-bug #11: `is_link()` otherwise sound (names, empty input, NA, mapped drives, UNC, relative paths) — noted, requests nothing
+- blame-history #1: the missing-target link case loses its test on Windows — follow-up, candidate row "Windows file links" (narrowed: its stop comes in `read_outputs()` before the writes, and no Windows test checks that nothing is written)
+- blame-history #2: same as diff-bug #5 — reject, false (reason above)
+- blame-history #3: the skip list matches "knitr cannot be loaded", but testthat 3.3.2 writes "{knitr} is not installed" — fix now (matches `{knitr}` and `{rmarkdown}`), fixed d727c59
+- blame-history #4: the short-name figure problem has no tracking entry — follow-up, candidate row "Windows short folder names"
+- blame-history #5: the Lua byte count runs only on Windows — reject, false: the windows-latest job runs it on every push, and AC5 reads that job
+- blame-history #6: case-only and trailing-dot names untested on Windows; one listing per path — follow-up for trailing dots, candidate row "Windows file links"; the listing cost is reject, style
+- blame-history #7: the "Windows check" row is still open, and nothing tests `nojekyll.ts` with a `C:\` path — reject, false: the row graduates at post-merge hygiene, and the two `.nojekyll` render tests pass in the windows-latest job, where Quarto passes a `C:\` output folder
+- prior-review #1: `tolower()` stops on a sibling name that is not valid UTF-8, so one such name breaks `is_link()` for the folder (the M008 Latin-1 lesson) — fix now (such names are filtered first), fixed d727c59
+- prior-review #2: the M009 dangling-output refusal stays open on Windows — follow-up, candidate row "Windows file links"
+- prior-review #3: same as diff-bug #5 — reject, false (reason above)
+- prior-review #4: the 2.1 GB and 4.3 GB fixtures are copied into `docs/` (M004 diff-bug #6) — follow-up, candidate row "Windows large data files"; the plan line that called this refuted is corrected in the work log
+- prior-review #5: the CI skip check does not flag the Windows skip of the missing-target test — reject, planned change: the plan gate chose a Windows skip that names a candidate row for a failure bigger than one task
+- prior-review #6: the `QUARTO_R` claim was not verified — reject, false: `rBinaryPath()` in Quarto 1.10.19's `quarto.js` reads `QUARTO_R` first, and the blame-history reviewer ran it with R on PATH and saw "Unable to locate an installed version of R"
+- ripple #1 to #5: the "Windows check" and "Windows-safe names" rows state facts the branch changed — reject, planned change: post-merge hygiene graduates "Windows check" and narrows "Windows-safe names"
+- ripple #6: `cairn/PROFILE.md` says CI uses the usethis pair with test-coverage — reject, planned change: the user chose three systems on the R release and no coverage job at the plan gate (D-016, candidate row "coverage report")
+- ripple #7: the `path_occupied()` comment says `file.exists()` is FALSE for a link to a missing target — fix now (comment names the Windows case), fixed d727c59
+- ripple #8: the M005 lesson's `!is.na(link) && nzchar(link)` misses Windows junctions — reject, false: the lesson is about the NA case, which still holds; a Windows lesson is captured at hygiene
+- ripple #9: the `check_supplement()` help says only symbolic links are left out of the large-file check — fix now (names the Windows junction), fixed d727c59
+- claim audit (implement step 7): 31 claims read, 3 corrected (work log)
