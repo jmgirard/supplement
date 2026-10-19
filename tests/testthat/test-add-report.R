@@ -271,6 +271,20 @@ test_that("a linked analyses folder stops, so nothing is written outside the sit
   expect_identical(folder_state(outside), outside_before)
 })
 
+test_that("on Windows, a junction analyses folder stops, so nothing is written outside the site", {
+  skip_on_os(c("mac", "linux", "solaris"))
+  outside <- withr::local_tempdir("outside-")
+  outside_before <- folder_state(outside)
+  expect_report_error(
+    "supplement_error_file_exists", name = "x", title = "X",
+    setup = function(site) {
+      unlink(file.path(site, "analyses"), recursive = TRUE)
+      stopifnot(Sys.junction(outside, file.path(site, "analyses")))
+    }
+  )
+  expect_identical(folder_state(outside), outside_before)
+})
+
 test_that("noncharacters in a description are escaped and read back", {
   site <- new_site()
   value <- "x ￾ y ￿"

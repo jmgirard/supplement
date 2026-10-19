@@ -267,6 +267,20 @@ test_that("a linked data folder or data file stops, so nothing is written outsid
   )
 })
 
+test_that("on Windows, a junction data folder stops, so nothing is written outside the site", {
+  skip_on_os(c("mac", "linux", "solaris"))
+  outside <- withr::local_tempdir("outside-")
+  outside_before <- folder_state(outside)
+  expect_data_error(
+    "supplement_error_file_exists", file = source_file(), description = "D",
+    setup = function(site) {
+      unlink(file.path(site, "data"), recursive = TRUE)
+      stopifnot(Sys.junction(outside, file.path(site, "data")))
+    }
+  )
+  expect_identical(folder_state(outside), outside_before)
+})
+
 test_that("a name that differs from a file in data/ only in letter case stops", {
   expect_data_error("supplement_error_file_exists", file = source_file("EXAMPLE.csv"), description = "D")
 })
