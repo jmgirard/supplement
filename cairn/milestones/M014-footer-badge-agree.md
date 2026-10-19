@@ -89,6 +89,7 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - 2026-10-19: correction to the T8 line above: the pre-T8 Lua failed 25 of 66 expectations in the new and changed tests, not 25 of 58.
 - 2026-10-19: claim audit: 19 claims read, 4 corrected — supplement.lua, inst/template/_README.md, NEWS.md (the T8 lines). Re-read: 4 correct; the hint comment now also names the em dash.
 - 2026-10-19: all tasks done; status set to review.
+- 2026-10-19: step-7 approval: m014-footer-badge-agree approved for merge
 
 ## Decisions
 
