@@ -69,3 +69,23 @@ When the yaml package cannot read `_supplement.yml` or `_quarto.yml`, the packag
 - AC3: `tools::parse_Rd()` on the six Rd files: each has one Errors section, and each holds `supplement_error_parse`. `grep -rn "error of the YAML" R/ man/` exits 1 with no output.
 - AC4: NEWS.md's new entry names `supplement_error_parse`, `write_citation()`, `write_zenodo()`, `check_supplement()`, `release_supplement()`, `add_data()`, and `add_report()`.
 - AC5: `devtools::document()` wrote no file and `git status` showed only this milestone file; `devtools::test()`: 241 tests, 2723 expectations, 0 failed, 0 errors, 1 skipped (a case-sensitive-disk test on this case-insensitive disk).
+- gate: `cairn_validate.py` all checks passed; no principle changed, so no impact report; `devtools::document()` no diff; no README.Rmd and no `_pkgdown.yml`; NEWS.md has the entry; no new top-level file; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: a `_supplement.yml` that is not UTF-8 is read only up to the bad byte by `read_supplement()`, so the writers judge cut text while the release and `add_data()` give `supplement_error_encoding` — follow-up, row "parse error edge cases" (as before M016; a run gave `supplement_error_authors` from `write_citation()`)
+- diff-bug #2: with `options(warn = 2)`, a yaml warning becomes `supplement_error_parse` — follow-up, row "parse error edge cases" (confirmed with `!!float abc`)
+- diff-bug #3: the hint "Fix the YAML at the place that the message names" follows a duplicate-key message that names no place — fix now
+- diff-bug #4: `read_supplement()` and the release read parse texts that differ in the final line break — follow-up, absorbed in row "release write order remainder" (as before M016)
+- diff-bug #5: `parser_message()` could differ from the read path for a shape at the end of the file — reject (false as a defect: the five shapes sit mid-file, so the tests compare equal texts)
+- diff-bug #6: the release parse test checks `supplement_error_parse` only through `expect_error(class =)` — fix now
+- diff-bug #7: "so nothing was written" in a `check_supplement()` error, which never writes — reject (style; the sentence is true)
+- diff-bug #8: the second `yaml.load()` in `add_data()` can no longer fail — reject (style; behavior unchanged)
+- diff-bug #9: the yaml package's text no longer carries the file label — reject (planned change; the cli headline names the file)
+- blame-history #1: the narrower meaning of `supplement_error_yaml` has no D-entry — fix now (D-015)
+- blame-history #2: DESIGN.md's note on `yaml_read_file_text()` does not say that the callers pass texts with different final line breaks — follow-up, absorbed in row "release write order remainder"
+- blame-history #3: `read_supplement()` keeps the incomplete-final-line warning that LESSONS.md (M008) calls a wart — follow-up, row "parse error edge cases" (kept on purpose to change nothing for valid files)
+- blame-history #4: the replaced release test no longer checks the parser message — reject (planned change: T1 replaced it, and `test-parse-errors.R` checks the message for `release_supplement()`)
+- blame-history #5: an 81-character roxygen line in `R/add-report.R` — reject (style)
+- prior-review #1: the kept warning contradicts the M008 lesson — follow-up, row "parse error edge cases"
+- prior-review #2: a block scalar at the end of the file reads with an extra line break on the release side — follow-up, absorbed in row "release write order remainder" (as before M016)
+- ripple #1: row "release write order remainder" says the writers parse with `read_yaml()` — fix now (row corrected in place)
+- ripple #2: row "YAML parse errors" describes the old behavior — fix now at step 9 hygiene, where the row graduates

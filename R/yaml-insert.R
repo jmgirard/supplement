@@ -184,7 +184,7 @@ yaml_read_file_text <- function(text, file, call = parent.frame()) {
     cli::cli_abort(
       c("The yaml package cannot read {.file {file}}, so nothing was written.",
         "x" = "{parser}",
-        "i" = "Fix the YAML at the place that the message names."),
+        "i" = "Fix the YAML that the message describes."),
       class = c("supplement_error_parse", "supplement_error"),
       call = call
     )

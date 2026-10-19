@@ -269,6 +269,7 @@ test_that("a _supplement.yml that is not valid YAML stops before the checks", {
   writeLines(c("supplement:", '  citation: [x'), file.path(dir, "_supplement.yml"))
   before <- folder_state(dir)
   err <- expect_error(release("patch", path = dir), class = "supplement_error_parse")
+  expect_true(inherits(err, "supplement_error_parse"))
   expect_true(inherits(err, "supplement_error"))
   expect_match(conditionMessage(err), "_supplement.yml", fixed = TRUE)
   expect_identical(folder_state(dir), before)
