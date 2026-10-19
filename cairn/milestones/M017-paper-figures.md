@@ -21,11 +21,11 @@ A site made from the template has a `figures/` folder that git tracks and the si
 
 ## Acceptance criteria
 
-- [ ] AC1: In a new site made from the template and set up by its first render, `git check-ignore` finds neither `figures/plot.pdf` nor `figures/plot.png` ignored, and finds `analyses/plot.pdf` and `analyses/plot.png` ignored. A test in `tests/testthat/test-template.R` asserts the four results and skips when git, Quarto, or R is missing.
-- [ ] AC2: In a new site made from the template, after `quarto render analyses/example.qmd` and then `quarto render`, the files `figures/bootstrap-means.png` and `docs/figures/bootstrap-means.png` exist and start with the PNG signature bytes. A test in `tests/testthat/test-template.R` asserts this and skips without Quarto or R.
-- [ ] AC3: `inst/template/_README.md` lists `figures/` in its Contents list and has a section that says where to save paper figures, how a report in `analyses/` writes there (`file.path("..", "figures", ...)`), that after a render saves a figure under a new name, the site must be rendered again before `docs/` holds it, that `figures/` must be committed, the web address of a figure (`https://OWNER.github.io/REPO/figures/<name>`), and that PNG and PDF files saved directly in `analyses/` are not committed, because git ignores `analyses/*.png` and `analyses/*.pdf`.
-- [ ] AC4: NEWS.md has an entry for the `figures/` folder.
-- [ ] AC5: `Rscript -e 'devtools::test()'` reports no failure.
+- [x] AC1: In a new site made from the template and set up by its first render, `git check-ignore` finds neither `figures/plot.pdf` nor `figures/plot.png` ignored, and finds `analyses/plot.pdf` and `analyses/plot.png` ignored. A test in `tests/testthat/test-template.R` asserts the four results and skips when git, Quarto, or R is missing.
+- [x] AC2: In a new site made from the template, after `quarto render analyses/example.qmd` and then `quarto render`, the files `figures/bootstrap-means.png` and `docs/figures/bootstrap-means.png` exist and start with the PNG signature bytes. A test in `tests/testthat/test-template.R` asserts this and skips without Quarto or R.
+- [x] AC3: `inst/template/_README.md` lists `figures/` in its Contents list and has a section that says where to save paper figures, how a report in `analyses/` writes there (`file.path("..", "figures", ...)`), that after a render saves a figure under a new name, the site must be rendered again before `docs/` holds it, that `figures/` must be committed, the web address of a figure (`https://OWNER.github.io/REPO/figures/<name>`), and that PNG and PDF files saved directly in `analyses/` are not committed, because git ignores `analyses/*.png` and `analyses/*.pdf`.
+- [x] AC4: NEWS.md has an entry for the `figures/` folder.
+- [x] AC5: `Rscript -e 'devtools::test()'` reports no failure.
 
 ## Coverage
 
@@ -67,3 +67,13 @@ A site made from the template has a `figures/` folder that git tracks and the si
 - 2026-10-19: implement done; status review.
 
 ## Decisions
+
+## Review
+
+- AC1: `devtools::test()` at d75ca70 with git, Quarto 1.10.19, knitr, and rmarkdown present: ".gitignore keeps figures/ and blocks figures saved in analyses/" ran 3 expectations, 0 failed, not skipped. It asserts `check-ignore` lists exactly `analyses/plot.pdf` and `analyses/plot.png`, and exits 1 with no output for `figures/plot.pdf` and `figures/plot.png`, on a site from `quarto use template` set up by one full render. Planting `figures/*.png` in `inst/template/_gitignore` turned it red (2 failures); reverted.
+- AC2: same run: "the example report saves a figure that the next full render publishes" ran 8 expectations, 0 failed, not skipped. On a fresh `quarto use template` site it runs `quarto render analyses/example.qmd` then `quarto render` (both status 0) and asserts `figures/bootstrap-means.png` and `docs/figures/bootstrap-means.png` exist and their first 8 bytes equal the PNG signature `89 50 4E 47 0D 0A 1A 0A`. Before T2 the same test failed on both files missing (work log, T1).
+- AC3: read `inst/template/_README.md` at d75ca70. Contents line 12 lists `figures/`. The "Paper figures" section (line 264) says: save each paper figure in `figures/`; a report writes there as `file.path("..", "figures", ...)`; after a render saves a figure under a new name, run `quarto render` again so that `docs/` holds it; commit `figures/` with `_freeze/` and `docs/`; a figure's web address, given as `https://OWNER.github.io/REPO/figures/model-fit.png` (the form `https://OWNER.github.io/REPO/figures/<name>` with an example name); PNG and PDF files saved directly in `analyses/` are not committed, because `.gitignore` blocks `analyses/*.png` and `analyses/*.pdf`.
+- AC4: `NEWS.md` line 102, under the development heading, has an entry starting "The template publishes paper figures from a `figures/` folder". No milestone numbers in it.
+- AC5: `devtools::test()` at d75ca70: 243 tests, 2735 expectations, 0 failed, 0 errors, 1 skipped ("on a case-sensitive disk, any file in data/ that differs only in letter case stops": the disk is case-insensitive).
+- Gate: `cairn_validate.py` all checks passed (exit 0). No principle changed, so `cairn_impact` skipped. `devtools::document()` gave no diff. No README.Rmd and no pkgdown site. NEWS.md has the entry (AC4). No new top-level files. `devtools::check()`: 0 errors, 0 warnings, 0 notes (3m 39s).
+
