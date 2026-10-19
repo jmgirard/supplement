@@ -82,3 +82,38 @@ Pass 1, 2026-10-18, branch head 2914730, main not moved since the cut.
 - AC4 evidence: `grep 'is lost'` finds nothing in `man/release_supplement.Rd` or `R/release-supplement.R`. `man/release_supplement.Rd:52-58` says the function stops and "writes none of the three files" when one changed while the check ran, and that a change saved "after the function reads the files again, until it finishes, can still be lost", which includes a change saved while the files are written. `:108` lists `supplement_error_changed` in Errors. NEWS.md:32-35 and DESIGN.md:91-92 name the stop.
 - AC5 evidence: after `devtools::document()`, `git diff -- man NAMESPACE` is 0 lines; `devtools::test()` 219 tests, 0 failures, 0 errors, 1 skip; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - Gate: `cairn_validate.py` all checks passed; no principle changed, so no `cairn_impact`; `document()` no diff; no README.Rmd and no `_pkgdown.yml`; NEWS.md has the entry; no new top-level files; R CMD check clean.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: `_supplement.yml` swapped during the check for a link to a file with the same bytes is written through; never link-checked (existed before) — follow-up, "release snapshot remainder"
+- diff-bug #2: the second `read_outputs()` refusal hides a `_supplement.yml` change from the message — follow-up, "release snapshot remainder"
+- diff-bug #3: DESIGN.md says "byte for byte" but a folder at an output is not seen — fix now, fixed 986a541
+- diff-bug #4: NEWS.md leaves out the made, removed, folder, and link cases — fix now (made or removed named; folder and link left to the help page), fixed 986a541
+- diff-bug #5: no test checks which file the message names, or two files at once — fix now, fixed 986a541 (a planted all-names message fails the three tests 10, 2, and 9 times)
+- diff-bug #6: `edit_yml()` would write CRLF on Windows, so the comment shape would change every line — fix now (writes "\n" bytes), fixed 986a541
+- diff-bug #7: no test changes an existing `.zenodo.json` — fix now, fixed 986a541
+- diff-bug #8: the no-change control has no `.zenodo.json` before the run — fix now, fixed 986a541
+- diff-bug #9: a save between `read_supplement()` and `read_text_lines()` before the check (existed before) — follow-up, "release snapshot remainder"
+- diff-bug #10: `not_utf8` shape makes invalid UTF-8 — reject (false: a confirmation, no defect)
+- diff-bug #11: mocks in loops do not leak — reject (false: a confirmation)
+- diff-bug #12: `call` and cli name joining are right — reject (false: a confirmation)
+- diff-bug #13: long lines in NEWS.md and DESIGN.md — reject (style); reflowed with #3 and #4 in 986a541
+- diff-bug #14: a save after the second read is not detected — follow-up, "release snapshot remainder" (planned Out item, named in the help)
+- blame-history #1: the window after the second read can still lose a save — follow-up, "release snapshot remainder"
+- blame-history #2: NEWS.md window is broader than the help's and "kept" omits the stop — fix now, fixed 986a541
+- blame-history #3: a folder made at an output gives `supplement_error_release_write` — follow-up, "release edge cases" (filed at the plan)
+- blame-history #4: two names print as "a, b changed" — reject (false: cli prints "'_supplement.yml' and 'CITATION.cff' changed")
+- blame-history #5: NEWS.md long line — reject (style); reflowed in 986a541
+- prior-review #1: more `local_mocked_bindings()` use while DESCRIPTION says testthat >= 3.0.0 — follow-up, "testthat floor" (the row already names this function)
+- prior-review #2: the window after the second read — follow-up, "release snapshot remainder"
+- prior-review #3: NEWS.md "kept" can read as the release applying the save — fix now, fixed 986a541
+- prior-review #4: long lines — reject (style)
+- prior-review #5: `expect_changed_stop()` repeats the message capture of `release_messages()` — fix now (`capture_messages_to()`), fixed 986a541
+- ripple #1: ROADMAP row "release snapshot gap" still says the edit is lost — reject (planned change: the row graduates at post-merge hygiene)
+- ripple #2: `inst/template/_README.md` stop list omits the change stop — fix now, fixed 986a541
+- ripple #3: README.md stop list omits the change stop — fix now, fixed 986a541
+- ripple #4: help summary omits the change stop — fix now, fixed 986a541
+- ripple #5: help "stops, and changes no file, when" list omits it — fix now, fixed 986a541
+- ripple #6: NEWS.md does not name made or removed files — fix now, fixed 986a541
+- ripple #7: NEWS.md and the help state the window differently — fix now, fixed 986a541
+- ripple #8: DESIGN.md does not name made or removed files — fix now, fixed 986a541
+- No floor return: no finding shows a criterion failing or a defect in what the function does for users.
+- After 986a541: release test file 33 tests, 0 failures (change tests 40, 8, 40, 4 expectations); `document()` leaves no diff; devtools::test() 219 tests, 0 failures, 1 skip; devtools::check() 0/0/0; `cairn_validate.py` all checks passed.
