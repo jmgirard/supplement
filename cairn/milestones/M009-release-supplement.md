@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -35,10 +35,10 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 ## Coverage
 
 - AC1 → T1, T8
-- AC2 → T3, T4, T8, T11
+- AC2 → T3, T4, T8, T11, T15
 - AC3 → T3, T4, T6
 - AC4 → T2, T3, T4
-- AC5 → T3, T4, T7, T9, T10, T12, T13
+- AC5 → T3, T4, T7, T9, T10, T12, T13, T14, T15
 - AC6 → T3, T4, T7, T9
 - AC7 → T5, T9
 
@@ -57,6 +57,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - [x] T11: Add AC2's five values `"1.2.3\n"`, `"1.2.3 "`, `"1.2.3\r\n"`, `" 1.2.3"`, and `"1.2\n.3"` to the bump test, and add a comment at `check_bump()` that `bump` is not trimmed (review return 4; RR01 question 4 item 1).
 - [x] T12: In `read_outputs()`, refuse a missing `CITATION.cff` or `.zenodo.json` whose folder cannot be written, with a test that skips as root, and say so in the help and in DESIGN Architecture (pass 4 diff-bug #2).
 - [x] T13: Move the unwritable-file tests into their own `test_that()` with their own skips (pass 4 diff-bug #3).
+- [ ] T14: In `restore()`, remove a file the release made with `file.remove()`, not `unlink()`, so that `[`, `*`, and `?` in the site path are not read as patterns, and add a restore test whose site path holds `[` beside a sibling folder that the pattern would match (review return 5).
+- [ ] T15: Make the pass-5 fix-now items: strip attributes from `bump`, so a named or classed string works (diff-bug #1); compare `folder_state()` in the skipped-plus-row probe (diff-bug #4); check `calls$n` per unwritable-file probe (diff-bug #5); and say in the help that `_supplement.yml` is read before the checks run (prior-review #3).
 
 ## Work log
 
@@ -126,6 +128,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: claim audit: 10 claims read, 0 corrected — R/release-supplement.R, man/release_supplement.Rd, tests/testthat/test-release-supplement.R (the T11 to T13 diff, same reader).
 - 2026-10-18: status review; handing off to /milestone-review, whose disposition rule for this pass is RR01 recommendation 3.
 - 2026-10-18: review return 5: AC5's stated rule "removes `CITATION.cff` or `.zenodo.json` when it did not exist before the release" fails for a site path with `[`, `*`, or `?`, because `restore()` calls `unlink()`, which expands them, and can remove a file in another folder (pass 5 blame-history #1, confirmed); the same `unlink()` cleanup is in `create_supplement()`, `add_report()`, and `add_data()` on main. This is the fifth defect return, after a re-cut and an escalation, so the thrash rule (a) stops the run, and the disposition goes to the user. Owed on resume: `file.remove()` in place of `unlink()` with a test on a `[` path, and the pass-5 fix-now items.
+- 2026-10-18: override: at the fifth-return stop the user chose "Fix and review again" over the recommended park; added T14 and T15 (minor amendment); status in-progress; review pass 6 keeps RR01's disposition rule.
 
 ## Decisions
 
