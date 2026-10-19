@@ -1,5 +1,6 @@
 # check_supplement() is mocked in these tests, so they need no render and
-# no git. Its own tests are in test-check-supplement.R.
+# no git, except the tests that run the printed commands in a git
+# repository. Its own tests are in test-check-supplement.R.
 
 # Make check_supplement() return `rows` with the `skipped` attribute, and
 # count its calls in the returned environment.
@@ -39,9 +40,9 @@ site_version <- function(dir) {
 # package's own list.
 expected_commands <- function(v) {
   c(
-    "git status",
-    "git add -A",
-    sprintf('git commit -m "Release v%s"', v),
+    "git status -- .",
+    "git add -A -- .",
+    sprintf('git commit -m "Release v%s" -- .', v),
     sprintf("git tag v%s", v),
     "git push",
     sprintf("git push origin v%s", v),
@@ -915,6 +916,86 @@ test_that("the release commands are printed and returned", {
   expect_match(printed, "version-doi", fixed = TRUE)
   expect_match(printed, "render", fixed = TRUE)
   expect_invisible(release("patch", path = dir))
+})
+
+# A git repository in a new temporary folder, with a local user so that
+# git_in() can commit.
+git_repo <- function(env = parent.frame()) {
+  repo <- withr::local_tempdir("release-repo-", .local_envir = env)
+  for (args in list(c("init", "-q"), c("config", "user.name", "Test"),
+                    c("config", "user.email", "test@example.com"))) {
+    expect_identical(git_in(repo, args)$status, 0L)
+  }
+  repo
+}
+
+# Write the template's _supplement.yml with version 1.2.3 into `dir`.
+write_site_yml <- function(dir) {
+  dir.create(dir, showWarnings = FALSE, recursive = TRUE)
+  file.copy(file.path(release_site('  version: "1.2.3"'), "_supplement.yml"), dir)
+}
+
+# Run the printed `git add` and `git commit` commands in `dir`. scan()
+# splits each command at spaces and keeps the quoted message whole.
+run_release_commit <- function(commands, dir) {
+  for (command in commands[startsWith(commands, "git add") | startsWith(commands, "git commit")]) {
+    args <- scan(text = command, what = "", quiet = TRUE)
+    out <- git_in(dir, shQuote(args[-1]))
+    expect_identical(out$status, 0L, label = paste(c(command, out$output), collapse = "\n"))
+  }
+}
+
+# The paths that the last commit changed.
+committed_paths <- function(repo) {
+  out <- git_in(repo, c("diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "HEAD"))
+  expect_identical(out$status, 0L)
+  out$output
+}
+
+test_that("for a site in a subfolder, the release commit holds only files of the site", {
+  skip_if_no_git()
+  mock_check()
+  repo <- git_repo()
+  site <- file.path(repo, "site")
+  write_site_yml(site)
+  writeLines("old", file.path(repo, "tracked.txt"))
+  expect_identical(git_in(repo, c("add", "-A"))$status, 0L)
+  expect_identical(git_in(repo, c("commit", "-q", "-m", "start"))$status, 0L)
+
+  # Three changes outside the site: a changed tracked file, a new file that
+  # git does not track, and a new file staged before the release.
+  writeLines("new", file.path(repo, "tracked.txt"))
+  writeLines("new", file.path(repo, "untracked.txt"))
+  writeLines("new", file.path(repo, "staged.txt"))
+  expect_identical(git_in(repo, c("add", "staged.txt"))$status, 0L)
+
+  commands <- release("patch", path = site)
+  run_release_commit(commands, site)
+
+  paths <- committed_paths(repo)
+  expect_true(all(startsWith(paths, "site/")), label = paste(paths, collapse = ", "))
+  expect_true(all(c("site/CITATION.cff", "site/_supplement.yml") %in% paths))
+  status <- git_in(repo, c("status", "--porcelain"))$output
+  expect_true(all(c(" M tracked.txt", "?? untracked.txt", "A  staged.txt") %in% status),
+              label = paste(status, collapse = ", "))
+})
+
+test_that("for a site at the top of the repository, the release commit holds its new files", {
+  skip_if_no_git()
+  mock_check()
+  repo <- git_repo()
+  write_site_yml(repo)
+  expect_identical(git_in(repo, c("add", "-A"))$status, 0L)
+  expect_identical(git_in(repo, c("commit", "-q", "-m", "start"))$status, 0L)
+  dir.create(file.path(repo, "docs"))
+  writeLines("<html></html>", file.path(repo, "docs", "index.html"))
+
+  commands <- release("patch", path = repo)
+  run_release_commit(commands, repo)
+
+  paths <- committed_paths(repo)
+  expect_true(all(c("CITATION.cff", "_supplement.yml", "docs/index.html") %in% paths),
+              label = paste(paths, collapse = ", "))
 })
 
 test_that("release_supplement() starts no process of its own", {

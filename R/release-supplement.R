@@ -473,9 +473,12 @@ write_release_files <- function(read, lines, file, outputs, texts, old, call = p
 release_commands <- function(version) {
   tag <- paste0("v", version)
   c(
-    "git status",
-    "git add -A",
-    sprintf('git commit -m "Release %s"', tag),
+    # `-- .` limits each command to the site folder, the files that
+    # check_supplement() checked, also when the site is a subfolder of its
+    # repository and files outside it are changed or staged.
+    "git status -- .",
+    "git add -A -- .",
+    sprintf('git commit -m "Release %s" -- .', tag),
     paste("git tag", tag),
     "git push",
     paste("git push origin", tag),
@@ -487,7 +490,7 @@ report_release <- function(path, version, commands) {
   cli::cli_alert_success(
     "Set {.field version} to {.val {version}} in {.file _supplement.yml}, and wrote {.file CITATION.cff} and {.file .zenodo.json}."
   )
-  cli::cli_text("Run these commands in {.path {path}} to make the release. {.code git status} shows the files that {.code git add -A} adds.")
+  cli::cli_text("Run these commands in {.path {path}} to make the release. They stage and commit only the files in this folder, and {.code git status -- .} shows them.")
   cli::cli_code(commands)
   cli::cli_text(
     "After Zenodo archives the release, add its new version DOI to {.field zenodo.version-doi} in {.file _supplement.yml}, and render the site again."

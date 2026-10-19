@@ -1,13 +1,13 @@
 # M015: The release commands stage and commit only the site folder
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes the commands that `release_supplement()` prints and its help page
-- **Branch/PR:** —
+- **Branch/PR:** m015-release-site-folder
 
 ## Goal
 
@@ -37,8 +37,8 @@ For a site in a subfolder of its git repository, the commands that `release_supp
 
 ## Tasks
 
-- [ ] T1: Write the tests of AC1 to AC3 in `tests/testthat/test-release-supplement.R` (use `skip_if_no_git()` from `helper-template.R`; set a repo-local `user.name` and `user.email`, because the test helpers blank the global git configuration). See the AC1 and AC2 tests fail against the current `git add -A` and `git commit` lines. The AC3 case passes before the change too, as a guard that the top-of-repository release keeps working.
-- [ ] T2: Change `release_commands()` and the `report_release()` message (`R/release-supplement.R:473-492`), and run the tests to green with git on the PATH, so that no test of AC2 or AC3 skips.
+- [x] T1: Write the tests of AC1 to AC3 in `tests/testthat/test-release-supplement.R` (use `skip_if_no_git()` from `helper-template.R`; set a repo-local `user.name` and `user.email`, because the test helpers blank the global git configuration). See the AC1 and AC2 tests fail against the current `git add -A` and `git commit` lines. The AC3 case passes before the change too, as a guard that the top-of-repository release keeps working.
+- [x] T2: Change `release_commands()` and the `report_release()` message (`R/release-supplement.R:473-492`), and run the tests to green with git on the PATH, so that no test of AC2 or AC3 skips.
 - [ ] T3: Update the roxygen block of `release_supplement()` (`R/release-supplement.R:61-68`), `README.md:149-161`, `inst/template/_README.md:179-181`, DESIGN.md, and NEWS.md; run `devtools::document()`, then the AC4 grep.
 
 ## Work log
@@ -52,5 +52,8 @@ For a site in a subfolder of its git repository, the commands that `release_supp
 - 2026-10-19: inbox sweep: 0 open issues, 0 open PRs. Collision sweep: no D-entry, archive, or planned overlap.
 - 2026-10-19: lessons harvested: M010 (prove a test can fail against main's file), M011 (write test edits with `writeBin()`).
 - 2026-10-19: criteria audit (full mode, fresh Opus reader, shared with M016 and M017): confirmed `git add -A -- .` then `git commit -- .` in a subfolder commits new, changed, and deleted site files and leaves outside staged, changed, and untracked files. Findings taken: AC2 and AC3 read the commit with `git diff-tree --root` (without `--root` a first commit lists nothing); AC2's staged file is a new file; AC3 passes before the change, so T1 keeps it as a guard; AC4 greps four named files and moves NEWS.md to its own clause; T1 sets a repo-local git user; T2 and T3 line numbers fixed; T2 runs with git present so no test skips.
+- 2026-10-19: started on branch m015-release-site-folder; status in-progress.
+- 2026-10-19: T1 done: `expected_commands()` holds the new forms; two tests run the returned `git add` and `git commit` (split with `scan()`, run through `git_in()`) in a new repository. Before the change the subfolder test failed 2 expectations (outside paths in the commit, `staged.txt` no longer listed as staged) and the top-of-repository test passed, as planned.
+- 2026-10-19: T2 done: `release_commands()` adds `-- .` to `git status`, `git add -A`, and `git commit`; the `report_release()` line now says the commands stage and commit only the files in the site folder. `test-release-supplement.R` passes with no skip.
 
 ## Decisions
