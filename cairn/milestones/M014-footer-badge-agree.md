@@ -136,14 +136,14 @@ Pass 3 (2026-10-19, branch head d86112e, main 51d575e unmoved). Since pass 2, T8
 - Run: `devtools::test()` 237 tests, 2532 expectations, 0 failed, 0 errors, 1 skip (test-agreement.R 210 expectations, test-shortcodes.R 266, 0 failed).
 - Gate: `cairn_validate.py` all checks passed; `devtools::document()` gives no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - spawned: diff-bug, blame-history, prior-review, ripple (on `git diff 6aec878..HEAD`)
-- diff-bug #1: `_supplement.yml:20-21` and DESIGN.md still say each name links to "its page at spdx.org" — fix now.
-- diff-bug #2: a two-paragraph license value is quoted as `'MITX'` in the error — fix now (`shown_text()` joins blocks with a space, as R does).
-- diff-bug #3: a one-block DOI that is not a paragraph (a heading) gets "more than one paragraph" in its error — fix now (message says "text that is not one paragraph" and quotes the value).
-- diff-bug #4: the `checked_doi()` comment omits the paragraph stop — fix now.
+- diff-bug #1: `_supplement.yml:20-21` and DESIGN.md still say each name links to "its page at spdx.org" — fix now, fixed 7059ec7.
+- diff-bug #2: a two-paragraph license value is quoted as `'MITX'` in the error — fix now (`shown_text()` joins blocks with a space, as R does), fixed 7059ec7.
+- diff-bug #3: a one-block DOI that is not a paragraph (a heading) gets "more than one paragraph" in its error — fix now (message says "text that is not one paragraph" and quotes the value), fixed 7059ec7.
+- diff-bug #4: the `checked_doi()` comment omits the paragraph stop — fix now, fixed 7059ec7.
 - diff-bug #5: the string branch and the empty-Blocks branch of `simple_value()` never run in Quarto 1.10 — reject, no defect (defensive branches; the reviewer showed both would still be correct).
 - diff-bug #6: the two-paragraph license cases and the `GPL--3.0` hint case also pass against the pre-T8 Lua — reject, not a defect: those cases were already right before T8 and stay as agreement guards; the paired null, block, named-argument, and no-hint cases fail against the pre-T8 Lua.
 - diff-bug #7: an id that SPDX lists but is not one of the 8, written in another letter case, may link to a missing page if spdx.org paths depend on case (unverified) — follow-up, row "footer and badge remainder".
-- diff-bug #8: NEWS does not name the named-argument stop — fix now.
+- diff-bug #8: NEWS does not name the named-argument stop — fix now, fixed 7059ec7.
 - blame-history #1: a LicenseRef- id with `--` is valid SPDX, which may meet the plan's falsifier for the narrowing — reject: the falsifier names ids on the SPDX License List, and such a LicenseRef- id would show with an en dash in the footer, so accepting it in R would break the agreement the goal asks for.
 - blame-history #2: same as diff-bug #7 — follow-up, row "footer and badge remainder".
 - blame-history #3: the `simple_value()` string branch is untested — reject, same as diff-bug #5.
@@ -151,21 +151,21 @@ Pass 3 (2026-10-19, branch head d86112e, main 51d575e unmoved). Since pass 2, T8
 - blame-history #5: the switch to `expect_true(inherits())` is needed and correct — reject, no defect (confirmation).
 - blame-history #6: the hint also fires for a dash typed into the file — reject: the comment says so and the hint text is true in both cases.
 - blame-history #7: `value()` joins a two-paragraph `zenodo.archive-url` — follow-up, row "footer and badge remainder" (outside the criteria).
-- blame-history #8: the `simple_value()` comment has a doubled `"", ""` — fix now.
-- blame-history #9: `_README.md` "takes one of them" omits that the `license.code` spelling wins — fix now.
+- blame-history #8: the `simple_value()` comment has a doubled `"", ""` — fix now, fixed 7059ec7.
+- blame-history #9: `_README.md` "takes one of them" omits that the `license.code` spelling wins — fix now, fixed 7059ec7.
 - blame-history #10: `license: "MIT"` renders blank — follow-up, already in row "footer and badge remainder".
-- prior-review #1: `_supplement.yml` and `_quarto.yml` comments still say "its page at spdx.org" — fix now (with diff-bug #1).
-- prior-review #2: the new refusal assertions in test-agreement.R carry no `info` — fix now.
+- prior-review #1: `_supplement.yml` and `_quarto.yml` comments still say "its page at spdx.org" — fix now (with diff-bug #1), fixed 7059ec7.
+- prior-review #2: the new refusal assertions in test-agreement.R carry no `info` — fix now, fixed 7059ec7.
 - prior-review #3: same as blame-history #6 — reject.
-- prior-review #4: same as diff-bug #3 — fix now (license message too).
+- prior-review #4: same as diff-bug #3 — fix now (license message too), fixed 7059ec7.
 - prior-review #5: same as diff-bug #5 — reject.
-- prior-review #6: same as blame-history #9 — fix now.
+- prior-review #6: same as blame-history #9 — fix now, fixed 7059ec7.
 - ripple #1: ROADMAP row "footer and badge edge cases" is stale — reject, planned change (post-merge hygiene graduates the row).
 - ripple #2: ROADMAP row "shortcode edge cases" says `supplement-license` with no argument has no defined result — reject, planned change (post-merge hygiene narrows the row).
-- ripple #3: same as diff-bug #8 — fix now.
-- ripple #4: `_supplement.yml`, `_quarto.yml`, DESIGN.md spdx.org wording — fix now (with diff-bug #1).
-- ripple #5: test-write-metadata-errors.R comment "No SPDX id has these shapes" — fix now.
-- ripple #6: same as blame-history #9 — fix now.
-- ripple #7: the Lua comments listing refused values omit the paragraph stop — fix now.
-- ripple #8: helper-template.R "The SPDX page of each license id" — fix now.
+- ripple #3: same as diff-bug #8 — fix now, fixed 7059ec7.
+- ripple #4: `_supplement.yml`, `_quarto.yml`, DESIGN.md spdx.org wording — fix now (with diff-bug #1), fixed 7059ec7.
+- ripple #5: test-write-metadata-errors.R comment "No SPDX id has these shapes" — fix now, fixed 7059ec7.
+- ripple #6: same as blame-history #9 — fix now, fixed 7059ec7.
+- ripple #7: the Lua comments listing refused values omit the paragraph stop — fix now, fixed 7059ec7.
+- ripple #8: helper-template.R "The SPDX page of each license id" — fix now, fixed 7059ec7.
 - blame-history #5: the "unquoted number or yes still renders" comment is true but conflicts with AC2's parity — reject, false conflict: AC2's domain is the listed quoted shapes; the gap is in "shortcode edge cases".
