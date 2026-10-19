@@ -69,6 +69,7 @@
 - 2026-10-18: claim audit: 24 claims read, 6 corrected — R/release-supplement.R, man/release_supplement.Rd, NEWS.md, tests/testthat/test-release-supplement.R (the folder case named in the help, the link and unreadable errors that come first, the window named from the second read to the end, NEWS narrowed to changes saved during the check, two comments); the same reader re-read the six and found that each holds; devtools::test() after: 219 tests, 0 failures.
 - 2026-10-18: the help names the remaining window as "after the function reads the files again, until it finishes", which covers AC4's "after the check, while the files are written" and is what the code does; no criterion text changed.
 - 2026-10-18: status review; all tasks checked, verify clean.
+- 2026-10-18: step-7 approval: m011-release-snapshot-gap approved for merge
 
 ## Decisions
 
