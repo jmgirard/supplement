@@ -28,9 +28,9 @@ DESCRIPTION's testthat floor is 3.3.0, the first CRAN release after 3.2.3; testt
 ## Acceptance criteria
 <!-- owner: plan · create/amend-via-gate; review reads, never reinterprets. -->
 
-- [ ] AC1: `DESCRIPTION` lists `testthat (>= 3.3.0)` under Suggests. With quarto and git on PATH and `NOT_CRAN=true`, `testthat::test_local()`, run with testthat 3.3.0 loaded from a library outside the repository, reports 0 failures and 0 errors over `tests/testthat/`, and it skips no test that the same run under the installed testthat does not skip. When its only failure is at `test-template.R:140` (the known flake), one clean rerun meets this.
-- [ ] AC2: testthat 3.3.0 exports every testthat function that a file in `tests/testthat/` calls by name: the `SYMBOL_FUNCTION_CALL` tokens from `getParseData()` on each file that name an export of testthat 3.3.2 in the default library, less names that a file under `tests/testthat/` assigns or takes as a function argument (today `source_file` and `setup`).
-- [ ] AC3: Under the installed testthat, `devtools::test()` reports 0 failures and 0 errors, and `devtools::check()` reports 0 errors and 0 warnings, with no NOTE that names DESCRIPTION's Suggests field or testthat. When, in either run, the only test failure is at `test-template.R:140`, one clean rerun of that run meets this.
+- [x] AC1: `DESCRIPTION` lists `testthat (>= 3.3.0)` under Suggests. With quarto and git on PATH and `NOT_CRAN=true`, `testthat::test_local()`, run with testthat 3.3.0 loaded from a library outside the repository, reports 0 failures and 0 errors over `tests/testthat/`, and it skips no test that the same run under the installed testthat does not skip. When its only failure is at `test-template.R:140` (the known flake), one clean rerun meets this.
+- [x] AC2: testthat 3.3.0 exports every testthat function that a file in `tests/testthat/` calls by name: the `SYMBOL_FUNCTION_CALL` tokens from `getParseData()` on each file that name an export of testthat 3.3.2 in the default library, less names that a file under `tests/testthat/` assigns or takes as a function argument (today `source_file` and `setup`).
+- [x] AC3: Under the installed testthat, `devtools::test()` reports 0 failures and 0 errors, and `devtools::check()` reports 0 errors and 0 warnings, with no NOTE that names DESCRIPTION's Suggests field or testthat. When, in either run, the only test failure is at `test-template.R:140`, one clean rerun of that run meets this.
 
 ## Coverage
 <!-- owner: plan · create/amend-via-gate -->
@@ -80,3 +80,24 @@ DESCRIPTION's testthat floor is 3.3.0, the first CRAN release after 3.2.3; testt
 
 ## Review
 <!-- owner: review · exclusive. -->
+
+Pass 1, 2026-10-18, on m013-testthat-floor at f786ce8 (main at 538276b, not moved).
+
+- AC1 evidence: `DESCRIPTION` line 22 reads `testthat (>= 3.3.0),` under Suggests. With quarto 1.10.19 and git on PATH and NOT_CRAN=true, `test_local()` with the scratch library first printed `3.3.0` and the scratch path: exit 0, no failed or errored test, 1 skip (`test-add-data.R:309`, case-insensitive disk). The same run under 3.3.2: exit 0, the same one skip, so no extra skip under 3.3.0.
+- AC2 evidence: the parse sweep on the default library (testthat 3.3.2) over the 15 files in `tests/testthat/` kept 30 names after excluding `source_file` and `setup`; with the scratch library first (printed `3.3.0`), 0 of the 30 are missing from `getNamespaceExports("testthat")`. A planted name read as missing at implement (T3), so the check can fail.
+- AC3 evidence: under testthat 3.3.2, `devtools::test()` with NOT_CRAN=true: exit 0, no failed or errored test, 1 skip (`test-add-data.R:309`); `devtools::check()`: 0 errors, 0 warnings, 0 notes. No rerun was needed.
+- gate: `cairn_validate.py` all checks passed; principle impact skipped (no principle changed); `devtools::document()` leaves no diff; no README.Rmd and no `_pkgdown.yml`; no new top-level files; `check()` clean as above; changelog: no NEWS.md entry, as the plan's Scope Out states (no package behavior changes).
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: D-014 calls R 4.6.1 "the only R where the run could take place", though the user declined an R 4.5 Docker run — fix now.
+- diff-bug #2: the Goal was edited in place against its owner comment — reject (planned change: the user chose the re-cut at the T2 stop, and the work log records it).
+- diff-bug #3: D-014 states "On R below 4.6, the 3.2 releases build" with no check — fix now.
+- diff-bug #4: the investigation line says 24 testthat functions, T3 says 30 — fix now (a correcting work-log line; the 24 was a miscount).
+- diff-bug #5: AC2's filter depends on the default library's version — reject (false: AC2 names testthat 3.3.2, so a rerun with that version gives the same set).
+- diff-bug #6: testthat 3.3.0 declares `Depends: R (>= 4.1.0)` (3.2.0 declares 3.6.0), so the floor means the tests need R 4.1 — fix now (D-014 Consequences states it).
+- diff-bug #7: the "testthat floor" candidate row is still open — reject (planned change: post-merge hygiene removes the row that carries "started M013").
+- blame-history #1: the floor changed at an implement stop and the Goal was re-cut in place — reject (planned change: the user's choice at the stop, logged).
+- blame-history #2: D-014 takes neither option D-013 framed and swaps a function-based reason for a build-based one — reject (false as a defect: D-014 supersedes D-013 by name and records the user's choice and its reason).
+- blame-history #3: users of testthat 3.2.0 to 3.2.3 are now asked to update — reject (planned change: D-014 Consequences records it).
+- blame-history #4: no NEWS.md entry for the floor — reject (planned change: Scope Out; the package is unreleased and no behavior changes).
+- prior-review: no findings (M008 and M009 Review lines raised the floor; the diff answers them; the PR comment probe returned none).
+- ripple #1: the "testthat floor" candidate row still describes the old problem — reject (planned change: post-merge hygiene removes it).
