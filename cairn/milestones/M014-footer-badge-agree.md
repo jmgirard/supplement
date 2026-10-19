@@ -107,25 +107,32 @@ Pass 2 (2026-10-19, branch head c05aeb0, main 51d575e unmoved). Since pass 1, on
 - AC7 evidence: `_README.md:77-81` states the id rule ("letters and digits, with one `.` or `-` between groups and at most one `+` at the end"), the render stops, and the spdx.org links. The `NEWS.md` footer bullet states the links and the stops, and its `write_citation()` bullet states the id rule and the single entry per id. Both help pages state the rule (`write_citation.Rd:67`, `write_zenodo.Rd:67`, inherited), and `write_citation.Rd:33` states the single entry. `_supplement.yml:18-23` states the rule, the stops, and the links. The claim audit of the T7 lines read 10 claims, 0 wrong.
 - Gate: `cairn_validate.py` all checks passed. `devtools::document()` gives no diff. No README.Rmd and no `_pkgdown.yml`. NEWS.md has entries for the changes. No new top-level files. `devtools::check()`: 0 errors, 0 warnings, 0 notes.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- blame-history #1: a blank YAML value (`code:` or `version-doi:` with nothing after the colon, null) now stops the render, while main rendered it blank and `write_citation()` treats it as empty — fix now; floor return (AC1 and AC3 promise a stop only for a non-empty value).
-- diff-bug #1: a block or folded license value (`code: |` then `MIT`) stops the render with a message about spaces or Markdown, while `write_citation()` writes `MIT` — fix now (one-paragraph Blocks read as its text).
+- blame-history #1: a blank YAML value (`code:` or `version-doi:` with nothing after the colon, null) now stops the render, while main rendered it blank and `write_citation()` treats it as empty — fix now; floor return (AC1 and AC3 promise a stop only for a non-empty value), fixed fa943bf.
+- diff-bug #1: a block or folded license value (`code: |` then `MIT`) stops the render with a message about spaces or Markdown, while `write_citation()` writes `MIT` — fix now (one-paragraph Blocks read as its text), fixed fa943bf.
 - diff-bug #2: a DOI with Markdown emphasis (`10.5281/*zenodo*.1`) gives a badge for `10.5281/zenodo.1` while `CITATION.cff` holds the raw text — follow-up, row "footer and badge remainder".
-- diff-bug #3: a block DOI with two paragraphs renders a badge for the joined text (`10.5281/zenodo.12`) while `write_citation()` refuses it — fix now (a DOI of more than one block stops).
+- diff-bug #3: a block DOI with two paragraphs renders a badge for the joined text (`10.5281/zenodo.12`) while `write_citation()` refuses it — fix now (a DOI of more than one block stops), fixed fa943bf.
 - diff-bug #4: `license: "MIT"` or `zenodo: "x"` (text where a map belongs) renders an empty footer or no badge, while `write_citation()` raises `supplement_error_field_type`; not new in M014 — follow-up, row "footer and badge remainder".
 - diff-bug #5: unquoted `code: 1.0` shows "1" linked to spdx.org/licenses/1.html — follow-up, row "footer and badge remainder" (the gap itself is already in "shortcode edge cases").
 - diff-bug #6: a site that keeps the old footer and copies in the new extension gets a link inside a link — follow-up, row "footer and badge remainder".
 - diff-bug #7: the narrowed rule refuses `GPL--3.0`, `MIT.`, `MIT-`, `GPL.-3`, which passed before — reject, planned change (the plan chose the narrowing; D-012's shape-only decision stands).
-- diff-bug #8: `{{< supplement-license code foo=bar >}}` passes the argument check — fix now (a named argument also stops).
-- diff-bug #9: two refusal assertions in test-agreement.R carry no `info` — fix now.
-- diff-bug #10: the license id error adds the `--` and `...` hint for every bad id — fix now (only when the id holds a dash or ellipsis that Quarto made).
+- diff-bug #8: `{{< supplement-license code foo=bar >}}` passes the argument check — fix now (a named argument also stops), fixed fa943bf.
+- diff-bug #9: two refusal assertions in test-agreement.R carry no `info` — fix now, fixed fa943bf.
+- diff-bug #10: the license id error adds the `--` and `...` hint for every bad id — fix now (only when the id holds a dash or ellipsis that Quarto made), fixed fa943bf and d86112e.
 - ripple #1: the ROADMAP row "footer and badge edge cases" still describes the fixed defects — reject, planned change (post-merge hygiene graduates the row).
-- ripple #2: `_README.md:118-119` says `CITATION.cff` takes both licenses — fix now (one id when they differ only in letter case).
-- ripple (in diff): `_README.md` and NEWS.md say each name links to "the id's page at spdx.org", but an id SPDX does not list has no page — fix now (docs name the URL and say the page exists only for listed ids).
+- ripple #2: `_README.md:118-119` says `CITATION.cff` takes both licenses — fix now (one id when they differ only in letter case), fixed fa943bf.
+- ripple (in diff): `_README.md` and NEWS.md say each name links to "the id's page at spdx.org", but an id SPDX does not list has no page — fix now (docs name the URL and say the page exists only for listed ids), fixed fa943bf and d86112e.
 - prior-review #1: the footer drops the repo license links that M010 shipped — reject, planned change (the user chose SPDX links at the plan gate; AC5).
 - prior-review #2: unlisted ids link to a page that does not exist — reject the behavior as planned (AC5); the doc part is the ripple (in diff) fix.
-- prior-review #3: block or folded license values stop the render — fix now, same as diff-bug #1.
+- prior-review #3: block or folded license values stop the render — fix now, same as diff-bug #1, fixed fa943bf.
 - prior-review #4: unquoted numbers and `yes` render while `write_citation()` refuses them — follow-up, already in "shortcode edge cases" (M014 plan).
 - blame-history #2: the footer link removal has no D-entry — reject, planned change recorded at the plan gate in the work log; the choice binds only the template footer.
 - blame-history #3: shape-valid non-SPDX ids, such as `yes`, link to a missing page — reject the behavior as planned (AC5); doc fix as in ripple (in diff).
-- blame-history #4: SPDX's LicenseRef idstring allows `--` and `..`, so the comment "which no SPDX id has" is too broad — fix now (comment says "no id on the SPDX License List"); the narrowing stays (plan choice).
+- blame-history #4: SPDX's LicenseRef idstring allows `--` and `..`, so the comment "which no SPDX id has" is too broad — fix now (comment says "no id on the SPDX License List"); the narrowing stays (plan choice), fixed fa943bf.
+
+Pass 3 (2026-10-19, branch head d86112e, main 51d575e unmoved). Since pass 2, T8 changed `supplement.lua`, the tests, and the docs.
+- AC1 evidence (re-run): test-shortcodes "a license value that is not one SPDX id stops the render" (42 expectations), "shows nothing for an empty value" now with `[]`, `{}`, a null, `~`, and `null` (all render nothing), and "a block or folded license value reads as its text, and two paragraphs stop"; test-agreement "read null and block values alike" shows a null and a block license agree with `write_citation()`. All pass in the run below.
+- AC3 evidence (re-run): test-agreement "accept and refuse the same DOIs" (96 expectations) and "read null and block values alike"; test-shortcodes "a null or block DOI value reads as empty or as its text, and two paragraphs stop" and "a DOI value that is not a DOI stops the render". All pass in the run below.
+- AC2, AC4, AC5, AC6, AC7: pass 1 and pass 2 evidence stands; their tests pass in the run below; AC6's test now also covers a named argument.
+- Run: `devtools::test()` 237 tests, 2532 expectations, 0 failed, 0 errors, 1 skip (test-agreement.R 210 expectations, test-shortcodes.R 266, 0 failed).
+- Gate: `cairn_validate.py` all checks passed; `devtools::document()` gives no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - blame-history #5: the "unquoted number or yes still renders" comment is true but conflicts with AC2's parity — reject, false conflict: AC2's domain is the listed quoted shapes; the gap is in "shortcode edge cases".
