@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -73,3 +73,4 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: after the audit: a write-back that fails is now named in the `supplement_error_release_write` message (new test), and `compare_versions()` compares the first differing digit as a number, not by locale text order; 1676 tests pass.
 - 2026-10-18: claim audit found that `git add -A` stages the whole repository while `check_supplement()` reads the site folder only, so AC6's "adds the files that check_supplement() checked" holds only for a site at the top of its repository; the help page says so, and a "release from a subfolder" candidate row holds the fix.
 - 2026-10-18: status review; handing off to /milestone-review.
+- 2026-10-18: review return 1: AC3 fails as written: when `check_supplement()` skipped its git checks and found no blocking row, the `supplement_error_release_check` message names the skipped checks but does not give the number of problems; every other criterion's tests pass, `cairn_validate` passes, `document()` makes no diff, and `devtools::check()` gives 0 errors, 0 warnings, 0 notes.
