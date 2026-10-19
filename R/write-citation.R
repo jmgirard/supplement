@@ -32,13 +32,16 @@
 #' @return The path of the written file, invisibly.
 #'
 #' @section Errors:
-#' A `_supplement.yml` that is not valid YAML gives the error of the YAML
-#' parser. The errors that these functions raise themselves have the class
+#' The errors that these functions raise themselves have the class
 #' `supplement_error` and one of these classes:
 #'
 #' * `supplement_error_argument`: `path` is not a single non-missing,
 #'   non-empty character string, or `overwrite` is not `TRUE` or `FALSE`.
 #' * `supplement_error_no_metadata`: `path` has no `_supplement.yml`.
+#' * `supplement_error_parse`: the yaml package cannot read
+#'   `_supplement.yml`. Examples are a `[` or a `{` that is not closed, a key
+#'   line indented with a tab, and a key given twice in one map. The
+#'   message names the file and gives the message of the yaml package.
 #' * `supplement_error_no_map`: the file has no `supplement:` map.
 #' * `supplement_error_missing_field`: `paper-title` is missing or empty.
 #'   For [write_zenodo()], also `citation`.

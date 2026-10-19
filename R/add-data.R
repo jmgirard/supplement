@@ -39,6 +39,8 @@
 #' * `supplement_error_file_name`: the base name of `file` does not follow
 #'   the file-name rule above.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
+#' * `supplement_error_parse`: the yaml package cannot read
+#'   `_supplement.yml`, as for [write_citation()].
 #' * `supplement_error_ignored_file`: `file` is of a type that the
 #'   template's `.gitignore` rules keep out of git: a saved R object
 #'   (`.rds`, `.rda`, `.RData`, `.qs`, or `.qs2`), or a `.rmarkdown`,

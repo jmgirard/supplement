@@ -74,6 +74,11 @@ the first write, and refuse a linked `analyses/` or `data/` folder.
 `R/yaml-insert.R` adds a list item as lines of text, so comments stay
 (D-010), and replaces a one-line map value on its line (D-011); it
 re-reads the result with the yaml package before any write.
+Its `yaml_read_file_text()` reads a site YAML file and turns the yaml
+package's error into `supplement_error_parse`, which names the file and
+gives the parser's message. `read_supplement()`, the release read, and
+`append_item()` call it, so every function that reads `_supplement.yml`
+or `_quarto.yml` gives that class for a file that does not parse.
 `R/add-utils.R` holds the checks the two share.
 `R/check-supplement.R`: `check_supplement()` changes no file and returns
 its problems as a data frame (`check`, `file`, `problem`), with a

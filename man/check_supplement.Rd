@@ -70,6 +70,8 @@ these classes:
 \itemize{
 \item \code{supplement_error_argument}: \code{path} is not a single non-empty string.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
+\item \code{supplement_error_parse}: the yaml package cannot read
+\verb{_supplement.yml}, as for \code{\link[=write_citation]{write_citation()}}.
 \item \code{supplement_error_no_map}: \verb{_supplement.yml} has no \verb{supplement:} map.
 \item \code{supplement_error_field_type}: a DOI in \verb{_supplement.yml} is not one
 text value, or \code{zenodo} is not a map.

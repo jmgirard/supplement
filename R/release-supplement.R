@@ -84,8 +84,7 @@
 #' @return The release commands as a character vector, invisibly.
 #'
 #' @section Errors:
-#' A `_supplement.yml` that is not valid YAML gives the error of the YAML
-#' parser. An error while the function prints the commands, after it wrote
+#' An error while the function prints the commands, after it wrote
 #' the files, reaches you as it is. Otherwise the function stops with an
 #' error of class `supplement_error` and one of these classes. When it
 #' stops with one of these classes, no file is changed, unless a file that
@@ -105,6 +104,8 @@
 #' * `supplement_error_no_metadata`, `supplement_error_no_map`: as for
 #'   [write_citation()].
 #' * `supplement_error_encoding`: `_supplement.yml` is not UTF-8 text.
+#' * `supplement_error_parse`: the yaml package cannot read
+#'   `_supplement.yml`, as for [write_citation()].
 #' * The classes that [write_citation()] lists for a value in
 #'   `_supplement.yml`, such as `supplement_error_missing_field`,
 #'   `supplement_error_license`, `supplement_error_orcid`, and

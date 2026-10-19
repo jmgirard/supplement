@@ -40,7 +40,7 @@ When the yaml package cannot read `_supplement.yml` or `_quarto.yml`, the packag
 - [x] T1: Write the tests of AC1 and AC2 (a helper that writes each shape with `writeBin()`, and one that makes each run of white space one space), and see them fail. Pass the parser's message to cli as data, not as a template, because the flow-map message holds `{` or `}`. Replace the test at `tests/testthat/test-release-supplement.R:265`, which expects the parser's unclassed error.
 - [x] T2: Parse `_supplement.yml` in one helper that catches the yaml package's error and raises `supplement_error_parse` with the file name and the parser's message. Use it in `read_supplement()` and in the release read; run the AC1 tests to green.
 - [x] T3: Check that the file parses before `append_item()` edits it, with the same helper, so `add_data()` and `add_report()` raise `supplement_error_parse`; run the AC2 tests to green.
-- [ ] T4: Update the roxygen Errors sections of the six functions, DESIGN.md, and NEWS.md; run `devtools::document()` and the AC3 grep.
+- [x] T4: Update the roxygen Errors sections of the six functions, DESIGN.md, and NEWS.md; run `devtools::document()` and the AC3 grep.
 
 ## Work log
 
@@ -56,5 +56,6 @@ When the yaml package cannot read `_supplement.yml` or `_quarto.yml`, the packag
 - 2026-10-19: implementation choice: one helper `yaml_read_file_text(text, file)` in `R/yaml-insert.R`. `read_supplement()` reads the text as `yaml::read_yaml()` did (it keeps the incomplete-final-line warning); the release read and `append_item()` parse the lines text that `yaml_lines_text()` gives. The message names the file and puts the trimmed parser message in an `x` bullet; `yaml_parse_lines()` lost its unused `label` argument.
 - 2026-10-19: minor amendment to T3: two existing tests (`test-add-data.R`, `test-add-report.R`) expected `supplement_error_yaml` for an unclosed flow sequence; they now expect `supplement_error_parse`.
 - 2026-10-19: T1 to T3 in one checkpoint commit, because the T1 tests stay red until T2 and T3; `devtools::test()` clean (1 skip on a case-insensitive disk), 160 expectations in the new file.
+- 2026-10-19: T4: added `supplement_error_parse` to the Errors sections of the six functions (`write_zenodo()` inherits `write_citation()`'s), removed the "error of the YAML parser" sentences, added a NEWS.md entry and a DESIGN.md Architecture note on `yaml_read_file_text()`. `devtools::document()` rewrote six Rd files and a second run wrote none; the AC3 grep finds nothing; `devtools::test()` clean.
 
 ## Decisions

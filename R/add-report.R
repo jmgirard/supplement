@@ -40,6 +40,10 @@
 #' * `supplement_error_line_break`: `title` or `description` holds a line
 #'   break.
 #' * `supplement_error_no_config`: `path` holds no `_quarto.yml`.
+#' * `supplement_error_parse`: the yaml package cannot read `_quarto.yml`.
+#'   Examples are a `[` or a `{` that is not closed, a key line indented
+#'   with a tab, and a key given twice in one map. The message names the file and
+#'   gives the message of the yaml package.
 #' * `supplement_error_file_exists`: the report file exists, or a file
 #'   whose name differs from it only in letter case; `analyses` is not a
 #'   folder or is a link; or `_freeze/analyses/<name>` exists, which holds

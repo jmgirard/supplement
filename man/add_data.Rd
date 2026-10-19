@@ -52,6 +52,8 @@ string.
 \item \code{supplement_error_file_name}: the base name of \code{file} does not follow
 the file-name rule above.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
+\item \code{supplement_error_parse}: the yaml package cannot read
+\verb{_supplement.yml}, as for \code{\link[=write_citation]{write_citation()}}.
 \item \code{supplement_error_ignored_file}: \code{file} is of a type that the
 template's \code{.gitignore} rules keep out of git: a saved R object
 (\code{.rds}, \code{.rda}, \code{.RData}, \code{.qs}, or \code{.qs2}), or a \code{.rmarkdown},

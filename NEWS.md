@@ -88,3 +88,13 @@
   these functions read `[`, `*`, and `?` in a site path as a pattern. For
   a site path such as `site[ab]`, the cleanup then removed files in
   another folder, such as `sitea`, and kept its own.
+* A `_supplement.yml` or `_quarto.yml` that the yaml package cannot read
+  now gives an error of class `supplement_error_parse`. Examples are a `[`
+  or a `{` that is not closed and a key given twice. The message names the
+  file and gives the message of the yaml package, and no file changes.
+  `write_citation()`, `write_zenodo()`, `check_supplement()`,
+  `release_supplement()`, and `add_data()` give it for `_supplement.yml`,
+  and `add_report()` gives it for `_quarto.yml`. Before, the first four
+  gave the yaml package's own error. `add_data()` and `add_report()` gave
+  `supplement_error_yaml`, the class for a changed file that does not read
+  back as planned.

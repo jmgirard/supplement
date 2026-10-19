@@ -97,8 +97,7 @@ it.
 }
 \section{Errors}{
 
-A \verb{_supplement.yml} that is not valid YAML gives the error of the YAML
-parser. An error while the function prints the commands, after it wrote
+An error while the function prints the commands, after it wrote
 the files, reaches you as it is. Otherwise the function stops with an
 error of class \code{supplement_error} and one of these classes. When it
 stops with one of these classes, no file is changed, unless a file that
@@ -118,6 +117,8 @@ the check; the problems that \code{\link[=check_supplement]{check_supplement()}}
 \item \code{supplement_error_no_metadata}, \code{supplement_error_no_map}: as for
 \code{\link[=write_citation]{write_citation()}}.
 \item \code{supplement_error_encoding}: \verb{_supplement.yml} is not UTF-8 text.
+\item \code{supplement_error_parse}: the yaml package cannot read
+\verb{_supplement.yml}, as for \code{\link[=write_citation]{write_citation()}}.
 \item The classes that \code{\link[=write_citation]{write_citation()}} lists for a value in
 \verb{_supplement.yml}, such as \code{supplement_error_missing_field},
 \code{supplement_error_license}, \code{supplement_error_orcid}, and
