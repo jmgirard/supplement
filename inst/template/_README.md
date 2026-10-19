@@ -44,10 +44,9 @@ licenses, the authors, the Zenodo DOIs and archive link, and the data
 files. It also holds the site version. `_quarto.yml` loads the file with `metadata-files`, so every page can
 read its values. The home page shows the title, the citation, the
 contact, the Zenodo values, and the data files. Change them in
-`_supplement.yml`, not in `index.qmd`. No page shows the preprint,
-license, or author values yet. The license names in the page footer are
-set in `_quarto.yml`. Values are Markdown, so `*Journal Name*` shows in
-italics.
+`_supplement.yml`, not in `index.qmd`. The page footer shows the two
+licenses. No page shows the preprint or author values yet. Values are
+Markdown, so `*Journal Name*` shows in italics.
 
 The home page shows the values with these shortcodes:
 
@@ -68,6 +67,11 @@ The home page shows the values with these shortcodes:
   the description, and the file size. Sizes use 1 KB = 1000 bytes. Write
   each `file` relative to this folder, for example `data/example.csv`. The
   table works on any page, and its links are relative to that page.
+- `{{< supplement-license code >}}` and
+  `{{< supplement-license content >}}` show `license.code` and
+  `license.content`. The page footer in `_quarto.yml` uses them. A common
+  id shows as a readable name, for example `CC-BY-4.0` as CC BY 4.0. Any
+  other id shows as written, and an empty value shows nothing.
 
 If you turn on Zenodo's GitHub integration for this repository, Zenodo
 gives the DOIs after the next GitHub release. The version DOI names

@@ -268,6 +268,33 @@ test_that("values set in _supplement.yml reach the home page", {
   expect_match(html, doi_badge_rx(new[["version-doi"]]), perl = TRUE)
 })
 
+footer_center <- function(html) {
+  m <- regmatches(html, regexpr('<div class="nav-footer-center">[\\s\\S]*?</div>', html, perl = TRUE))
+  if (length(m) == 0) "" else m
+}
+
+test_that("the page footer shows the licenses set in _supplement.yml", {
+  skip_if_no_quarto()
+  dir <- withr::local_tempdir("site-")
+  expect_equal(use_template(dir)$status, 0L)
+
+  yml <- file.path(dir, "_supplement.yml")
+  set_supplement_value(yml, "code", "CC0-1.0")
+  set_supplement_value(yml, "content", "CC-BY-SA-4.0")
+
+  rendered <- run_in(dir, "quarto", "render")
+  expect_equal(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  for (page in c("index.html", "analyses/example.html")) {
+    footer <- footer_center(read_text(file.path(dir, "docs", page)))
+    expect_match(footer, "CC0 1.0", fixed = TRUE, info = page)
+    expect_match(footer, "CC BY-SA 4.0", fixed = TRUE, info = page)
+    expect_no_match(footer, "MIT", fixed = TRUE, info = page)
+    expect_no_match(footer, "CC BY 4.0", fixed = TRUE, info = page)
+    expect_match(footer, "/LICENSE.md", fixed = TRUE, info = page)
+    expect_match(footer, "/LICENSE-CC-BY.md", fixed = TRUE, info = page)
+  }
+})
+
 test_that("the template home page reads its values from _supplement.yml", {
   skip_if_no_quarto(needs_r = FALSE)
 
