@@ -1,25 +1,21 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-18 (status audit after hotfix #10: all checks green, no inbox items, no outside merges)_
+_Last hygiene check: 2026-10-18 (M010 merged as PR #11: three candidate rows graduated, one row added, M007 row pruned)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M010 | The footer, the DOI badge, and the citation files agree with _supplement.yml | review | — | normal | milestones/M010-license-doi-agree.md |
+| M010 | The footer, the DOI badge, and the citation files agree with _supplement.yml | done | — | normal | milestones/archive/M010-license-doi-agree.md |
 | M009 | release_supplement() raises the version and prints release commands | done | M008 | high | milestones/archive/M009-release-supplement.md |
 | M008 | check_supplement() lists release problems | done | — | high | milestones/archive/M008-check-supplement.md |
-| M007 | add_report() and add_data() list new site files | done | M006 | high | milestones/archive/M007-add-report-data.md |
 
 ## Candidates
 
 - template install from GitHub: recommend a pinned tag (`@vX.Y.Z`) in the README once a release exists. Narrowed 2026-10-18: the untagged route ran after the M003 merge and rendered. From the M003 review. — added 2026-10-18
 - Windows check: run the template tests and a render on Windows (CI or by hand), including the no-R test, which skips there, and `nojekyll.ts` with a `C:\` output path. From the M003 review. Also from the M004 review: data files of 2 GiB or more may read as missing (32-bit `ftell` in Windows Lua), and the 1 GB sparse size fixture may cost 1 GB of disk off macOS when Quarto copies it into `docs/`. Also from the M006 review: `create_supplement()` path handling on Windows (a broken link or junction at a template path, where `Sys.readlink()` returns `""`, and trailing separators). — added 2026-10-18
-- license footer: the template footer in `_quarto.yml` names MIT and CC BY 4.0, while `_supplement.yml` holds `license.code` and `license.content`, which no page reads (`write_citation()` and `write_zenodo()` do, so a mismatch also reaches the citation files); drive the footer from `_supplement.yml` so the two cannot differ. From the M004 review; widened in the M005 review. — added 2026-10-18 — started M010
 - shortcode edge cases: from the M004 review. `file` values are read as Markdown, so read the raw value or encode it (names with `%`, `#`, `--`, `_x_` break). A `data` map instead of a list renders nothing, and bare strings give `not found: ''`. A path outside the project or an absolute path renders but is not published. A `{{< meta >}}` value that names an existing path is rewritten on subfolder pages, and a description written as `../data` shows as `data` there. A fresh site has an empty paragraph under "Archived Version". `quarto-required: ">=1.4.0"` is untested below 1.10. From the M010 plan: `supplement-license` with no argument, or one other than `code` or `content`, has no defined result. — added 2026-10-18
-- metadata value checks: `write_citation()` and `write_zenodo()` write license ids as given, so `CC BY 4.0` gives an invalid CFF `license` and a Zenodo id that is not in its vocabulary. Check the SPDX shape, and that the lowercase id is in Zenodo's license vocabulary. From the M005 review. The vocabulary check was declined at the M010 plan gate (D-012). — added 2026-10-18 — started M010
-- badge DOI form: the `supplement-doi` shortcode writes a DOI as given, so `https://doi.org/10.5281/zenodo.1` in `_supplement.yml` breaks the badge, while `write_citation()` strips that prefix. Strip it, or stop the render, so the two agree. From the M005 review. The M008 review adds: `check_supplement()` strips the prefix on both sides, so it does not report that broken badge. — added 2026-10-18 — started M010
 - docs site and walkthrough: a package site built with the toolkit itself, plus a first-time guide to GitHub Pages and Zenodo. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review). — added 2026-10-18
 - paper figure files: the model reports write the paper figures with ggsave to `analyses/*.pdf` and `analyses/*.png`, which `.gitignore` blocks, so the site does not publish them. Decide if the template gives figures a tracked, published folder. From the M001 review. — added 2026-10-18
 - YAML insert edge shapes: from the M007 review. `#` lines inside a block scalar, and `|+` trailing blank lines, at the end of the last item make add_report() and add_data() refuse valid YAML. A menu that already lists `analyses/<name>.qmd` with the file gone gets a second item. A file with old Mac line endings (CR only) reads as one line, so its menu or list reads as missing. A block-scalar value at the very end of a file with no final line break gains a trailing line break after the insert. — added 2026-10-18
