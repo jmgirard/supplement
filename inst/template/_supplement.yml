@@ -17,7 +17,10 @@ supplement:
   contact: "Your Name, Your Institution. Your email address."
   # SPDX license identifiers. LICENSE.md and LICENSE-CC-BY.md hold the texts.
   # The page footer shows a readable name for common ids, such as CC BY 4.0
-  # for CC-BY-4.0, and any other id as written.
+  # for CC-BY-4.0, and any other id as written, and links each one to its
+  # page at spdx.org. Write one id of letters and digits, with one . or -
+  # between groups and at most one + at the end. Any other value, such as
+  # "CC BY 4.0", stops the render.
   license:
     code: "MIT"
     content: "CC-BY-4.0"
@@ -37,7 +40,8 @@ supplement:
   # release, and concept-doi names all of them. The badge shows version-doi,
   # or concept-doi when version-doi is empty. Write a DOI such as
   # "10.5281/zenodo.1234567". A "https://doi.org/" or "doi:" in front is
-  # removed.
+  # removed. A value that is not a DOI, such as "doi:" alone, stops the
+  # render.
   zenodo:
     version-doi: ""
     concept-doi: ""

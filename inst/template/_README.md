@@ -60,7 +60,8 @@ The home page shows the values with these shortcodes:
   `https://doi.org/` and the DOI. It uses `zenodo.version-doi`. When that
   value is empty, it uses `zenodo.concept-doi`. When both are empty, it
   shows nothing. A `doi:` or `https://doi.org/` in front of the DOI is
-  removed.
+  removed. If either value is not a DOI, for example `doi:` alone, the
+  render stops with an error that names the field.
 - `{{< supplement-download >}}` shows a link to `zenodo.archive-url`. When
   that value is empty, it shows nothing.
 - `{{< supplement-data-table >}}`, on a line by itself, shows a table with
@@ -72,7 +73,11 @@ The home page shows the values with these shortcodes:
   `{{< supplement-license content >}}` show `license.code` and
   `license.content`. The page footer in `_quarto.yml` uses them. A common
   id shows as a readable name, for example `CC-BY-4.0` as CC BY 4.0. Any
-  other id shows as written, and an empty value shows nothing.
+  other id shows as written, and an empty value shows nothing. Each name
+  links to the id's page at spdx.org. Some values are not one SPDX id, for
+  example `CC BY 4.0`, `GPL--3.0`, or a list. Such a value stops the
+  render with an error that names the field. `write_citation()` refuses
+  the same values.
 
 If you turn on Zenodo's GitHub integration for this repository, Zenodo
 gives the DOIs after the next GitHub release. The version DOI names

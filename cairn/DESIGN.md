@@ -123,7 +123,10 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   existing path to be page-relative, so the data table and the license
   shortcode undo that. The DOI badge removes a `doi:` or doi.org prefix.
   The page footer in `_quarto.yml` shows the licenses through
-  `supplement-license`.
+  `supplement-license`, each linked to its spdx.org page. The license and
+  DOI shortcodes apply the rules of `license_id()` and `bare_doi()` and
+  stop the render on a value those refuse; `tests/testthat/test-agreement.R`
+  runs the same value shapes through both sides.
 - `index.qmd` reads its paper facts from `_supplement.yml` and lists the
   reports in `analyses/` through a Quarto table listing.
   `analyses/example.qmd`, `data/example.csv`, and license files are starter
