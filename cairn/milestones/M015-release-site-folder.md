@@ -1,6 +1,6 @@
 # M015: The release commands stage and commit only the site folder
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -56,5 +56,7 @@ For a site in a subfolder of its git repository, the commands that `release_supp
 - 2026-10-19: T1 done: `expected_commands()` holds the new forms; two tests run the returned `git add` and `git commit` (split with `scan()`, run through `git_in()`) in a new repository. Before the change the subfolder test failed 2 expectations (outside paths in the commit, `staged.txt` no longer listed as staged) and the top-of-repository test passed, as planned.
 - 2026-10-19: T2 done: `release_commands()` adds `-- .` to `git status`, `git add -A`, and `git commit`; the `report_release()` line now says the commands stage and commit only the files in the site folder. `test-release-supplement.R` passes with no skip.
 - 2026-10-19: T3 done: roxygen, `man/release_supplement.Rd`, `README.md`, `inst/template/_README.md`, NEWS.md (the unreleased `release_supplement()` entry, edited in place), and DESIGN.md describe the `-- .` commands; the AC4 grep finds only `git add -A -- .`. `devtools::test()`: 239 tests, 0 failed, 1 skipped (the case-sensitive-disk test in `test-add-data.R`, which skips on macOS).
+- 2026-10-19: claim audit: 19 claims read, 2 corrected — README.md, inst/template/_README.md ("the files the git checks of `check_supplement()` read"), R/release-supplement.R and its Rd (`docs/` and `_freeze/` reach the release when git does not ignore them). Its merge-in-progress note is the existing row "release during a merge".
+- 2026-10-19: all tasks done; `test-release-supplement.R` 43 tests, 0 failed, 0 skipped after the corrections; status review.
 
 ## Decisions

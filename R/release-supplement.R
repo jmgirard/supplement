@@ -64,7 +64,8 @@
 #' `gh release create vX.Y.Z --generate-notes`. The `-- .` limits the first
 #' three commands to the site folder, so they stage and commit only files
 #' under the site folder. These are the files that the git checks of
-#' [check_supplement()] read, so `docs/` and `_freeze/` reach the release.
+#' [check_supplement()] read, so `docs/` and `_freeze/` reach the release
+#' when git does not ignore them, as in the template.
 #' When the site is a subfolder of its repository, a change outside the
 #' site folder, also one that was staged before, stays out of the release
 #' commit. The last command

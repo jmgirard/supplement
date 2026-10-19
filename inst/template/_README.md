@@ -178,7 +178,7 @@ Last, it prints the git and GitHub commands that commit the site, tag it,
 push it, and make the GitHub release. It runs none of them. Run them yourself in this folder.
 The printed `git status -- .`, `git add -A -- .`, and
 `git commit -m "Release vX.Y.Z" -- .` stage and commit only files under
-this folder, the files that `check_supplement()` checked. If this folder
+this folder, the files that the git checks of `check_supplement()` read. If this folder
 is a subfolder of its repository, changes outside it stay out of the
 release commit.
 After Zenodo archives the release, add the new version DOI to
