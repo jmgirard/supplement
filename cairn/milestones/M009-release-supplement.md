@@ -270,3 +270,11 @@ Pass 6 (after the return-5 override), on cde5b7d, main not moved since the cut. 
 - AC6: Line 558 checks the returned and printed commands against `expected_commands("1.3.0")`, and line 579 finds no process-starting call.
 - AC7: The "Make a release" sections are in both READMEs, the example is in `\dontrun{` at man/release_supplement.Rd:119, and NEWS.md:30 and NEWS.md:41 have the entries.
 - Gate: `cairn_validate` passes (the same task-count advisory), `devtools::document()` makes no diff, and `devtools::check()` gives 0 errors, 0 warnings, 0 notes.
+- spawned: diff-bug, blame-history, prior-review
+- diff-bug #1: an S4 string `bump` (`new("V", "1.3.0")`) kept its S4 bit through `as.vector(unclass())`, so `yaml_replaced()` failed with `supplement_error_yaml` — fix now, fixed 6a7723e (`as.character()` and cleared attributes; the bump test adds an S4 case). No listed test or stated rule failed.
+- diff-bug #2: the `site[ab]` test did not assert that `CITATION.cff` was made before the mocked stop, or which error stopped it — fix now, fixed 6a7723e.
+- diff-bug #3: the word cases of the named-bump test pass without the fix, though its name claims more — fix now, fixed 6a7723e (a comment says which cases test the attribute drop).
+- diff-bug #4: `git_run()` in R/check-supplement.R removes its temporary file with `unlink()`, which reads `[`, `*`, and `?` in the temporary folder's path as a pattern — follow-up: "cleanup glob delete" row (code on main, outside the site path).
+- blame-history #1: the same `unlink()` cleanup in `create_supplement()`, `add_report()`, and `add_data()` on main — follow-up: already the "cleanup glob delete" row.
+- prior-review: no finding; every pass-5 fix is present.
+- After the fixes: test-release-supplement.R 29 tests (242 expectations), `devtools::test()` 1763 passed and 0 failed, `devtools::check()` 0 errors, 0 warnings, 0 notes. No finding of pass 6 fails a listed test or a stated rule, so the pass has no return.
