@@ -1,10 +1,3 @@
-doi_badge_rx <- function(doi) {
-  paste0(
-    '<a [^>]*href="https://doi\\.org/', rx_escape(doi), '"[^>]*>\\s*',
-    '<img [^>]*src="https://zenodo\\.org/badge/DOI/', rx_escape(doi), '\\.svg"'
-  )
-}
-
 render_doi_page <- function(zenodo) {
   dir <- shortcode_site(
     zenodo,
@@ -99,13 +92,6 @@ render_license_page <- function(supplement) {
 
 license_yaml <- function(code, content) {
   c("license:", sprintf('  code: "%s"', code), sprintf('  content: "%s"', content))
-}
-
-# The page text between BEFORE and AFTER, with runs of white space made one
-# space.
-between_markers <- function(html) {
-  m <- regmatches(html, regexpr("BEFORE[\\s\\S]*?AFTER", html, perl = TRUE))
-  gsub("\\s+", " ", m)
 }
 
 test_that("the license shortcode shows readable names for listed ids in any letter case", {
