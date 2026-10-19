@@ -116,6 +116,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: RR01 findings 5.2 (an invalid-UTF-8 `bump` also gives a base warning) — candidate: "release edge cases" row; 5.3 (an interrupt after printing and before the guard closes undoes a finished release) — no action in M009, in the "release write order" row.
 - 2026-10-18: the next review floors a return only when a criterion's listed test or stated rule fails on a finding; every other finding is fix-now or a candidate row (RR01 recommendation 3).
 - 2026-10-18: `cairn_validate` warns that 13 tasks pass the split tripwire of 10; not split, per RR01 recommendation 9 (T1 to T9 are done, and T10 to T13 are one round). The RB/RR pair is archived and committed on the branch, as the brief was.
+- 2026-10-18: re-audit: AC5 (full) — the draft widened AC5: its probes for linked, unreadable, and unwritable outputs re-added a pre-write refusal, and "no file made outside the site" quantified over the whole file system (both cut); it needed an exception for a failed write-back (added); and one interrupt probe stood in for three steps (the interrupt clause narrowed to the write of `.zenodo.json`).
+- 2026-10-18: re-audit: AC5 (full) — the fixed wording narrows except one probe: the warn-only write binds `write_checked()`'s warning-to-error conversion (dropped from the list, test kept); "the write of" stood in for `write_citation()` and `write_zenodo()` (named); "present and absent" and the interrupt point needed stating ("both present and both absent", "in place of `write_zenodo()`"); "Each time" also covered the successful release ("After each of these failing probes"). This is the second re-audit line on AC5, so the wording goes to the user.
 
 ## Decisions
 
