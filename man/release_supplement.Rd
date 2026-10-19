@@ -54,19 +54,26 @@ before it runs \code{\link[=check_supplement]{check_supplement()}}, and reads th
 check. When the bytes of one of these files changed while the check
 ran, or one of them was made or removed as a file, for example because
 you saved \verb{_supplement.yml}, the function stops and writes none of the
-three files, so you can run it again. A folder made or removed at
-\code{CITATION.cff} or \code{.zenodo.json} is not seen as a change. A change saved
-after the function reads the files again, until it finishes, can still
-be lost.
+three files, so you can run it again. A change saved after the function
+reads the files again, until it finishes, can still be lost.
+
+Before it runs \code{\link[=check_supplement]{check_supplement()}}, the function makes the new text of
+\code{CITATION.cff} and \code{.zenodo.json} from \verb{_supplement.yml} with the new
+version. So a value that \code{\link[=write_citation]{write_citation()}} or \code{\link[=write_zenodo]{write_zenodo()}} refuses,
+such as an empty \code{citation}, stops the function with the error of that
+function, before the check runs and before any file is changed.
 
 Before it changes any file, the function stops when \code{CITATION.cff} or
 \code{.zenodo.json} is a link, because a write would go through the link, or
-is a file that it cannot read or write. It also stops when one of them
-does not exist and its folder cannot be written.
-If writing \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json}, or
-printing the commands, stops, for example when \code{\link[=write_zenodo]{write_zenodo()}} finds no
-\code{citation}, the function puts back the old text of each of these files
-that changed, removes each one that it made, and stops.
+is a folder, or is a file that it cannot read or write. It also stops
+when one of them does not exist and its folder cannot be written. It
+looks for these when it reads the two files, before and after the check.
+If writing \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json} stops,
+for example when the disk is full, or is interrupted, the function puts
+back the old text of each of these files that changed, removes each one
+that it made, and stops. It prints the commands only after the three
+files are written, so an error or an interrupt while it prints keeps
+the files of the release.
 
 The printed commands, for version \code{X.Y.Z}, are \verb{git status},
 \verb{git add -A}, \verb{git commit -m "Release vX.Y.Z"}, \verb{git tag vX.Y.Z},
@@ -85,22 +92,38 @@ it.
 \section{Errors}{
 
 A \verb{_supplement.yml} that is not valid YAML gives the error of the YAML
-parser. Otherwise the function stops with an error of class
-\code{supplement_error} and one of these classes. When it stops, no file is
-changed, unless a file that changed cannot be put back. The
-\code{supplement_error_release_write} message then names that file.
+parser. An error while the function prints the commands, after it wrote
+the files, reaches you as it is. Otherwise the function stops with an
+error of class \code{supplement_error} and one of these classes. When it
+stops, no file is changed, unless a file that changed cannot be put
+back. The \code{supplement_error_release_write} message then names that file.
+
+The function checks in this order, and stops at the first problem:
+\code{bump} and \code{path}; \verb{_supplement.yml} (no file, not UTF-8, not valid
+YAML, no \code{supplement} map); the current version and \code{bump}; the
+\verb{version:} line; the values that the new \code{CITATION.cff} and
+\code{.zenodo.json} hold; the two output files; \code{\link[=check_supplement]{check_supplement()}}; a file
+that changed during the check, or an output file that is now a link, a
+folder, or a file that cannot be read or written; the problems that
+\code{\link[=check_supplement]{check_supplement()}} found; the writes.
 \itemize{
 \item \code{supplement_error_argument}: \code{bump} is not one of the forms above, or
 \code{path} is not a single non-empty string.
 \item \code{supplement_error_no_metadata}, \code{supplement_error_no_map}: as for
 \code{\link[=write_citation]{write_citation()}}.
 \item \code{supplement_error_encoding}: \verb{_supplement.yml} is not UTF-8 text.
+\item The classes that \code{\link[=write_citation]{write_citation()}} lists for a value in
+\verb{_supplement.yml}, such as \code{supplement_error_missing_field},
+\code{supplement_error_license}, \code{supplement_error_orcid}, and
+\code{supplement_error_author_name}: a value that \code{\link[=write_citation]{write_citation()}} or
+\code{\link[=write_zenodo]{write_zenodo()}} refuses. The function raises the same error as they
+do, before \code{\link[=check_supplement]{check_supplement()}} runs.
 \item \code{supplement_error_field_type}: \code{version} is a list, or YAML reads it
 as a number or as true/false, such as an unquoted \code{1.10}. Write it as
-one value in quotes, such as \code{"1.10.0"}. \code{\link[=check_supplement]{check_supplement()}} also stops with this class, for a DOI
-that is not one text value or a \code{zenodo} that is not a map.
+one value in quotes, such as \code{"1.10.0"}. Another value of the kinds
+that \code{\link[=write_citation]{write_citation()}} names also gives this class.
 \item \code{supplement_error_doi}: a DOI in \verb{_supplement.yml} is not a DOI, as
-for \code{\link[=check_supplement]{check_supplement()}}.
+for \code{\link[=write_citation]{write_citation()}}.
 \item \code{supplement_error_version}: \code{version} is not empty and is not a
 version, or the version in \code{bump} is not greater than it.
 \item \code{supplement_error_no_version}: \verb{_supplement.yml} has no one-line
@@ -110,20 +133,20 @@ version, or the version in \code{bump} is not greater than it.
 \item \code{supplement_error_changed}: \verb{_supplement.yml}, \code{CITATION.cff}, or
 \code{.zenodo.json} changed while \code{\link[=check_supplement]{check_supplement()}} ran. This error
 comes before a \code{supplement_error_release_check} error. A change that
-makes \code{CITATION.cff} or \code{.zenodo.json} a link, or a file that cannot
-be read or written, gives the \code{supplement_error_file_exists} or
+makes \code{CITATION.cff} or \code{.zenodo.json} a link, a folder, or a file that
+cannot be read or written, gives the \code{supplement_error_file_exists} or
 \code{supplement_error_write} error instead.
 \item \code{supplement_error_release_check}: \code{\link[=check_supplement]{check_supplement()}} found a problem
 other than a \code{"doi-mismatch"} problem for \code{CITATION.cff}, or it
 skipped its git checks.
 \item \code{supplement_error_file_exists}: \code{CITATION.cff} or \code{.zenodo.json} is a
-link.
+link or a folder.
 \item \code{supplement_error_write}: \code{CITATION.cff} or \code{.zenodo.json} cannot be
 read or written, or one of them does not exist and the site folder
 cannot be written.
 \item \code{supplement_error_release_write}: a write of \verb{_supplement.yml},
-\code{CITATION.cff}, or \code{.zenodo.json}, or the printing of the commands,
-stopped, and the files that changed got their old text back, and each
+\code{CITATION.cff}, or \code{.zenodo.json} stopped, and the files that changed
+got their old text back, and each
 file that the release made was removed. If a file
 cannot be put back, the message names it. The error of the step is the
 \code{parent} of this error.
