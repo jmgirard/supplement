@@ -66,10 +66,12 @@
   `doi:` alone, stops the render.
 * `write_citation()` stops with `supplement_error_license` for a
   `license.code` or `license.content` value that does not have the shape
-  of an SPDX id. Examples are `CC BY 4.0` with spaces and `GPL--3.0` with
-  two hyphens in a row. `write_zenodo()` does the same for
-  `license.content`. When the two ids differ only in letter case,
-  `CITATION.cff` holds one of them.
+  of an SPDX id. An id is letters and digits, with one `.` or `-` between
+  groups and at most one `+` at the end. Examples of other values are
+  `CC BY 4.0` with spaces and `GPL--3.0` with two hyphens in a row.
+  `write_zenodo()` does the same for `license.content`, and the footer's
+  `supplement-license` shortcode uses the same rule. When the two ids
+  differ only in letter case, `CITATION.cff` holds one of them.
 * The template's `_supplement.yml` has a `version` field for the site
   version, such as `"1.0.0"`. When it is not empty, `write_citation()`
   and `write_zenodo()` write it. They stop for a value that is not three

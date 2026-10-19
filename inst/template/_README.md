@@ -74,10 +74,11 @@ The home page shows the values with these shortcodes:
   `license.content`. The page footer in `_quarto.yml` uses them. A common
   id shows as a readable name, for example `CC-BY-4.0` as CC BY 4.0. Any
   other id shows as written, and an empty value shows nothing. Each name
-  links to the id's page at spdx.org. Some values are not one SPDX id, for
-  example `CC BY 4.0`, `GPL--3.0`, or a list. Such a value stops the
-  render with an error that names the field. `write_citation()` refuses
-  these values too.
+  links to the id's page at spdx.org. Write each id as letters and
+  digits, with one `.` or `-` between groups and at most one `+` at the
+  end. Other values, for example `CC BY 4.0`, `GPL--3.0`, or a list, stop
+  the render with an error that names the field. `write_citation()`
+  refuses these values too.
 
 If you turn on Zenodo's GitHub integration for this repository, Zenodo
 gives the DOIs after the next GitHub release. The version DOI names

@@ -40,7 +40,7 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - AC4 → T1
 - AC5 → T5
 - AC6 → T2
-- AC7 → T6
+- AC7 → T6, T7
 
 ## Tasks
 
@@ -50,6 +50,7 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - [x] T4: Add the two agreement tables of AC2 and AC3. Each runs every shape in each field through `write_citation()` on a full fixture and through a render, and checks that both sides accept or both refuse, with the error class and field named.
 - [x] T5: Make `supplement-license` return the name as a link to the SPDX page, with the SPDX spelling for the eight listed ids. Change the footer in `inst/template/_quarto.yml` to `Code: {{< supplement-license code >}} · Content: {{< supplement-license content >}}`. Replace the footer test at `tests/testthat/test-shortcodes.R:294-314`, and confirm that the `OWNER/REPO` test in `test-create-supplement.R` still passes.
 - [x] T6: Update the roxygen of `write_citation()` and `write_zenodo()` and run `devtools::document()`. Update the license and DOI comments in `inst/template/_supplement.yml`, `inst/template/_README.md` (about lines 71-75 and 112-115), `NEWS.md`, and the Lua lines in DESIGN.md's Architecture section.
+- [x] T7: (review return 1) State the new id rule in the `supplement-license` text of `inst/template/_README.md` and in the license bullets of `NEWS.md`.
 
 ## Work log
 
@@ -77,6 +78,8 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - 2026-10-19: claim audit: 36 claims read, 7 corrected — supplement.lua, R/supplement-yml.R, NEWS.md, inst/template/_README.md, test-write-metadata-errors.R, test-agreement.R. The parity claims now name the refused examples, not "the same values": an unquoted number or `yes` in a license value renders while `write_citation()` refuses it (added to the "shortcode edge cases" row). The re-read found all 7 correct.
 - 2026-10-19: all tasks done; `devtools::test()` clean and `devtools::document()` gives no diff; status set to review.
 - 2026-10-19: review return 1: AC7 fails as written — the `_README.md` shortcode text and `NEWS.md` give refused examples but do not state the new id rule (letters or digits, groups joined by one `.` or `-`, at most one final `+`).
+- 2026-10-19: implement resumed for review return 1; added T7 (minor amendment) and mapped AC7 → T6, T7.
+- 2026-10-19: T7 done: `_README.md`'s `supplement-license` text and the `write_citation()` bullet of NEWS.md now state the id rule; the simple-english lint is clean; `devtools::test()` clean.
 
 ## Decisions
 
