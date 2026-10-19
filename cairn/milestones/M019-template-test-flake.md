@@ -44,7 +44,7 @@ A failing template test prints the output of the command it checked, and a cause
 
 - [x] T1: Add a helper in `helper-template.R` (for example `expect_status(result, 0L)`) that checks a command result's exit status and puts the result's output in the failure message. Add the AC2 test with a command that writes to stdout and stderr and exits 1.
 - [x] T2: Change each status check that AC1 lists to use the helper or `info`, and check each `git init` result in `test-template.R`. Confirm with the AC1 grep at 7f789c5 that all 20 calls and the four `git init` calls are covered.
-- [ ] T3: Replace the three output-length checks with a check that shows the printed lines (for example `expect_identical(x$output, character())`), and add the AC3 test.
+- [x] T3: Replace the three output-length checks with a check that shows the printed lines (for example `expect_identical(x$output, character())`), and add the AC3 test.
 - [ ] T4: Repeat runs with the new diagnostics: `testthat::test_file("tests/testthat/test-template.R")` 30 times and `devtools::test()` 10 times on the local Mac, and start the check workflow on main 3 times with `gh workflow run R-CMD-check.yaml --ref main`, watched in the background. Write one work-log line with the pass and fail counts, and quote each failure's output in its own line.
 - [ ] T5: If a run failed: name the cause from its output. For a cause in this repo, write the test that fails on it, fix it, and add the NEWS.md entry if `inst/template/` changes. For a cause outside the repo, write it with the output into the candidate row "template test flake".
 - [ ] T6: Run `devtools::test()` and `devtools::check()`, and update the candidate row "template test flake" with the run counts (the review's post-merge hygiene graduates or narrows it).
@@ -65,6 +65,7 @@ A failing template test prints the output of the command it checked, and a cause
 - 2026-10-19: status in-progress; branch m019-template-test-flake cut from main at 46a49bf.
 - 2026-10-19: T1: `expect_status(result, status = 0L, output = NULL)` and `expect_command_fails(result)` in `helper-template.R`, built on `expect()`, show the command's printed lines in the failure message; `output` folds the no-output check into the same call (used by T3). Tests "a failed status check shows what the command printed" (stdout and stderr lines, expected 0 and expected 1 with no output) and "a check for no output shows the lines the command printed". R 4.6 `system2()` quotes the command itself, so an `shQuote()`d command path fails with "error in running command"; the test passes the Rscript path unquoted. Template tests pass.
 - 2026-10-19: T2: 17 of the 20 AC1 calls and the four `git init` calls now go through `expect_status()` or `expect_command_fails()`; the three `kept$status` calls change with their output checks in T3. Template tests pass.
+- 2026-10-19: T3: the three `kept$status` / `expect_length(kept$output, 0)` pairs became `expect_status(kept, 1L, output = character())`; the AC3 grep lists no line. Planted `analyses/plot.png` (an ignored path) in the figures check: it failed with "expected exit status 1 and no output. It printed: analyses/plot.png"; restored. Template tests pass.
 
 ## Decisions
 

@@ -141,8 +141,7 @@ test_that(".gitignore blocks fit files and keeps published output", {
     site$dir,
     c("check-ignore", "_freeze/analyses/example/execute-results/html.json", "docs/index.html", "data/example.csv")
   )
-  expect_equal(kept$status, 1L)
-  expect_length(kept$output, 0)
+  expect_status(kept, 1L, output = character())
 })
 
 test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
@@ -156,8 +155,7 @@ test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
   expect_setequal(ignored$output, in_analyses)
 
   kept <- git_in(site$dir, c("check-ignore", "figures/plot.pdf", "figures/plot.png"))
-  expect_equal(kept$status, 1L)
-  expect_length(kept$output, 0)
+  expect_status(kept, 1L, output = character())
 })
 
 test_that("the example report saves a figure that the next full render publishes", {
@@ -203,8 +201,7 @@ expect_site_not_ignored <- function(existing_gitignore) {
   expect_status(run_in(dir, "quarto", "render"))
   expect_status(git_in(dir, c("init", "-q")))
   kept <- git_in(dir, c("check-ignore", "docs/index.html", "_freeze/analyses/example/execute-results/html.json"))
-  expect_equal(kept$status, 1L)
-  expect_length(kept$output, 0)
+  expect_status(kept, 1L, output = character())
 }
 
 test_that("a docs/ rule in an existing .gitignore does not hide the site", {
