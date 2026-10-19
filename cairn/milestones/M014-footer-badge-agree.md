@@ -1,6 +1,6 @@
 # M014: The footer and the DOI badge refuse the values that write_citation() refuses
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -80,6 +80,8 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - 2026-10-19: review return 1: AC7 fails as written — the `_README.md` shortcode text and `NEWS.md` give refused examples but do not state the new id rule (letters or digits, groups joined by one `.` or `-`, at most one final `+`).
 - 2026-10-19: implement resumed for review return 1; added T7 (minor amendment) and mapped AC7 → T6, T7.
 - 2026-10-19: T7 done: `_README.md`'s `supplement-license` text and the `write_citation()` bullet of NEWS.md now state the id rule; the simple-english lint is clean; `devtools::test()` clean.
+- 2026-10-19: claim audit: 10 claims read, 0 corrected — NEWS.md, inst/template/_README.md (the T7 lines).
+- 2026-10-19: all tasks done; status set to review.
 
 ## Decisions
 
