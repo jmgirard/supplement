@@ -175,7 +175,7 @@ release_supplement <- function(bump, path = ".") {
   check_release_problems(problems)
 
   commands <- release_commands(new)
-  write_release_files(read, lines, file, outputs, old, report = function() {
+  write_release_files(read, lines, file, outputs, texts, old, report = function() {
     report_release(path, new, commands)
   })
   invisible(commands)
@@ -369,14 +369,14 @@ check_release_problems <- function(problems, call = parent.frame()) {
   )
 }
 
-# Write `lines` to `_supplement.yml`, then CITATION.cff and .zenodo.json,
-# then call `report()`. `old` holds the bytes of each output before the
-# release, or NULL for an output that did not exist, from read_outputs().
-# When any of these steps stops, or the function is interrupted, each file
-# whose bytes changed gets its old bytes back, and each file that did not
-# exist before is removed. A file that is as it was is not written again.
-write_release_files <- function(read, lines, file, outputs, old, report, call = parent.frame()) {
-  path <- dirname(file)
+# Write `lines` to `_supplement.yml`, then `texts` to CITATION.cff and
+# .zenodo.json, then call `report()`. `old` holds the bytes of each output
+# before the release, or NULL for an output that did not exist, from
+# read_outputs(). When any of these steps stops, or the function is
+# interrupted, each file whose bytes changed gets its old bytes back, and
+# each file that did not exist before is removed. A file that is as it
+# was is not written again.
+write_release_files <- function(read, lines, file, outputs, texts, old, report, call = parent.frame()) {
   files <- c(file, outputs)
   before <- c(list(read$bytes), old)
   # The names of the files that could not be put back, or an empty vector.
@@ -421,8 +421,8 @@ write_release_files <- function(read, lines, file, outputs, old, report, call = 
   tryCatch(
     {
       write_text_lines(read, lines, file)
-      write_citation(path, overwrite = TRUE)
-      write_zenodo(path, overwrite = TRUE)
+      write_utf8(texts[[1]], outputs[1])
+      write_utf8(texts[[2]], outputs[2])
       report()
     },
     error = function(e) {

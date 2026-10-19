@@ -313,19 +313,8 @@ test_that("CITATION.cff and .zenodo.json are written with the new version", {
 
 test_that("a failed write puts back the files as they were", {
   mock_check()
-  # Write part of the file, then fail.
-  fail_on <- function(name) {
-    function(text, file) {
-      if (basename(file) == name) {
-        writeLines("partial", file)
-        stop("disk full")
-      }
-      con <- file(file, open = "wb")
-      on.exit(close(con))
-      writeLines(enc2utf8(text), con, useBytes = TRUE)
-    }
-  }
-  for (name in c("CITATION.cff", ".zenodo.json")) {
+  real_write_checked <- write_checked
+  for (name in c("_supplement.yml", "CITATION.cff", ".zenodo.json")) {
     for (existing in c(TRUE, FALSE)) {
       dir <- release_site('  version: "1.2.3"')
       if (existing) {
@@ -333,11 +322,66 @@ test_that("a failed write puts back the files as they were", {
         writeLines("old zenodo", file.path(dir, ".zenodo.json"))
       }
       before <- folder_state(dir)
-      local_mocked_bindings(write_utf8 = fail_on(name))
+      # The first write of `name` writes part of the file and fails. The
+      # put-back then writes as usual.
+      failed <- FALSE
+      local_mocked_bindings(write_checked = function(bytes, file, ...) {
+        if (!failed && basename(file) == name) {
+          failed <<- TRUE
+          writeBin(charToRaw("partial"), file)
+          stop("disk full")
+        }
+        real_write_checked(bytes, file, ...)
+      })
       err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
+      expect_true(failed, label = paste(name, existing))
       expect_match(conditionMessage(err$parent), "disk full", fixed = TRUE)
       expect_identical(folder_state(dir), before, label = paste(name, existing))
     }
+  }
+})
+
+test_that("the release writes the bytes that the writers write from the released file", {
+  mock_check()
+  outputs <- c("CITATION.cff", ".zenodo.json")
+  expect_writer_bytes <- function(dir, label) {
+    release("major", path = dir)
+    released <- lapply(file.path(dir, outputs), read_bytes)
+    expect_identical(site_version(dir), "2.0.0", label = label)
+    write_citation(dir, overwrite = TRUE)
+    write_zenodo(dir, overwrite = TRUE)
+    expect_identical(lapply(file.path(dir, outputs), read_bytes), released, label = label)
+  }
+  expect_writer_bytes(release_site('  version: "1.2.3"'), "LF")
+  expect_writer_bytes(release_site('  version: "1.2.3"', crlf = TRUE), "CRLF")
+
+  # A site with a UTF-8 byte order mark, every value that the outputs hold,
+  # and text that YAML could read as something else.
+  for (probe in names(probe_values)) {
+    dir <- withr::local_tempdir("release-")
+    text <- c(
+      "supplement:",
+      paste("  paper-title:", yaml_quote(probe_values[[probe]])),
+      paste("  citation:", yaml_quote(paste("Cited as", probe_values[[probe]]))),
+      '  version: "1.2.3"',
+      "  license:",
+      '    code: "MIT"',
+      '    content: "CC-BY-4.0"',
+      "  authors:",
+      '    - family: "Müller"',
+      '      given: "Änne"',
+      '      orcid: "0000-0002-1694-233X"',
+      '      affiliation: "Institut B"',
+      "  zenodo:",
+      '    version-doi: ""',
+      '    concept-doi: "10.5281/zenodo.1"',
+      '    archive-url: ""'
+    )
+    bytes <- c(as.raw(c(0xef, 0xbb, 0xbf)), charToRaw(enc2utf8(paste0(paste(text, collapse = "\n"), "\n"))))
+    writeBin(bytes, file.path(dir, "_supplement.yml"))
+    expect_writer_bytes(dir, probe)
+    expect_identical(read_bytes(file.path(dir, "_supplement.yml"))[1:3], as.raw(c(0xef, 0xbb, 0xbf)))
+    expect_identical(read_cff(dir)$title, paste("Supplemental materials for:", probe_values[[probe]]), label = probe)
   }
 })
 
@@ -356,9 +400,13 @@ test_that("a site path with pattern characters puts back only its own files", {
   sibling_before <- folder_state(sibling)
   # CITATION.cff is made in "site[ab]", then the write of .zenodo.json fails.
   made <- FALSE
-  local_mocked_bindings(write_zenodo = function(...) {
-    made <<- file.exists(file.path(dir, "CITATION.cff"))
-    stop("disk full")
+  real_write_utf8 <- write_utf8
+  local_mocked_bindings(write_utf8 = function(text, file, ...) {
+    if (basename(file) == ".zenodo.json") {
+      made <<- file.exists(file.path(dir, "CITATION.cff"))
+      stop("disk full")
+    }
+    real_write_utf8(text, file, ...)
   })
   err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
   expect_match(conditionMessage(err$parent), "disk full", fixed = TRUE)
@@ -492,11 +540,16 @@ test_that("a failure before any change does not report a file that could not be 
 
 test_that("an interrupt puts back the files, and a failed put-back is reported", {
   mock_check()
-  interrupt <- function(...) signalCondition(structure(class = c("interrupt", "condition"), list()))
+  interrupt <- function() signalCondition(structure(class = c("interrupt", "condition"), list()))
   dir <- release_site('  version: "1.2.3"')
   writeLines("old citation", file.path(dir, "CITATION.cff"))
   before <- folder_state(dir)
-  local_mocked_bindings(write_zenodo = interrupt)
+  # The write of .zenodo.json is interrupted after CITATION.cff is written.
+  real_write_utf8 <- write_utf8
+  local_mocked_bindings(write_utf8 = function(text, file, ...) {
+    if (basename(file) == ".zenodo.json") interrupt()
+    real_write_utf8(text, file, ...)
+  })
   # The put-back works, so no warning is given.
   expect_no_warning(
     out <- tryCatch(release("patch", path = dir), interrupt = function(c) "interrupted")
