@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -123,6 +123,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: T11 done: the bump test now holds AC2's five values verbatim beside the `1.2.4` forms, and `check_bump()` has a comment that `bump` is not trimmed; 222 release-test expectations pass.
 - 2026-10-18: T12 done: `read_outputs()` refuses a missing output whose folder cannot be written (`supplement_error_write`, "Could not write … in …"); the new test with a `555` site folder failed red before the fix; the help, the code comment, and DESIGN Architecture say so.
 - 2026-10-18: T13 done: the unwritable-file tests and the new folder test are their own `test_that()` with their own skips, apart from the unreadable-file skip; 1745 tests pass.
+- 2026-10-18: claim audit: 10 claims read, 0 corrected — R/release-supplement.R, man/release_supplement.Rd, tests/testthat/test-release-supplement.R (the T11 to T13 diff, same reader).
+- 2026-10-18: status review; handing off to /milestone-review, whose disposition rule for this pass is RR01 recommendation 3.
 
 ## Decisions
 
