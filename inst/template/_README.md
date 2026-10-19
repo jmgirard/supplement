@@ -74,8 +74,8 @@ The home page shows the values with these shortcodes:
   `license.content`. The page footer in `_quarto.yml` uses them. A common
   id shows as a readable name, for example `CC-BY-4.0` as CC BY 4.0. Any
   other id shows as written, and an empty value shows nothing. Each name
-  links to `https://spdx.org/licenses/<id>.html`, a page that exists
-  only for ids on the SPDX License List. Write each id as letters and
+  links to `https://spdx.org/licenses/<id>.html`, a page that SPDX keeps
+  only for ids on its license and exception lists. Write each id as letters and
   digits, with one `.` or `-` between groups and at most one `+` at the
   end. Other values, for example `CC BY 4.0`, `GPL--3.0`, or a list, stop
   the render with an error that names the field. `write_citation()`

@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-19 (M013 done: graduated testthat floor; pruned the
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M014 | The footer and the DOI badge refuse the values that write_citation() refuses | in-progress | — | high | milestones/M014-footer-badge-agree.md |
+| M014 | The footer and the DOI badge refuse the values that write_citation() refuses | review | — | high | milestones/M014-footer-badge-agree.md |
 | M013 | DESCRIPTION asks for testthat 3.3.0, and the tests pass under it | done | — | high | milestones/archive/M013-testthat-floor.md |
 | M012 | release_supplement() checks every value before it writes a file | done | — | high | milestones/archive/M012-release-write-order.md |
 | M011 | release_supplement() stops when a file changes during the check | done | — | high | milestones/archive/M011-release-snapshot-gap.md |

@@ -15,9 +15,10 @@ end
 -- A metadata value with its empty and one-paragraph forms made plain: nil
 -- for an empty value (unset, YAML null, which Quarto gives as the Lua
 -- string "", "", or an empty list or map), the inlines of a block or
--- folded YAML string, which arrives as one paragraph, and the value
--- itself otherwise. supplement::write_citation() also reads these forms
--- as empty or as their text.
+-- folded YAML string of one paragraph, which Quarto gives as Blocks
+-- holding one Para, and the value itself otherwise.
+-- supplement::write_citation() also reads these forms as empty or as
+-- their text.
 local function simple_value(node)
   if node == nil or node == "" then
     return nil
@@ -261,8 +262,9 @@ local function license(args, kwargs, meta)
     return pandoc.Inlines({})
   end
   if not is_license_id(id) then
-    -- Quarto makes "--" an en dash and "..." an ellipsis, so the id in the
-    -- message is not what the file holds. Say so when that happened.
+    -- Quarto makes "--" an en dash, "---" an em dash, and "..." an
+    -- ellipsis, so the id in the message may not be what the file holds.
+    -- Say so when the id holds one of these characters.
     local hint = ""
     if id:find("\u{2013}", 1, true) or id:find("\u{2014}", 1, true) or id:find("\u{2026}", 1, true) then
       hint = " Quarto reads -- as a dash and ... as one character."
