@@ -112,6 +112,49 @@ file size and saved object checks, it reads the file list from git. When
 git cannot run or the folder is not in a git work tree, it skips those two
 checks and says so.
 
+## Make a release
+
+`_supplement.yml` holds the site version under `supplement:`, for example
+`version: "1.0.0"`. A new site has `version: ""` until its first release.
+`write_citation()` and `write_zenodo()` write the version to
+`CITATION.cff` and `.zenodo.json`.
+
+In R, run this function in the site folder:
+
+```r
+supplement::release_supplement("major")
+```
+
+`release_supplement()` takes `"patch"`, `"minor"`, `"major"`, or a version
+such as `"1.0.0"`. A word raises that part of the version and sets the
+parts after it to 0. An empty version counts as `0.0.0`, so `"major"`
+gives `1.0.0`. A version must be greater than the current version.
+
+The function first runs `check_supplement()`. If that finds a problem, or
+skips its git checks, the function stops and changes no file. A DOI in
+`CITATION.cff` that differs from `_supplement.yml` does not stop it,
+because the release writes that file again. The function then changes the
+version in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json`
+again. Only the version line of `_supplement.yml` changes, so its comments
+stay. If a write stops, the three files get their old text back.
+
+Last, the function prints the commands that make the release, for example:
+
+```sh
+git status
+git add -A
+git commit -m "Release v1.0.0"
+git tag v1.0.0
+git push
+git push origin v1.0.0
+gh release create v1.0.0 --generate-notes
+```
+
+It runs none of them. Read them, then run them yourself in the site
+folder. The last command needs the [GitHub command-line
+tool](https://cli.github.com), `gh`. After Zenodo archives the release, add the
+new version DOI to `_supplement.yml` and render the site again.
+
 ## License
 
 MIT. See `LICENSE.md`.
