@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M011: release_supplement() stops when a file changes during the check
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -66,3 +66,6 @@
 - 2026-10-18: agent decided the second `read_outputs()` call keeps its refusals, so a link made at an output during the check stops with `supplement_error_file_exists`; no criterion promises it and the "release edge cases" row keeps the case.
 - 2026-10-18: T3 done: help Details paragraph (the stop, and that a change saved while the files are written can still be lost) and an Errors item for `supplement_error_changed`, the NEWS.md bullet, and the DESIGN.md Architecture paragraph; `devtools::document()` rewrote only `man/release_supplement.Rd`.
 - 2026-10-18: T4 done: after `devtools::document()`, `git diff -- man NAMESPACE` is empty; devtools::test() 219 tests, 0 failures, 1 skip; devtools::check() 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: claim audit: 24 claims read, 6 corrected — R/release-supplement.R, man/release_supplement.Rd, NEWS.md, tests/testthat/test-release-supplement.R (the folder case named in the help, the link and unreadable errors that come first, the window named from the second read to the end, NEWS narrowed to changes saved during the check, two comments); the same reader re-read the six and found that each holds; devtools::test() after: 219 tests, 0 failures.
+- 2026-10-18: the help names the remaining window as "after the function reads the files again, until it finishes", which covers AC4's "after the check, while the files are written" and is what the code does; no criterion text changed.
+- 2026-10-18: status review; all tasks checked, verify clean.

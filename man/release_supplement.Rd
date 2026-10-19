@@ -49,10 +49,13 @@ add \code{version: ""} under \verb{supplement:} by hand.
 
 The function reads \verb{_supplement.yml}, \code{CITATION.cff}, and \code{.zenodo.json}
 before it runs \code{\link[=check_supplement]{check_supplement()}}, and reads them again after the
-check. When one of them changed while the check ran, for example
-because you saved \verb{_supplement.yml}, the function stops and writes none
-of the three files, so you can run it again. A change saved after the
-check, while the function writes the files, can still be lost.
+check. When the bytes of one of these files changed while the check
+ran, or one of them was made or removed as a file, for example because
+you saved \verb{_supplement.yml}, the function stops and writes none of the
+three files, so you can run it again. A folder made or removed at
+\code{CITATION.cff} or \code{.zenodo.json} is not seen as a change. A change saved
+after the function reads the files again, until it finishes, can still
+be lost.
 
 Before it changes any file, the function stops when \code{CITATION.cff} or
 \code{.zenodo.json} is a link, because a write would go through the link, or
@@ -104,7 +107,10 @@ version, or the version in \code{bump} is not greater than it.
 \verb{_supplement.yml} as the old file with the new version.
 \item \code{supplement_error_changed}: \verb{_supplement.yml}, \code{CITATION.cff}, or
 \code{.zenodo.json} changed while \code{\link[=check_supplement]{check_supplement()}} ran. This error
-comes before a \code{supplement_error_release_check} error.
+comes before a \code{supplement_error_release_check} error. A change that
+makes \code{CITATION.cff} or \code{.zenodo.json} a link, or a file that cannot
+be read or written, gives the \code{supplement_error_file_exists} or
+\code{supplement_error_write} error instead.
 \item \code{supplement_error_release_check}: \code{\link[=check_supplement]{check_supplement()}} found a problem
 other than a \code{"doi-mismatch"} problem for \code{CITATION.cff}, or it
 skipped its git checks.

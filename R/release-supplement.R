@@ -31,10 +31,13 @@
 #'
 #' The function reads `_supplement.yml`, `CITATION.cff`, and `.zenodo.json`
 #' before it runs [check_supplement()], and reads them again after the
-#' check. When one of them changed while the check ran, for example
-#' because you saved `_supplement.yml`, the function stops and writes none
-#' of the three files, so you can run it again. A change saved after the
-#' check, while the function writes the files, can still be lost.
+#' check. When the bytes of one of these files changed while the check
+#' ran, or one of them was made or removed as a file, for example because
+#' you saved `_supplement.yml`, the function stops and writes none of the
+#' three files, so you can run it again. A folder made or removed at
+#' `CITATION.cff` or `.zenodo.json` is not seen as a change. A change saved
+#' after the function reads the files again, until it finishes, can still
+#' be lost.
 #'
 #' Before it changes any file, the function stops when `CITATION.cff` or
 #' `.zenodo.json` is a link, because a write would go through the link, or
@@ -91,7 +94,10 @@
 #'   `_supplement.yml` as the old file with the new version.
 #' * `supplement_error_changed`: `_supplement.yml`, `CITATION.cff`, or
 #'   `.zenodo.json` changed while [check_supplement()] ran. This error
-#'   comes before a `supplement_error_release_check` error.
+#'   comes before a `supplement_error_release_check` error. A change that
+#'   makes `CITATION.cff` or `.zenodo.json` a link, or a file that cannot
+#'   be read or written, gives the `supplement_error_file_exists` or
+#'   `supplement_error_write` error instead.
 #' * `supplement_error_release_check`: [check_supplement()] found a problem
 #'   other than a `"doi-mismatch"` problem for `CITATION.cff`, or it
 #'   skipped its git checks.
@@ -219,9 +225,9 @@ read_outputs <- function(outputs, call = parent.frame()) {
 
 # Stop when _supplement.yml or an output is not as it was before
 # check_supplement() ran: the release would write the old text of
-# _supplement.yml over a change saved in that time, and the check read the
-# old files. The bytes are compared as they are, not decoded, so a change
-# to a comment or to the encoding counts.
+# _supplement.yml over a change saved in that time, and the check may not
+# have read the files as they are now. The bytes are compared as they
+# are, not decoded, so a change to a comment or to the encoding counts.
 check_unchanged <- function(file, bytes, outputs, old, call = parent.frame()) {
   changed <- character()
   if (!identical(read_bytes_or_null(file), bytes)) {

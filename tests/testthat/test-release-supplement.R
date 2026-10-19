@@ -582,7 +582,7 @@ mock_check_edit <- function(edit, rows = problem_rows(), env = parent.frame()) {
   seen
 }
 
-# Run the release and return the messages that it printed before it stopped.
+# Run the release and return the messages that it printed.
 release_messages <- function(...) {
   msgs <- character()
   withCallingHandlers(
