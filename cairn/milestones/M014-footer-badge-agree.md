@@ -1,6 +1,6 @@
 # M014: The footer and the DOI badge refuse the values that write_citation() refuses
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -34,9 +34,9 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 
 ## Coverage
 
-- AC1 → T2, T4
+- AC1 → T2, T4, T8
 - AC2 → T1, T2, T4
-- AC3 → T3, T4
+- AC3 → T3, T4, T8
 - AC4 → T1
 - AC5 → T5
 - AC6 → T2
@@ -51,6 +51,7 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - [x] T5: Make `supplement-license` return the name as a link to the SPDX page, with the SPDX spelling for the eight listed ids. Change the footer in `inst/template/_quarto.yml` to `Code: {{< supplement-license code >}} · Content: {{< supplement-license content >}}`. Replace the footer test at `tests/testthat/test-shortcodes.R:294-314`, and confirm that the `OWNER/REPO` test in `test-create-supplement.R` still passes.
 - [x] T6: Update the roxygen of `write_citation()` and `write_zenodo()` and run `devtools::document()`. Update the license and DOI comments in `inst/template/_supplement.yml`, `inst/template/_README.md` (about lines 71-75 and 112-115), `NEWS.md`, and the Lua lines in DESIGN.md's Architecture section.
 - [x] T7: (review return 1) State the new id rule in the `supplement-license` text of `inst/template/_README.md` and in the license bullets of `NEWS.md`.
+- [ ] T8: (review return 2) In `supplement.lua`, read a null value as empty and a one-paragraph Blocks value as its inlines for licenses and DOIs; stop on a DOI of more than one block and on a named argument to `supplement-license`; give the `--`/`...` hint only when it applies. Add render tests for each. Add `info` to the two refusal assertions in test-agreement.R. Fix `_README.md:118-119`, the spdx.org link wording in `_README.md` and NEWS.md, and the "no SPDX id" comment in `R/supplement-yml.R`.
 
 ## Work log
 
@@ -82,6 +83,7 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - 2026-10-19: T7 done: `_README.md`'s `supplement-license` text and the `write_citation()` bullet of NEWS.md now state the id rule; the simple-english lint is clean; `devtools::test()` clean.
 - 2026-10-19: claim audit: 10 claims read, 0 corrected — NEWS.md, inst/template/_README.md (the T7 lines).
 - 2026-10-19: all tasks done; status set to review.
+- 2026-10-19: review return 2: blame-history #1 — a blank YAML value (null) in `license.code`, `license.content`, `zenodo.version-doi`, or `zenodo.concept-doi` stops the render, so AC1 and AC3 fail for an empty value; the return also carries the review's fix-now items (Review section, pass 2).
 
 ## Decisions
 
@@ -99,3 +101,26 @@ Pass 1 (2026-10-19, branch head 4d6f030, main 51d575e unmoved). `devtools::test(
 Pass 2 (2026-10-19, branch head c05aeb0, main 51d575e unmoved). Since pass 1, only `NEWS.md` and `inst/template/_README.md` changed outside `cairn/` (T7), so the AC1-AC6 evidence stands; `devtools::check()` below re-ran the whole suite with 0 failures.
 - AC7 evidence: `_README.md:77-81` states the id rule ("letters and digits, with one `.` or `-` between groups and at most one `+` at the end"), the render stops, and the spdx.org links. The `NEWS.md` footer bullet states the links and the stops, and its `write_citation()` bullet states the id rule and the single entry per id. Both help pages state the rule (`write_citation.Rd:67`, `write_zenodo.Rd:67`, inherited), and `write_citation.Rd:33` states the single entry. `_supplement.yml:18-23` states the rule, the stops, and the links. The claim audit of the T7 lines read 10 claims, 0 wrong.
 - Gate: `cairn_validate.py` all checks passed. `devtools::document()` gives no diff. No README.Rmd and no `_pkgdown.yml`. NEWS.md has entries for the changes. No new top-level files. `devtools::check()`: 0 errors, 0 warnings, 0 notes.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- blame-history #1: a blank YAML value (`code:` or `version-doi:` with nothing after the colon, null) now stops the render, while main rendered it blank and `write_citation()` treats it as empty — fix now; floor return (AC1 and AC3 promise a stop only for a non-empty value).
+- diff-bug #1: a block or folded license value (`code: |` then `MIT`) stops the render with a message about spaces or Markdown, while `write_citation()` writes `MIT` — fix now (one-paragraph Blocks read as its text).
+- diff-bug #2: a DOI with Markdown emphasis (`10.5281/*zenodo*.1`) gives a badge for `10.5281/zenodo.1` while `CITATION.cff` holds the raw text — follow-up, row "footer and badge remainder".
+- diff-bug #3: a block DOI with two paragraphs renders a badge for the joined text (`10.5281/zenodo.12`) while `write_citation()` refuses it — fix now (a DOI of more than one block stops).
+- diff-bug #4: `license: "MIT"` or `zenodo: "x"` (text where a map belongs) renders an empty footer or no badge, while `write_citation()` raises `supplement_error_field_type`; not new in M014 — follow-up, row "footer and badge remainder".
+- diff-bug #5: unquoted `code: 1.0` shows "1" linked to spdx.org/licenses/1.html — follow-up, row "footer and badge remainder" (the gap itself is already in "shortcode edge cases").
+- diff-bug #6: a site that keeps the old footer and copies in the new extension gets a link inside a link — follow-up, row "footer and badge remainder".
+- diff-bug #7: the narrowed rule refuses `GPL--3.0`, `MIT.`, `MIT-`, `GPL.-3`, which passed before — reject, planned change (the plan chose the narrowing; D-012's shape-only decision stands).
+- diff-bug #8: `{{< supplement-license code foo=bar >}}` passes the argument check — fix now (a named argument also stops).
+- diff-bug #9: two refusal assertions in test-agreement.R carry no `info` — fix now.
+- diff-bug #10: the license id error adds the `--` and `...` hint for every bad id — fix now (only when the id holds a dash or ellipsis that Quarto made).
+- ripple #1: the ROADMAP row "footer and badge edge cases" still describes the fixed defects — reject, planned change (post-merge hygiene graduates the row).
+- ripple #2: `_README.md:118-119` says `CITATION.cff` takes both licenses — fix now (one id when they differ only in letter case).
+- ripple (in diff): `_README.md` and NEWS.md say each name links to "the id's page at spdx.org", but an id SPDX does not list has no page — fix now (docs name the URL and say the page exists only for listed ids).
+- prior-review #1: the footer drops the repo license links that M010 shipped — reject, planned change (the user chose SPDX links at the plan gate; AC5).
+- prior-review #2: unlisted ids link to a page that does not exist — reject the behavior as planned (AC5); the doc part is the ripple (in diff) fix.
+- prior-review #3: block or folded license values stop the render — fix now, same as diff-bug #1.
+- prior-review #4: unquoted numbers and `yes` render while `write_citation()` refuses them — follow-up, already in "shortcode edge cases" (M014 plan).
+- blame-history #2: the footer link removal has no D-entry — reject, planned change recorded at the plan gate in the work log; the choice binds only the template footer.
+- blame-history #3: shape-valid non-SPDX ids, such as `yes`, link to a missing page — reject the behavior as planned (AC5); doc fix as in ripple (in diff).
+- blame-history #4: SPDX's LicenseRef idstring allows `--` and `..`, so the comment "which no SPDX id has" is too broad — fix now (comment says "no id on the SPDX License List"); the narrowing stays (plan choice).
+- blame-history #5: the "unquoted number or yes still renders" comment is true but conflicts with AC2's parity — reject, false conflict: AC2's domain is the listed quoted shapes; the gap is in "shortcode edge cases".
