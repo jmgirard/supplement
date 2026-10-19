@@ -1,8 +1,9 @@
 test_that("a failed status check shows what the command printed", {
+  skip_on_cran()
   script <- withr::local_tempfile(fileext = ".R")
   writeLines(c('cat("on-stdout\\n")', 'message("on-stderr")', "quit(status = 1)"), script)
   printed <- run_in(dirname(script), file.path(R.home("bin"), "Rscript"), shQuote(basename(script)))
-  expect_equal(printed$status, 1L)
+  expect_equal(printed$status, 1L, info = paste(printed$output, collapse = "\n"))
 
   # Exit status 0 expected.
   expect_failure(expect_status(printed), "on-stdout")
@@ -21,6 +22,21 @@ test_that("a check for no output shows the lines the command printed", {
   printed <- list(status = 1L, output = "docs/index.html")
   expect_failure(expect_status(printed, 1L, output = character()), "docs/index.html", fixed = TRUE)
   expect_success(expect_status(list(status = 1L, output = character()), 1L, output = character()))
+})
+
+test_that("a status check shows the expected output and refuses a missing status", {
+  printed <- list(status = 0L, output = c("a.rds", "b.rds"))
+  expect_failure(expect_status(printed, output = "a.rds"), "this output:\na.rds\n", fixed = TRUE)
+  expect_failure(expect_status(printed, output = "a.rds"), "b.rds", fixed = TRUE)
+  expect_success(expect_status(printed, output = c("a.rds", "b.rds")))
+
+  # A result with no single whole-number status passes neither check, and
+  # the message still shows the printed lines.
+  for (status in list(NULL, NA_integer_, 0.5, "0", c(0L, 0L))) {
+    result <- list(status = status, output = "printed-line")
+    expect_failure(expect_status(result), "printed-line", fixed = TRUE)
+    expect_failure(expect_command_fails(result), "printed-line", fixed = TRUE)
+  }
 })
 
 test_that("a new site renders and holds its setup files", {
@@ -127,7 +143,8 @@ test_that(".gitignore blocks fit files and keeps published output", {
 
   expect_status(git_in(site$dir, c("init", "-q")))
   ignored <- git_in(site$dir, c("check-ignore", "analyses/fits/m.rds", "x.rds"))
-  expect_setequal(ignored$output, c("analyses/fits/m.rds", "x.rds"))
+  expect_status(ignored)
+  expect_setequal(ignored$output,c("analyses/fits/m.rds", "x.rds"))
 
   # The fits folder is ignored as a whole, saved R objects are ignored in any
   # letter case, and the negations for docs/ do not re-include them.
@@ -136,6 +153,7 @@ test_that(".gitignore blocks fit files and keeps published output", {
     "m.RDS", "m.Rda", "m.Rdata", "m.RData", "m.qs", "m.qs2"
   )
   ignored_objects <- git_in(site$dir, c("-c", "core.ignorecase=false", "check-ignore", objects))
+  expect_status(ignored_objects)
   expect_setequal(ignored_objects$output, objects)
 
   kept <- git_in(
@@ -153,7 +171,8 @@ test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
   expect_status(git_in(site$dir, c("init", "-q")))
   in_analyses <- c("analyses/plot.pdf", "analyses/plot.png")
   ignored <- git_in(site$dir, c("check-ignore", in_analyses))
-  expect_setequal(ignored$output, in_analyses)
+  expect_status(ignored)
+  expect_setequal(ignored$output,in_analyses)
 
   kept <- git_in(site$dir, c("check-ignore", "figures/plot.pdf", "figures/plot.png"))
   expect_status(kept, 1L, output = character())
@@ -225,7 +244,8 @@ test_that("fit files stay ignored when git init comes before the first render", 
 
   expect_status(run_in(dir, "quarto", "render"))
   ignored <- git_in(dir, c("check-ignore", "analyses/fits/m.rds", "x.rds"))
-  expect_setequal(ignored$output, c("analyses/fits/m.rds", "x.rds"))
+  expect_status(ignored)
+  expect_setequal(ignored$output,c("analyses/fits/m.rds", "x.rds"))
 })
 
 test_that("setup keeps an existing README.md and writes the guide beside it", {
