@@ -243,19 +243,22 @@ bare_doi <- function(doi, field, call = parent.frame()) {
 }
 
 # Return the license id, or NULL. An id must have the shape of an SPDX
-# short identifier (https://spdx.org/licenses/): a letter or digit, then
-# letters, digits, ".", or "-", and at most one "+" at the end. A license
-# name with spaces, such as "CC BY 4.0", or an expression of two ids is an
-# error. The shape check does not test that SPDX or Zenodo knows the id
-# (D-012).
+# short identifier (https://spdx.org/licenses/): letters or digits, then
+# groups of one "." or "-" and more letters or digits, and at most one "+"
+# at the end. A license name with spaces, such as "CC BY 4.0", or an
+# expression of two ids is an error. So are "--", "..", and a "." or "-"
+# at the end, which no SPDX id has, because Quarto reads "--" and "..." as
+# dashes and dots, and the page footer then shows another text. The
+# template's supplement-license shortcode applies the same rule. The shape
+# check does not test that SPDX or Zenodo knows the id (D-012).
 license_id <- function(id, field, call = parent.frame()) {
   if (is.null(id)) {
     return(NULL)
   }
-  if (!grepl("\\A[A-Za-z0-9][A-Za-z0-9.-]*\\+?\\z", id, perl = TRUE)) {
+  if (!grepl("\\A[A-Za-z0-9]+([.-][A-Za-z0-9]+)*\\+?\\z", id, perl = TRUE)) {
     cli::cli_abort(
       c("{.field {field}} in {.file _supplement.yml} is not an SPDX license id: {.val {id}}.",
-        "i" = "Write one id of letters, digits, {.code .}, and {.code -}, with at most one {.code +} at the end, such as {.val CC-BY-4.0} or {.val MIT}. See {.url https://spdx.org/licenses/}."),
+        "i" = "Write one id of letters and digits, with one {.code .} or {.code -} between groups and at most one {.code +} at the end, such as {.val CC-BY-4.0} or {.val MIT}. See {.url https://spdx.org/licenses/}."),
       class = c("supplement_error_license", "supplement_error"),
       call = call
     )

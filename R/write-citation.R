@@ -115,10 +115,13 @@ citation_text <- function(meta, call = parent.frame()) {
   license <- map_field(meta, "license", call = call)
   code <- "supplement.license.code"
   content <- "supplement.license.content"
-  licenses <- unique(c(
+  licenses <- c(
     license_id(value(license[["code"]], code, call = call), code, call = call),
     license_id(value(license[["content"]], content, call = call), content, call = call)
-  ))
+  )
+  # SPDX ids do not depend on letter case, so `mit` and `MIT` are one id,
+  # written as in `license.code`.
+  licenses <- licenses[!duplicated(tolower(licenses))]
 
   cff <- compact(list(
     "cff-version" = "1.2.0",

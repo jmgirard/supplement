@@ -299,7 +299,15 @@ bad_license_ids <- c(
   "OR expression" = "MIT OR Apache-2.0",
   "two final plus signs" = "GPL-2.0++",
   "plus between letters" = "A+B",
-  "leading hyphen" = "-MIT"
+  "leading hyphen" = "-MIT",
+  # Quarto reads `--` as an en dash and `...` as an ellipsis, so the footer
+  # could not show these ids as written.
+  "two hyphens" = "GPL--3.0",
+  "two dots" = "GPL-3..0",
+  "three dots" = "MIT...",
+  "final hyphen" = "MIT-",
+  "final dot" = "MIT.",
+  "dot then hyphen" = "GPL.-3"
 )
 
 test_that("a license value that is not an SPDX id stops each writer and keeps the old file", {
@@ -325,7 +333,7 @@ test_that("a license value that is not an SPDX id stops each writer and keeps th
 })
 
 test_that("SPDX-shaped license ids are written", {
-  for (id in c("CC-BY-4.0", "GPL-2.0+")) {
+  for (id in c("CC-BY-4.0", "GPL-2.0+", "0BSD", "LGPL-2.1-or-later", "BSD-2-Clause-Patent")) {
     meta <- full_supplement()
     meta$license <- list(code = id, content = id)
     dir <- local_site(meta)

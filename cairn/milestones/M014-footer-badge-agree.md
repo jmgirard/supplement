@@ -1,13 +1,13 @@
 # M014: The footer and the DOI badge refuse the values that write_citation() refuses
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — template users see the footer and the badge, and `write_citation()` is exported
-- **Branch/PR:** —
+- **Branch/PR:** m014-footer-badge-agree
 
 ## Goal
 
@@ -44,7 +44,7 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 
 ## Tasks
 
-- [ ] T1: In `R/supplement-yml.R` (`license_id()`, about line 255), narrow the regex to the AC2 rule and update its error hint. In `citation_text()` (`R/write-citation.R`, about lines 115-121), drop a content id that equals the code id ignoring letter case. Add R tests for the narrowed shapes and the single entry.
+- [x] T1: In `R/supplement-yml.R` (`license_id()`, about line 255), narrow the regex to the AC2 rule and update its error hint. In `citation_text()` (`R/write-citation.R`, about lines 115-121), drop a content id that equals the code id ignoring letter case. Add R tests for the narrowed shapes and the single entry.
 - [ ] T2: In `supplement.lua`, make `supplement-license` check its arguments (AC6), refuse a non-empty list or map, accept only one plain-text element, and apply the AC2 rule, stopping with `stop()` and the field name. Add the AC1 and AC6 render tests.
 - [ ] T3: In `supplement.lua`, make `supplement-doi` check both DOI fields: refuse a non-empty list or map, and after `bare_doi()` refuse a non-empty value that is not `10.`, four to nine digits, `/`, and a suffix with no spaces. Add render tests for `doi:` alone and a bad value in the field the badge does not show.
 - [ ] T4: Add the two agreement tables of AC2 and AC3. Each runs every shape in each field through `write_citation()` on a full fixture and through a render, and checks that both sides accept or both refuse, with the error class and field named.
@@ -65,6 +65,8 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - 2026-10-18: plan gate chose SPDX page links over renaming `LICENSE-CC-BY.md` to a neutral name, because the link then always matches the name shown; falsified by SPDX URLs that fail for the listed ids, or by users who need the repo's own license text linked.
 - 2026-10-18: plan chose to narrow `license_id()` to the Lua rule over leaving R as it is, because otherwise an id such as `a--b` writes to `CITATION.cff` while the render stops; falsified by a real SPDX id with `--`, `..`, or a final `.` or `-`.
 - 2026-10-18: plan chose accepting only one plain-text element in Lua over undoing Markdown in Lua, because escapes and entities leave no trace in the parsed value; falsified by a pandoc or Quarto API that gives Lua the raw metadata text.
+- 2026-10-18: implement started; branch m014-footer-badge-agree cut from main at 51d575e.
+- 2026-10-18: T1 done: `license_id()` uses the AC2 rule, `citation_text()` drops a later id equal ignoring case; six new refused shapes and three real SPDX ids in the tests; the new tests failed before the fix; `devtools::test()` clean.
 
 ## Decisions
 
