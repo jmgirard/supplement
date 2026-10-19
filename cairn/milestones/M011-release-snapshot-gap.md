@@ -42,7 +42,7 @@
 ## Tasks
 
 - [x] T1: Add a mock helper to `tests/testthat/test-release-supplement.R` that runs a function on the site folder inside the mocked `check_supplement()`, then write the AC1 and AC2 tests. Run them against the code on main and see each one fail for the reason it names.
-- [ ] T2: In `release_supplement()` (`R/release-supplement.R:151`), right after `check_supplement()` returns and before `check_release_problems()`, read the raw bytes of `_supplement.yml` and call `read_outputs()` again, and stop with `supplement_error_changed` when any value is not `identical()` to its pre-check value. Leave the refusals before the check where they are.
+- [x] T2: In `release_supplement()` (`R/release-supplement.R:151`), right after `check_supplement()` returns and before `check_release_problems()`, read the raw bytes of `_supplement.yml` and call `read_outputs()` again, and stop with `supplement_error_changed` when any value is not `identical()` to its pre-check value. Leave the refusals before the check where they are.
 - [ ] T3: Update the help page text at `R/release-supplement.R:26-42` and its Errors section, the NEWS.md `release_supplement()` bullet, and the DESIGN.md Architecture paragraph. Run `devtools::document()`.
 - [ ] T4: Run `devtools::test()` and `devtools::check()`, and confirm `git diff -- man NAMESPACE` is empty after `devtools::document()`.
 
@@ -62,3 +62,5 @@
 - 2026-10-18: changelog: edit the existing NEWS.md `release_supplement()` bullet, since the package is unreleased.
 - 2026-10-18: implement started on branch m011-release-snapshot-gap; tree clean at the cut.
 - 2026-10-18: T1 done: `mock_check_edit()` and `expect_changed_stop()` plus four tests (five yml shapes, the order probe, three output shapes, a no-change control); on main the change tests fail 20 and 12 times (the release finishes), the order probe stops with `supplement_error_release_check`, and the control passes.
+- 2026-10-18: T2 done: `check_unchanged()` in `R/release-supplement.R`, called between `check_supplement()` and `check_release_problems()`, compares `read_bytes_or_null()` of `_supplement.yml` and a second `read_outputs()` call with the pre-check values; the message names each changed file. devtools::test(): 219 tests, 0 failures, 1 skip.
+- 2026-10-18: agent decided the second `read_outputs()` call keeps its refusals, so a link made at an output during the check stops with `supplement_error_file_exists`; no criterion promises it and the "release edge cases" row keeps the case.

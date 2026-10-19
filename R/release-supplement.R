@@ -149,6 +149,7 @@ release_supplement <- function(bump, path = ".") {
   old <- read_outputs(outputs)
 
   problems <- check_supplement(path)
+  check_unchanged(file, read$bytes, outputs, old)
   check_release_problems(problems)
 
   commands <- release_commands(new)
@@ -207,6 +208,31 @@ read_outputs <- function(outputs, call = parent.frame()) {
     }
     bytes
   })
+}
+
+# Stop when _supplement.yml or an output is not as it was before
+# check_supplement() ran: the release would write the old text of
+# _supplement.yml over a change saved in that time, and the check read the
+# old files. The bytes are compared as they are, not decoded, so a change
+# to a comment or to the encoding counts.
+check_unchanged <- function(file, bytes, outputs, old, call = parent.frame()) {
+  changed <- character()
+  if (!identical(read_bytes_or_null(file), bytes)) {
+    changed <- basename(file)
+  }
+  now <- read_outputs(outputs, call = call)
+  for (i in seq_along(outputs)) {
+    if (!identical(now[[i]], old[[i]])) changed <- c(changed, basename(outputs[i]))
+  }
+  if (length(changed) == 0) {
+    return(invisible())
+  }
+  cli::cli_abort(
+    c("{.file {changed}} changed while {.fn check_supplement} ran, so nothing was changed.",
+      "i" = "Run this function again, so that the checks read the files as they are now."),
+    class = c("supplement_error_changed", "supplement_error"),
+    call = call
+  )
 }
 
 read_bytes_or_null <- function(file) {
