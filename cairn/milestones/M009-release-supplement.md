@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -100,6 +100,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: implement resumed the existing branch after the re-cut; main has not moved.
 - 2026-10-18: T8 done: `is_version()` matches with `\A…\z`; the bump test adds `"1.2.4\n"`, `"1.2.4 "`, `"1.2.4\r\n"`, `" 1.2.4"`, `"1.2\n.4"`, `"\n1.2.4"`, and `"1.2.4\t"` (only `"1.2.4\n"` passed before the fix, and that test failed red first); `true` and a list as the current version give `supplement_error_field_type`; a quoted `"1.2.3\n"` releases as `1.2.4`; 1728 tests pass. The DOI pattern in `bare_doi()` also ends with `$` under `perl = TRUE`, but its values are trimmed first; not in scope.
 - 2026-10-18: T9 done: the restore messages say "The release stopped before it finished" and that the files "are as they were before the release"; `read_outputs()` also refuses an output it cannot write (`file.access(output, 2)`), tested for both files; the Errors section names the put-back exception, and the list-`version` help asks for one quoted value; DESIGN Architecture updated; the interrupt test asserts no warning; the test list is `expected_commands()`; both READMEs say that `git add -A` stages the whole repository; 1738 tests pass.
+- 2026-10-18: claim audit: 24 claims read, 0 corrected — R/release-supplement.R, R/supplement-yml.R, README.md, inst/template/_README.md, man/release_supplement.Rd, tests (the T8 and T9 diff, same reader).
+- 2026-10-18: status review; handing off to /milestone-review.
 
 ## Review
 
