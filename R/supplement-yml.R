@@ -307,10 +307,10 @@ is_link <- function(paths) {
 }
 
 # On Windows, Sys.readlink() gives "" for a junction and for a symbolic
-# link, so a path counts as a link when its parent folder lists it but it
+# link. So a path that its parent folder lists counts as a link when it
 # does not exist, or when it resolves to a place other than its parent
-# folder plus its own name. A file link to a missing file passes both
-# tests there (candidate row "Windows file links").
+# folder plus its own name, letter case ignored. A file link to a missing
+# file passes both tests there (candidate row "Windows file links").
 is_reparse_point <- function(path) {
   path <- drop_trailing_sep(path)
   parent <- dirname(path)

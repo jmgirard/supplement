@@ -57,7 +57,7 @@ jobs:
 
       # R CMD check prints the test output only when a test fails. This step
       # runs the tests again, prints each skip with its reason, and fails when
-      # a test skipped because a tool the tests need is missing.
+      # a test skipped with one of the missing-tool reasons listed below.
       - name: List skipped tests
         if: always()
         shell: Rscript {0}
@@ -78,7 +78,7 @@ jobs:
           if (length(res) == 0) stop("No test ran.")
           missing_tool <- c(
             "On CRAN", "quarto is not on PATH", "git is not on PATH",
-            "git --version fails", "knitr cannot be loaded",
+            "git is not on the PATH", "git --version fails", "knitr cannot be loaded",
             "rmarkdown cannot be loaded"
           )
           if (!is.null(rows)) {

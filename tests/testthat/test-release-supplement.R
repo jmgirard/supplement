@@ -450,8 +450,9 @@ test_that("a file that cannot be put back is named in the error", {
   expect_identical(site_version(dir), "1.2.3")
 })
 
-# A link at an output path, to a file that exists or not, stops the release
-# and leaves the site and the link's target as they were.
+# A link at an output path, to a file that exists or not, stops the release.
+# The names, the links, and _supplement.yml stay as they were, and the
+# target stays present or missing as before.
 expect_link_refused <- function(name, target) {
   dir <- release_site('  version: "1.2.3"')
   outside <- withr::local_tempfile()
