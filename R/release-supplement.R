@@ -36,19 +36,27 @@
 #' check. When the bytes of one of these files changed while the check
 #' ran, or one of them was made or removed as a file, for example because
 #' you saved `_supplement.yml`, the function stops and writes none of the
-#' three files, so you can run it again. A folder made or removed at
-#' `CITATION.cff` or `.zenodo.json` is not seen as a change. A change saved
-#' after the function reads the files again, until it finishes, can still
-#' be lost.
+#' three files, so you can run it again. A change saved after the function
+#' reads the files again, until it finishes, can still be lost.
+#'
+#' Before it runs [check_supplement()], the function makes the new text of
+#' `CITATION.cff` and `.zenodo.json` from `_supplement.yml` with the new
+#' version. So a value that [write_citation()] or [write_zenodo()] refuses,
+#' such as an empty `citation`, stops the function with the class and
+#' message of that function's error, before the check runs and before any
+#' file is changed.
 #'
 #' Before it changes any file, the function stops when `CITATION.cff` or
 #' `.zenodo.json` is a link, because a write would go through the link, or
-#' is a file that it cannot read or write. It also stops when one of them
-#' does not exist and its folder cannot be written.
-#' If writing `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`, or
-#' printing the commands, stops, for example when [write_zenodo()] finds no
-#' `citation`, the function puts back the old text of each of these files
-#' that changed, removes each one that it made, and stops.
+#' is a folder, or is a file that it cannot read or write. It also stops
+#' when one of them does not exist and its folder cannot be written. It
+#' looks for these when it reads the two files, before and after the check.
+#' If writing `_supplement.yml`, `CITATION.cff`, or `.zenodo.json` stops,
+#' for example when the disk is full, or is interrupted, the function puts
+#' back the old text of each of these files that changed, removes each one
+#' that it made, and stops. It prints the commands only after the three
+#' files are written, so an error or an interrupt while it prints keeps
+#' the files of the release.
 #'
 #' The printed commands, for version `X.Y.Z`, are `git status`,
 #' `git add -A`, `git commit -m "Release vX.Y.Z"`, `git tag vX.Y.Z`,
@@ -72,22 +80,39 @@
 #'
 #' @section Errors:
 #' A `_supplement.yml` that is not valid YAML gives the error of the YAML
-#' parser. Otherwise the function stops with an error of class
-#' `supplement_error` and one of these classes. When it stops, no file is
-#' changed, unless a file that changed cannot be put back. The
-#' `supplement_error_release_write` message then names that file.
+#' parser. An error while the function prints the commands, after it wrote
+#' the files, reaches you as it is. Otherwise the function stops with an
+#' error of class `supplement_error` and one of these classes. When it
+#' stops with one of these classes, no file is changed, unless a file that
+#' changed cannot be put back. The `supplement_error_release_write` message then names that file.
+#'
+#' The function checks in this order, and stops at the first problem:
+#' `bump` and `path`; `_supplement.yml` (no file, not UTF-8, not valid
+#' YAML, no `supplement` map); the current version and `bump`; the
+#' `version:` line; the values that the new `CITATION.cff` and
+#' `.zenodo.json` hold; the two output files; [check_supplement()]; an
+#' output file that is now a link, a folder, or a file that cannot be read
+#' or written, also when another file changed; a file that changed during
+#' the check; the problems that [check_supplement()] found; the writes.
 #'
 #' * `supplement_error_argument`: `bump` is not one of the forms above, or
 #'   `path` is not a single non-empty string.
 #' * `supplement_error_no_metadata`, `supplement_error_no_map`: as for
 #'   [write_citation()].
 #' * `supplement_error_encoding`: `_supplement.yml` is not UTF-8 text.
+#' * The classes that [write_citation()] lists for a value in
+#'   `_supplement.yml`, such as `supplement_error_missing_field`,
+#'   `supplement_error_license`, `supplement_error_orcid`, and
+#'   `supplement_error_author_name`: a value that [write_citation()] or
+#'   [write_zenodo()] refuses. The error has the same class and message as
+#'   theirs, names `release_supplement()`, and comes before
+#'   [check_supplement()] runs.
 #' * `supplement_error_field_type`: `version` is a list, or YAML reads it
 #'   as a number or as true/false, such as an unquoted `1.10`. Write it as
-#'   one value in quotes, such as `"1.10.0"`. [check_supplement()] also stops with this class, for a DOI
-#'   that is not one text value or a `zenodo` that is not a map.
+#'   one value in quotes, such as `"1.10.0"`. Another value of the kinds
+#'   that [write_citation()] names also gives this class.
 #' * `supplement_error_doi`: a DOI in `_supplement.yml` is not a DOI, as
-#'   for [check_supplement()].
+#'   for [write_citation()].
 #' * `supplement_error_version`: `version` is not empty and is not a
 #'   version, or the version in `bump` is not greater than it.
 #' * `supplement_error_no_version`: `_supplement.yml` has no one-line
@@ -96,21 +121,22 @@
 #'   `_supplement.yml` as the old file with the new version.
 #' * `supplement_error_changed`: `_supplement.yml`, `CITATION.cff`, or
 #'   `.zenodo.json` changed while [check_supplement()] ran. This error
-#'   comes before a `supplement_error_release_check` error. A change that
-#'   makes `CITATION.cff` or `.zenodo.json` a link, or a file that cannot
-#'   be read or written, gives the `supplement_error_file_exists` or
-#'   `supplement_error_write` error instead.
+#'   comes before a `supplement_error_release_check` error. When
+#'   `CITATION.cff` or `.zenodo.json` is now a link, a folder, or a file
+#'   that cannot be read or written, the `supplement_error_file_exists` or
+#'   `supplement_error_write` error comes instead, also when another file
+#'   changed.
 #' * `supplement_error_release_check`: [check_supplement()] found a problem
 #'   other than a `"doi-mismatch"` problem for `CITATION.cff`, or it
 #'   skipped its git checks.
 #' * `supplement_error_file_exists`: `CITATION.cff` or `.zenodo.json` is a
-#'   link.
+#'   link or a folder.
 #' * `supplement_error_write`: `CITATION.cff` or `.zenodo.json` cannot be
 #'   read or written, or one of them does not exist and the site folder
 #'   cannot be written.
 #' * `supplement_error_release_write`: a write of `_supplement.yml`,
-#'   `CITATION.cff`, or `.zenodo.json`, or the printing of the commands,
-#'   stopped, and the files that changed got their old text back, and each
+#'   `CITATION.cff`, or `.zenodo.json` stopped, and the files that changed
+#'   got their old text back, and each
 #'   file that the release made was removed. If a file
 #'   cannot be put back, the message names it. The error of the step is the
 #'   `parent` of this error.
@@ -134,12 +160,14 @@ release_supplement <- function(bump, path = ".") {
   attributes(bump) <- NULL
   check_path(path)
   path <- drop_trailing_sep(path)
-  meta <- read_supplement(path)
+  # One read gives the current version, the lines that change, and the
+  # text of both outputs, so that all of them come from the same bytes.
+  file <- supplement_file(path)
+  read <- read_text_lines(file)
+  meta <- supplement_map(yaml_parse_lines(read$lines, label = file))
   current <- read_version(meta)
   new <- next_version(current, bump)
 
-  file <- file.path(path, "_supplement.yml")
-  read <- read_text_lines(file)
   version_path <- c("supplement", "version")
   lines <- yaml_replace_lines(read$lines, version_path, new)
   hand <- sprintf("version: %s", yaml_quote(current %||% ""))
@@ -159,6 +187,11 @@ release_supplement <- function(bump, path = ".") {
       class = "supplement_error_yaml"
     )
   }
+  # Build both outputs from the changed lines before any check reads the
+  # outputs or the site, so that a value that the writers refuse stops
+  # the release before it writes a file.
+  released <- supplement_map(yaml_parse_lines(lines))
+  texts <- list(citation_text(released), zenodo_text(released))
 
   outputs <- file.path(path, c("CITATION.cff", ".zenodo.json"))
   old <- read_outputs(outputs)
@@ -167,19 +200,20 @@ release_supplement <- function(bump, path = ".") {
   check_unchanged(file, read$bytes, outputs, old)
   check_release_problems(problems)
 
+  write_release_files(read, lines, file, outputs, texts, old)
+  # The files are the release, so a failure while printing keeps them.
   commands <- release_commands(new)
-  write_release_files(read, lines, file, outputs, old, report = function() {
-    report_release(path, new, commands)
-  })
+  report_release(path, new, commands)
   invisible(commands)
 }
 
-# The bytes of each output file, or NULL for a file that does not exist
-# or is a folder. A link, a file that cannot be read or written, or a
-# missing file whose folder cannot be written stops before any write: the
-# release would write through the link, maybe outside the site, could not
-# put back a file that it cannot read, and would stop at a file that it
-# cannot write only after it changed _supplement.yml.
+# The bytes of each output file, or NULL for a file that does not exist.
+# A link, a folder, a file that cannot be read or written, or a missing
+# file whose folder cannot be written stops before any write: the release
+# would write through the link, maybe outside the site, could not write a
+# file where a folder is, could not put back a file that it cannot read,
+# and would stop at a file that it cannot write only after it changed
+# _supplement.yml.
 read_outputs <- function(outputs, call = parent.frame()) {
   lapply(outputs, function(output) {
     if (is_link(output)) {
@@ -191,7 +225,12 @@ read_outputs <- function(outputs, call = parent.frame()) {
       )
     }
     if (dir.exists(output)) {
-      return(NULL)
+      cli::cli_abort(
+        c("{.file {basename(output)}} is a folder, so nothing was changed.",
+          "i" = "Move or remove the folder, and run this function again."),
+        class = c("supplement_error_file_exists", "supplement_error"),
+        call = call
+      )
     }
     if (!file.exists(output)) {
       # The release makes the file, so its folder must be writable.
@@ -356,14 +395,13 @@ check_release_problems <- function(problems, call = parent.frame()) {
   )
 }
 
-# Write `lines` to `_supplement.yml`, then CITATION.cff and .zenodo.json,
-# then call `report()`. `old` holds the bytes of each output before the
-# release, or NULL for an output that did not exist, from read_outputs().
-# When any of these steps stops, or the function is interrupted, each file
-# whose bytes changed gets its old bytes back, and each file that did not
-# exist before is removed. A file that is as it was is not written again.
-write_release_files <- function(read, lines, file, outputs, old, report, call = parent.frame()) {
-  path <- dirname(file)
+# Write `lines` to `_supplement.yml`, then `texts` to CITATION.cff and
+# .zenodo.json. `old` holds the bytes of each output before the release,
+# or NULL for an output that did not exist, from read_outputs(). When a
+# write stops, or the function is interrupted, each file whose bytes
+# changed gets its old bytes back, and each file that did not exist
+# before is removed. A file that is as it was is not written again.
+write_release_files <- function(read, lines, file, outputs, texts, old, call = parent.frame()) {
   files <- c(file, outputs)
   before <- c(list(read$bytes), old)
   # The names of the files that could not be put back, or an empty vector.
@@ -407,10 +445,9 @@ write_release_files <- function(read, lines, file, outputs, old, report, call = 
   )
   tryCatch(
     {
-      write_text_lines(read, lines, file)
-      write_citation(path, overwrite = TRUE)
-      write_zenodo(path, overwrite = TRUE)
-      report()
+      write_text_lines(read, lines, file, call = call)
+      write_utf8(texts[[1]], outputs[1], call = call)
+      write_utf8(texts[[2]], outputs[2], call = call)
     },
     error = function(e) {
       failed <- restore()
@@ -418,7 +455,7 @@ write_release_files <- function(read, lines, file, outputs, old, report, call = 
       cli::cli_abort(
         if (length(failed) == 0) {
           c("The release stopped before it finished, so nothing was changed.",
-            "i" = "{.file _supplement.yml}, {.file CITATION.cff}, and {.file .zenodo.json} are as they were before the release, even if a message above says that they were written.")
+            "i" = "{.file _supplement.yml}, {.file CITATION.cff}, and {.file .zenodo.json} are as they were before the release.")
         } else {
           c("The release stopped before it finished, and {.file {failed}} could not be put back.",
             "!" = "Check {.file {failed}} by hand, for example with {.code git diff}.")

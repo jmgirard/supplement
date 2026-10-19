@@ -45,27 +45,37 @@
 write_zenodo <- function(path = ".", overwrite = FALSE) {
   check_args(path, overwrite)
   meta <- read_supplement(path)
-  require_fields(meta, c("paper-title", "citation"))
-  authors <- read_authors(meta)
+  text <- zenodo_text(meta)
+  file <- file.path(path, ".zenodo.json")
+  check_overwrite(file, overwrite)
+  write_utf8(text, file)
+  invisible(file)
+}
 
-  license <- map_field(meta, "license")
+# The text of .zenodo.json for the `supplement` map `meta`. An error names
+# `call`, the function that the user called.
+zenodo_text <- function(meta, call = parent.frame()) {
+  require_fields(meta, c("paper-title", "citation"), call = call)
+  authors <- read_authors(meta, call = call)
+
+  license <- map_field(meta, "license", call = call)
   # Zenodo's license ids are lowercase SPDX ids:
   # https://zenodo.org/api/vocabularies/licenses/cc-by-4.0 has the id
   # "cc-by-4.0".
   field <- "supplement.license.content"
-  content <- license_id(value(license[["content"]], field), field)
+  content <- license_id(value(license[["content"]], field, call = call), field, call = call)
   # `version` is a string in Zenodo's deposit metadata, which suggests a
   # semantic version such as "2.1.5":
   # https://developers.zenodo.org/#representation
-  version <- read_version(meta)
+  version <- read_version(meta, call = call)
 
   zenodo <- compact(list(
-    title = supplement_title(meta),
+    title = supplement_title(meta, call = call),
     version = version,
     upload_type = "software",
     description = paste0(
       "Supplemental materials for: ",
-      value(meta[["citation"]], "supplement.citation")
+      value(meta[["citation"]], "supplement.citation", call = call)
     ),
     creators = lapply(authors, function(author) {
       compact(list(
@@ -77,9 +87,5 @@ write_zenodo <- function(path = ".", overwrite = FALSE) {
     license = if (!is.null(content)) tolower(content)
   ))
 
-  file <- file.path(path, ".zenodo.json")
-  check_overwrite(file, overwrite)
-  text <- jsonlite::toJSON(zenodo, auto_unbox = TRUE, pretty = TRUE)
-  write_utf8(as.character(text), file)
-  invisible(file)
+  as.character(jsonlite::toJSON(zenodo, auto_unbox = TRUE, pretty = TRUE))
 }

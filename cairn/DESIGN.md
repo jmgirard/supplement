@@ -84,19 +84,23 @@ package's one place that starts a process. Its link check reads quoted
 resolves each link by path segments inside `docs/`, matching each name's
 letter case as GitHub Pages does. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
-`R/release-supplement.R`: `release_supplement()` checks `bump`, the
-current `supplement.version`, and the `version:` line, refuses a
-`CITATION.cff` or `.zenodo.json` that is a link or cannot be read or
-written, or that is missing in a folder it cannot write, then runs
-`check_supplement()`. It reads the three files again and stops
-(`supplement_error_changed`) when one of them changed, or was made or
-removed as a file, during the check; a folder at an output reads as no
-file both times. It then stops on any problem but a `CITATION.cff` DOI
-row. It then writes `_supplement.yml`, `CITATION.cff`,
-and `.zenodo.json` and prints the git and `gh` release commands. When any
-of those steps stops, or on an interrupt, it puts back each file whose
-bytes changed and removes each file it made. It starts no process
-itself.
+`R/release-supplement.R`: `release_supplement()` checks `bump`, reads
+`_supplement.yml` once, and from that read checks the current
+`supplement.version` and the `version:` line. It builds the new
+`CITATION.cff` and `.zenodo.json` text from the changed lines with
+`citation_text()` and `zenodo_text()`, the builders that `write_citation()`
+and `write_zenodo()` also use, so a value they refuse stops the release
+with their error. It refuses a `CITATION.cff` or `.zenodo.json` that is a
+link, a folder, or a file it cannot read or write, or that is missing in
+a folder it cannot write, then runs `check_supplement()`. It reads the
+three files again and stops (`supplement_error_changed`) when one of them
+changed, or was made or removed as a file, during the check; the same
+refusals run again on the outputs. It then stops on any problem but a
+`CITATION.cff` DOI row. It then writes `_supplement.yml` and the two built
+texts. When a write stops, or on an interrupt, it puts back each file
+whose bytes changed and removes each file it made. After the writes it
+prints the git and `gh` release commands, outside that guard. It starts
+no process itself.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in

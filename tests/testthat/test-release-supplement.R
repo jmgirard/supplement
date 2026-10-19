@@ -262,6 +262,17 @@ test_that("a folder with no _supplement.yml is refused", {
   expect_identical(list.files(dir, all.files = TRUE, no.. = TRUE), character())
 })
 
+test_that("a _supplement.yml that is not valid YAML gives a parser error that names the file", {
+  calls <- mock_check()
+  dir <- withr::local_tempdir("release-")
+  writeLines(c("supplement:", '  citation: [x'), file.path(dir, "_supplement.yml"))
+  before <- folder_state(dir)
+  err <- expect_error(release("patch", path = dir), "Parser error")
+  expect_match(conditionMessage(err), "_supplement.yml", fixed = TRUE)
+  expect_identical(folder_state(dir), before)
+  expect_identical(calls$n, 0L)
+})
+
 # The version line --------------------------------------------------------
 
 test_that("only the value on the version line changes", {
@@ -313,19 +324,8 @@ test_that("CITATION.cff and .zenodo.json are written with the new version", {
 
 test_that("a failed write puts back the files as they were", {
   mock_check()
-  # Write part of the file, then fail.
-  fail_on <- function(name) {
-    function(text, file) {
-      if (basename(file) == name) {
-        writeLines("partial", file)
-        stop("disk full")
-      }
-      con <- file(file, open = "wb")
-      on.exit(close(con))
-      writeLines(enc2utf8(text), con, useBytes = TRUE)
-    }
-  }
-  for (name in c("CITATION.cff", ".zenodo.json")) {
+  real_write_checked <- write_checked
+  for (name in c("_supplement.yml", "CITATION.cff", ".zenodo.json")) {
     for (existing in c(TRUE, FALSE)) {
       dir <- release_site('  version: "1.2.3"')
       if (existing) {
@@ -333,11 +333,66 @@ test_that("a failed write puts back the files as they were", {
         writeLines("old zenodo", file.path(dir, ".zenodo.json"))
       }
       before <- folder_state(dir)
-      local_mocked_bindings(write_utf8 = fail_on(name))
+      # The first write of `name` writes part of the file and fails. The
+      # put-back then writes as usual.
+      failed <- FALSE
+      local_mocked_bindings(write_checked = function(bytes, file, ...) {
+        if (!failed && basename(file) == name) {
+          failed <<- TRUE
+          writeBin(charToRaw("partial"), file)
+          stop("disk full")
+        }
+        real_write_checked(bytes, file, ...)
+      })
       err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
+      expect_true(failed, label = paste(name, existing))
       expect_match(conditionMessage(err$parent), "disk full", fixed = TRUE)
       expect_identical(folder_state(dir), before, label = paste(name, existing))
     }
+  }
+})
+
+test_that("the release writes the bytes that the writers write from the released file", {
+  mock_check()
+  outputs <- c("CITATION.cff", ".zenodo.json")
+  expect_writer_bytes <- function(dir, label) {
+    release("major", path = dir)
+    released <- lapply(file.path(dir, outputs), read_bytes)
+    expect_identical(site_version(dir), "2.0.0", label = label)
+    write_citation(dir, overwrite = TRUE)
+    write_zenodo(dir, overwrite = TRUE)
+    expect_identical(lapply(file.path(dir, outputs), read_bytes), released, label = label)
+  }
+  expect_writer_bytes(release_site('  version: "1.2.3"'), "LF")
+  expect_writer_bytes(release_site('  version: "1.2.3"', crlf = TRUE), "CRLF")
+
+  # A site with a UTF-8 byte order mark, every value that the outputs hold,
+  # and text that YAML could read as something else.
+  for (probe in names(probe_values)) {
+    dir <- withr::local_tempdir("release-")
+    text <- c(
+      "supplement:",
+      paste("  paper-title:", yaml_quote(probe_values[[probe]])),
+      paste("  citation:", yaml_quote(paste("Cited as", probe_values[[probe]]))),
+      '  version: "1.2.3"',
+      "  license:",
+      '    code: "MIT"',
+      '    content: "CC-BY-4.0"',
+      "  authors:",
+      '    - family: "Müller"',
+      '      given: "Änne"',
+      '      orcid: "0000-0002-1694-233X"',
+      '      affiliation: "Institut B"',
+      "  zenodo:",
+      '    version-doi: ""',
+      '    concept-doi: "10.5281/zenodo.1"',
+      '    archive-url: ""'
+    )
+    bytes <- c(as.raw(c(0xef, 0xbb, 0xbf)), charToRaw(enc2utf8(paste0(paste(text, collapse = "\n"), "\n"))))
+    writeBin(bytes, file.path(dir, "_supplement.yml"))
+    expect_writer_bytes(dir, probe)
+    expect_identical(read_bytes(file.path(dir, "_supplement.yml"))[1:3], as.raw(c(0xef, 0xbb, 0xbf)))
+    expect_identical(read_cff(dir)$title, paste("Supplemental materials for:", probe_values[[probe]]), label = probe)
   }
 })
 
@@ -356,9 +411,13 @@ test_that("a site path with pattern characters puts back only its own files", {
   sibling_before <- folder_state(sibling)
   # CITATION.cff is made in "site[ab]", then the write of .zenodo.json fails.
   made <- FALSE
-  local_mocked_bindings(write_zenodo = function(...) {
-    made <<- file.exists(file.path(dir, "CITATION.cff"))
-    stop("disk full")
+  real_write_utf8 <- write_utf8
+  local_mocked_bindings(write_utf8 = function(text, file, ...) {
+    if (basename(file) == ".zenodo.json") {
+      made <<- file.exists(file.path(dir, "CITATION.cff"))
+      stop("disk full")
+    }
+    real_write_utf8(text, file, ...)
   })
   err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
   expect_match(conditionMessage(err$parent), "disk full", fixed = TRUE)
@@ -472,6 +531,7 @@ test_that("a write that only warns, as on a full disk, puts back the files", {
   })
   err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
   expect_s3_class(err$parent, "supplement_error_write")
+  expect_identical(err$parent$call[[1]], quote(release_supplement))
   expect_identical(folder_state(dir), before)
 })
 
@@ -492,11 +552,16 @@ test_that("a failure before any change does not report a file that could not be 
 
 test_that("an interrupt puts back the files, and a failed put-back is reported", {
   mock_check()
-  interrupt <- function(...) signalCondition(structure(class = c("interrupt", "condition"), list()))
+  interrupt <- function() signalCondition(structure(class = c("interrupt", "condition"), list()))
   dir <- release_site('  version: "1.2.3"')
   writeLines("old citation", file.path(dir, "CITATION.cff"))
   before <- folder_state(dir)
-  local_mocked_bindings(write_zenodo = interrupt)
+  # The write of .zenodo.json is interrupted after CITATION.cff is written.
+  real_write_utf8 <- write_utf8
+  local_mocked_bindings(write_utf8 = function(text, file, ...) {
+    if (basename(file) == ".zenodo.json") interrupt()
+    real_write_utf8(text, file, ...)
+  })
   # The put-back works, so no warning is given.
   expect_no_warning(
     out <- tryCatch(release("patch", path = dir), interrupt = function(c) "interrupted")
@@ -516,14 +581,34 @@ test_that("an interrupt puts back the files, and a failed put-back is reported",
   )
 })
 
-test_that("a failure while printing the commands puts back the files", {
+expect_released <- function(dir, version) {
+  expect_identical(site_version(dir), version)
+  expect_identical(read_cff(dir)$version, version)
+  expect_identical(read_zenodo(dir)$version, version)
+}
+
+test_that("a failure while printing the commands keeps the released files", {
   mock_check()
   dir <- release_site('  version: "1.2.3"')
-  before <- folder_state(dir)
   local_mocked_bindings(report_release = function(...) stop("console closed"))
-  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
-  expect_match(conditionMessage(err$parent), "console closed", fixed = TRUE)
-  expect_identical(folder_state(dir), before)
+  err <- expect_error(release("patch", path = dir))
+  expect_identical(conditionMessage(err), "console closed")
+  expect_identical(class(err), c("simpleError", "error", "condition"))
+  expect_released(dir, "1.2.4")
+})
+
+test_that("an interrupt while printing the commands keeps the released files", {
+  mock_check()
+  dir <- release_site('  version: "1.2.3"')
+  local_mocked_bindings(report_release = function(...) {
+    signalCondition(structure(class = c("interrupt", "condition"), list()))
+  })
+  ran <- FALSE
+  expect_no_warning(
+    tryCatch(release("patch", path = dir), interrupt = function(c) ran <<- TRUE)
+  )
+  expect_true(ran)
+  expect_released(dir, "1.2.4")
 })
 
 test_that("an empty current version is named as empty in the not-greater error", {
@@ -549,19 +634,71 @@ test_that("the CITATION.cff DOI row that check_supplement() makes is the one the
   expect_error(check_release_problems(rows), class = "supplement_error_release_check")
 })
 
-test_that("an empty citation, which stops write_zenodo(), puts back the files", {
-  mock_check()
-  dir <- release_site('  version: "1.2.3"')
-  file <- file.path(dir, "_supplement.yml")
-  lines <- readLines(file)
-  lines <- sub("^  citation: .*$", '  citation: ""', lines)
-  writeLines(lines, file)
-  writeLines("old citation", file.path(dir, "CITATION.cff"))
-  before <- folder_state(dir)
+# Value checks before any write -----------------------------------------------
 
-  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
-  expect_s3_class(err$parent, "supplement_error_missing_field")
-  expect_identical(folder_state(dir), before)
+# A release site with version "1.2.3" whose first line of _supplement.yml
+# that matches `pattern` is replaced by `replacement`. It writes "\n" line
+# endings on every system, so that only that line changes.
+value_site <- function(pattern, replacement, env = parent.frame()) {
+  dir <- release_site('  version: "1.2.3"', env = env)
+  file <- file.path(dir, "_supplement.yml")
+  lines <- readLines(file, encoding = "UTF-8")
+  i <- grep(pattern, lines)[1]
+  stopifnot(!is.na(i))
+  lines[i] <- sub(pattern, replacement, lines[i])
+  writeBin(charToRaw(enc2utf8(paste0(paste(lines, collapse = "\n"), "\n"))), file)
+  dir
+}
+
+# Values that stop write_citation() or write_zenodo(), with the class of
+# the error.
+bad_values <- list(
+  list(pattern = "^  citation: .*$", replacement = '  citation: ""',
+       class = "supplement_error_missing_field"),
+  list(pattern = '^    concept-doi: ""$', replacement = '    concept-doi: "not a doi"',
+       class = "supplement_error_doi"),
+  list(pattern = '^    content: "CC-BY-4.0"$', replacement = '    content: "CC BY 4.0"',
+       class = "supplement_error_license"),
+  # The check digit of the example iD 0000-0002-1825-0097 is 7.
+  list(pattern = '^      orcid: ""$', replacement = '      orcid: "0000-0002-1825-0098"',
+       class = "supplement_error_orcid"),
+  list(pattern = '^    - family: "Author"$', replacement = '    - family: ""',
+       class = "supplement_error_author_name")
+)
+
+test_that("a value that stops a writer stops the release before the check and before any write", {
+  for (bad in bad_values) {
+    calls <- mock_check()
+    dir <- value_site(bad$pattern, bad$replacement)
+    writeLines("old citation", file.path(dir, "CITATION.cff"))
+    before <- folder_state(dir)
+    err <- expect_error(release("patch", path = dir), class = bad$class)
+    # expect_error() also matches the class of a parent error, so check the
+    # error itself.
+    expect_true(inherits(err, bad$class), label = bad$class)
+    expect_false(inherits(err, "supplement_error_release_write"), label = bad$class)
+    expect_identical(calls$n, 0L, label = bad$class)
+    expect_identical(folder_state(dir), before, label = bad$class)
+  }
+})
+
+test_that("an error from a value check names release_supplement()", {
+  mock_check()
+  dir <- value_site("^  paper-title: .*$", '  paper-title: ""')
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_missing_field")
+  expect_identical(err$call[[1]], quote(release_supplement))
+})
+
+test_that("a value error comes before the refusal of a linked output", {
+  calls <- mock_check()
+  dir <- value_site("^  citation: .*$", '  citation: ""')
+  outside <- withr::local_tempfile(lines = "outside")
+  skip_if_not(file.symlink(outside, file.path(dir, "CITATION.cff")), "cannot make a link")
+  before <- list(Sys.readlink(file.path(dir, "CITATION.cff")), read_bytes(file.path(dir, "_supplement.yml")))
+  expect_error(release("patch", path = dir), class = "supplement_error_missing_field")
+  expect_identical(list(Sys.readlink(file.path(dir, "CITATION.cff")), read_bytes(file.path(dir, "_supplement.yml"))), before)
+  expect_identical(readLines(outside), "outside")
+  expect_identical(calls$n, 0L)
 })
 
 # Changes during the check ------------------------------------------------
@@ -699,6 +836,62 @@ test_that("a check that reads the files but changes none lets the release finish
   expect_identical(read_cff(dir)$version, "1.2.4")
   expect_identical(jsonlite::read_json(file.path(dir, ".zenodo.json"))$version, "1.2.4")
   expect_true(any(grepl("git tag v1.2.4", msgs, fixed = TRUE)))
+})
+
+# Folders at an output --------------------------------------------------------
+
+# Expect the release of `dir` to stop with supplement_error_file_exists,
+# the folder to be in the state `state`, and no command printed.
+expect_folder_stop <- function(dir, state) {
+  out <- new.env()
+  out$msgs <- character()
+  err <- expect_error(
+    capture_messages_to(release_supplement("patch", path = dir), out),
+    class = "supplement_error_file_exists"
+  )
+  # expect_error() also matches the class of a parent error, so check the
+  # error itself.
+  expect_s3_class(err, "supplement_error_file_exists")
+  expect_false(inherits(err, "supplement_error_release_write"))
+  expect_false(is.null(state))
+  expect_identical(folder_state(dir), state)
+  expect_false(any(grepl("git tag", out$msgs, fixed = TRUE)))
+}
+
+test_that("a folder at an output before the release stops it before the check", {
+  for (name in c("CITATION.cff", ".zenodo.json")) {
+    calls <- mock_check()
+    dir <- release_site('  version: "1.2.3"')
+    dir.create(file.path(dir, name))
+    before <- folder_state(dir)
+    expect_folder_stop(dir, before)
+    expect_identical(calls$n, 0L, label = name)
+  }
+})
+
+test_that("a folder made at an output during the check stops the release", {
+  for (name in c("CITATION.cff", ".zenodo.json")) {
+    for (file_before in c(FALSE, TRUE)) {
+      seen <- mock_check_edit(function(path) {
+        target <- file.path(path, name)
+        if (file.exists(target)) file.remove(target)
+        dir.create(target)
+      })
+      dir <- release_site('  version: "1.2.3"')
+      if (file_before) writeLines("old", file.path(dir, name))
+      expect_folder_stop(dir, seen$state)
+      expect_true(dir.exists(file.path(dir, name)), label = paste(name, file_before))
+    }
+  }
+})
+
+test_that("a folder made during the check stops the release also when _supplement.yml changed", {
+  seen <- mock_check_edit(function(path) {
+    edit_yml('^  paper-title: .*$', '  paper-title: "Saved during the check"')(path)
+    dir.create(file.path(path, "CITATION.cff"))
+  })
+  dir <- release_site('  version: "1.2.3"')
+  expect_folder_stop(dir, seen$state)
 })
 
 # Commands ------------------------------------------------------------------

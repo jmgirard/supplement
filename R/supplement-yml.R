@@ -30,6 +30,15 @@ drop_trailing_sep <- function(path) {
 }
 
 read_supplement <- function(path, call = parent.frame()) {
+  file <- supplement_file(path, call = call)
+  # Read every sequence as a list, so that a one-item sequence such as
+  # [A paper] is not taken for a single value.
+  doc <- yaml::read_yaml(file, handlers = list(seq = function(x) as.list(x)))
+  supplement_map(doc, call = call)
+}
+
+# The path of `_supplement.yml` in `path`, which must be a file.
+supplement_file <- function(path, call = parent.frame()) {
   file <- file.path(path, "_supplement.yml")
   if (!file.exists(file) || dir.exists(file)) {
     cli::cli_abort(
@@ -39,10 +48,12 @@ read_supplement <- function(path, call = parent.frame()) {
       call = call
     )
   }
-  # Read every sequence as a list, so that a one-item sequence such as
-  # [A paper] is not taken for a single value.
-  meta <- yaml::read_yaml(file, handlers = list(seq = function(x) as.list(x)))
-  meta <- if (is_map(meta)) meta[["supplement"]]
+  file
+}
+
+# The `supplement` map of a parsed `_supplement.yml`.
+supplement_map <- function(doc, call = parent.frame()) {
+  meta <- if (is_map(doc)) doc[["supplement"]]
   if (!is_map(meta)) {
     cli::cli_abort(
       c("{.file _supplement.yml} has no {.field supplement} map.",
