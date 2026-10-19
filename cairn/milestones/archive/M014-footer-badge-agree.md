@@ -1,0 +1,11 @@
+# M014: The footer and the DOI badge refuse the values that write_citation() refuses
+
+**Status:** done (2026-10-19, PR #15 https://github.com/jmgirard/supplement/pull/15)
+
+**Goal:** For the license and DOI values that the tests list, the page footer and the DOI badge accept and refuse the same values as `write_citation()`, and each footer license name links to the SPDX page of its id.
+
+**Outcome:** `license_id()` in `R/supplement-yml.R` now matches `\A[A-Za-z0-9]+([.-][A-Za-z0-9]+)*\+?\z`, which refuses `--`, `..`, and a final `.` or `-`. `citation_text()` drops a content id equal to the code id ignoring letter case. In `supplement.lua`, `simple_value()` reads a YAML null (a Lua `""`), `""`, and an empty list or map as empty, and a one-paragraph block or folded string as its inlines. `plain_text()` accepts only one `Str`, and `is_license_id()` applies the R rule. `supplement-license` stops (with `assert`) on a bad value or on any call other than one argument, `code` or `content`. `checked_doi()` checks both DOI fields with `bare_doi()`'s rule before the badge picks one. Each footer name links to `https://spdx.org/licenses/<id>.html`, with the SPDX spelling of the 8 listed ids, and the template footer no longer links to `LICENSE.md` or `LICENSE-CC-BY.md`. `tests/testthat/test-agreement.R` runs 13 license and 12 DOI shapes, plus null and block forms, through `write_citation()` and a render. The help pages, template comments, `_README.md`, NEWS.md, and DESIGN.md describe the changes.
+
+**Decisions:** none promoted. The plan gate chose render stops (as D-008) and SPDX links. The plan narrowed the id rule to the footer's rule; D-012 stands.
+
+**Review:** full criteria audit at plan (9 findings, all taken narrower); claim audits on each implement pass (36, 10, and 19 claims; 7, 0, and 4 corrected). Three review passes with four lenses each. Return 1: AC7 (README and NEWS lacked the id rule). Return 2: a YAML null stopped the render (blame-history), with 9 other fixes. Pass 3 found no defect. 54 findings: 27 fixed, 9 to the new row "footer and badge remainder", 18 rejected (planned changes, false, or no defect). No amendments. `R CMD check` 0/0/0. Graduated "footer and badge edge cases"; narrowed "shortcode edge cases" (the `supplement-license` argument item).
