@@ -75,6 +75,7 @@ A failing template test prints the output of the command it checked, and a cause
 - 2026-10-19: review fix-now (checkpoint; full suite and check re-running): `exit_status()` makes both helpers refuse a NULL, NA, fractional, text, or length-2 status, and the message deparses the status; a non-empty `output` shows the expected lines; new test "a status check shows the expected output and refuses a missing status"; the AC2 precondition passes `info`; the subprocess test calls `skip_on_cran()`; the four `check-ignore` results that should match now have `expect_status()`; DESIGN.md names the helpers; rows "template test flake" and "status check output" corrected. Template tests pass.
 - 2026-10-19: correction of the T1 line: `system2()` quotes the command in R releases before 4.6 as well (`shQuote(command)` in 4.6.1's source), so the change is not new in 4.6.
 - 2026-10-19: correction of the T4 lines: the 3 CI runs on main ran main's tests, without the new output checks; `devtools::test(filter = "template")` loads the package and template from source with `load_all()`, unlike `test_file()` on the installed package.
+- 2026-10-19: step-7 approval: m019-template-test-flake approved for merge
 
 ## Decisions
 
