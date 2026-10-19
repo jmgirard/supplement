@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-19 (M016 done: graduated YAML parse errors; added parse error edge cases; pruned the M013 row; validate green)_
+_Last hygiene check: 2026-10-19 (M017 done: graduated paper figure files; added figures folder edge cases; pruned the M014 row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M017 | The template publishes paper figures from a figures folder | review | — | normal | milestones/M017-paper-figures.md |
+| M017 | The template publishes paper figures from a figures folder | done | — | normal | milestones/archive/M017-paper-figures.md |
 | M016 | A site YAML file with a syntax error gives a supplement error | done | — | normal | milestones/archive/M016-yaml-parse-errors.md |
 | M015 | The release commands stage and commit only the site folder | done | — | high | milestones/archive/M015-release-site-folder.md |
-| M014 | The footer and the DOI badge refuse the values that write_citation() refuses | done | — | high | milestones/archive/M014-footer-badge-agree.md |
 
 ## Candidates
 
@@ -18,7 +17,6 @@ _Last hygiene check: 2026-10-19 (M016 done: graduated YAML parse errors; added p
 - Windows check: run the template tests and a render on Windows (CI or by hand), including the no-R test, which skips there, and `nojekyll.ts` with a `C:\` output path. From the M003 review. Also from the M004 review: data files of 2 GiB or more may read as missing (32-bit `ftell` in Windows Lua), and the 1 GB sparse size fixture may cost 1 GB of disk off macOS when Quarto copies it into `docs/`. Also from the M006 review: `create_supplement()` path handling on Windows (a broken link or junction at a template path, where `Sys.readlink()` returns `""`, and trailing separators). — added 2026-10-18
 - shortcode edge cases: from the M004 review. `file` values are read as Markdown, so read the raw value or encode it (names with `%`, `#`, `--`, `_x_` break). A `data` map instead of a list renders nothing, and bare strings give `not found: ''`. A path outside the project or an absolute path renders but is not published. A `{{< meta >}}` value that names an existing path is rewritten on subfolder pages, and a description written as `../data` shows as `data` there. A fresh site has an empty paragraph under "Archived Version". `quarto-required: ">=1.4.0"` is untested below 1.10. From the M014 plan: the footer cannot see backslash escapes or HTML entities in a license id, or an unquoted number or `yes` in a license value (these render while `write_citation()` refuses them), and the badge reads `--`, `'`, or a non-breaking space in a DOI suffix after Markdown changes it, so these can still disagree with `write_citation()`. Narrowed 2026-10-19 by M014 (`supplement-license` now stops unless it has one argument, `code` or `content`). — added 2026-10-18
 - docs site and walkthrough: a package site built with the toolkit itself, plus a first-time guide to GitHub Pages and Zenodo. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review). — added 2026-10-18
-- paper figure files: the model reports write the paper figures with ggsave to `analyses/*.pdf` and `analyses/*.png`, which `.gitignore` blocks, so the site does not publish them. Decide if the template gives figures a tracked, published folder. From the M001 review. — added 2026-10-18 — started M017
 - Windows-safe names: from the M007 review. add_report() accepts names that Windows reserves, such as `con`, and add_data() accepts base names that end in `.`, which Windows strips. `is_link()` reads `Sys.readlink()`, which returns `""` for a junction, so a junction `data/` or `analyses/` is not refused (see "Windows check"). — added 2026-10-18
 - web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
 - stale stored output: `check_supplement()` finds reports with code but no stored output in `_freeze/`. Also find stored output that is older than its report source, from the source hash in each `execute-results/html.json`. From the M008 plan. — added 2026-10-18
