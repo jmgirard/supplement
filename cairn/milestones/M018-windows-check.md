@@ -1,13 +1,13 @@
 # M018: The package checks and template renders pass on Windows in CI
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — fixes how `create_supplement()`, `add_report()`, `add_data()`, and the data table shortcode behave for Windows users
-- **Branch/PR:** —
+- **Branch/PR:** m018-windows-check
 
 ## Goal
 
@@ -71,3 +71,4 @@
 - 2026-10-19: question set: Codecov coverage job — not now; new candidate row "coverage report".
 - 2026-10-19: plan gate chose GitHub Actions over a run by hand because this Mac cannot run Windows and the profile names check-standard; falsified by the Windows runner lacking a tool the tests need (Quarto, git) with no way to install it.
 - 2026-10-19: plan gate chose a block-counting fallback in `file_size()` over stopping the render with a "too large to measure" error, because the size stays exact and the slow path runs only where `seek` fails; falsified by a 4 GiB file taking more than a minute to count on the Windows runner.
+- 2026-10-19: implement started on branch m018-windows-check; added `.github/workflows/R-CMD-check.yaml`, the `^\.github$` build-ignore entry, and D-016; the skip list runs the tests a second time with `testthat::test_local()`, because R CMD check prints test output only on failure.
