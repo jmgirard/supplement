@@ -47,10 +47,13 @@ written in double quotes. The line must be a one-line \verb{version:} value
 directly under \verb{supplement:}, as in the template. When it is missing,
 add \code{version: ""} under \verb{supplement:} by hand.
 
-If writing \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json} stops,
-for example when \code{\link[=write_zenodo]{write_zenodo()}} finds no \code{citation}, the function puts
-back the old text of each of these files, removes each one that it made,
-and stops.
+Before it changes any file, the function stops when \code{CITATION.cff} or
+\code{.zenodo.json} is a link, because a write would go through the link, or
+is a file that it cannot read, because it could not put that file back.
+If writing \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json}, or
+printing the commands, stops, for example when \code{\link[=write_zenodo]{write_zenodo()}} finds no
+\code{citation}, the function puts back the old text of each of these files
+that changed, removes each one that it made, and stops.
 
 The printed commands, for version \code{X.Y.Z}, are \verb{git status},
 \verb{git add -A}, \verb{git commit -m "Release vX.Y.Z"}, \verb{git tag vX.Y.Z},
@@ -93,10 +96,15 @@ version, or the version in \code{bump} is not greater than it.
 \item \code{supplement_error_release_check}: \code{\link[=check_supplement]{check_supplement()}} found a problem
 other than a \code{"doi-mismatch"} problem for \code{CITATION.cff}, or it
 skipped its git checks.
+\item \code{supplement_error_file_exists}: \code{CITATION.cff} or \code{.zenodo.json} is a
+link.
+\item \code{supplement_error_write}: \code{CITATION.cff} or \code{.zenodo.json} cannot be
+read.
 \item \code{supplement_error_release_write}: a write of \verb{_supplement.yml},
-\code{CITATION.cff}, or \code{.zenodo.json} stopped, and the files got their old
-text back. If a file cannot be put back, the message names it. The
-error of the write is the \code{parent} of this error.
+\code{CITATION.cff}, or \code{.zenodo.json}, or the printing of the commands,
+stopped, and the files that changed got their old text back. If a file
+cannot be put back, the message names it. The error of the step is the
+\code{parent} of this error.
 }
 }
 

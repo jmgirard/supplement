@@ -6,6 +6,7 @@ full_supplement <- function() {
   list(
     "paper-title" = "Effects: a \"close\" look at *text* & more",
     citation = "Doe, J., & Müller, Ä. (2026). Effects. *Journal*.",
+    version = "1.10.0",
     preprint = "https://osf.io/abcde",
     contact = "Jane Doe, University A.",
     license = list(code = "MIT", content = "CC-BY-4.0"),

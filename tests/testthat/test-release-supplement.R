@@ -311,7 +311,10 @@ test_that("a file that cannot be put back is named in the error", {
   writeLines("old citation", file.path(dir, "CITATION.cff"))
   real_write_checked <- write_checked
   local_mocked_bindings(
-    write_utf8 = function(text, file) stop("disk full"),
+    write_utf8 = function(text, file, ...) {
+      writeLines("partial", file)
+      stop("disk full")
+    },
     write_checked = function(bytes, file, ...) {
       if (basename(file) == "CITATION.cff") stop("still full")
       real_write_checked(bytes, file, ...)
@@ -321,6 +324,133 @@ test_that("a file that cannot be put back is named in the error", {
   expect_match(conditionMessage(err), "CITATION\\.cff.? could not be put back")
   expect_no_match(conditionMessage(err), "got their old text back", fixed = TRUE)
   expect_identical(site_version(dir), "1.2.3")
+})
+
+test_that("a linked or unreadable output file is refused before any write", {
+  calls <- mock_check()
+  for (name in c("CITATION.cff", ".zenodo.json")) {
+    for (target in c("missing", "present")) {
+      dir <- release_site('  version: "1.2.3"')
+      outside <- withr::local_tempfile()
+      if (target == "present") writeLines("outside", outside)
+      skip_if_not(file.symlink(outside, file.path(dir, name)), "cannot make a link")
+      # folder_state() cannot read a link to a missing file, so compare the
+      # names, the links, and _supplement.yml.
+      state <- function() {
+        names <- list.files(dir, all.files = TRUE, no.. = TRUE)
+        list(names, Sys.readlink(file.path(dir, names)), read_bytes(file.path(dir, "_supplement.yml")))
+      }
+      before <- state()
+      expect_error(release("patch", path = dir), class = "supplement_error_file_exists")
+      expect_identical(state(), before)
+      expect_identical(file.exists(outside), target == "present")
+    }
+  }
+  expect_identical(calls$n, 0L)
+
+  skip_on_os("windows")
+  dir <- release_site('  version: "1.2.3"')
+  cff <- file.path(dir, "CITATION.cff")
+  writeLines("old", cff)
+  Sys.chmod(cff, "000")
+  withr::defer(Sys.chmod(cff, "644"))
+  skip_if(file.access(cff, 4) == 0, "the file can still be read, for example as root")
+  expect_error(release("patch", path = dir), class = "supplement_error_write")
+  expect_identical(site_version(dir), "1.2.3")
+  expect_identical(calls$n, 0L)
+})
+
+test_that("a write that only warns, as on a full disk, puts back the files", {
+  mock_check()
+  dir <- release_site('  version: "1.2.3"')
+  writeLines("old citation", file.path(dir, "CITATION.cff"))
+  before <- folder_state(dir)
+  # The first write is _supplement.yml. The second, CITATION.cff, writes
+  # part of its bytes and warns.
+  n <- 0L
+  local_mocked_bindings(write_bytes = function(bytes, con) {
+    n <<- n + 1L
+    if (n == 2L) {
+      writeBin(bytes[1:5], con)
+      warning("No space left on device")
+    } else {
+      writeBin(bytes, con)
+    }
+  })
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
+  expect_s3_class(err$parent, "supplement_error_write")
+  expect_identical(folder_state(dir), before)
+})
+
+test_that("a failure before any change does not report a file that could not be put back", {
+  skip_on_os("windows")
+  mock_check()
+  dir <- release_site('  version: "1.2.3"')
+  file <- file.path(dir, "_supplement.yml")
+  Sys.chmod(file, "444")
+  withr::defer(Sys.chmod(file, "644"))
+  skip_if(file.access(file, 2) == 0, "the file can still be written, for example as root")
+  before <- folder_state(dir)
+  err <- expect_error(suppressWarnings(release("patch", path = dir)), class = "supplement_error_release_write")
+  expect_match(conditionMessage(err), "got their old text back", fixed = TRUE)
+  expect_no_match(conditionMessage(err), "could not be put back", fixed = TRUE)
+  expect_identical(folder_state(dir), before)
+})
+
+test_that("an interrupt puts back the files, and a failed put-back is reported", {
+  mock_check()
+  interrupt <- function(...) signalCondition(structure(class = c("interrupt", "condition"), list()))
+  dir <- release_site('  version: "1.2.3"')
+  writeLines("old citation", file.path(dir, "CITATION.cff"))
+  before <- folder_state(dir)
+  local_mocked_bindings(write_zenodo = interrupt)
+  out <- tryCatch(release("patch", path = dir), interrupt = function(c) "interrupted")
+  expect_identical(out, "interrupted")
+  expect_identical(folder_state(dir), before)
+
+  real_write_checked <- write_checked
+  old <- charToRaw("old citation\n")
+  local_mocked_bindings(write_checked = function(bytes, file, ...) {
+    if (identical(bytes, old)) stop("still full")
+    real_write_checked(bytes, file, ...)
+  })
+  expect_warning(
+    tryCatch(release("patch", path = dir), interrupt = function(c) NULL),
+    "could not be put back"
+  )
+})
+
+test_that("a failure while printing the commands puts back the files", {
+  mock_check()
+  dir <- release_site('  version: "1.2.3"')
+  before <- folder_state(dir)
+  local_mocked_bindings(report_release = function(...) stop("console closed"))
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
+  expect_match(conditionMessage(err$parent), "console closed", fixed = TRUE)
+  expect_identical(folder_state(dir), before)
+})
+
+test_that("an empty current version is named as empty in the not-greater error", {
+  mock_check()
+  dir <- release_site()
+  err <- expect_error(release("0.0.0", path = dir), class = "supplement_error_version")
+  expect_match(conditionMessage(err), "empty, which counts as 0.0.0", fixed = TRUE)
+})
+
+test_that("the CITATION.cff DOI row that check_supplement() makes is the one the release lets through", {
+  dir <- release_site('  version: "1.2.3"')
+  file <- file.path(dir, "_supplement.yml")
+  writeLines(sub('concept-doi: ""', 'concept-doi: "10.5281/zenodo.1"', readLines(file)), file)
+  writeLines(c("cff-version: 1.2.0", "doi: 10.5281/zenodo.9"), file.path(dir, "CITATION.cff"))
+  rows <- check_dois(dir, read_supplement(dir))
+  expect_identical(rows$check, "doi-mismatch")
+  expect_identical(rows$file, "CITATION.cff")
+  attr(rows, "skipped") <- character()
+  expect_no_error(check_release_problems(rows))
+
+  # A badge row from the same check still stops the release.
+  rows$file <- "docs/index.html"
+  expect_error(check_release_problems(rows), class = "supplement_error_release_check")
 })
 
 test_that("an empty citation, which stops write_zenodo(), puts back the files", {
@@ -364,7 +494,7 @@ test_that("the release commands are printed and returned", {
 test_that("release_supplement() starts no process of its own", {
   source <- test_path("..", "..", "R", "release-supplement.R")
   skip_if_not(file.exists(source), "the package source is not here")
-  rx <- "\\b(git_run|git_files|system2?|processx|callr|shell)\\s*(::|\\()"
+  rx <- "\\b(git_run|git_files|system2?|processx|callr|shell|pipe)\\s*(::|\\()"
   lines <- readLines(source)
   expect_gt(length(lines), 0)
   expect_false(any(grepl(rx, lines, perl = TRUE)))

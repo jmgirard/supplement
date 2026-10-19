@@ -18,6 +18,7 @@ test_that("write_citation() writes every field of a full _supplement.yml", {
   expect_equal(cff, list(
     "cff-version" = "1.2.0",
     title = title,
+    version = "1.10.0",
     authors = list(
       list(
         "family-names" = "Doe",
@@ -44,6 +45,7 @@ test_that("write_zenodo() writes every field of a full _supplement.yml", {
   expect_equal(out, file.path(dir, ".zenodo.json"))
   expect_equal(read_zenodo(dir), list(
     title = title,
+    version = "1.10.0",
     upload_type = "software",
     description = "Supplemental materials for: Doe, J., & Müller, Ä. (2026). Effects. *Journal*.",
     creators = list(
@@ -241,6 +243,7 @@ test_that("a hand-written _supplement.yml gives the same files as the R-written 
     "supplement:",
     "  paper-title: 'Effects: a \"close\" look at *text* & more'",
     "  citation: \"Doe, J., & Müller, Ä. (2026). Effects. *Journal*.\"",
+    "  version: '1.10.0'",
     "  preprint: https://osf.io/abcde",
     "  contact: Jane Doe, University A.",
     "  license: {code: MIT, content: CC-BY-4.0}",

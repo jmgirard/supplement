@@ -29,10 +29,13 @@
 #' directly under `supplement:`, as in the template. When it is missing,
 #' add `version: ""` under `supplement:` by hand.
 #'
-#' If writing `_supplement.yml`, `CITATION.cff`, or `.zenodo.json` stops,
-#' for example when [write_zenodo()] finds no `citation`, the function puts
-#' back the old text of each of these files, removes each one that it made,
-#' and stops.
+#' Before it changes any file, the function stops when `CITATION.cff` or
+#' `.zenodo.json` is a link, because a write would go through the link, or
+#' is a file that it cannot read, because it could not put that file back.
+#' If writing `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`, or
+#' printing the commands, stops, for example when [write_zenodo()] finds no
+#' `citation`, the function puts back the old text of each of these files
+#' that changed, removes each one that it made, and stops.
 #'
 #' The printed commands, for version `X.Y.Z`, are `git status`,
 #' `git add -A`, `git commit -m "Release vX.Y.Z"`, `git tag vX.Y.Z`,
@@ -80,10 +83,15 @@
 #' * `supplement_error_release_check`: [check_supplement()] found a problem
 #'   other than a `"doi-mismatch"` problem for `CITATION.cff`, or it
 #'   skipped its git checks.
+#' * `supplement_error_file_exists`: `CITATION.cff` or `.zenodo.json` is a
+#'   link.
+#' * `supplement_error_write`: `CITATION.cff` or `.zenodo.json` cannot be
+#'   read.
 #' * `supplement_error_release_write`: a write of `_supplement.yml`,
-#'   `CITATION.cff`, or `.zenodo.json` stopped, and the files got their old
-#'   text back. If a file cannot be put back, the message names it. The
-#'   error of the write is the `parent` of this error.
+#'   `CITATION.cff`, or `.zenodo.json`, or the printing of the commands,
+#'   stopped, and the files that changed got their old text back. If a file
+#'   cannot be put back, the message names it. The error of the step is the
+#'   `parent` of this error.
 #'
 #' @seealso [check_supplement()] for the checks, and [write_citation()] and
 #'   [write_zenodo()] for the files that the release writes again.
@@ -102,7 +110,7 @@ release_supplement <- function(bump, path = ".") {
   path <- drop_trailing_sep(path)
   meta <- read_supplement(path)
   current <- read_version(meta)
-  new <- next_version(current %||% "0.0.0", bump)
+  new <- next_version(current, bump)
 
   file <- file.path(path, "_supplement.yml")
   read <- read_text_lines(file)
@@ -126,13 +134,53 @@ release_supplement <- function(bump, path = ".") {
     )
   }
 
+  outputs <- file.path(path, c("CITATION.cff", ".zenodo.json"))
+  old <- read_outputs(outputs)
+
   problems <- check_supplement(path)
   check_release_problems(problems)
 
-  write_release_files(path, read, lines, file)
   commands <- release_commands(new)
-  report_release(path, new, commands)
+  write_release_files(read, lines, file, outputs, old, report = function() {
+    report_release(path, new, commands)
+  })
   invisible(commands)
+}
+
+# The bytes of each output file, or NULL for a file that does not exist.
+# A link, or a file that cannot be read, stops before any write: the
+# release would write through the link, maybe outside the site, and could
+# not put back a file that it cannot read.
+read_outputs <- function(outputs, call = parent.frame()) {
+  lapply(outputs, function(output) {
+    if (is_link(output)) {
+      cli::cli_abort(
+        c("{.file {basename(output)}} is a link, so nothing was changed.",
+          "i" = "Replace the link with the file itself, or remove it, and run this function again."),
+        class = c("supplement_error_file_exists", "supplement_error"),
+        call = call
+      )
+    }
+    if (!file.exists(output) || dir.exists(output)) {
+      return(NULL)
+    }
+    bytes <- read_bytes_or_null(output)
+    if (is.null(bytes)) {
+      cli::cli_abort(
+        "Could not read {.file {basename(output)}}, so nothing was changed.",
+        class = c("supplement_error_write", "supplement_error"),
+        call = call
+      )
+    }
+    bytes
+  })
+}
+
+read_bytes_or_null <- function(file) {
+  tryCatch(
+    suppressWarnings(readBin(file, "raw", file.size(file))),
+    error = function(e) NULL
+  )
 }
 
 check_bump <- function(bump, call = parent.frame()) {
@@ -152,6 +200,8 @@ check_bump <- function(bump, call = parent.frame()) {
 # The version after `current` for `bump`, a word or a version. A version
 # that is not greater than `current` is an error.
 next_version <- function(current, bump, call = parent.frame()) {
+  shown <- if (is.null(current)) "empty, which counts as 0.0.0" else current
+  current <- current %||% "0.0.0"
   parts <- strsplit(current, ".", fixed = TRUE)[[1]]
   if (bump %in% c("patch", "minor", "major")) {
     i <- match(bump, c("major", "minor", "patch"))
@@ -161,7 +211,7 @@ next_version <- function(current, bump, call = parent.frame()) {
   }
   if (compare_versions(bump, current) <= 0) {
     cli::cli_abort(
-      c("The new version {.val {bump}} is not greater than the current version {.val {current}}, so nothing was changed.",
+      c("The new version {.val {bump}} is not greater than the current version ({shown}), so nothing was changed.",
         "i" = "Give a greater version, or {.val patch}, {.val minor}, or {.val major}."),
       class = c("supplement_error_version", "supplement_error"),
       call = call
@@ -230,44 +280,59 @@ check_release_problems <- function(problems, call = parent.frame()) {
   )
 }
 
-# Write `lines` to `_supplement.yml`, then CITATION.cff and .zenodo.json.
-# When any write stops, or the function is interrupted, each of the three
-# files gets its old bytes back, and each file that did not exist before is
-# removed.
-write_release_files <- function(path, read, lines, file, call = parent.frame()) {
-  outputs <- file.path(path, c("CITATION.cff", ".zenodo.json"))
-  old <- lapply(outputs, function(output) {
-    if (file.exists(output) && !dir.exists(output)) readBin(output, "raw", file.size(output))
-  })
-  existed <- path_occupied(outputs)
-  # The files that could not be put back, or an empty vector.
+# Write `lines` to `_supplement.yml`, then CITATION.cff and .zenodo.json,
+# then call `report()`. `old` holds the bytes of each output before the
+# release, or NULL for an output that did not exist, from read_outputs().
+# When any of these steps stops, or the function is interrupted, each file
+# whose bytes changed gets its old bytes back, and each file that did not
+# exist before is removed. A file that is as it was is not written again.
+write_release_files <- function(read, lines, file, outputs, old, report, call = parent.frame()) {
+  path <- dirname(file)
+  files <- c(file, outputs)
+  before <- c(list(read$bytes), old)
+  # The names of the files that could not be put back, or an empty vector.
   restore <- function() {
     failed <- character()
-    put_back <- function(bytes, target) {
+    for (i in seq_along(files)) {
+      target <- files[i]
+      if (is.null(before[[i]])) {
+        if (path_occupied(target) && !dir.exists(target)) {
+          unlink(target)
+          if (path_occupied(target)) failed <- c(failed, basename(target))
+        }
+        next
+      }
+      now <- if (file.exists(target) && !dir.exists(target)) read_bytes_or_null(target)
+      if (identical(now, before[[i]])) {
+        next
+      }
       ok <- tryCatch({
-        write_checked(bytes, target)
+        write_checked(before[[i]], target)
         TRUE
       }, error = function(e) FALSE)
-      if (!ok) failed <<- c(failed, basename(target))
-    }
-    put_back(read$bytes, file)
-    for (i in seq_along(outputs)) {
-      if (!is.null(old[[i]])) {
-        put_back(old[[i]], outputs[i])
-      } else if (!existed[i] && path_occupied(outputs[i]) && !dir.exists(outputs[i])) {
-        unlink(outputs[i])
-        if (path_occupied(outputs[i])) failed <- c(failed, basename(outputs[i]))
-      }
+      if (!ok) failed <- c(failed, basename(target))
     }
     failed
   }
   done <- FALSE
-  on.exit(if (!done) restore(), add = TRUE)
+  on.exit(
+    if (!done) {
+      failed <- restore()
+      if (length(failed) > 0) {
+        cli::cli_warn(c(
+          "The release was interrupted, and {.file {failed}} could not be put back.",
+          "!" = "Check {.file {failed}} by hand, for example with {.code git diff}."
+        ))
+      }
+    },
+    add = TRUE
+  )
   tryCatch(
     {
       write_text_lines(read, lines, file)
       write_citation(path, overwrite = TRUE)
       write_zenodo(path, overwrite = TRUE)
+      report()
     },
     error = function(e) {
       failed <- restore()

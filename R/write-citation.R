@@ -62,6 +62,9 @@
 #' * `supplement_error_file_exists`: the output file (or a link with its
 #'   name) exists and `overwrite` is `FALSE`, or a folder has the output
 #'   file's name.
+#' * `supplement_error_write`: the output file was opened, but writing it
+#'   gave an error or a warning (R warns when the disk is full), or the
+#'   file then has another size than the text.
 #'
 #' @seealso [write_zenodo()] for `.zenodo.json`.
 #' @export

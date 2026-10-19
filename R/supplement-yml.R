@@ -270,10 +270,12 @@ compact <- function(x) {
   x[!vapply(x, is.null, logical(1))]
 }
 
-write_utf8 <- function(text, file) {
-  con <- file(file, open = "wb")
-  on.exit(close(con))
-  writeLines(enc2utf8(text), con, useBytes = TRUE)
+# Write each line of `text` with "\n" after it. write_checked() stops with
+# `supplement_error_write` on a warning (R only warns when the disk is
+# full) or a file of another size.
+write_utf8 <- function(text, file, call = parent.frame()) {
+  bytes <- charToRaw(paste0(paste(enc2utf8(text), collapse = "\n"), "\n"))
+  write_checked(bytes, file, call = call)
 }
 
 # The site version in `supplement.version`, or NULL when it is empty. A

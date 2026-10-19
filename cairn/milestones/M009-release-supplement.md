@@ -38,8 +38,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - AC2 → T3, T4
 - AC3 → T3, T4, T6
 - AC4 → T2, T3, T4
-- AC5 → T3, T4
-- AC6 → T3, T4
+- AC5 → T3, T4, T7
+- AC6 → T3, T4, T7
 - AC7 → T5
 
 ## Tasks
@@ -49,6 +49,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - [x] T3: Write `tests/testthat/test-release-supplement.R` for AC2 to AC6. Mock `check_supplement()`, so the tests need no render, and add one test that searches `R/release-supplement.R` for the git helper's name.
 - [x] T4: Write `R/release-supplement.R`. Check `bump`, `_supplement.yml`, and the `version:` line before `check_supplement()` runs, and reuse `write_checked()` from `R/yaml-insert.R` for the restore.
 - [x] T5: Add roxygen documentation and run `devtools::document()`. Describe the function and the field in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
+- [x] T7: Fix review return 2: refuse a linked or unreadable `CITATION.cff` or `.zenodo.json` before any write, restore only the files that differ from their old bytes, report a failed put-back after an interrupt, keep the printing inside the restore guard, make `write_utf8()` stop on a warning or a short write, word the not-greater message for an empty version, and add tests for each, the real check's exempt row, `pipe(`, and `version` in `full_supplement()`.
 - [x] T6: Make the `supplement_error_release_check` message give the number of problems also when only the git checks were skipped, and test it (review return 1).
 
 ## Work log
@@ -79,6 +80,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: T6 done: the release-check message always opens with the number of problems ("found 0 problems …" when only the git checks were skipped); the skipped-checks test now asserts the number in both cases; 1680 tests pass; status review.
 - 2026-10-18: claim audit: 3 claims read, 0 corrected — R/release-supplement.R, tests/testthat/test-release-supplement.R (the T6 diff, same reader); its note that the hint "Fix the problems that check_supplement() printed" is wrong when only checks were skipped led to "Fix what check_supplement() printed".
 - 2026-10-18: review return 2: AC5 fails as written: a dangling-link `CITATION.cff` gets a target file outside the site that a failed release does not remove (diff-bug #1), and a failure while printing the commands is not rolled back (diff-bug #11); the return also carries the fix-now findings diff-bug #2, #3, #4, #6, #9, #12, and blame-history #1 (Review section).
+- 2026-10-18: implement resumed for review return 2; added T7 (minor amendment) and mapped AC5 and AC6 to it.
+- 2026-10-18: T7 done: `read_outputs()` refuses a linked output (`supplement_error_file_exists`) or an unreadable one (`supplement_error_write`) before `check_supplement()` runs; `restore()` writes back only files whose bytes differ and removes only files it made; an interrupt with a failed put-back warns; `report_release()` runs inside the guard; `write_utf8()` writes through `write_checked()`; the not-greater message names an empty version; `full_supplement()` has `version`; planted defects for each fix turn tests red; 1715 tests pass.
 
 ## Review
 
