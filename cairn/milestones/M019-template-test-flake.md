@@ -1,6 +1,6 @@
 # M019: A failing template test prints the cause of the failure
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -47,7 +47,7 @@ A failing template test prints the output of the command it checked, and a cause
 - [x] T3: Replace the three output-length checks with a check that shows the printed lines (for example `expect_identical(x$output, character())`), and add the AC3 test.
 - [x] T4: Repeat runs with the new diagnostics: `testthat::test_file("tests/testthat/test-template.R")` 30 times and `devtools::test()` 10 times on the local Mac, and start the check workflow on main 3 times with `gh workflow run R-CMD-check.yaml --ref main`, watched in the background. Write one work-log line with the pass and fail counts, and quote each failure's output in its own line.
 - [x] T5: If a run failed: name the cause from its output. For a cause in this repo, write the test that fails on it, fix it, and add the NEWS.md entry if `inst/template/` changes. For a cause outside the repo, write it with the output into the candidate row "template test flake".
-- [ ] T6: Run `devtools::test()` and `devtools::check()`, and update the candidate row "template test flake" with the run counts (the review's post-merge hygiene graduates or narrows it).
+- [x] T6: Run `devtools::test()` and `devtools::check()`, and update the candidate row "template test flake" with the run counts (the review's post-merge hygiene graduates or narrows it).
 
 ## Work log
 
@@ -69,6 +69,9 @@ A failing template test prints the output of the command it checked, and a cause
 - 2026-10-19: T4: ran `devtools::test(filter = "template")` (same file and helpers as `test_file()`) 30 times: 30 passed. `devtools::test()` 10 times: 9 passed, run 5 failed 3 expectations. Check workflow on main 3 times (runs 39326501344, 39326509103, 39326517070, 46a49bf): 9 of 9 jobs passed.
 - 2026-10-19: T4 failure, full run 5, test "the example report saves a figure that the next full render publishes": the full `quarto render` after the render by name "exited with status 1; expected exit status 0. It printed: Running script '_scripts/setup.ts'" (nothing else); the two figure checks then failed for `docs/figures/bootstrap-means.png`. Same shape as the M017 failure (`quarto render` exited 1).
 - 2026-10-19: T5: Quarto 1.10.19's `runScripts()` throws `new Error()` with no message when a project script fails, and logs the exit code only at debug level. A `setup.ts` that calls `Deno.exit(1)` gives the same bare output; one that throws prints "error: Uncaught (in promise) Error: boom", so the failed run's Deno process ended without output. 1,000 debug-logged full renders of one site and 400 runs of the failed test's sequence (new site, render by name, full render; 800 renders) all exited 0. The output names no cause in this repo, so AC4's fix branch does not apply; no template change and no NEWS entry. The candidate row "template test flake" now holds the output, the counts, and the next step (`QUARTO_LOG_LEVEL=DEBUG` over the full suite).
+- 2026-10-19: T6: `devtools::test()` 250 tests, 0 failed, 0 errors, 5 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes; `devtools::document()` no diff. The candidate row's run counts were written in T5.
+- 2026-10-19: claim audit: 10 claims read, 1 corrected — tests/testthat/helper-template.R, tests/testthat/test-template.R (the "Each passes when the result matches." comment also covered an `expect_failure()` line; that line moved under its own comment). Template tests pass after the fix.
+- 2026-10-19: status review.
 
 ## Decisions
 

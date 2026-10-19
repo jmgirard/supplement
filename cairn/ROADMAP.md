@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-19 (M018 review: graduated Windows check, narrowed 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M019 | A failing template test prints the cause of the failure | in-progress | — | high | milestones/M019-template-test-flake.md |
+| M019 | A failing template test prints the cause of the failure | review | — | high | milestones/M019-template-test-flake.md |
 | M018 | The package checks and template renders pass on Windows in CI | done | — | high | milestones/archive/M018-windows-check.md |
 | M017 | The template publishes paper figures from a figures folder | done | — | normal | milestones/archive/M017-paper-figures.md |
 | M016 | A site YAML file with a syntax error gives a supplement error | done | — | normal | milestones/archive/M016-yaml-parse-errors.md |

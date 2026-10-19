@@ -10,10 +10,11 @@ test_that("a failed status check shows what the command printed", {
   # Exit status 1 and no output expected.
   expect_failure(expect_status(printed, 1L, output = character()), "on-stdout")
   expect_failure(expect_status(printed, 1L, output = character()), "on-stderr")
+  # A status other than 0 expected, but the command exited 0.
+  expect_failure(expect_command_fails(list(status = 0L, output = "on-stdout")), "on-stdout")
   # Each passes when the result matches.
   expect_success(expect_status(printed, 1L))
   expect_success(expect_command_fails(printed))
-  expect_failure(expect_command_fails(list(status = 0L, output = "on-stdout")), "on-stdout")
 })
 
 test_that("a check for no output shows the lines the command printed", {
