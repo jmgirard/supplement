@@ -151,15 +151,19 @@ yaml_appended <- function(old, new, path, item) {
 }
 
 # The lines read with the yaml package, or NULL when they are not valid
-# YAML. Every sequence is read as a list, as read_supplement() does.
+# YAML.
 yaml_read_lines <- function(lines) {
+  tryCatch(yaml_parse_lines(lines), error = function(e) NULL)
+}
+
+# The lines read with the yaml package. Text that is not valid YAML gives
+# the parser's error. Every sequence is read as a list, as
+# read_supplement() does.
+yaml_parse_lines <- function(lines) {
   # End the text with a line break either way, so that a block scalar at
   # the end of the file reads the same before and after an insert.
   text <- paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
-  tryCatch(
-    yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x))),
-    error = function(e) NULL
-  )
+  yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)))
 }
 
 # `lines` with the value of the key that `path`, a vector of map keys,

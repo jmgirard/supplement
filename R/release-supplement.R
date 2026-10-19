@@ -134,12 +134,14 @@ release_supplement <- function(bump, path = ".") {
   attributes(bump) <- NULL
   check_path(path)
   path <- drop_trailing_sep(path)
-  meta <- read_supplement(path)
+  # One read gives the current version, the lines that change, and the
+  # text of both outputs, so that all of them come from the same bytes.
+  file <- supplement_file(path)
+  read <- read_text_lines(file)
+  meta <- supplement_map(yaml_parse_lines(read$lines))
   current <- read_version(meta)
   new <- next_version(current, bump)
 
-  file <- file.path(path, "_supplement.yml")
-  read <- read_text_lines(file)
   version_path <- c("supplement", "version")
   lines <- yaml_replace_lines(read$lines, version_path, new)
   hand <- sprintf("version: %s", yaml_quote(current %||% ""))
@@ -159,6 +161,11 @@ release_supplement <- function(bump, path = ".") {
       class = "supplement_error_yaml"
     )
   }
+  # Build both outputs from the changed lines before any check reads the
+  # outputs or the site, so that a value that the writers refuse stops
+  # the release before it writes a file.
+  released <- supplement_map(yaml_parse_lines(lines))
+  texts <- list(citation_text(released), zenodo_text(released))
 
   outputs <- file.path(path, c("CITATION.cff", ".zenodo.json"))
   old <- read_outputs(outputs)

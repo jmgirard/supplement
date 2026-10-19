@@ -549,19 +549,68 @@ test_that("the CITATION.cff DOI row that check_supplement() makes is the one the
   expect_error(check_release_problems(rows), class = "supplement_error_release_check")
 })
 
-test_that("an empty citation, which stops write_zenodo(), puts back the files", {
-  mock_check()
-  dir <- release_site('  version: "1.2.3"')
-  file <- file.path(dir, "_supplement.yml")
-  lines <- readLines(file)
-  lines <- sub("^  citation: .*$", '  citation: ""', lines)
-  writeLines(lines, file)
-  writeLines("old citation", file.path(dir, "CITATION.cff"))
-  before <- folder_state(dir)
+# Value checks before any write -----------------------------------------------
 
-  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
-  expect_s3_class(err$parent, "supplement_error_missing_field")
-  expect_identical(folder_state(dir), before)
+# A release site with version "1.2.3" whose first line of _supplement.yml
+# that matches `pattern` is replaced by `replacement`. It writes "\n" line
+# endings on every system, so that only that line changes.
+value_site <- function(pattern, replacement, env = parent.frame()) {
+  dir <- release_site('  version: "1.2.3"', env = env)
+  file <- file.path(dir, "_supplement.yml")
+  lines <- readLines(file, encoding = "UTF-8")
+  i <- grep(pattern, lines)[1]
+  stopifnot(!is.na(i))
+  lines[i] <- sub(pattern, replacement, lines[i])
+  writeBin(charToRaw(enc2utf8(paste0(paste(lines, collapse = "\n"), "\n"))), file)
+  dir
+}
+
+# Values that stop write_citation() or write_zenodo(), with the class of
+# the error.
+bad_values <- list(
+  list(pattern = "^  citation: .*$", replacement = '  citation: ""',
+       class = "supplement_error_missing_field"),
+  list(pattern = '^    concept-doi: ""$', replacement = '    concept-doi: "not a doi"',
+       class = "supplement_error_doi"),
+  list(pattern = '^    content: "CC-BY-4.0"$', replacement = '    content: "CC BY 4.0"',
+       class = "supplement_error_license"),
+  # The check digit of the example iD 0000-0002-1825-0097 is 7.
+  list(pattern = '^      orcid: ""$', replacement = '      orcid: "0000-0002-1825-0098"',
+       class = "supplement_error_orcid"),
+  list(pattern = '^    - family: "Author"$', replacement = '    - family: ""',
+       class = "supplement_error_author_name")
+)
+
+test_that("a value that stops a writer stops the release before the check and before any write", {
+  for (bad in bad_values) {
+    calls <- mock_check()
+    dir <- value_site(bad$pattern, bad$replacement)
+    writeLines("old citation", file.path(dir, "CITATION.cff"))
+    before <- folder_state(dir)
+    err <- expect_error(release("patch", path = dir), class = bad$class)
+    expect_false(inherits(err, "supplement_error_release_write"), label = bad$class)
+    expect_identical(calls$n, 0L, label = bad$class)
+    expect_identical(folder_state(dir), before, label = bad$class)
+  }
+})
+
+test_that("an error from a value check names release_supplement()", {
+  mock_check()
+  dir <- value_site("^  paper-title: .*$", '  paper-title: ""')
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_missing_field")
+  expect_identical(err$call[[1]], quote(release_supplement))
+})
+
+test_that("a value error comes before the refusal of a linked output", {
+  calls <- mock_check()
+  dir <- value_site("^  citation: .*$", '  citation: ""')
+  outside <- withr::local_tempfile(lines = "outside")
+  skip_if_not(file.symlink(outside, file.path(dir, "CITATION.cff")), "cannot make a link")
+  before <- list(Sys.readlink(file.path(dir, "CITATION.cff")), read_bytes(file.path(dir, "_supplement.yml")))
+  expect_error(release("patch", path = dir), class = "supplement_error_missing_field")
+  expect_identical(list(Sys.readlink(file.path(dir, "CITATION.cff")), read_bytes(file.path(dir, "_supplement.yml"))), before)
+  expect_identical(readLines(outside), "outside")
+  expect_identical(calls$n, 0L)
 })
 
 # Changes during the check ------------------------------------------------
