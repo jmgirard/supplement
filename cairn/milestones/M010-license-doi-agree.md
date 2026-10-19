@@ -74,6 +74,7 @@ The page footer, the DOI badge, and the two citation files agree with the licens
 - 2026-10-18: T5 done. Three NEWS.md bullets, and DESIGN.md Architecture names the license shortcode, the badge prefix, and `license_id()`. The re-read found two more `_README.md` DOI passages that said to write a DOI without the prefix, and both now say it is removed (minor, inside AC5's intent). `devtools::document()` no diff, `devtools::test()` clean.
 - 2026-10-18: claim audit: 50 claims read, 2 corrected — NEWS.md (the badge bullet now names every prefix removed, and the license bullet says `write_zenodo()` checks only `license.content`). The same reader re-read both and found them true.
 - 2026-10-18: all tasks done, status set to review.
+- 2026-10-18: step-7 approval: m010-license-doi-agree approved for merge
 
 ## Decisions
 
