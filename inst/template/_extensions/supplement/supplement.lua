@@ -1,14 +1,20 @@
 -- Shortcodes that read the `supplement` map from _supplement.yml.
 
--- The text of the value at `supplement.<keys...>`, or "" when it is unset.
-local function value(meta, ...)
+-- The node at `supplement.<keys...>`, or nil when it is unset.
+local function node_at(meta, ...)
   local node = meta["supplement"]
   for _, key in ipairs({ ... }) do
     if type(node) ~= "table" then
-      return ""
+      return nil
     end
     node = node[key]
   end
+  return node
+end
+
+-- The text of the value at `supplement.<keys...>`, or "" when it is unset.
+local function value(meta, ...)
+  local node = node_at(meta, ...)
   if node == nil then
     return ""
   end
@@ -153,15 +159,67 @@ local license_names = {
   ["cc0-1.0"] = "CC0 1.0",
 }
 
+-- TRUE for the shape of an SPDX short identifier: letters or digits, then
+-- groups of one "." or "-" and more letters or digits, and at most one "+"
+-- at the end. This is the rule of license_id() in R/supplement-yml.R.
+local function is_license_id(id)
+  local body = id:match("^(.*)%+$") or id
+  return body:match("^[A-Za-z0-9.-]+$") ~= nil
+    and body:match("^[.-]") == nil
+    and body:match("[.-]$") == nil
+    and body:find("[.-][.-]") == nil
+end
+
+-- The text of a metadata value that must be one plain word, such as a
+-- license id: "" for an unset or empty value or an empty list or map, and
+-- nil for any other value that is not a single run of text. Quarto reads
+-- metadata as Markdown, so `CC BY 4.0`, `*MIT*`, and `` `MIT` `` arrive
+-- as several elements or as a format, and a list, a map, or `true` arrives
+-- as a Lua table or value.
+local function plain_text(node)
+  if node == nil then
+    return ""
+  end
+  local kind = pandoc.utils.type(node)
+  if kind == "Inlines" then
+    if #node == 0 then
+      return ""
+    elseif #node == 1 and node[1].t == "Str" then
+      return node[1].text
+    end
+    return nil
+  elseif (kind == "List" or kind == "table") and next(node) == nil then
+    return ""
+  end
+  return nil
+end
+
 -- `{{< supplement-license code >}}` or `{{< supplement-license content >}}`
 -- shows the license in `supplement.license.code` or
 -- `supplement.license.content`: the readable name of a listed id, any other
--- id as written, and nothing for an empty value.
+-- id as written, and nothing for an empty value. A value that
+-- supplement::write_citation() refuses stops the render, so the footer
+-- never shows a license that CITATION.cff does not hold.
 local function license(args, kwargs, meta)
-  local key = args[1] and pandoc.utils.stringify(args[1]) or ""
-  local id = as_written(value(meta, "license", key), quarto.project.offset or ".")
+  local key = #args == 1 and pandoc.utils.stringify(args[1]) or ""
+  if key ~= "code" and key ~= "content" then
+    stop("supplement-license: give one argument, code or content, as in {{< supplement-license code >}}")
+  end
+  local field = "supplement.license." .. key
+  local text = plain_text(node_at(meta, "license", key))
+  if text == nil then
+    stop("supplement-license: " .. field .. " in _supplement.yml must be one SPDX license id, such as \"CC-BY-4.0\","
+      .. " in quotes. It is a list, a map, true or false, or text with spaces or Markdown: '"
+      .. pandoc.utils.stringify(node_at(meta, "license", key)) .. "'")
+  end
+  local id = as_written(text, quarto.project.offset or ".")
   if id == "" then
     return pandoc.Inlines({})
+  end
+  if not is_license_id(id) then
+    stop("supplement-license: " .. field .. " in _supplement.yml is not an SPDX license id: '" .. id .. "'."
+      .. " Write letters and digits, with one . or - between groups and at most one + at the end, such as CC-BY-4.0."
+      .. " Quarto reads -- as a dash and ... as one character.")
   end
   return pandoc.Inlines(license_names[id:lower()] or id)
 end

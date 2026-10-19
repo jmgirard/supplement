@@ -45,7 +45,7 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 ## Tasks
 
 - [x] T1: In `R/supplement-yml.R` (`license_id()`, about line 255), narrow the regex to the AC2 rule and update its error hint. In `citation_text()` (`R/write-citation.R`, about lines 115-121), drop a content id that equals the code id ignoring letter case. Add R tests for the narrowed shapes and the single entry.
-- [ ] T2: In `supplement.lua`, make `supplement-license` check its arguments (AC6), refuse a non-empty list or map, accept only one plain-text element, and apply the AC2 rule, stopping with `stop()` and the field name. Add the AC1 and AC6 render tests.
+- [x] T2: In `supplement.lua`, make `supplement-license` check its arguments (AC6), refuse a non-empty list or map, accept only one plain-text element, and apply the AC2 rule, stopping with `stop()` and the field name. Add the AC1 and AC6 render tests.
 - [ ] T3: In `supplement.lua`, make `supplement-doi` check both DOI fields: refuse a non-empty list or map, and after `bare_doi()` refuse a non-empty value that is not `10.`, four to nine digits, `/`, and a suffix with no spaces. Add render tests for `doi:` alone and a bad value in the field the badge does not show.
 - [ ] T4: Add the two agreement tables of AC2 and AC3. Each runs every shape in each field through `write_citation()` on a full fixture and through a render, and checks that both sides accept or both refuse, with the error class and field named.
 - [ ] T5: Make `supplement-license` return the name as a link to the SPDX page, with the SPDX spelling for the eight listed ids. Change the footer in `inst/template/_quarto.yml` to `Code: {{< supplement-license code >}} · Content: {{< supplement-license content >}}`. Replace the footer test at `tests/testthat/test-shortcodes.R:294-314`, and confirm that the `OWNER/REPO` test in `test-create-supplement.R` still passes.
@@ -67,6 +67,8 @@ For the license and DOI values that the tests list, the page footer and the DOI 
 - 2026-10-18: plan chose accepting only one plain-text element in Lua over undoing Markdown in Lua, because escapes and entities leave no trace in the parsed value; falsified by a pandoc or Quarto API that gives Lua the raw metadata text.
 - 2026-10-18: implement started; branch m014-footer-badge-agree cut from main at 51d575e.
 - 2026-10-18: T1 done: `license_id()` uses the AC2 rule, `citation_text()` drops a later id equal ignoring case; six new refused shapes and three real SPDX ids in the tests; the new tests failed before the fix; `devtools::test()` clean.
+- 2026-10-18: implementation choice: a probe render showed Lua gets one `Str` for a plain id, `Space`, `Emph`, or `Code` elements for spaces and Markdown, a `List` or plain table for a list or map, and a boolean for `true`; `plain_text()` accepts only an empty value or one `Str`, so `true` also stops, as `write_citation()` refuses it.
+- 2026-10-18: T2 done: `supplement-license` checks its argument, the value's type, and the AC2 rule, and stops with `stop()`; `node_at()` now serves `value()`. The AC1 and AC6 tests failed against main's Lua (copied over the working file, then restored) and pass now; `devtools::test()` clean.
 
 ## Decisions
 

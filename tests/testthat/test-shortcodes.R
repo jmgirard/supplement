@@ -119,6 +119,61 @@ test_that("the license shortcode shows nothing for an empty value or no license 
   absent <- render_license_page('paper-title: "A title"')
   expect_equal(absent$status, 0L, info = absent$stderr)
   expect_equal(between_markers(absent$html), "BEFORE MID AFTER")
+
+  # An empty list or map is empty, as it is for write_citation().
+  for (empty_value in c("[]", "{}")) {
+    page <- render_license_page(c("license:", paste("  code:", empty_value), paste("  content:", empty_value)))
+    expect_equal(page$status, 0L, info = paste(empty_value, page$stderr))
+    expect_equal(between_markers(page$html), "BEFORE MID AFTER", info = empty_value)
+  }
+})
+
+# A license map with `value`, a line of YAML, in `field`, and MIT in the
+# other field.
+license_field_yaml <- function(field, value) {
+  other <- setdiff(c("code", "content"), field)
+  c("license:", paste0("  ", field, ": ", value), paste0("  ", other, ': "MIT"'))
+}
+
+# The render stopped with a message from the license shortcode that names
+# `text`.
+expect_license_stop <- function(page, text, info) {
+  expect_false(page$status == 0L, info = info)
+  expect_match(page$stderr, "supplement-license:", fixed = TRUE, info = info)
+  expect_match(page$stderr, text, fixed = TRUE, info = info)
+}
+
+test_that("a license value that is not one SPDX id stops the render and names the field", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  shapes <- c(
+    "a list of two ids" = "[MIT, Apache-2.0]",
+    "a map" = "{name: MIT}",
+    "a space" = '"CC BY 4.0"',
+    "two hyphens" = '"GPL--3.0"',
+    "three dots" = '"MIT..."',
+    "Markdown emphasis" = '"*MIT*"',
+    "a code span" = '"`MIT`"'
+  )
+  for (field in c("code", "content")) {
+    for (shape in names(shapes)) {
+      info <- paste(field, shape)
+      page <- render_license_page(license_field_yaml(field, shapes[[shape]]))
+      expect_license_stop(page, paste0("supplement.license.", field, " "), info)
+    }
+  }
+})
+
+test_that("the license shortcode stops unless its one argument is code or content", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  calls <- c("{{< supplement-license >}}", "{{< supplement-license other >}}",
+             "{{< supplement-license code content >}}")
+  for (call in calls) {
+    dir <- shortcode_site(license_yaml("MIT", "CC-BY-4.0"), list("index.qmd" = call))
+    page <- run_split(dir, "quarto", "render")
+    expect_license_stop(page, "one argument, code or content", call)
+  }
 })
 
 # File sizes from the size rule, stated apart from the code that applies it.
