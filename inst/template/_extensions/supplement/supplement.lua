@@ -178,17 +178,17 @@ local function as_written(text, offset)
   return text
 end
 
--- Readable names for common SPDX license ids, keyed by the id in lowercase,
--- because SPDX ids do not depend on letter case.
-local license_names = {
-  ["mit"] = "MIT",
-  ["apache-2.0"] = "Apache 2.0",
-  ["bsd-3-clause"] = "BSD 3-Clause",
-  ["gpl-3.0-only"] = "GPL 3.0 only",
-  ["gpl-3.0-or-later"] = "GPL 3.0 or later",
-  ["cc-by-4.0"] = "CC BY 4.0",
-  ["cc-by-sa-4.0"] = "CC BY-SA 4.0",
-  ["cc0-1.0"] = "CC0 1.0",
+-- Common SPDX license ids as SPDX spells them, with a readable name, keyed
+-- by the id in lowercase, because SPDX ids do not depend on letter case.
+local listed_licenses = {
+  ["mit"] = { id = "MIT", name = "MIT" },
+  ["apache-2.0"] = { id = "Apache-2.0", name = "Apache 2.0" },
+  ["bsd-3-clause"] = { id = "BSD-3-Clause", name = "BSD 3-Clause" },
+  ["gpl-3.0-only"] = { id = "GPL-3.0-only", name = "GPL 3.0 only" },
+  ["gpl-3.0-or-later"] = { id = "GPL-3.0-or-later", name = "GPL 3.0 or later" },
+  ["cc-by-4.0"] = { id = "CC-BY-4.0", name = "CC BY 4.0" },
+  ["cc-by-sa-4.0"] = { id = "CC-BY-SA-4.0", name = "CC BY-SA 4.0" },
+  ["cc0-1.0"] = { id = "CC0-1.0", name = "CC0 1.0" },
 }
 
 -- TRUE for the shape of an SPDX short identifier: letters or digits, then
@@ -229,7 +229,9 @@ end
 -- `{{< supplement-license code >}}` or `{{< supplement-license content >}}`
 -- shows the license in `supplement.license.code` or
 -- `supplement.license.content`: the readable name of a listed id, any other
--- id as written, and nothing for an empty value. A value that
+-- id as written, and nothing for an empty value. The name links to the
+-- id's page at spdx.org, with the SPDX spelling of a listed id. The page
+-- of an id that SPDX does not list does not exist. A value that
 -- supplement::write_citation() refuses stops the render, so the footer
 -- never shows a license that CITATION.cff does not hold.
 local function license(args, kwargs, meta)
@@ -253,7 +255,8 @@ local function license(args, kwargs, meta)
       .. " Write letters and digits, with one . or - between groups and at most one + at the end, such as CC-BY-4.0."
       .. " Quarto reads -- as a dash and ... as one character.")
   end
-  return pandoc.Inlines(license_names[id:lower()] or id)
+  local listed = listed_licenses[id:lower()] or { id = id, name = id }
+  return pandoc.Link(pandoc.Inlines(listed.name), "https://spdx.org/licenses/" .. listed.id .. ".html")
 end
 
 -- One row per entry under `supplement.data`, with each link written

@@ -99,11 +99,14 @@ test_that("the license shortcode shows readable names for listed ids in any lett
 
   page <- render_license_page(license_yaml("CC-BY-4.0", "cc0-1.0"))
   expect_equal(page$status, 0L, info = page$stderr)
-  expect_equal(between_markers(page$html), "BEFORE CC BY 4.0 MID CC0 1.0 AFTER")
+  expect_equal(strip_tags(between_markers(page$html)), "BEFORE CC BY 4.0 MID CC0 1.0 AFTER")
+  expect_equal(spdx_links(between_markers(page$html)), spdx_url(c("CC-BY-4.0", "CC0-1.0")))
 
+  # A listed id links to its SPDX spelling.
   page <- render_license_page(license_yaml("Cc-By-Sa-4.0", "mIT"))
   expect_equal(page$status, 0L, info = page$stderr)
-  expect_equal(between_markers(page$html), "BEFORE CC BY-SA 4.0 MID MIT AFTER")
+  expect_equal(strip_tags(between_markers(page$html)), "BEFORE CC BY-SA 4.0 MID MIT AFTER")
+  expect_equal(spdx_links(between_markers(page$html)), spdx_url(c("CC-BY-SA-4.0", "MIT")))
 })
 
 test_that("the license shortcode shows an unlisted id as written", {
@@ -111,7 +114,8 @@ test_that("the license shortcode shows an unlisted id as written", {
 
   page <- render_license_page(license_yaml("EUPL-1.2", "GPL-2.0+"))
   expect_equal(page$status, 0L, info = page$stderr)
-  expect_equal(between_markers(page$html), "BEFORE EUPL-1.2 MID GPL-2.0+ AFTER")
+  expect_equal(strip_tags(between_markers(page$html)), "BEFORE EUPL-1.2 MID GPL-2.0+ AFTER")
+  expect_equal(spdx_links(between_markers(page$html)), spdx_url(c("EUPL-1.2", "GPL-2.0+")))
 })
 
 test_that("the license shortcode shows nothing for an empty value or no license map", {
@@ -357,19 +361,26 @@ test_that("the page footer shows the licenses set in _supplement.yml", {
   expect_equal(use_template(dir)$status, 0L)
 
   yml <- file.path(dir, "_supplement.yml")
-  set_supplement_value(yml, "code", "CC0-1.0")
-  set_supplement_value(yml, "content", "CC-BY-SA-4.0")
-
-  rendered <- run_in(dir, "quarto", "render")
-  expect_equal(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
-  for (page in c("index.html", "analyses/example.html")) {
-    footer <- footer_center(read_text(file.path(dir, "docs", page)))
-    expect_match(footer, "CC0 1.0", fixed = TRUE, info = page)
-    expect_match(footer, "CC BY-SA 4.0", fixed = TRUE, info = page)
-    expect_no_match(footer, "MIT", fixed = TRUE, info = page)
-    expect_no_match(footer, "CC BY 4.0", fixed = TRUE, info = page)
-    expect_match(footer, "/LICENSE.md", fixed = TRUE, info = page)
-    expect_match(footer, "/LICENSE-CC-BY.md", fixed = TRUE, info = page)
+  # Each case: the two ids, the footer text, and the SPDX link targets.
+  # An empty value keeps its label and has no name or link.
+  cases <- list(
+    list(ids = c("CC0-1.0", "cc-by-sa-4.0"), text = "Code: CC0 1.0 · Content: CC BY-SA 4.0",
+         links = spdx_url(c("CC0-1.0", "CC-BY-SA-4.0"))),
+    list(ids = c("EUPL-1.2", ""), text = "Code: EUPL-1.2 · Content:",
+         links = spdx_url("EUPL-1.2"))
+  )
+  for (case in cases) {
+    set_supplement_value(yml, "code", case$ids[[1]])
+    set_supplement_value(yml, "content", case$ids[[2]])
+    rendered <- run_in(dir, "quarto", "render")
+    expect_equal(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+    for (page in c("index.html", "analyses/example.html")) {
+      info <- paste(page, case$text)
+      footer <- footer_center(read_text(file.path(dir, "docs", page)))
+      expect_equal(strip_tags(footer), case$text, info = info)
+      expect_equal(spdx_links(footer), case$links, info = info)
+      expect_no_match(footer, "LICENSE", fixed = TRUE, info = info)
+    }
   }
 })
 

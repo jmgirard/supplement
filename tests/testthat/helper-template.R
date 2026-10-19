@@ -200,6 +200,15 @@ doi_badge_rx <- function(doi) {
   )
 }
 
+# The SPDX page of each license id.
+spdx_url <- function(ids) paste0("https://spdx.org/licenses/", ids, ".html")
+
+# The link targets in `html` that start with https://spdx.org/, in order.
+spdx_links <- function(html) {
+  links <- regmatches(html, gregexpr('href="https://spdx\\.org/[^"]*"', html))[[1]]
+  sub('^href="([^"]*)"$', "\\1", links)
+}
+
 # The page text between BEFORE and AFTER, with runs of white space made one
 # space.
 between_markers <- function(html) {
