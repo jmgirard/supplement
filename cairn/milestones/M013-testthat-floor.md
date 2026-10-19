@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M013: DESCRIPTION asks for testthat 3.3.0, and the tests pass under it
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** high   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
@@ -45,7 +45,7 @@ DESCRIPTION's testthat floor is 3.3.0, the first CRAN release after 3.2.3; testt
 - [x] T1: Edit `DESCRIPTION` Suggests to `testthat (>= 3.3.0)`.
 - [x] T2: Install `testthat_3.3.0.tar.gz` from `https://cran.r-project.org/src/contrib/Archive/testthat/` into a scratch library outside the repository with `install.packages(<file>, repos = NULL, type = "source", lib = <scratch>)`. devtools 2.5.2 needs testthat 3.3.2, so run `NOT_CRAN=true Rscript -e '.libPaths(c("<scratch>", .libPaths())); print(packageVersion("testthat")); testthat::test_local(reporter = "summary")'`, and run the same command without the scratch library for the skip comparison. Compare the two skip lists. If the run fails at any test other than the flake, stop.
 - [x] T3: In a session on the default library (testthat 3.3.2), parse each file in `tests/testthat/` with `getParseData()`, keep the `SYMBOL_FUNCTION_CALL` tokens that name a testthat export, and drop names that a test file assigns or takes as an argument. In a second session with the scratch library first, test each name against `getNamespaceExports("testthat")` of 3.3.0.
-- [ ] T4: Run `devtools::test()` and `devtools::check()` under the installed testthat.
+- [x] T4: Run `devtools::test()` and `devtools::check()` under the installed testthat.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -71,6 +71,9 @@ DESCRIPTION's testthat floor is 3.3.0, the first CRAN release after 3.2.3; testt
 - 2026-10-18: T1 done: DESCRIPTION Suggests now `testthat (>= 3.3.0)`.
 - 2026-10-18: T2 done: testthat 3.3.0 built from the archive tarball into the scratch library; `test_local()` with NOT_CRAN=true under 3.3.0 (printed `3.3.0` and the scratch path first): 0 failures, 0 errors, 1 skip (`test-add-data.R:309`); the same run under 3.3.2: the same one skip.
 - 2026-10-18: T3 done: the parse sweep over 15 files keeps 30 testthat names (excluded `source_file` and `setup`); 0 are missing from 3.3.0's exports; a planted name `expect_not_in_testthat` reads as missing, so the check can fail. A first sweep compared parse ids for assignment order, missed `source_file`, and was fixed to compare positions.
+- 2026-10-18: T4 done: under testthat 3.3.2, `devtools::test()` with NOT_CRAN=true: 0 failures, 1 skip (`test-add-data.R:309`); `devtools::check()`: 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: claim audit: 2 claims read, 0 corrected — DESCRIPTION (the tests pass under 3.3.0: holds; 3.3.0 as a need: 3.2.0's NAMESPACE already exports every called function, so the floor is the oldest release shown to pass, as D-014 states; outside text must not call 3.3.0 required).
+- 2026-10-18: implement done; status review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
