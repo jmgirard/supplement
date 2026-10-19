@@ -169,7 +169,7 @@ release_supplement <- function(bump, path = ".") {
   # text of both outputs, so that all of them come from the same bytes.
   file <- supplement_file(path)
   read <- read_text_lines(file)
-  meta <- supplement_map(yaml_parse_lines(read$lines, label = file))
+  meta <- supplement_map(yaml_read_file_text(yaml_lines_text(read$lines), file))
   current <- read_version(meta)
   new <- next_version(current, bump)
 

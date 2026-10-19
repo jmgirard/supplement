@@ -157,13 +157,38 @@ yaml_read_lines <- function(lines) {
 }
 
 # The lines read with the yaml package. Text that is not valid YAML gives
-# the parser's error, which names `label`, as yaml::read_yaml() names its
-# file. Every sequence is read as a list, as read_supplement() does.
-yaml_parse_lines <- function(lines, label = NULL) {
-  # End the text with a line break either way, so that a block scalar at
-  # the end of the file reads the same before and after an insert.
-  text <- paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
-  yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)), error.label = label)
+# the parser's error. Every sequence is read as a list, as
+# read_supplement() does.
+yaml_parse_lines <- function(lines) {
+  yaml_load_list(yaml_lines_text(lines))
+}
+
+# The lines as one text, with "\r" removed. The text ends with a line
+# break either way, so that a block scalar at the end of the file reads the
+# same before and after an insert.
+yaml_lines_text <- function(lines) {
+  paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
+}
+
+yaml_load_list <- function(text) {
+  yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)))
+}
+
+# `text`, the text of `file`, read as yaml_load_list() reads it. Text that
+# the yaml package cannot read stops with `supplement_error_parse`, which
+# names `file` and gives the parser's message.
+yaml_read_file_text <- function(text, file, call = parent.frame()) {
+  tryCatch(yaml_load_list(text), error = function(e) {
+    parser <- trimws(conditionMessage(e))
+    # The parser's message is data: a "{" in it is not a cli template.
+    cli::cli_abort(
+      c("The yaml package cannot read {.file {file}}, so nothing was written.",
+        "x" = "{parser}",
+        "i" = "Fix the YAML at the place that the message names."),
+      class = c("supplement_error_parse", "supplement_error"),
+      call = call
+    )
+  })
 }
 
 # `lines` with the value of the key that `path`, a vector of map keys,

@@ -263,12 +263,13 @@ test_that("a folder with no _supplement.yml is refused", {
   expect_identical(list.files(dir, all.files = TRUE, no.. = TRUE), character())
 })
 
-test_that("a _supplement.yml that is not valid YAML gives a parser error that names the file", {
+test_that("a _supplement.yml that is not valid YAML stops before the checks", {
   calls <- mock_check()
   dir <- withr::local_tempdir("release-")
   writeLines(c("supplement:", '  citation: [x'), file.path(dir, "_supplement.yml"))
   before <- folder_state(dir)
-  err <- expect_error(release("patch", path = dir), "Parser error")
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_parse")
+  expect_true(inherits(err, "supplement_error"))
   expect_match(conditionMessage(err), "_supplement.yml", fixed = TRUE)
   expect_identical(folder_state(dir), before)
   expect_identical(calls$n, 0L)

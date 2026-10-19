@@ -383,9 +383,9 @@ test_that("a failed write in a site path with pattern characters removes only it
   }
 })
 
-test_that("a _supplement.yml that does not parse stops with a yaml error", {
+test_that("a _supplement.yml that does not parse stops with a parse error", {
   expect_data_error(
-    "supplement_error_yaml", file = source_file(), description = "D",
+    "supplement_error_parse", file = source_file(), description = "D",
     setup = function(site) write("other: [unclosed", file.path(site, "_supplement.yml"), append = TRUE)
   )
 })

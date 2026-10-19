@@ -1,13 +1,13 @@
 # M016: A site YAML file with a syntax error gives a supplement error
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes the error class and message of six exported functions
-- **Branch/PR:** —
+- **Branch/PR:** m016-yaml-parse-errors
 
 ## Goal
 
@@ -37,9 +37,9 @@ When the yaml package cannot read `_supplement.yml` or `_quarto.yml`, the packag
 
 ## Tasks
 
-- [ ] T1: Write the tests of AC1 and AC2 (a helper that writes each shape with `writeBin()`, and one that makes each run of white space one space), and see them fail. Pass the parser's message to cli as data, not as a template, because the flow-map message holds `{` or `}`. Replace the test at `tests/testthat/test-release-supplement.R:265`, which expects the parser's unclassed error.
-- [ ] T2: Parse `_supplement.yml` in one helper that catches the yaml package's error and raises `supplement_error_parse` with the file name and the parser's message. Use it in `read_supplement()` and in the release read; run the AC1 tests to green.
-- [ ] T3: Check that the file parses before `append_item()` edits it, with the same helper, so `add_data()` and `add_report()` raise `supplement_error_parse`; run the AC2 tests to green.
+- [x] T1: Write the tests of AC1 and AC2 (a helper that writes each shape with `writeBin()`, and one that makes each run of white space one space), and see them fail. Pass the parser's message to cli as data, not as a template, because the flow-map message holds `{` or `}`. Replace the test at `tests/testthat/test-release-supplement.R:265`, which expects the parser's unclassed error.
+- [x] T2: Parse `_supplement.yml` in one helper that catches the yaml package's error and raises `supplement_error_parse` with the file name and the parser's message. Use it in `read_supplement()` and in the release read; run the AC1 tests to green.
+- [x] T3: Check that the file parses before `append_item()` edits it, with the same helper, so `add_data()` and `add_report()` raise `supplement_error_parse`; run the AC2 tests to green.
 - [ ] T4: Update the roxygen Errors sections of the six functions, DESIGN.md, and NEWS.md; run `devtools::document()` and the AC3 grep.
 
 ## Work log
@@ -52,5 +52,9 @@ When the yaml package cannot read `_supplement.yml` or `_quarto.yml`, the packag
 - 2026-10-19: inbox sweep: 0 open issues, 0 open PRs. Collision sweep: D-010 and D-011 (text edits) stand and are not touched.
 - 2026-10-19: lessons harvested: M008 (`read_yaml()` warns on a file with no final line break; parse text with `yaml.load()`), M012 (`yaml.load(error.label =)` names the file; `expect_error(class =)` passes on a parent's class, so check `inherits()` on the error itself), M009 (name input shapes, not literal strings).
 - 2026-10-19: criteria audit (full mode, fresh Opus reader, shared with M015 and M017): confirmed the first three shapes fail to parse at the top level, under `supplement:`, and in `_quarto.yml`. Findings taken: cli wraps the message, so AC1 and AC2 compare with white space made one space; the tab shape names its place (a tab inside a flow sequence is valid YAML); the Goal narrowed from "not valid YAML" to "the yaml package cannot read", with an unclosed flow map and a duplicate key added as shapes; T1 passes the parser message to cli as data. Dropped the conditional "metadata encoding errors" Out item, which no request named.
+- 2026-10-19: T1: wrote `tests/testthat/test-parse-errors.R` (five shapes in `_supplement.yml` for five functions, five top-level shapes in `_quarto.yml` for `add_report()`); all 30 calls failed before the fix, with the parser's unclassed error or `supplement_error_yaml`. Replaced the release parser-error test with a class check.
+- 2026-10-19: implementation choice: one helper `yaml_read_file_text(text, file)` in `R/yaml-insert.R`. `read_supplement()` reads the text as `yaml::read_yaml()` did (it keeps the incomplete-final-line warning); the release read and `append_item()` parse the lines text that `yaml_lines_text()` gives. The message names the file and puts the trimmed parser message in an `x` bullet; `yaml_parse_lines()` lost its unused `label` argument.
+- 2026-10-19: minor amendment to T3: two existing tests (`test-add-data.R`, `test-add-report.R`) expected `supplement_error_yaml` for an unclosed flow sequence; they now expect `supplement_error_parse`.
+- 2026-10-19: T1 to T3 in one checkpoint commit, because the T1 tests stay red until T2 and T3; `devtools::test()` clean (1 skip on a case-insensitive disk), 160 expectations in the new file.
 
 ## Decisions
