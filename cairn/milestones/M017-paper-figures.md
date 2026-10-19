@@ -76,4 +76,27 @@ A site made from the template has a `figures/` folder that git tracks and the si
 - AC4: `NEWS.md` line 102, under the development heading, has an entry starting "The template publishes paper figures from a `figures/` folder". No milestone numbers in it.
 - AC5: `devtools::test()` at d75ca70: 243 tests, 2735 expectations, 0 failed, 0 errors, 1 skipped ("on a case-sensitive disk, any file in data/ that differs only in letter case stops": the disk is case-insensitive).
 - Gate: `cairn_validate.py` all checks passed (exit 0). No principle changed, so `cairn_impact` skipped. `devtools::document()` gave no diff. No README.Rmd and no pkgdown site. NEWS.md has the entry (AC4). No new top-level files. `devtools::check()`: 0 errors, 0 warnings, 0 notes (3m 39s).
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the README's `png()` example has no `dir.create()`, and the template has no `figures/` until the example report runs, so a pasted example fails in a site without it — fix now, fixed 9dbe48c (README example adds `dir.create()` and says why)
+- diff-bug #2: under freeze, a clone with no committed `figures/` renders without `docs/figures/`, and `check_supplement()` is silent — follow-up ("figures folder edge cases")
+- diff-bug #3: the `create_supplement()` message says to render once before the first commit, but that render leaves no `docs/figures/` — follow-up ("figures folder edge cases"; R message outside scope)
+- diff-bug #4: DESIGN.md said a render copies `figures/` at its start, but it copies after the report code runs — fix now, fixed 9dbe48c (DESIGN wording)
+- diff-bug #5: `figures/**` publishes every file in the folder, and no text says so — fix now, fixed 9dbe48c (README: every file in `figures/` is published)
+- diff-bug #6: a renamed or deleted figure stays published, and the README does not say how to take it off — fix now, fixed 9dbe48c (README: delete it and run a full render; probe: a full render removed it, a render by name did not)
+- diff-bug #7: the AC2 test checks only the PNG signature, not the image — reject (planned change: AC2 names the signature bytes, and a fresh site has no other PNG)
+- diff-bug #8: with `execute-dir: project` the `..` path writes outside the site — follow-up ("figures folder edge cases")
+- diff-bug #9: `dir.create(showWarnings = FALSE)` hides a file named `figures` — follow-up ("figures folder edge cases")
+- blame-history #1: setup's `!docs/` and `!_freeze/` tail has no `figures/` line, so an existing `*.png` or `figures/` rule hides the folder (D-006 intent) — follow-up ("figures folder edge cases"; setup.ts and its pinned tests outside scope)
+- blame-history #2: a figure from a deleted or renamed report stays on the site — fix now, fixed 9dbe48c (same README line as diff-bug #6)
+- blame-history #3: the private-data steps render by name, then stage `figures/`, so a new figure name is not yet in `docs/` — fix now, fixed 9dbe48c (step 2 says to render again after a new figure name)
+- blame-history #4: no warning that figures made from private data are published — fix now, fixed 9dbe48c (the README's "every file in `figures/` is published, so keep drafts and private files out of it")
+- blame-history #5: the example's `png()` has no `on.exit()` guard — follow-up ("figures folder edge cases")
+- blame-history #6: committed figures can change between machines, and "Publishing from one machine" does not say so — reject (false: "Stable figures" says every render that runs a report's code redraws its figures, and only such a render writes `figures/`)
+- blame-history #7: existing sites get no `figures/` resource — reject (planned change: Scope Out, "existing-site migration" row)
+- prior-review #1: `analyses/*.png` and `analyses/*.pdf` match lower case only on Linux, against the M003 lesson, so the README's "not committed" fails for `plot.PNG` there — fix now, fixed 9dbe48c (README says Git on Linux reads these rules in lower case only) and follow-up for bracket patterns ("figures folder edge cases"; the rules are Scope Out)
+- ripple #1: setup.ts, `_gitignore`, and the README describe only `!docs/` and `!_freeze/` as kept output — follow-up (same as blame-history #1)
+- ripple #2: `LICENSE-CC-BY.md` and the README License section list content without `figures/` — fix now, fixed 9dbe48c (both list figures in `figures/` as content)
+- ripple #3: `release_supplement()` help says `docs/` and `_freeze/` reach the release — fix now, fixed 9dbe48c (adds `figures/`; `man/` regenerated)
+- ripple #4: the "paper figure files" candidate row is still open — reject (planned change: post-merge hygiene graduates it)
+- Return floor: no finding shows a criterion failing or a load-bearing defect; no return.
 
