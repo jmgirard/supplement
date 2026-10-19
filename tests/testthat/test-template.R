@@ -26,8 +26,8 @@ test_that("a new site renders and holds its setup files", {
   skip_if_no_quarto()
   site <- site_copy()
 
-  expect_equal(site$used$status, 0L)
-  expect_equal(site$rendered$status, 0L)
+  expect_status(site$used)
+  expect_status(site$rendered)
 
   expected <- c(
     ".gitignore", "README.md", "index.qmd", "analyses/example.qmd",
@@ -104,7 +104,7 @@ test_that("a full render with R unreachable runs no report code", {
   frozen_times <- file.info(frozen)$mtime
 
   no_r <- withr::with_envvar(no_r_env, run_in(site$dir, "quarto", "render"))
-  expect_equal(no_r$status, 0L, info = paste(no_r$output, collapse = "\n"))
+  expect_status(no_r)
 
   after <- readBin(page, "raw", file.info(page)$size)
   expect_identical(after, before)
@@ -115,7 +115,7 @@ test_that("a full render with R unreachable runs no report code", {
   writeLines(c("---", "title: Unfrozen", "---", "", "```{r}", "1 + 1", "```"),
              file.path(site$dir, "analyses", "unfrozen.qmd"))
   unfrozen <- withr::with_envvar(no_r_env, run_in(site$dir, "quarto", c("render", "analyses/unfrozen.qmd")))
-  expect_false(unfrozen$status == 0L)
+  expect_command_fails(unfrozen)
   expect_match(paste(unfrozen$output, collapse = "\n"), "Unable to locate an installed version of R", fixed = TRUE)
 })
 
@@ -124,7 +124,7 @@ test_that(".gitignore blocks fit files and keeps published output", {
   skip_if_no_git()
   site <- site_copy()
 
-  git_in(site$dir, c("init", "-q"))
+  expect_status(git_in(site$dir, c("init", "-q")))
   ignored <- git_in(site$dir, c("check-ignore", "analyses/fits/m.rds", "x.rds"))
   expect_setequal(ignored$output, c("analyses/fits/m.rds", "x.rds"))
 
@@ -150,7 +150,7 @@ test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
   skip_if_no_git()
   site <- site_copy()
 
-  git_in(site$dir, c("init", "-q"))
+  expect_status(git_in(site$dir, c("init", "-q")))
   in_analyses <- c("analyses/plot.pdf", "analyses/plot.png")
   ignored <- git_in(site$dir, c("check-ignore", in_analyses))
   expect_setequal(ignored$output, in_analyses)
@@ -163,13 +163,13 @@ test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
 test_that("the example report saves a figure that the next full render publishes", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
-  expect_equal(use_template(dir)$status, 0L)
+  expect_status(use_template(dir))
   expect_false(dir.exists(file.path(dir, "figures")))
 
   by_name <- run_in(dir, "quarto", c("render", "analyses/example.qmd"))
-  expect_equal(by_name$status, 0L, info = paste(by_name$output, collapse = "\n"))
+  expect_status(by_name)
   full <- run_in(dir, "quarto", "render")
-  expect_equal(full$status, 0L, info = paste(full$output, collapse = "\n"))
+  expect_status(full)
 
   png_signature <- as.raw(c(0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a))
   for (path in c("figures/bootstrap-means.png", "docs/figures/bootstrap-means.png")) {
@@ -183,10 +183,10 @@ test_that("the example report saves a figure that the next full render publishes
 test_that("setup adds the template rules to an existing .gitignore", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
-  expect_equal(use_template(dir)$status, 0L)
+  expect_status(use_template(dir))
   writeLines("mine", file.path(dir, ".gitignore"))
 
-  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
+  expect_status(run_in(dir, "quarto", "render"))
   kept <- readLines(file.path(dir, ".gitignore"))
   expect_equal(kept[1], "mine")
   expect_true(all(c("*.[Rr][Dd][Ss]", "analyses/fits/") %in% kept))
@@ -197,11 +197,11 @@ test_that("setup adds the template rules to an existing .gitignore", {
 
 expect_site_not_ignored <- function(existing_gitignore) {
   dir <- withr::local_tempdir("site-")
-  expect_equal(use_template(dir)$status, 0L)
+  expect_status(use_template(dir))
   writeBin(charToRaw(existing_gitignore), file.path(dir, ".gitignore"))
 
-  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
-  git_in(dir, c("init", "-q"))
+  expect_status(run_in(dir, "quarto", "render"))
+  expect_status(git_in(dir, c("init", "-q")))
   kept <- git_in(dir, c("check-ignore", "docs/index.html", "_freeze/analyses/example/execute-results/html.json"))
   expect_equal(kept$status, 1L)
   expect_length(kept$output, 0)
@@ -222,10 +222,10 @@ test_that("fit files stay ignored when git init comes before the first render", 
   skip_if_no_quarto()
   skip_if_no_git()
   dir <- withr::local_tempdir("site-")
-  expect_equal(use_template(dir)$status, 0L)
-  git_in(dir, c("init", "-q"))
+  expect_status(use_template(dir))
+  expect_status(git_in(dir, c("init", "-q")))
 
-  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
+  expect_status(run_in(dir, "quarto", "render"))
   ignored <- git_in(dir, c("check-ignore", "analyses/fits/m.rds", "x.rds"))
   expect_setequal(ignored$output, c("analyses/fits/m.rds", "x.rds"))
 })
@@ -233,10 +233,10 @@ test_that("fit files stay ignored when git init comes before the first render", 
 test_that("setup keeps an existing README.md and writes the guide beside it", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
-  expect_equal(use_template(dir)$status, 0L)
+  expect_status(use_template(dir))
   writeLines("my readme", file.path(dir, "README.md"))
 
-  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
+  expect_status(run_in(dir, "quarto", "render"))
   expect_equal(readLines(file.path(dir, "README.md")), "my readme")
   expect_equal(
     readLines(file.path(dir, "SUPPLEMENT.md")),
@@ -248,11 +248,11 @@ test_that("setup keeps an existing README.md and writes the guide beside it", {
 test_that("setup keeps both files when README.md and SUPPLEMENT.md exist", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
-  expect_equal(use_template(dir)$status, 0L)
+  expect_status(use_template(dir))
   writeLines("my readme", file.path(dir, "README.md"))
   writeLines("my supplement", file.path(dir, "SUPPLEMENT.md"))
 
-  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
+  expect_status(run_in(dir, "quarto", "render"))
   expect_equal(readLines(file.path(dir, "README.md")), "my readme")
   expect_equal(readLines(file.path(dir, "SUPPLEMENT.md")), "my supplement")
   expect_false(file.exists(file.path(dir, "_README.md")))
