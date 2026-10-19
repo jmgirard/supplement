@@ -1,7 +1,7 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-18 (M009 done and archived, M006 row pruned, release checks row graduated, M009 review rows added)_
+_Last hygiene check: 2026-10-18 (status audit after hotfix #10: all checks green, no inbox items, no outside merges)_
 
 ## Milestones
 
