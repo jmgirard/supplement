@@ -31,7 +31,8 @@
 #'
 #' Before it changes any file, the function stops when `CITATION.cff` or
 #' `.zenodo.json` is a link, because a write would go through the link, or
-#' is a file that it cannot read or write.
+#' is a file that it cannot read or write. It also stops when one of them
+#' does not exist and its folder cannot be written.
 #' If writing `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`, or
 #' printing the commands, stops, for example when [write_zenodo()] finds no
 #' `citation`, the function puts back the old text of each of these files
@@ -87,7 +88,8 @@
 #' * `supplement_error_file_exists`: `CITATION.cff` or `.zenodo.json` is a
 #'   link.
 #' * `supplement_error_write`: `CITATION.cff` or `.zenodo.json` cannot be
-#'   read or written.
+#'   read or written, or one of them does not exist and the site folder
+#'   cannot be written.
 #' * `supplement_error_release_write`: a write of `_supplement.yml`,
 #'   `CITATION.cff`, or `.zenodo.json`, or the printing of the commands,
 #'   stopped, and the files that changed got their old text back, and each
@@ -149,11 +151,12 @@ release_supplement <- function(bump, path = ".") {
   invisible(commands)
 }
 
-# The bytes of each output file, or NULL for a file that does not exist.
-# A link, or a file that cannot be read or written, stops before any
-# write: the release would write through the link, maybe outside the site,
-# could not put back a file that it cannot read, and would stop at a file
-# that it cannot write only after it changed _supplement.yml.
+# The bytes of each output file, or NULL for a file that does not exist
+# or is a folder. A link, a file that cannot be read or written, or a
+# missing file whose folder cannot be written stops before any write: the
+# release would write through the link, maybe outside the site, could not
+# put back a file that it cannot read, and would stop at a file that it
+# cannot write only after it changed _supplement.yml.
 read_outputs <- function(outputs, call = parent.frame()) {
   lapply(outputs, function(output) {
     if (is_link(output)) {
@@ -164,7 +167,19 @@ read_outputs <- function(outputs, call = parent.frame()) {
         call = call
       )
     }
-    if (!file.exists(output) || dir.exists(output)) {
+    if (dir.exists(output)) {
+      return(NULL)
+    }
+    if (!file.exists(output)) {
+      # The release makes the file, so its folder must be writable.
+      if (file.access(dirname(output), 2) != 0) {
+        cli::cli_abort(
+          c("Could not write {.file {basename(output)}} in {.path {dirname(output)}}, so nothing was changed.",
+            "i" = "Make the folder writable, and run this function again."),
+          class = c("supplement_error_write", "supplement_error"),
+          call = call
+        )
+      }
       return(NULL)
     }
     bytes <- read_bytes_or_null(output)

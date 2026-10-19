@@ -49,7 +49,8 @@ add \code{version: ""} under \verb{supplement:} by hand.
 
 Before it changes any file, the function stops when \code{CITATION.cff} or
 \code{.zenodo.json} is a link, because a write would go through the link, or
-is a file that it cannot read or write.
+is a file that it cannot read or write. It also stops when one of them
+does not exist and its folder cannot be written.
 If writing \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json}, or
 printing the commands, stops, for example when \code{\link[=write_zenodo]{write_zenodo()}} finds no
 \code{citation}, the function puts back the old text of each of these files
@@ -100,7 +101,8 @@ skipped its git checks.
 \item \code{supplement_error_file_exists}: \code{CITATION.cff} or \code{.zenodo.json} is a
 link.
 \item \code{supplement_error_write}: \code{CITATION.cff} or \code{.zenodo.json} cannot be
-read or written.
+read or written, or one of them does not exist and the site folder
+cannot be written.
 \item \code{supplement_error_release_write}: a write of \verb{_supplement.yml},
 \code{CITATION.cff}, or \code{.zenodo.json}, or the printing of the commands,
 stopped, and the files that changed got their old text back, and each

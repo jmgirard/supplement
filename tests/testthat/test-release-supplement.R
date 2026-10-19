@@ -377,9 +377,11 @@ test_that("a linked or unreadable output file is refused before any write", {
   expect_match(conditionMessage(err), "Could not read", fixed = TRUE)
   expect_identical(site_version(dir), "1.2.3")
   expect_identical(calls$n, 0L)
+})
 
-  # A file that can be read but not written is also refused before any
-  # write.
+test_that("an output file, or a folder for a missing one, that cannot be written is refused before any write", {
+  skip_on_os("windows")
+  calls <- mock_check()
   for (name in c("CITATION.cff", ".zenodo.json")) {
     dir <- release_site('  version: "1.2.3"')
     out <- file.path(dir, name)
@@ -391,8 +393,19 @@ test_that("a linked or unreadable output file is refused before any write", {
     err <- expect_error(release("patch", path = dir), class = "supplement_error_write")
     expect_match(conditionMessage(err), "Could not write", fixed = TRUE)
     expect_identical(folder_state(dir), before)
-    expect_identical(calls$n, 0L)
   }
+
+  # A site folder that cannot be written, with a writable _supplement.yml
+  # and no output files.
+  dir <- release_site('  version: "1.2.3"')
+  Sys.chmod(dir, "555")
+  withr::defer(Sys.chmod(dir, "755"))
+  skip_if(file.access(dir, 2) == 0, "the folder can still be written, for example as root")
+  before <- folder_state(dir)
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_write")
+  expect_match(conditionMessage(err), "Could not write", fixed = TRUE)
+  expect_identical(folder_state(dir), before)
+  expect_identical(calls$n, 0L)
 })
 
 test_that("a write that only warns, as on a full disk, puts back the files", {

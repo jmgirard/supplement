@@ -55,8 +55,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - [x] T9: Make the 9 pass-3 fix-now items in the Review section: messages that fit a printing failure and files that were made or never touched (diff-bug #1, #2); a `CITATION.cff` or `.zenodo.json` that cannot be written refused before any write (diff-bug #3); the Errors section's "no file is changed" sentence and the help for a list `version` (diff-bug #6, blame-history #1); the DESIGN Architecture line (diff-bug #7); a no-warning assertion in the interrupt test (diff-bug #8); the test file's own `release_commands()` renamed (blame-history #8); and the subfolder `git add -A` caveat in README.md and the template's `_README.md` (prior-review #1).
 - [x] T10: Amend AC5 to the bounded wording of RR01 question 2, without the pre-write refusal sentence and without the error-class detail, through the amendment protocol with a fresh re-audit (RR01 recommendation 2).
 - [x] T11: Add AC2's five values `"1.2.3\n"`, `"1.2.3 "`, `"1.2.3\r\n"`, `" 1.2.3"`, and `"1.2\n.3"` to the bump test, and add a comment at `check_bump()` that `bump` is not trimmed (review return 4; RR01 question 4 item 1).
-- [ ] T12: In `read_outputs()`, refuse a missing `CITATION.cff` or `.zenodo.json` whose folder cannot be written, with a test that skips as root, and say so in the help and in DESIGN Architecture (pass 4 diff-bug #2).
-- [ ] T13: Move the unwritable-file tests into their own `test_that()` with their own skips (pass 4 diff-bug #3).
+- [x] T12: In `read_outputs()`, refuse a missing `CITATION.cff` or `.zenodo.json` whose folder cannot be written, with a test that skips as root, and say so in the help and in DESIGN Architecture (pass 4 diff-bug #2).
+- [x] T13: Move the unwritable-file tests into their own `test_that()` with their own skips (pass 4 diff-bug #3).
 
 ## Work log
 
@@ -121,6 +121,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: substantive amendment: AC5 narrowed from "any step after the `_supplement.yml` write stops, for any reason … each file it changed … each file it made" to the three named steps, an error or an interrupt in place of `write_zenodo()`, the three named files compared by bytes (except a failed write-back), and five listed failing probes; the user chose this wording at the stop; no criterion widened; every criterion unticked for fresh evidence.
 - 2026-10-18: T10 done (RR01 recommendation 2).
 - 2026-10-18: T11 done: the bump test now holds AC2's five values verbatim beside the `1.2.4` forms, and `check_bump()` has a comment that `bump` is not trimmed; 222 release-test expectations pass.
+- 2026-10-18: T12 done: `read_outputs()` refuses a missing output whose folder cannot be written (`supplement_error_write`, "Could not write … in …"); the new test with a `555` site folder failed red before the fix; the help, the code comment, and DESIGN Architecture say so.
+- 2026-10-18: T13 done: the unwritable-file tests and the new folder test are their own `test_that()` with their own skips, apart from the unreadable-file skip; 1745 tests pass.
 
 ## Decisions
 
