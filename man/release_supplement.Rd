@@ -49,7 +49,7 @@ add \code{version: ""} under \verb{supplement:} by hand.
 
 Before it changes any file, the function stops when \code{CITATION.cff} or
 \code{.zenodo.json} is a link, because a write would go through the link, or
-is a file that it cannot read, because it could not put that file back.
+is a file that it cannot read or write.
 If writing \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json}, or
 printing the commands, stops, for example when \code{\link[=write_zenodo]{write_zenodo()}} finds no
 \code{citation}, the function puts back the old text of each of these files
@@ -74,7 +74,8 @@ it.
 A \verb{_supplement.yml} that is not valid YAML gives the error of the YAML
 parser. Otherwise the function stops with an error of class
 \code{supplement_error} and one of these classes. When it stops, no file is
-changed.
+changed, unless a file that changed cannot be put back. The
+\code{supplement_error_release_write} message then names that file.
 \itemize{
 \item \code{supplement_error_argument}: \code{bump} is not one of the forms above, or
 \code{path} is not a single non-empty string.
@@ -82,8 +83,8 @@ changed.
 \code{\link[=write_citation]{write_citation()}}.
 \item \code{supplement_error_encoding}: \verb{_supplement.yml} is not UTF-8 text.
 \item \code{supplement_error_field_type}: \code{version} is a list, or YAML reads it
-as a number or as true/false, such as an unquoted \code{1.10}. Put it in
-quotes. \code{\link[=check_supplement]{check_supplement()}} also stops with this class, for a DOI
+as a number or as true/false, such as an unquoted \code{1.10}. Write it as
+one value in quotes, such as \code{"1.10.0"}. \code{\link[=check_supplement]{check_supplement()}} also stops with this class, for a DOI
 that is not one text value or a \code{zenodo} that is not a map.
 \item \code{supplement_error_doi}: a DOI in \verb{_supplement.yml} is not a DOI, as
 for \code{\link[=check_supplement]{check_supplement()}}.
@@ -99,10 +100,11 @@ skipped its git checks.
 \item \code{supplement_error_file_exists}: \code{CITATION.cff} or \code{.zenodo.json} is a
 link.
 \item \code{supplement_error_write}: \code{CITATION.cff} or \code{.zenodo.json} cannot be
-read.
+read or written.
 \item \code{supplement_error_release_write}: a write of \verb{_supplement.yml},
 \code{CITATION.cff}, or \code{.zenodo.json}, or the printing of the commands,
-stopped, and the files that changed got their old text back. If a file
+stopped, and the files that changed got their old text back, and each
+file that the release made was removed. If a file
 cannot be put back, the message names it. The error of the step is the
 \code{parent} of this error.
 }

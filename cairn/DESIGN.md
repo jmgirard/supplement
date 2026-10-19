@@ -84,12 +84,14 @@ resolves each link by path segments inside `docs/`, matching each name's
 letter case as GitHub Pages does. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
 `R/release-supplement.R`: `release_supplement()` checks `bump`, the
-current `supplement.version`, and the `version:` line, then runs
-`check_supplement()`, and stops on any problem but a `CITATION.cff` DOI
-row. It then writes `_supplement.yml`, `CITATION.cff`, and `.zenodo.json`,
-puts back each file's old bytes (or removes a file it made) when any of
-those writes stops, and prints the git and `gh` release commands. It
-starts no process itself.
+current `supplement.version`, and the `version:` line, refuses a
+`CITATION.cff` or `.zenodo.json` that is a link or cannot be read or
+written, then runs `check_supplement()`, and stops on any problem but a
+`CITATION.cff` DOI row. It then writes `_supplement.yml`, `CITATION.cff`,
+and `.zenodo.json` and prints the git and `gh` release commands. When any
+of those steps stops, or on an interrupt, it puts back each file whose
+bytes changed and removes each file it made. It starts no process
+itself.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in

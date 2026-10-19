@@ -35,7 +35,9 @@ site_version <- function(dir) {
   yaml::read_yaml(file.path(dir, "_supplement.yml"))$supplement$version
 }
 
-release_commands <- function(v) {
+# The commands for version `v`, written here by hand, not taken from the
+# package's own list.
+expected_commands <- function(v) {
   c(
     "git status",
     "git add -A",
@@ -72,7 +74,7 @@ test_that("a word raises that part of the version and sets the later parts to 0"
     dir <- release_site(sprintf('  version: "%s"', case[1]))
     out <- release(case[2], path = dir)
     expect_identical(site_version(dir), case[3], label = paste(case, collapse = " "))
-    expect_identical(out, release_commands(case[3]))
+    expect_identical(out, expected_commands(case[3]))
   }
 })
 
@@ -335,7 +337,7 @@ test_that("a file that cannot be put back is named in the error", {
   )
   err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
   expect_match(conditionMessage(err), "CITATION\\.cff.? could not be put back")
-  expect_no_match(conditionMessage(err), "got their old text back", fixed = TRUE)
+  expect_no_match(conditionMessage(err), "as they were before the release", fixed = TRUE)
   expect_identical(site_version(dir), "1.2.3")
 })
 
@@ -368,9 +370,26 @@ test_that("a linked or unreadable output file is refused before any write", {
   Sys.chmod(cff, "000")
   withr::defer(Sys.chmod(cff, "644"))
   skip_if(file.access(cff, 4) == 0, "the file can still be read, for example as root")
-  expect_error(release("patch", path = dir), class = "supplement_error_write")
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_write")
+  expect_match(conditionMessage(err), "Could not read", fixed = TRUE)
   expect_identical(site_version(dir), "1.2.3")
   expect_identical(calls$n, 0L)
+
+  # A file that can be read but not written is also refused before any
+  # write.
+  for (name in c("CITATION.cff", ".zenodo.json")) {
+    dir <- release_site('  version: "1.2.3"')
+    out <- file.path(dir, name)
+    writeLines("old", out)
+    Sys.chmod(out, "444")
+    withr::defer(Sys.chmod(out, "644"))
+    skip_if(file.access(out, 2) == 0, "the file can still be written, for example as root")
+    before <- folder_state(dir)
+    err <- expect_error(release("patch", path = dir), class = "supplement_error_write")
+    expect_match(conditionMessage(err), "Could not write", fixed = TRUE)
+    expect_identical(folder_state(dir), before)
+    expect_identical(calls$n, 0L)
+  }
 })
 
 test_that("a write that only warns, as on a full disk, puts back the files", {
@@ -405,7 +424,7 @@ test_that("a failure before any change does not report a file that could not be 
   skip_if(file.access(file, 2) == 0, "the file can still be written, for example as root")
   before <- folder_state(dir)
   err <- expect_error(suppressWarnings(release("patch", path = dir)), class = "supplement_error_release_write")
-  expect_match(conditionMessage(err), "got their old text back", fixed = TRUE)
+  expect_match(conditionMessage(err), "as they were before the release", fixed = TRUE)
   expect_no_match(conditionMessage(err), "could not be put back", fixed = TRUE)
   expect_identical(folder_state(dir), before)
 })
@@ -417,7 +436,10 @@ test_that("an interrupt puts back the files, and a failed put-back is reported",
   writeLines("old citation", file.path(dir, "CITATION.cff"))
   before <- folder_state(dir)
   local_mocked_bindings(write_zenodo = interrupt)
-  out <- tryCatch(release("patch", path = dir), interrupt = function(c) "interrupted")
+  # The put-back works, so no warning is given.
+  expect_no_warning(
+    out <- tryCatch(release("patch", path = dir), interrupt = function(c) "interrupted")
+  )
   expect_identical(out, "interrupted")
   expect_identical(folder_state(dir), before)
 
@@ -494,9 +516,9 @@ test_that("the release commands are printed and returned", {
       invokeRestart("muffleMessage")
     }
   )
-  expect_identical(out, release_commands("1.3.0"))
+  expect_identical(out, expected_commands("1.3.0"))
   printed <- paste(msgs, collapse = "")
-  for (command in release_commands("1.3.0")) {
+  for (command in expected_commands("1.3.0")) {
     expect_match(printed, command, fixed = TRUE)
   }
   expect_match(printed, "version-doi", fixed = TRUE)

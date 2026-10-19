@@ -31,7 +31,7 @@
 #'
 #' Before it changes any file, the function stops when `CITATION.cff` or
 #' `.zenodo.json` is a link, because a write would go through the link, or
-#' is a file that it cannot read, because it could not put that file back.
+#' is a file that it cannot read or write.
 #' If writing `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`, or
 #' printing the commands, stops, for example when [write_zenodo()] finds no
 #' `citation`, the function puts back the old text of each of these files
@@ -61,7 +61,8 @@
 #' A `_supplement.yml` that is not valid YAML gives the error of the YAML
 #' parser. Otherwise the function stops with an error of class
 #' `supplement_error` and one of these classes. When it stops, no file is
-#' changed.
+#' changed, unless a file that changed cannot be put back. The
+#' `supplement_error_release_write` message then names that file.
 #'
 #' * `supplement_error_argument`: `bump` is not one of the forms above, or
 #'   `path` is not a single non-empty string.
@@ -69,8 +70,8 @@
 #'   [write_citation()].
 #' * `supplement_error_encoding`: `_supplement.yml` is not UTF-8 text.
 #' * `supplement_error_field_type`: `version` is a list, or YAML reads it
-#'   as a number or as true/false, such as an unquoted `1.10`. Put it in
-#'   quotes. [check_supplement()] also stops with this class, for a DOI
+#'   as a number or as true/false, such as an unquoted `1.10`. Write it as
+#'   one value in quotes, such as `"1.10.0"`. [check_supplement()] also stops with this class, for a DOI
 #'   that is not one text value or a `zenodo` that is not a map.
 #' * `supplement_error_doi`: a DOI in `_supplement.yml` is not a DOI, as
 #'   for [check_supplement()].
@@ -86,10 +87,11 @@
 #' * `supplement_error_file_exists`: `CITATION.cff` or `.zenodo.json` is a
 #'   link.
 #' * `supplement_error_write`: `CITATION.cff` or `.zenodo.json` cannot be
-#'   read.
+#'   read or written.
 #' * `supplement_error_release_write`: a write of `_supplement.yml`,
 #'   `CITATION.cff`, or `.zenodo.json`, or the printing of the commands,
-#'   stopped, and the files that changed got their old text back. If a file
+#'   stopped, and the files that changed got their old text back, and each
+#'   file that the release made was removed. If a file
 #'   cannot be put back, the message names it. The error of the step is the
 #'   `parent` of this error.
 #'
@@ -148,9 +150,10 @@ release_supplement <- function(bump, path = ".") {
 }
 
 # The bytes of each output file, or NULL for a file that does not exist.
-# A link, or a file that cannot be read, stops before any write: the
-# release would write through the link, maybe outside the site, and could
-# not put back a file that it cannot read.
+# A link, or a file that cannot be read or written, stops before any
+# write: the release would write through the link, maybe outside the site,
+# could not put back a file that it cannot read, and would stop at a file
+# that it cannot write only after it changed _supplement.yml.
 read_outputs <- function(outputs, call = parent.frame()) {
   lapply(outputs, function(output) {
     if (is_link(output)) {
@@ -168,6 +171,14 @@ read_outputs <- function(outputs, call = parent.frame()) {
     if (is.null(bytes)) {
       cli::cli_abort(
         "Could not read {.file {basename(output)}}, so nothing was changed.",
+        class = c("supplement_error_write", "supplement_error"),
+        call = call
+      )
+    }
+    if (file.access(output, 2) != 0) {
+      cli::cli_abort(
+        c("Could not write {.file {basename(output)}}, so nothing was changed.",
+          "i" = "Make the file writable, and run this function again."),
         class = c("supplement_error_write", "supplement_error"),
         call = call
       )
@@ -339,10 +350,10 @@ write_release_files <- function(read, lines, file, outputs, old, report, call = 
       done <<- TRUE
       cli::cli_abort(
         if (length(failed) == 0) {
-          c("The release stopped while writing the site files, so nothing was changed.",
-            "i" = "{.file _supplement.yml}, {.file CITATION.cff}, and {.file .zenodo.json} got their old text back.")
+          c("The release stopped before it finished, so nothing was changed.",
+            "i" = "{.file _supplement.yml}, {.file CITATION.cff}, and {.file .zenodo.json} are as they were before the release, even if a message above says that they were written.")
         } else {
-          c("The release stopped while writing the site files, and {.file {failed}} could not be put back.",
+          c("The release stopped before it finished, and {.file {failed}} could not be put back.",
             "!" = "Check {.file {failed}} by hand, for example with {.code git diff}.")
         },
         parent = e,

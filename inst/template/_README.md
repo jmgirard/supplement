@@ -157,6 +157,9 @@ because the release writes that file again. It then changes the version
 in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json` again.
 Last, it prints the git and GitHub commands that commit the site, tag it,
 push it, and make the GitHub release. It runs none of them. Run them yourself in this folder.
+`git add -A` stages every file that git does not ignore in the whole
+repository. If this folder is a subfolder of its repository, look for
+files outside it in the `git status` output before you commit.
 After Zenodo archives the release, add the new version DOI to
 `_supplement.yml` and render the site again.
 
