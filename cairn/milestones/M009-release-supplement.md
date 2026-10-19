@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -36,7 +36,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 
 - AC1 → T1
 - AC2 → T3, T4
-- AC3 → T3, T4
+- AC3 → T3, T4, T6
 - AC4 → T2, T3, T4
 - AC5 → T3, T4
 - AC6 → T3, T4
@@ -49,6 +49,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - [x] T3: Write `tests/testthat/test-release-supplement.R` for AC2 to AC6. Mock `check_supplement()`, so the tests need no render, and add one test that searches `R/release-supplement.R` for the git helper's name.
 - [x] T4: Write `R/release-supplement.R`. Check `bump`, `_supplement.yml`, and the `version:` line before `check_supplement()` runs, and reuse `write_checked()` from `R/yaml-insert.R` for the restore.
 - [x] T5: Add roxygen documentation and run `devtools::document()`. Describe the function and the field in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
+- [x] T6: Make the `supplement_error_release_check` message give the number of problems also when only the git checks were skipped, and test it (review return 1).
 
 ## Work log
 
@@ -74,3 +75,5 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: claim audit found that `git add -A` stages the whole repository while `check_supplement()` reads the site folder only, so AC6's "adds the files that check_supplement() checked" holds only for a site at the top of its repository; the help page says so, and a "release from a subfolder" candidate row holds the fix.
 - 2026-10-18: status review; handing off to /milestone-review.
 - 2026-10-18: review return 1: AC3 fails as written: when `check_supplement()` skipped its git checks and found no blocking row, the `supplement_error_release_check` message names the skipped checks but does not give the number of problems; every other criterion's tests pass, `cairn_validate` passes, `document()` makes no diff, and `devtools::check()` gives 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: implement resumed for review return 1; added T6 (minor amendment) and mapped AC3 to it.
+- 2026-10-18: T6 done: the release-check message always opens with the number of problems ("found 0 problems …" when only the git checks were skipped); the skipped-checks test now asserts the number in both cases; 1680 tests pass; status review.

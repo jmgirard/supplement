@@ -178,7 +178,14 @@ test_that("skipped git checks stop the release", {
   before <- folder_state(dir)
   err <- expect_error(release("patch", path = dir), class = "supplement_error_release_check")
   expect_match(conditionMessage(err), "large-file", fixed = TRUE)
+  expect_match(conditionMessage(err), "0 problems", fixed = TRUE)
   expect_identical(folder_state(dir), before)
+
+  # Skipped checks and a problem together give the number too.
+  mock_check(problem_rows("broken-link", "docs/index.html", "A"), skipped = c("large-file", "saved-object"))
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_check")
+  expect_match(conditionMessage(err), "1 problem ", fixed = TRUE)
+  expect_match(conditionMessage(err), "saved-object", fixed = TRUE)
 })
 
 test_that("a release that only the CITATION.cff DOI row would block goes ahead", {
