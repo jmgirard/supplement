@@ -1,6 +1,6 @@
 # M017: The template publishes paper figures from a figures folder
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -62,5 +62,8 @@ A site made from the template has a `figures/` folder that git tracks and the si
 - 2026-10-19: re-audit: AC3 (full) — fixed wording: "not committed" covers file types and folders the two rules miss (`.svg`, `.PNG`, `analyses/sub/x.png`), and "by name or full" was probed only for `analyses/example.qmd`. Second re-audit line on AC3, so the wording goes to the user.
 - 2026-10-19: substantive amendment: AC3 now asks the README to say that after a render saves a figure under a new name, the site must be rendered again before `docs/` holds it, and that PNG and PDF files saved directly in `analyses/` are not committed, because git ignores `analyses/*.png` and `analyses/*.pdf`. The user chose this wording at the stop. T3 also fixes the `_quarto.yml` resources comment and the README's commit steps, which name only `_freeze/` and `docs/` (minor amendment).
 - 2026-10-19: T3 done: README "Paper figures" section after "Stable figures", a `figures/` Contents line, `figures` in both commit steps; `_quarto.yml` comment says to render again after a new figure name; NEWS entry; DESIGN template layout. The NEWS entry leaves out "not published" for `analyses/` figures, because a figure a page links is copied. Full suite: 0 failures, 1 skip (case-insensitive disk).
+- 2026-10-19: claim audit: 19 claims read, 0 corrected — NEWS.md, inst/template/_README.md, inst/template/_quarto.yml, inst/template/analyses/example.qmd, tests/testthat/test-template.R. The reader noted that `analyses/plot.PNG` is not ignored on a case-sensitive git (left as is; the README names lowercase rules).
+- 2026-10-19: the claim auditor's template test run failed once in "setup keeps both files when README.md and SUPPLEMENT.md exist" (`quarto render` exited 1, a test this branch does not touch); two later template runs passed. Added to the "template test flake" candidate row.
+- 2026-10-19: implement done; status review.
 
 ## Decisions
