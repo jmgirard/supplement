@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** review
+- **Status:** blocked
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -104,6 +104,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: status review; handing off to /milestone-review.
 - 2026-10-18: review return 4: AC2 fails as written in its test clause: the test probes the `1.2.4` forms of the five values that AC2 names, not AC2's `1.2.3` forms (pass 4 diff-bug #1); `check_bump()` refuses AC2's own values. This is the fourth defect return and comes after a re-cut, so the thrash rule (a) stops the run with the re-cut off its menu, and the disposition goes to the user.
 - 2026-10-18: the user chose to escalate at the fourth-return stop: /milestone-brief writes a review brief on why the reviews keep returning; owed on resume: AC2's five literal values in the test, and pass 4 diff-bug #2 and #3.
+- 2026-10-18: blocked on RB01 (cairn/reviews/RB01-m009-review-returns.md: why the reviews keep returning, and the smallest path to a passing review). The brief is committed on the branch, not on main, because the milestone file's history lives on the branch.
 
 ## Review
 
