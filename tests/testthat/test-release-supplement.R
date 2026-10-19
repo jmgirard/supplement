@@ -114,7 +114,10 @@ test_that("a bump that is not a word or a version is refused before check_supple
   calls <- mock_check()
   bad <- list("Patch", "1.0", "v1.0.0", "01.0.0", "1.0.0-rc1", " patch", "", NA_character_,
               c("patch", "minor"), 1, NULL, character(),
-              # A line break or a space before, after, or inside a version.
+              # A line break or a space before, after, or inside a version:
+              # the five values that AC2 names, and the same shapes of a
+              # version greater than the current one.
+              "1.2.3\n", "1.2.3 ", "1.2.3\r\n", " 1.2.3", "1.2\n.3",
               "1.2.4\n", "1.2.4 ", "1.2.4\r\n", " 1.2.4", "1.2\n.4", "\n1.2.4", "1.2.4\t")
   dir <- release_site('  version: "1.2.3"')
   before <- folder_state(dir)

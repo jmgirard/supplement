@@ -194,6 +194,8 @@ read_bytes_or_null <- function(file) {
   )
 }
 
+# `bump` is not trimmed, unlike a value read from _supplement.yml: an
+# argument with a space or a line break around it is refused.
 check_bump <- function(bump, call = parent.frame()) {
   ok <- is.character(bump) && length(bump) == 1 && !is.na(bump) &&
     (bump %in% c("patch", "minor", "major") || is_version(bump))
