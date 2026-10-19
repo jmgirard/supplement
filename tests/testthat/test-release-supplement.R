@@ -564,6 +564,123 @@ test_that("an empty citation, which stops write_zenodo(), puts back the files", 
   expect_identical(folder_state(dir), before)
 })
 
+# Changes during the check ------------------------------------------------
+
+# Make check_supplement() run `edit` on the site folder, keep the folder's
+# state after the edit in the returned environment, and return `rows`.
+mock_check_edit <- function(edit, rows = problem_rows(), env = parent.frame()) {
+  seen <- new.env()
+  local_mocked_bindings(
+    check_supplement = function(path = ".") {
+      edit(path)
+      seen$state <- folder_state(path)
+      attr(rows, "skipped") <- character()
+      invisible(rows)
+    },
+    .env = env
+  )
+  seen
+}
+
+# Run the release and return the messages that it printed before it stopped.
+release_messages <- function(...) {
+  msgs <- character()
+  withCallingHandlers(
+    release_supplement(...),
+    message = function(m) {
+      msgs <<- c(msgs, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    }
+  )
+  msgs
+}
+
+# Expect the release of `dir` to stop with supplement_error_changed, with
+# the folder as the edit left it and no command printed.
+expect_changed_stop <- function(dir, seen) {
+  msgs <- character()
+  err <- expect_error(
+    withCallingHandlers(
+      release_supplement("patch", path = dir),
+      message = function(m) {
+        msgs <<- c(msgs, conditionMessage(m))
+        invokeRestart("muffleMessage")
+      }
+    ),
+    class = "supplement_error_changed"
+  )
+  expect_s3_class(err, "supplement_error")
+  expect_false(is.null(seen$state))
+  expect_identical(folder_state(dir), seen$state)
+  expect_false(any(grepl("git tag", msgs, fixed = TRUE)))
+}
+
+edit_yml <- function(pattern, replacement) {
+  function(path) {
+    file <- file.path(path, "_supplement.yml")
+    lines <- readLines(file, encoding = "UTF-8")
+    stopifnot(sum(grepl(pattern, lines)) == 1)
+    writeLines(sub(pattern, replacement, lines), file, useBytes = TRUE)
+  }
+}
+
+test_that("a change to _supplement.yml during the check stops the release", {
+  edits <- list(
+    title = edit_yml('^  paper-title: .*$', '  paper-title: "Saved during the check"'),
+    version = edit_yml('^  version: .*$', '  version: "5.0.0"'),
+    comment = edit_yml("^  # A link to the preprint, if there is one\\.$", "  # A changed comment."),
+    removed = function(path) file.remove(file.path(path, "_supplement.yml")),
+    not_utf8 = function(path) {
+      file <- file.path(path, "_supplement.yml")
+      writeBin(c(readBin(file, "raw", file.size(file)), as.raw(0xff), as.raw(0x0a)), file)
+    }
+  )
+  for (name in names(edits)) {
+    seen <- mock_check_edit(edits[[name]])
+    dir <- release_site('  version: "1.2.3"')
+    writeLines("old citation", file.path(dir, "CITATION.cff"))
+    expect_changed_stop(dir, seen)
+  }
+})
+
+test_that("the change stop comes before the stop for a problem from check_supplement()", {
+  seen <- mock_check_edit(
+    edit_yml('^  paper-title: .*$', '  paper-title: "Saved during the check"'),
+    rows = problem_rows("broken-link", "docs/index.html", "A problem.")
+  )
+  dir <- release_site('  version: "1.2.3"')
+  expect_changed_stop(dir, seen)
+})
+
+test_that("a change to CITATION.cff or .zenodo.json during the check stops the release", {
+  edits <- list(
+    changed_cff = function(path) writeLines("changed citation", file.path(path, "CITATION.cff")),
+    made_zenodo = function(path) writeLines("{}", file.path(path, ".zenodo.json")),
+    removed_cff = function(path) file.remove(file.path(path, "CITATION.cff"))
+  )
+  for (name in names(edits)) {
+    seen <- mock_check_edit(edits[[name]])
+    dir <- release_site('  version: "1.2.3"')
+    writeLines("old citation", file.path(dir, "CITATION.cff"))
+    stopifnot(!file.exists(file.path(dir, ".zenodo.json")))
+    expect_changed_stop(dir, seen)
+  }
+})
+
+test_that("a check that reads the files but changes none lets the release finish", {
+  seen <- mock_check_edit(function(path) {
+    readLines(file.path(path, "_supplement.yml"))
+    readLines(file.path(path, "CITATION.cff"))
+  })
+  dir <- release_site('  version: "1.2.3"')
+  writeLines("old citation", file.path(dir, "CITATION.cff"))
+  msgs <- release_messages("patch", path = dir)
+  expect_identical(site_version(dir), "1.2.4")
+  expect_identical(read_cff(dir)$version, "1.2.4")
+  expect_true(file.exists(file.path(dir, ".zenodo.json")))
+  expect_true(any(grepl("git tag v1.2.4", msgs, fixed = TRUE)))
+})
+
 # Commands ------------------------------------------------------------------
 
 test_that("the release commands are printed and returned", {

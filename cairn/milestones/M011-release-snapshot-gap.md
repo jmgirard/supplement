@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M011: release_supplement() stops when a file changes during the check
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes what the exported `release_supplement()` does and documents
-- **Branch/PR:** —
+- **Branch/PR:** m011-release-snapshot-gap
 
 ## Goal
 
@@ -41,7 +41,7 @@
 
 ## Tasks
 
-- [ ] T1: Add a mock helper to `tests/testthat/test-release-supplement.R` that runs a function on the site folder inside the mocked `check_supplement()`, then write the AC1 and AC2 tests. Run them against the code on main and see each one fail for the reason it names.
+- [x] T1: Add a mock helper to `tests/testthat/test-release-supplement.R` that runs a function on the site folder inside the mocked `check_supplement()`, then write the AC1 and AC2 tests. Run them against the code on main and see each one fail for the reason it names.
 - [ ] T2: In `release_supplement()` (`R/release-supplement.R:151`), right after `check_supplement()` returns and before `check_release_problems()`, read the raw bytes of `_supplement.yml` and call `read_outputs()` again, and stop with `supplement_error_changed` when any value is not `identical()` to its pre-check value. Leave the refusals before the check where they are.
 - [ ] T3: Update the help page text at `R/release-supplement.R:26-42` and its Errors section, the NEWS.md `release_supplement()` bullet, and the DESIGN.md Architecture paragraph. Run `devtools::document()`.
 - [ ] T4: Run `devtools::test()` and `devtools::check()`, and confirm `git diff -- man NAMESPACE` is empty after `devtools::document()`.
@@ -60,3 +60,5 @@
 - 2026-10-18: agent decided a new class `supplement_error_changed` over reusing `supplement_error_yaml`, which means a failed text edit.
 - 2026-10-18: criteria audit (full mode, fresh Opus reader): 8 findings, all fixed: folder_state and no-commands asserts, change stop before problem stop with a probe, comment-only probe and raw-byte compare, three output probes, folder and link cases moved out, AC3 bound to the function, AC4 names the remaining window, AC5 diff target.
 - 2026-10-18: changelog: edit the existing NEWS.md `release_supplement()` bullet, since the package is unreleased.
+- 2026-10-18: implement started on branch m011-release-snapshot-gap; tree clean at the cut.
+- 2026-10-18: T1 done: `mock_check_edit()` and `expect_changed_stop()` plus four tests (five yml shapes, the order probe, three output shapes, a no-change control); on main the change tests fail 20 and 12 times (the release finishes), the order probe stops with `supplement_error_release_check`, and the control passes.

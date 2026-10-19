@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (triage: promoted to high release snapshot gap, 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M011 | release_supplement() stops when a file changes during the check | planned | — | high | milestones/M011-release-snapshot-gap.md |
+| M011 | release_supplement() stops when a file changes during the check | in-progress | — | high | milestones/M011-release-snapshot-gap.md |
 | M010 | The footer, the DOI badge, and the citation files agree with _supplement.yml | done | — | normal | milestones/archive/M010-license-doi-agree.md |
 | M009 | release_supplement() raises the version and prints release commands | done | M008 | high | milestones/archive/M009-release-supplement.md |
 | M008 | check_supplement() lists release problems | done | — | high | milestones/archive/M008-check-supplement.md |
