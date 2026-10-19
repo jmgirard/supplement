@@ -132,7 +132,9 @@ gives `1.0.0`. A version must be greater than the current version.
 
 Before it changes any file, the function runs `check_supplement()`. If
 that finds a problem, or skips its git checks, the function stops and
-changes no file. A DOI in
+changes no file. If `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`
+changes while the check runs, the function also stops and writes none of
+these files. A DOI in
 `CITATION.cff` that differs from `_supplement.yml` does not stop it,
 because the release writes that file again. The function then changes the
 version in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json`

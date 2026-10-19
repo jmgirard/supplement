@@ -17,7 +17,8 @@ The release commands as a character vector, invisibly.
 }
 \description{
 \code{release_supplement()} prepares a release of a site. It runs
-\code{\link[=check_supplement]{check_supplement()}} and stops when that finds a problem. It then raises
+\code{\link[=check_supplement]{check_supplement()}} and stops when that finds a problem, or when one
+of the files that it writes changes while the check runs. It then raises
 \code{version} in \verb{_supplement.yml}, writes \code{CITATION.cff} and \code{.zenodo.json}
 again with the new version, and prints the git and GitHub commands that
 make the release. It runs none of these commands, so you can read them
@@ -39,7 +40,8 @@ version, compared part by part as numbers, so \verb{1.10.0} is greater than
 The function stops, and changes no file, when \code{\link[=check_supplement]{check_supplement()}}
 finds a problem or skips its git checks. A \code{"doi-mismatch"} problem for
 \code{CITATION.cff} does not stop it, because the release writes that file
-again.
+again. A change to \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json}
+during the check also stops it, as described below.
 
 Only the value on the \verb{version:} line of \verb{_supplement.yml} changes, so
 its comments and the rest of its text stay as they are. The new value is
