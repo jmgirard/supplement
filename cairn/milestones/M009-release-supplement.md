@@ -133,6 +133,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: T15 done: `bump` loses its names and class after `check_bump()` (the named and classed test errored red first); the skipped-plus-row probe compares `folder_state()`; each unwritable-file probe checks `calls$n`; the help says that `_supplement.yml` is read before the checks and a change saved meanwhile is lost; 1759 tests pass.
 - 2026-10-18: claim audit: 6 claims read, 0 corrected — R/release-supplement.R, man/release_supplement.Rd, tests/testthat/test-release-supplement.R (the T14 and T15 diff, same reader).
 - 2026-10-18: status review; handing off to /milestone-review under RR01's disposition rule.
+- 2026-10-18: correction: in pass 6 the AC5 tick was committed in b22a4ff before its evidence line, because the edit that wrote the evidence failed; the evidence line landed in the next commit, and the tests behind it had already run fresh in that pass.
 
 ## Decisions
 
@@ -257,3 +258,15 @@ Pass 5 (after RR01), on 5019537, main not moved since the cut. Disposition rule 
 Pass 6 (after the return-5 override), on cde5b7d, main not moved since the cut. Disposition rule as in pass 5. Fresh test runs: test-write-metadata.R 17 tests (90 expectations), test-write-metadata-errors.R 21 (333), test-yaml-insert.R 24 (206), test-release-supplement.R 29 (238), all with 0 failed and 0 skipped.
 
 - AC1: The template line `version: ""` and its comment are at `inst/template/_supplement.yml:12-15`. The write, leave-out, and error tests listed for AC1 pass in test-write-metadata.R and test-write-metadata-errors.R, including `1.0`, `v1.0.0`, `01.0.0`, `1.0.0-rc1`, and `1. 0.0`. `read_version()` reads the value through `value()`, which removes the outer spaces and line breaks.
+- AC2: The listed cases pass at test lines 58 and 93. Line 125 expects `supplement_error_argument` for AC2's five values verbatim, line 145 checks the error classes for the current version, and line 164 reads a quoted `"1.2.3\n"` as `1.2.3`. Line 81, new, shows that a named or classed `bump` works.
+- AC3: Lines 175, 193, and 205 fire `supplement_error_release_check` with the number of problems; the skipped-plus-row probe now also compares `folder_state()`. Line 222 lets the exempt `CITATION.cff` row through, line 525 ties that row to `check_dois()`, and line 231 covers `supplement_error_no_version`.
+- AC4: Line 262 compares the bytes for the 8 listed file shapes, and line 287 covers a re-read that fails, with `supplement_error_yaml`.
+- AC5: Line 298 finds `2.0.0` in both files after a release. The listed failing probes each find `folder_state()` as before:
+  - line 309: failing writes of each output, with both files present and with both absent;
+  - line 541: an empty `citation`;
+  - line 508: a failure in the printing;
+  - line 482: an interrupt in place of `write_zenodo()`.
+  Line 339, new, runs the removal rule on a site at `site[ab]` beside `sitea` and finds both folders as before. `restore()` now uses `file.remove()`.
+- AC6: Line 558 checks the returned and printed commands against `expected_commands("1.3.0")`, and line 579 finds no process-starting call.
+- AC7: The "Make a release" sections are in both READMEs, the example is in `\dontrun{` at man/release_supplement.Rd:119, and NEWS.md:30 and NEWS.md:41 have the entries.
+- Gate: `cairn_validate` passes (the same task-count advisory), `devtools::document()` makes no diff, and `devtools::check()` gives 0 errors, 0 warnings, 0 notes.
