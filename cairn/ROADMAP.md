@@ -7,13 +7,14 @@ _Last hygiene check: 2026-10-19 (M018 review: graduated Windows check, narrowed 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
+| M019 | A failing template test prints the cause of the failure | planned | — | high | milestones/M019-template-test-flake.md |
 | M018 | The package checks and template renders pass on Windows in CI | done | — | high | milestones/archive/M018-windows-check.md |
 | M017 | The template publishes paper figures from a figures folder | done | — | normal | milestones/archive/M017-paper-figures.md |
 | M016 | A site YAML file with a syntax error gives a supplement error | done | — | normal | milestones/archive/M016-yaml-parse-errors.md |
 
 ## Candidates
 
-- [high] template test flake: during M009, one `devtools::test()` run failed 3 times at `test-template.R:140` (`git check-ignore` printed output where none was expected), and five later runs passed. During M017, one run failed in "setup keeps both files when README.md and SUPPLEMENT.md exist" (`quarto render` exited 1), and two later runs passed. Find the cause. — added 2026-10-18
+- [high] template test flake: during M009, one `devtools::test()` run failed 3 times at `test-template.R:140` (`git check-ignore` printed output where none was expected), and five later runs passed. During M017, one run failed in "setup keeps both files when README.md and SUPPLEMENT.md exist" (`quarto render` exited 1), and two later runs passed. Find the cause. — added 2026-10-18 — started M019
 - docs site and walkthrough: a package site built with the toolkit itself, plus a first-time guide to GitHub Pages and Zenodo. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review). — added 2026-10-18
 - Windows-safe names: from the M007 review. add_report() accepts names that Windows reserves, such as `con`, and add_data() accepts base names that end in `.`, which Windows strips. Narrowed 2026-10-19 by M018, which made `is_link()` find junctions. — added 2026-10-18
 - web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
@@ -26,6 +27,7 @@ _Last hygiene check: 2026-10-19 (M018 review: graduated Windows check, narrowed 
 - Windows short folder names: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
 - Windows large data files: from the M018 review. Quarto copies each file the data table links into `docs/`, the size fixtures included (seen on macOS, where the 2 GiB copy stays sparse at 4 KB); the disk cost of the 1 GB, 2 GiB, and 4 GiB fixtures on Linux and Windows was not measured. On Windows the data table counts the bytes of each file of 2 GiB or more on every render, and the time for a 4 GiB file was not measured. — added 2026-10-19
 - coverage report: add the usethis test-coverage workflow, which runs `covr` and uploads to Codecov, beside the check workflow. It needs the repo linked in a Codecov account, and coverage never gates a merge. From the M018 plan. — added 2026-10-19
+- status check output: from the M019 plan. Status checks in `test-shortcodes.R`, `test-release-supplement.R`, `test-check-supplement.R`, `test-create-supplement.R`, and `test-add-render.R` do not show the command's output when they fail. `git_run()` drops stderr, and the shortcode test runners return only stderr. — added 2026-10-19
 - [low] Suggests floor guard: nothing stops a new test from calling a testthat function newer than the DESCRIPTION floor, and the withr, knitr, and rmarkdown entries in Suggests have no floor. A CI job on the floor versions, or a test that compares the functions the tests call with the floor's exports, would catch it. From the M013 plan. — added 2026-10-18
 - [parked] template install from GitHub: recommend a pinned tag (`@vX.Y.Z`) in the README once a release exists. Narrowed 2026-10-18: the untagged route ran after the M003 merge and rendered. From the M003 review. — added 2026-10-18
 - [parked] existing-site migration: a helper that converts a site with the old `src/` and `analyses/` layout to the freeze layout. Out of scope for version 1. — added 2026-10-18
