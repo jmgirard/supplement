@@ -2,7 +2,7 @@
      section ownership". A phase skill never rewrites another phase's section.
      Per-section owners are tagged below. The one size check that can fail is
      cairn_validate's <150 over the plan-owned body. -->
-# M013: DESCRIPTION asks for testthat 3.2.0, and the tests pass under it
+# M013: DESCRIPTION asks for testthat 3.3.0, and the tests pass under it
 
 - **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** high   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
@@ -16,20 +16,20 @@
 ## Goal
 <!-- owner: plan · create; a wrong goal returns to plan, never edited in place -->
 
-DESCRIPTION's testthat floor is 3.2.0, the floor the user chose (D-013), and the tests are shown to pass under testthat 3.2.0.
+DESCRIPTION's testthat floor is 3.3.0, the first CRAN release after 3.2.3; testthat 3.2.0 through 3.2.3 do not compile under R 4.6.1 (D-014). The tests are shown to pass under testthat 3.3.0.
 
 ## Scope
 <!-- owner: plan · create/amend-via-gate -->
 
-**In:** change `testthat (>= 3.0.0)` to `testthat (>= 3.2.0)` in DESCRIPTION Suggests. Run the tests under testthat 3.2.0, built from the CRAN archive into a scratch library outside the repository. Check that 3.2.0 exports each testthat function that the tests call.
+**In:** change `testthat (>= 3.0.0)` to `testthat (>= 3.3.0)` in DESCRIPTION Suggests. Run the tests under testthat 3.3.0, built from the CRAN archive into a scratch library outside the repository. Check that 3.3.0 exports each testthat function that the tests call.
 
-**Out:** a floor lower than 3.2.0 (the user chose 3.2.0; D-013). Rewriting `expect_no_error()` as `expect_error(x, NA)` (it cannot keep the old floor, because `local_mocked_bindings()` needs 3.1.7). A check that keeps the floor true as tests change, and floors for withr, knitr, and rmarkdown → candidate row "Suggests floor guard". A NEWS.md entry (no package behavior changes).
+**Out:** a floor lower than 3.3.0 (the 3.2 releases do not compile under R 4.6.1, and the user chose 3.3.0; D-014). Rewriting `expect_no_error()` as `expect_error(x, NA)` (it cannot keep the old floor, because `local_mocked_bindings()` needs 3.1.7). A check that keeps the floor true as tests change, and floors for withr, knitr, and rmarkdown → candidate row "Suggests floor guard". A NEWS.md entry (no package behavior changes).
 
 ## Acceptance criteria
 <!-- owner: plan · create/amend-via-gate; review reads, never reinterprets. -->
 
-- [ ] AC1: `DESCRIPTION` lists `testthat (>= 3.2.0)` under Suggests. With quarto and git on PATH and `NOT_CRAN=true`, `testthat::test_local()`, run with testthat 3.2.0 loaded from a library outside the repository, reports 0 failures and 0 errors over `tests/testthat/`, and it skips no test that the same run under the installed testthat does not skip. When its only failure is at `test-template.R:140` (the known flake), one clean rerun meets this.
-- [ ] AC2: testthat 3.2.0 exports every testthat function that a file in `tests/testthat/` calls by name: the `SYMBOL_FUNCTION_CALL` tokens from `getParseData()` on each file that name an export of the installed testthat, less names that a file under `tests/testthat/` assigns or takes as a function argument (today `source_file` and `setup`).
+- [ ] AC1: `DESCRIPTION` lists `testthat (>= 3.3.0)` under Suggests. With quarto and git on PATH and `NOT_CRAN=true`, `testthat::test_local()`, run with testthat 3.3.0 loaded from a library outside the repository, reports 0 failures and 0 errors over `tests/testthat/`, and it skips no test that the same run under the installed testthat does not skip. When its only failure is at `test-template.R:140` (the known flake), one clean rerun meets this.
+- [ ] AC2: testthat 3.3.0 exports every testthat function that a file in `tests/testthat/` calls by name: the `SYMBOL_FUNCTION_CALL` tokens from `getParseData()` on each file that name an export of testthat 3.3.2 in the default library, less names that a file under `tests/testthat/` assigns or takes as a function argument (today `source_file` and `setup`).
 - [ ] AC3: Under the installed testthat, `devtools::test()` reports 0 failures and 0 errors, and `devtools::check()` reports 0 errors and 0 warnings, with no NOTE that names DESCRIPTION's Suggests field or testthat. When, in either run, the only test failure is at `test-template.R:140`, one clean rerun of that run meets this.
 
 ## Coverage
@@ -42,9 +42,9 @@ DESCRIPTION's testthat floor is 3.2.0, the floor the user chose (D-013), and the
 ## Tasks
 <!-- owner: plan (create) / implement (check-off, minor edits); substantive change is amend-via-gate. -->
 
-- [x] T1: Edit `DESCRIPTION` Suggests to `testthat (>= 3.2.0)`.
-- [ ] T2: Install `testthat_3.2.0.tar.gz` from `https://cran.r-project.org/src/contrib/Archive/testthat/` into a scratch library outside the repository with `install.packages(<url>, repos = NULL, type = "source", lib = <scratch>)`. devtools 2.5.2 needs testthat 3.3.2, so run `NOT_CRAN=true Rscript -e '.libPaths(c("<scratch>", .libPaths())); print(packageVersion("testthat")); testthat::test_local(reporter = "summary")'`, and run the same command without the scratch library for the skip comparison. Compare the two skip lists. If the 3.2.0 install or run fails at any test other than the flake, stop: the floor the user chose does not hold.
-- [ ] T3: In a session with the scratch library first, parse each file in `tests/testthat/` with `getParseData()`, keep the `SYMBOL_FUNCTION_CALL` tokens that name an export of the installed testthat, drop names that a test file assigns or takes as an argument, and test each against `getNamespaceExports("testthat")` of 3.2.0.
+- [x] T1: Edit `DESCRIPTION` Suggests to `testthat (>= 3.3.0)`.
+- [x] T2: Install `testthat_3.3.0.tar.gz` from `https://cran.r-project.org/src/contrib/Archive/testthat/` into a scratch library outside the repository with `install.packages(<file>, repos = NULL, type = "source", lib = <scratch>)`. devtools 2.5.2 needs testthat 3.3.2, so run `NOT_CRAN=true Rscript -e '.libPaths(c("<scratch>", .libPaths())); print(packageVersion("testthat")); testthat::test_local(reporter = "summary")'`, and run the same command without the scratch library for the skip comparison. Compare the two skip lists. If the run fails at any test other than the flake, stop.
+- [x] T3: In a session on the default library (testthat 3.3.2), parse each file in `tests/testthat/` with `getParseData()`, keep the `SYMBOL_FUNCTION_CALL` tokens that name a testthat export, and drop names that a test file assigns or takes as an argument. In a second session with the scratch library first, test each name against `getNamespaceExports("testthat")` of 3.3.0.
 - [ ] T4: Run `devtools::test()` and `devtools::check()` under the installed testthat.
 
 ## Work log
@@ -64,6 +64,13 @@ DESCRIPTION's testthat floor is 3.2.0, the floor the user chose (D-013), and the
 - 2026-10-18: /milestone-implement started; branch m013-testthat-floor cut from main at 538276b.
 - 2026-10-18: T1 done: DESCRIPTION Suggests now `testthat (>= 3.2.0)`; `devtools::test()` under testthat 3.3.2 with NOT_CRAN=true: 0 failures, 0 errors, 1 skip (`test-add-data.R:309`, case-insensitive disk).
 - 2026-10-18: T2 blocked: testthat 3.2.0 source fails to compile under R 4.6.1 (`reassign.c` calls `SET_FORMALS`, `FORMALS`, `SET_BODY`, `BODY`, `SET_CLOENV`, `CLOENV`, which R 4.6 does not declare); the tarballs of 3.2.1, 3.2.1.1, 3.2.2, and 3.2.3 hold the same calls, and 3.3.0 does not and builds; this machine has only R 4.6, and its one Docker image is `rocker/r-ver:4.6`. Stopped for the user, because AC1 cannot be met as written here.
+- 2026-10-18: substantive amendment: at the T2 stop the user chose a 3.3.0 floor over running 3.2.0 in an R 4.5 Docker image or keeping 3.2.0 with no test run; Goal, title, Scope, AC1, AC2, and T1 to T3 now name 3.3.0, and D-014 supersedes D-013; the Goal was re-cut in place at the user's choice instead of returning to /milestone-plan.
+- 2026-10-18: re-audit: AC1 (full) — nothing for AC1; the Goal's "oldest release that builds under R 4.6.1" was unbounded (narrowed to "the first CRAN release after 3.2.3"), D-014 says the floor comes from the build, and the title, Scope, and tasks still named 3.2.0 (fixed).
+- 2026-10-18: re-audit: AC2 (full) — the filter "an export of the installed testthat" was circular with the scratch library first; narrowed to "testthat 3.3.2 in the default library".
+- 2026-10-18: re-audit: AC2 (full) — nothing (second reader on the narrowed wording; it ran the sweep and found 30 names, none missing from 3.3.0).
+- 2026-10-18: T1 done: DESCRIPTION Suggests now `testthat (>= 3.3.0)`.
+- 2026-10-18: T2 done: testthat 3.3.0 built from the archive tarball into the scratch library; `test_local()` with NOT_CRAN=true under 3.3.0 (printed `3.3.0` and the scratch path first): 0 failures, 0 errors, 1 skip (`test-add-data.R:309`); the same run under 3.3.2: the same one skip.
+- 2026-10-18: T3 done: the parse sweep over 15 files keeps 30 testthat names (excluded `source_file` and `setup`); 0 are missing from 3.3.0's exports; a planted name `expect_not_in_testthat` reads as missing, so the check can fail. A first sweep compared parse ids for assignment order, missed `source_file`, and was fixed to compare positions.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

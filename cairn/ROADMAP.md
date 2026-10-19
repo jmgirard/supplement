@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M012 done: graduated release write order; narro
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M013 | DESCRIPTION asks for testthat 3.2.0, and the tests pass under it | in-progress | — | high | milestones/M013-testthat-floor.md |
+| M013 | DESCRIPTION asks for testthat 3.3.0, and the tests pass under it | in-progress | — | high | milestones/M013-testthat-floor.md |
 | M012 | release_supplement() checks every value before it writes a file | done | — | high | milestones/archive/M012-release-write-order.md |
 | M011 | release_supplement() stops when a file changes during the check | done | — | high | milestones/archive/M011-release-snapshot-gap.md |
 | M010 | The footer, the DOI badge, and the citation files agree with _supplement.yml | done | — | normal | milestones/archive/M010-license-doi-agree.md |

@@ -80,3 +80,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** D-005 set `testthat (>= 3.0.0)`. The tests call `expect_no_error()` and `expect_no_warning()`, new in testthat 3.1.5, and `local_mocked_bindings()`, new in 3.1.7. The floor could be the lowest release that the tests pass under, or 3.2.0, the release whose NEWS calls these functions stable.
 **Decision:** DESCRIPTION lists `testthat (>= 3.2.0)` under Suggests. The user chose 3.2.0 at the M013 plan gate. The floor is not a claim that 3.2.0 is the oldest release that works. The rest of D-005 stands.
 **Consequences:** Someone who runs the tests with testthat 3.1.7 to 3.1.10 is asked for a newer release. A later test that calls a function newer than 3.2.0 needs the floor raised by hand.
+
+### D-014 (2026-10-18): The testthat floor in Suggests is 3.3.0 (supersedes D-013)
+
+**Context:** M013 planned a 3.2.0 floor (D-013) and a test run under that release. The source of testthat 3.2.0 to 3.2.3 does not compile under R 4.6.1, the only R where the run could take place, and 3.3.0, the next CRAN release, does. On R below 4.6, the 3.2 releases build.
+**Decision:** DESCRIPTION lists `testthat (>= 3.3.0)` under Suggests. The user chose this at the M013 implement stop, so that the floor is a release the tests are shown to pass under. The floor comes from what could be built and run, not from a function the tests need. It is not a claim that 3.3.0 is the oldest release that works.
+**Consequences:** Someone with testthat 3.2.x on an older R is asked to update before running the tests. A later test that calls a function newer than 3.3.0 needs the floor raised by hand.
