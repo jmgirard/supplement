@@ -1,3 +1,27 @@
+test_that("a failed status check shows what the command printed", {
+  script <- withr::local_tempfile(fileext = ".R")
+  writeLines(c('cat("on-stdout\\n")', 'message("on-stderr")', "quit(status = 1)"), script)
+  printed <- run_in(dirname(script), file.path(R.home("bin"), "Rscript"), shQuote(basename(script)))
+  expect_equal(printed$status, 1L)
+
+  # Exit status 0 expected.
+  expect_failure(expect_status(printed), "on-stdout")
+  expect_failure(expect_status(printed), "on-stderr")
+  # Exit status 1 and no output expected.
+  expect_failure(expect_status(printed, 1L, output = character()), "on-stdout")
+  expect_failure(expect_status(printed, 1L, output = character()), "on-stderr")
+  # Each passes when the result matches.
+  expect_success(expect_status(printed, 1L))
+  expect_success(expect_command_fails(printed))
+  expect_failure(expect_command_fails(list(status = 0L, output = "on-stdout")), "on-stdout")
+})
+
+test_that("a check for no output shows the lines the command printed", {
+  printed <- list(status = 1L, output = "docs/index.html")
+  expect_failure(expect_status(printed, 1L, output = character()), "docs/index.html", fixed = TRUE)
+  expect_success(expect_status(list(status = 1L, output = character()), 1L, output = character()))
+})
+
 test_that("a new site renders and holds its setup files", {
   skip_if_no_quarto()
   site <- site_copy()

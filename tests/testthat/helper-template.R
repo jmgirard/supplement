@@ -38,6 +38,33 @@ run_in <- function(dir, command, args, env = character()) {
   list(status = attr(out, "status") %||% 0L, output = out)
 }
 
+# Check the exit status of a result from run_in() or git_in(), and with
+# `output`, also the lines it printed. A failure shows everything the
+# command printed, so the cause of a failed command reaches the test log.
+expect_status <- function(result, status = 0L, output = NULL) {
+  printed <- as.character(result$output)
+  ok <- identical(as.integer(result$status), as.integer(status)) &&
+    (is.null(output) || identical(printed, as.character(output)))
+  expected <- paste("exit status", status)
+  if (!is.null(output)) {
+    expected <- paste(expected, if (length(output)) "and the expected output" else "and no output")
+  }
+  expect(ok, command_failure(result, expected))
+  invisible(result)
+}
+
+# Check that a result from run_in() has an exit status other than 0.
+expect_command_fails <- function(result) {
+  expect(!identical(as.integer(result$status), 0L), command_failure(result, "an exit status other than 0"))
+  invisible(result)
+}
+
+command_failure <- function(result, expected) {
+  printed <- as.character(result$output)
+  shown <- if (length(printed)) paste(printed, collapse = "\n") else "(nothing)"
+  sprintf("The command exited with status %s; expected %s. It printed:\n%s", result$status, expected, shown)
+}
+
 # Run git without the user's global or system configuration and without a
 # global excludes file, so that only the repository's own .gitignore
 # decides what is ignored. GIT_DIR, GIT_WORK_TREE, and GIT_INDEX_FILE are
