@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** review
+- **Status:** blocked
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -85,6 +85,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: claim audit: 22 claims read, 0 corrected — R/release-supplement.R, R/write-citation.R, R/supplement-yml.R, man/release_supplement.Rd, man/write_citation.Rd, man/write_zenodo.Rd, tests (the T7 diff, same reader).
 - 2026-10-18: status review; handing off to /milestone-review.
 - 2026-10-18: review return 3: AC2 fails as written: `release_supplement("1.2.3\n")` passes `check_bump()`, because `is_version()` ends with `$`, which also matches before a final line break (blame-history #2, pass 3); this is the third defect return, so the thrash rule (a) stops the run, and the disposition goes to the user.
+- 2026-10-18: blocked: the user chose to park M009 at the third-return stop. The blocker is the user's decision on the next step: a fix and a fourth review pass (an override of the return limit), narrowing, a re-plan, or dropping. Owed on resume: anchor `is_version()` with `\z` (AC2), and the 11 pass-3 fix-now items in the Review section.
 
 ## Review
 
