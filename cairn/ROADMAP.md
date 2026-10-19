@@ -1,23 +1,21 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-19 (triage: promoted Windows check and template test flake to high; routed shortcode edge cases, footer and badge remainder, release edge cases, release snapshot remainder, release write order remainder, parse error edge cases, release check edge cases to Known issues; merged release during a merge into release pathspec edge cases; no drops; no decision entry; validate green)_
+_Last hygiene check: 2026-10-19 (M018 review: graduated Windows check, narrowed Windows-safe names, pruned M015 row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M018 | The package checks and template renders pass on Windows in CI | review | — | high | milestones/M018-windows-check.md |
+| M018 | The package checks and template renders pass on Windows in CI | done | — | high | milestones/archive/M018-windows-check.md |
 | M017 | The template publishes paper figures from a figures folder | done | — | normal | milestones/archive/M017-paper-figures.md |
 | M016 | A site YAML file with a syntax error gives a supplement error | done | — | normal | milestones/archive/M016-yaml-parse-errors.md |
-| M015 | The release commands stage and commit only the site folder | done | — | high | milestones/archive/M015-release-site-folder.md |
 
 ## Candidates
 
-- [high] Windows check: run the template tests and a render on Windows (CI or by hand), including the no-R test, which skips there, and `nojekyll.ts` with a `C:\` output path. From the M003 review. Also from the M004 review: data files of 2 GiB or more may read as missing (32-bit `ftell` in Windows Lua), and the 1 GB sparse size fixture may cost 1 GB of disk off macOS when Quarto copies it into `docs/`. Also from the M006 review: `create_supplement()` path handling on Windows (a broken link or junction at a template path, where `Sys.readlink()` returns `""`, and trailing separators). — added 2026-10-18 — started M018
 - [high] template test flake: during M009, one `devtools::test()` run failed 3 times at `test-template.R:140` (`git check-ignore` printed output where none was expected), and five later runs passed. During M017, one run failed in "setup keeps both files when README.md and SUPPLEMENT.md exist" (`quarto render` exited 1), and two later runs passed. Find the cause. — added 2026-10-18
 - docs site and walkthrough: a package site built with the toolkit itself, plus a first-time guide to GitHub Pages and Zenodo. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review). — added 2026-10-18
-- Windows-safe names: from the M007 review. add_report() accepts names that Windows reserves, such as `con`, and add_data() accepts base names that end in `.`, which Windows strips. `is_link()` reads `Sys.readlink()`, which returns `""` for a junction, so a junction `data/` or `analyses/` is not refused (see "Windows check"). — added 2026-10-18 — started M018
+- Windows-safe names: from the M007 review. add_report() accepts names that Windows reserves, such as `con`, and add_data() accepts base names that end in `.`, which Windows strips. Narrowed 2026-10-19 by M018, which made `is_link()` find junctions. — added 2026-10-18
 - web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
 - stale stored output: `check_supplement()` finds reports with code but no stored output in `_freeze/`. Also find stored output that is older than its report source, from the source hash in each `execute-results/html.json`. From the M008 plan. — added 2026-10-18
 - link check false positives: from the M008 review. `check_supplement()` does not decode `&amp;` or `&#38;` in a link, so `R&D.csv` reads as broken. It reads `href` text in HTML comments, in `<code>` text, and in `data-href` attributes, and it does not trim spaces around a value. It skips pages in hidden folders of `docs/`, and a symlink in `docs/` to a file outside the repository passes. It reads no upper-case `HREF=` or `SRC=`, `src = "…"` in `<script>` text gives a false row, and `data-src=` and `xlink:href=` also match. A symlink loop in `docs/` repeats a page's rows once per loop level. Each fix changes the link check's criterion, so plan it as a milestone. — added 2026-10-18
