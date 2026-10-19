@@ -1,6 +1,6 @@
 # M018: The package checks and template renders pass on Windows in CI
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -54,7 +54,7 @@
 - [x] T5: Add the 2,147,483,649 and 4,294,967,297 byte cases to the size test in `tests/testthat/test-shortcodes.R` (`size_cases`, `write_size_fixture()`). On Windows, mark the fixture sparse (`fsutil sparse setflag`) where it can, so the job does not write gigabytes. If `file_size()` in `inst/template/_extensions/supplement/supplement.lua` fails or wraps there, fall back to counting the bytes by reading the file in blocks.
 - [x] T6: Add Windows tests that make junctions with `Sys.junction()` at each template folder path, at `analyses/`, and at `data/`. If `Sys.readlink()` returns `""` for a junction, change `is_link()` in `R/supplement-yml.R` so it finds one, for example by comparing `normalizePath()` of the path with that of its parent plus its base name.
 - [x] T7: Add a Windows test in `tests/testthat/test-create-supplement.R` for paths that end in `\`, `\\`, and `\/`, comparing the relative file list with the one for the plain path.
-- [ ] T8: Add a NEWS.md entry for each user-visible fix. Update DESIGN.md: the CI workflow under Architecture, and remove the junction sentence from the "Release edge cases" Known issues entry if T6 fixes it. Run the `verify` slot and `devtools::check()` on the Mac.
+- [x] T8: Add a NEWS.md entry for each user-visible fix. Update DESIGN.md: the CI workflow under Architecture, and remove the junction sentence from the "Release edge cases" Known issues entry if T6 fixes it. Run the `verify` slot and `devtools::check()` on the Mac.
 
 ## Work log
 
@@ -84,3 +84,4 @@
 - 2026-10-19: run 39302146526 (head 2c2756c, the short-name fix; the docs commits after it change no code): all three jobs pass, Windows `R CMD check` Status OK with FAIL 0, WARN 0, SKIP 21; the Windows skip list has only "On Windows" (16), "the disk is case-insensitive" (1), "the file can still be read, as for root" (1), and "~ does not follow HOME" (1); the no-R, `.nojekyll`, size, junction, and trailing-backslash tests are not in it. T1 to T7 checked off. Local `devtools::test()` (testthat 3.3.2): 248 tests, 0 failed, 5 skipped.
 - 2026-10-19: claim audit: 31 claims read, 3 corrected — .github/workflows/R-CMD-check.yaml (the skip list missed the reason "git is not on the PATH" from test-check-supplement.R:433; added, and the comment now says it fails on the listed reasons), R/supplement-yml.R (`is_reparse_point()` comment: both tests apply after the parent lists the name, letter case ignored), tests/testthat/test-release-supplement.R (`expect_link_refused()` comment narrowed to what `state()` compares).
 - 2026-10-19: `devtools::document()` changed only `Config/roxygen2/version` (8.1.0 to 8.1.1, the roxygen2 installed on the Mac); committed so `document()` gives no diff. Checkpoint: `devtools::check()` on the Mac is running; T8 waits on it.
+- 2026-10-19: `devtools::check()` on the Mac (tree at ac776ad plus the roxygen stamp): 0 errors, 0 warnings, 0 notes. T8 checked off; status set to review. The last pushed CI run (39302146526) is on 2c2756c; review pushes the later commits and waits on CI for the PR head.

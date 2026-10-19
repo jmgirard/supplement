@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-19 (triage: promoted Windows check and template tes
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M018 | The package checks and template renders pass on Windows in CI | in-progress | — | high | milestones/M018-windows-check.md |
+| M018 | The package checks and template renders pass on Windows in CI | review | — | high | milestones/M018-windows-check.md |
 | M017 | The template publishes paper figures from a figures folder | done | — | normal | milestones/archive/M017-paper-figures.md |
 | M016 | A site YAML file with a syntax error gives a supplement error | done | — | normal | milestones/archive/M016-yaml-parse-errors.md |
 | M015 | The release commands stage and commit only the site folder | done | — | high | milestones/archive/M015-release-site-folder.md |
