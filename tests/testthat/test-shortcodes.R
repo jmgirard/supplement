@@ -37,13 +37,13 @@ test_that("the DOI badge removes a doi: or doi.org link prefix", {
                 "doi:", "doi: ", "HTTPS://DOI.ORG/")
   for (prefix in prefixes) {
     page <- render_doi_page(zenodo_yaml(version = paste0(prefix, bare)))
-    expect_equal(page$status, 0L, info = prefix)
+    expect_equal(page$status, 0L, info = paste(prefix, page$stderr))
     expect_match(page$html, doi_badge_rx(bare), perl = TRUE, info = prefix)
   }
 
   # The concept DOI gets the same treatment.
   page <- render_doi_page(zenodo_yaml(concept = paste0("https://doi.org/", bare)))
-  expect_equal(page$status, 0L)
+  expect_equal(page$status, 0L, info = page$stderr)
   expect_match(page$html, doi_badge_rx(bare), perl = TRUE)
 })
 

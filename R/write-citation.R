@@ -102,9 +102,11 @@ write_citation <- function(path = ".", overwrite = FALSE) {
   version <- read_version(meta)
 
   license <- map_field(meta, "license")
+  code <- "supplement.license.code"
+  content <- "supplement.license.content"
   licenses <- unique(c(
-    license_id(value(license[["code"]], "supplement.license.code"), "supplement.license.code"),
-    license_id(value(license[["content"]], "supplement.license.content"), "supplement.license.content")
+    license_id(value(license[["code"]], code), code),
+    license_id(value(license[["content"]], content), content)
   ))
 
   cff <- compact(list(

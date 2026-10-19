@@ -1,8 +1,8 @@
 # Facts about the paper and this site. The home page shows the title,
 # citation, contact, Zenodo values, and data files, so edit them here and
 # not in index.qmd. The page footer shows the two licenses. No page shows
-# preprint or authors yet. Values are Markdown, so *Journal* gives italics. Leave a value as "" until you have
-# it. In R, supplement::write_citation() and supplement::write_zenodo()
+# preprint or authors yet. Values are Markdown, so *Journal* gives
+# italics. Leave a value as "" until you have it. In R, supplement::write_citation() and supplement::write_zenodo()
 # write CITATION.cff and .zenodo.json from the title, citation, version,
 # licenses, authors, and DOIs in this file.
 supplement:

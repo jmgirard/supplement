@@ -78,8 +78,8 @@ If you turn on Zenodo's GitHub integration for this repository, Zenodo
 gives the DOIs after the next GitHub release. The version DOI names
 one release, and the concept DOI names every release. Add them and the
 archive link to `_supplement.yml`, then render the site again. Write each
-DOI as, for example, `10.5281/zenodo.1234567`. A `https://doi.org/` in
-front is also accepted.
+DOI as, for example, `10.5281/zenodo.1234567`. A `doi:` or
+`https://doi.org/` in front is removed.
 
 If a file under `data` does not exist, or names a folder, the render stops
 with an error that names it. A site without its data files must not be

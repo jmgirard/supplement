@@ -244,7 +244,7 @@ license_id <- function(id, field, call = parent.frame()) {
   if (!grepl("\\A[A-Za-z0-9][A-Za-z0-9.-]*\\+?\\z", id, perl = TRUE)) {
     cli::cli_abort(
       c("{.field {field}} in {.file _supplement.yml} is not an SPDX license id: {.val {id}}.",
-        "i" = "Write one id with no spaces, such as {.val CC-BY-4.0} or {.val MIT}. See {.url https://spdx.org/licenses/}."),
+        "i" = "Write one id of letters, digits, {.code .}, and {.code -}, with at most one {.code +} at the end, such as {.val CC-BY-4.0} or {.val MIT}. See {.url https://spdx.org/licenses/}."),
       class = c("supplement_error_license", "supplement_error"),
       call = call
     )
