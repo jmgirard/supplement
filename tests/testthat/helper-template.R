@@ -200,7 +200,8 @@ doi_badge_rx <- function(doi) {
   )
 }
 
-# The SPDX page of each license id.
+# The footer's link target for each license id (SPDX has a page there only
+# for the ids it lists).
 spdx_url <- function(ids) paste0("https://spdx.org/licenses/", ids, ".html")
 
 # The link targets in `html` that start with https://spdx.org/, in order.

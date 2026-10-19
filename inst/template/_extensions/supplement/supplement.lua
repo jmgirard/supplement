@@ -13,8 +13,8 @@ local function node_at(meta, ...)
 end
 
 -- A metadata value with its empty and one-paragraph forms made plain: nil
--- for an empty value (unset, YAML null, which Quarto gives as the Lua
--- string "", "", or an empty list or map), the inlines of a block or
+-- for an empty value (unset, a YAML null, which Quarto gives as the Lua
+-- string "", a quoted "", or an empty list or map), the inlines of a block or
 -- folded YAML string of one paragraph, which Quarto gives as Blocks
 -- holding one Para, and the value itself otherwise.
 -- supplement::write_citation() also reads these forms as empty or as
@@ -32,6 +32,22 @@ local function simple_value(node)
     return node[1].content
   end
   return node
+end
+
+-- A metadata value as text for an error message: the blocks of a value of
+-- several paragraphs are joined with a space, as R joins them.
+local function shown_text(node)
+  if node == nil then
+    return ""
+  end
+  if pandoc.utils.type(node) == "Blocks" then
+    local parts = {}
+    for _, block in ipairs(node) do
+      parts[#parts + 1] = pandoc.utils.stringify(block)
+    end
+    return table.concat(parts, " ")
+  end
+  return pandoc.utils.stringify(node)
 end
 
 -- The text of the value at `supplement.<keys...>`, or "" when it is unset.
@@ -72,9 +88,10 @@ end
 
 -- The DOI in `supplement.zenodo.<key>` without its prefix, or "" when the
 -- value is empty. A value that supplement::write_citation() refuses stops
--- the render: a list, a map, or true or false, or a value that is not
--- then "10.", four to nine digits, "/", and a suffix with no spaces. This
--- is the rule of bare_doi() in R/supplement-yml.R.
+-- the render: a list, a map, true or false, a value that is not one
+-- paragraph of text (two paragraphs, a heading, or a list item), or a
+-- value that is not then "10.", four to nine digits, "/", and a suffix
+-- with no spaces. This is the rule of bare_doi() in R/supplement-yml.R.
 local function checked_doi(meta, key)
   local field = "supplement.zenodo." .. key
   local node = simple_value(node_at(meta, "zenodo", key))
@@ -83,7 +100,8 @@ local function checked_doi(meta, key)
   end
   if pandoc.utils.type(node) ~= "Inlines" then
     stop("supplement-doi: " .. field .. " in _supplement.yml must be one DOI in quotes,"
-      .. " not a list, a map, true or false, or more than one paragraph")
+      .. " not a list, a map, true or false, or text that is not one paragraph: '"
+      .. shown_text(node) .. "'")
   end
   local text = pandoc.utils.stringify(node)
   local id = bare_doi(text)
@@ -238,11 +256,12 @@ end
 -- `{{< supplement-license code >}}` or `{{< supplement-license content >}}`
 -- shows the license in `supplement.license.code` or
 -- `supplement.license.content`: the readable name of a listed id, any other
--- id as written, and nothing for an empty value. The name links to the
--- id's page at spdx.org, with the SPDX spelling of a listed id. The page
--- of an id that SPDX does not list does not exist. A value that is not one
--- SPDX-shaped id (a list, a map, true or false, text with spaces or
--- Markdown, or text that breaks the id rule) stops the render, as it stops
+-- id as written, and nothing for an empty value. The name links to
+-- https://spdx.org/licenses/<id>.html, with the SPDX spelling of a listed
+-- id. SPDX has no page for an id that it does not list. A value that is not
+-- one SPDX-shaped id (a list, a map, true or false, text that is not one
+-- paragraph, text with spaces or Markdown, or text that breaks the id
+-- rule) stops the render, as it stops
 -- supplement::write_citation(). An unquoted number or yes still renders,
 -- because Quarto reads it as text, while write_citation() refuses it.
 local function license(args, kwargs, meta)
@@ -254,8 +273,8 @@ local function license(args, kwargs, meta)
   local text = plain_text(node_at(meta, "license", key))
   if text == nil then
     stop("supplement-license: " .. field .. " in _supplement.yml must be one SPDX license id, such as \"CC-BY-4.0\","
-      .. " in quotes. It is a list, a map, true or false, more than one paragraph, or text with spaces or Markdown: '"
-      .. pandoc.utils.stringify(node_at(meta, "license", key)) .. "'")
+      .. " in quotes. It is a list, a map, true or false, text that is not one paragraph, or text with spaces or Markdown: '"
+      .. shown_text(node_at(meta, "license", key)) .. "'")
   end
   local id = as_written(text, quarto.project.offset or ".")
   if id == "" then

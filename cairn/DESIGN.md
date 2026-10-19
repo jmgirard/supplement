@@ -123,7 +123,8 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   existing path to be page-relative, so the data table and the license
   shortcode undo that. The DOI badge removes a `doi:` or doi.org prefix.
   The page footer in `_quarto.yml` shows the licenses through
-  `supplement-license`, each linked to its spdx.org page. The license and
+  `supplement-license`, each linked to `spdx.org/licenses/<id>.html`
+  (a page only for ids that SPDX lists). The license and
   DOI shortcodes apply the rules of `license_id()` and `bare_doi()` and
   stop the render on a value those refuse; `tests/testthat/test-agreement.R`
   runs the same value shapes through both sides.

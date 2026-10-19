@@ -17,8 +17,9 @@ supplement:
   contact: "Your Name, Your Institution. Your email address."
   # SPDX license identifiers. LICENSE.md and LICENSE-CC-BY.md hold the texts.
   # The page footer shows a readable name for common ids, such as CC BY 4.0
-  # for CC-BY-4.0, and any other id as written, and links each one to its
-  # page at spdx.org. Write one id of letters and digits, with one . or -
+  # for CC-BY-4.0, and any other id as written, and links each one to
+  # spdx.org/licenses/<id>.html. SPDX has that page only for the ids it
+  # lists. Write one id of letters and digits, with one . or -
   # between groups and at most one + at the end. Any other value, such as
   # "CC BY 4.0", stops the render.
   license:

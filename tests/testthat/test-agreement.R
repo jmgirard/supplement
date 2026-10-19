@@ -27,6 +27,9 @@ citation_result <- function(dir) {
   tryCatch(write_citation(dir), error = function(e) e)
 }
 
+# The message of a condition, or "" for any other result.
+error_text <- function(x) if (inherits(x, "condition")) conditionMessage(x) else ""
+
 render_result <- function(dir) {
   rendered <- run_split(dir, "quarto", "render")
   html <- if (rendered$status == 0L) read_text(file.path(dir, "docs", "index.html")) else ""
@@ -160,7 +163,7 @@ test_that("write_citation() and the shortcodes read null and block values alike"
   dir <- agreement_site(NULL, page, text = supplement_text(c("  code:", content), no_doi))
   cff <- citation_result(dir)
   rendered <- render_result(dir)
-  expect_false(inherits(cff, "error"))
+  expect_false(inherits(cff, "error"), info = paste("null license", error_text(cff)))
   expect_identical(read_cff(dir)$license, "CC-BY-4.0")
   expect_equal(rendered$status, 0L, info = rendered$stderr)
   expect_equal(strip_tags(between_markers(rendered$html)), "BEFORE MID CC BY 4.0 DOI AFTER")
@@ -169,7 +172,7 @@ test_that("write_citation() and the shortcodes read null and block values alike"
   dir <- agreement_site(NULL, page, text = supplement_text(c("  code: |", "    MIT", content), no_doi))
   cff <- citation_result(dir)
   rendered <- render_result(dir)
-  expect_false(inherits(cff, "error"))
+  expect_false(inherits(cff, "error"), info = paste("block license", error_text(cff)))
   expect_identical(read_cff(dir)$license, c("MIT", "CC-BY-4.0"))
   expect_equal(rendered$status, 0L, info = rendered$stderr)
   expect_equal(strip_tags(between_markers(rendered$html)), "BEFORE MIT MID CC BY 4.0 DOI AFTER")
@@ -178,15 +181,17 @@ test_that("write_citation() and the shortcodes read null and block values alike"
   dir <- agreement_site(NULL, page, text = supplement_text(c("  code: |", "    MIT", "", "    X", content), no_doi))
   cff <- citation_result(dir)
   rendered <- render_result(dir)
-  expect_true(inherits(cff, "supplement_error_license"))
-  expect_false(rendered$status == 0L)
+  expect_true(inherits(cff, "supplement_error_license"), info = paste("two-paragraph license", error_text(cff)))
+  expect_false(rendered$status == 0L, info = "two-paragraph license")
   expect_match(rendered$stderr, "supplement-license: supplement.license.code ", fixed = TRUE)
+  # The message quotes the paragraphs joined with a space, as R reads them.
+  expect_match(rendered$stderr, "'MIT X'", fixed = TRUE)
 
   # A null DOI is empty, and a folded DOI is its text, on both sides.
   dir <- agreement_site(NULL, page, text = supplement_text(content, c("  version-doi:", "  concept-doi: >", paste0("    ", bare))))
   cff <- citation_result(dir)
   rendered <- render_result(dir)
-  expect_false(inherits(cff, "error"))
+  expect_false(inherits(cff, "error"), info = paste("null and folded DOI", error_text(cff)))
   expect_identical(read_cff(dir)$doi, bare)
   expect_equal(rendered$status, 0L, info = rendered$stderr)
   expect_match(rendered$html, doi_badge_rx(bare), perl = TRUE)
@@ -195,7 +200,7 @@ test_that("write_citation() and the shortcodes read null and block values alike"
   dir <- agreement_site(NULL, page, text = supplement_text(content, c("  version-doi: |", "    10.5281/zenodo.1", "", "    2")))
   cff <- citation_result(dir)
   rendered <- render_result(dir)
-  expect_true(inherits(cff, "supplement_error_doi"))
-  expect_false(rendered$status == 0L)
+  expect_true(inherits(cff, "supplement_error_doi"), info = paste("two-paragraph DOI", error_text(cff)))
+  expect_false(rendered$status == 0L, info = "two-paragraph DOI")
   expect_match(rendered$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
 })

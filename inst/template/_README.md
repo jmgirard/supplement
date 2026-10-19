@@ -117,7 +117,8 @@ Zenodo archives a GitHub release, it reads that file. Both files take the
 title, the version, and the authors from `_supplement.yml`, and they
 leave out an empty version. `CITATION.cff` also takes
 both licenses and the concept DOI. When the two license ids differ only
-in letter case, it takes one of them. If the concept DOI is empty, it takes
+in letter case, it takes the one spelled as in `license.code`. If the
+concept DOI is empty, it takes
 the version DOI. `.zenodo.json` also takes the citation. Its
 `license` field holds one license, so it gets the content license. Give
 each author a `family` name and `given` names. When a file exists, the

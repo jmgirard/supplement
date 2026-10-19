@@ -57,8 +57,8 @@
   place of links to `LICENSE.md` and `LICENSE-CC-BY.md`. SPDX keeps that
   page only for ids on its license and exception lists. A license value that is
   not one SPDX id stops the render. Examples are `CC BY 4.0`, `GPL--3.0`,
-  and a list. A call without `code` or `content` as its one argument also
-  stops the render.
+  and a list. A call also stops the render unless it has one argument,
+  `code` or `content`, and no named argument.
 * The `supplement-doi` badge removes the prefixes in front of a DOI that
   `write_citation()` removes: `doi:`, and `http://` or `https://` with
   `doi.org/`, `dx.doi.org/`, or `www.doi.org/`. A DOI written as such a

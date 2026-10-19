@@ -37,7 +37,7 @@ website:
       - icon: github
         href: https://github.com/OWNER/REPO
   # The license names come from license.code and license.content in
-  # _supplement.yml, and each one links to its page at spdx.org.
+  # _supplement.yml, and each one links to spdx.org/licenses/<id>.html.
   page-footer:
     center: "Code: {{< supplement-license code >}} · Content: {{< supplement-license content >}}"
 
