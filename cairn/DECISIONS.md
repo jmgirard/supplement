@@ -92,3 +92,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** A `_supplement.yml` or `_quarto.yml` that the yaml package cannot read gave the parser's unclassed error from four functions, and `supplement_error_yaml` from `add_data()` and `add_report()`. That class already means that the text a function changed does not read back as planned (D-010, D-011).
 **Decision:** Every function that reads a site YAML file reads it through `yaml_read_file_text()`, which turns the yaml package's error into `supplement_error_parse` with the file name and the parser's message. `supplement_error_yaml` keeps its one meaning. The M016 plan chose a new class over the old one.
 **Consequences:** Code that caught `supplement_error_yaml` from `add_data()` or `add_report()` for a file that does not parse now gets `supplement_error_parse`. A later function that reads a site YAML file uses the same helper.
+
+### D-016 (2026-10-19): R CMD check runs in GitHub Actions on Windows, macOS, and Ubuntu
+
+**Context:** The repo had no CI, and the machine that runs the tests is a Mac, so no test had run on Windows or Linux. The repo profile names the usethis check-standard workflow.
+**Decision:** `.github/workflows/R-CMD-check.yaml` runs `R CMD check` on each push and pull request on windows-latest, macos-latest, and ubuntu-latest with the R release, Quarto 1.10, and `NOT_CRAN=true`, so the render tests run. A warning fails the check. A last step lists each skipped test and fails when a test skipped because Quarto, git, knitr, or rmarkdown is missing. The user chose three systems over Windows alone and over a run by hand at the M018 plan. The Codecov coverage job is not added (candidate row "coverage report").
+**Consequences:** Merges wait on this workflow, and red CI blocks a merge. The tests run twice in each job. The workflow uses the r-lib and Quarto setup actions; they are not package dependencies.

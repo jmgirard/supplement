@@ -70,7 +70,7 @@ test_that("a rendered site in a git repository has no problems", {
   expect_message(result <- check_supplement(site), "No problems")
   expect_s3_class(result, "data.frame")
   expect_identical(names(result), c("check", "file", "problem"))
-  expect_identical(nrow(result), 0L)
+  expect_identical(nrow(result), 0L, info = paste(result$file, result$problem, collapse = "\n"))
   expect_identical(attr(result, "skipped"), character())
   for (col in names(result)) expect_type(result[[col]], "character")
 
@@ -233,7 +233,9 @@ test_that("reports with code but no stored output give a no-stored-output row", 
 })
 
 test_that("glob characters in the site path do not hide reports", {
-  site <- file.path(withr::local_tempdir(), "site [draft]*?")
+  # Windows does not allow * or ? in a file name.
+  name <- if (.Platform$OS.type == "windows") "site [draft]" else "site [draft]*?"
+  site <- file.path(withr::local_tempdir(), name)
   suppressMessages(create_supplement(site))
   rows <- rows_of(check_quiet(site), "no-stored-output")
   expect_identical(rows$file, "analyses/example.qmd")

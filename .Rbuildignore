@@ -5,3 +5,5 @@
 ^\.Rproj\.user$
 ^inst/template/(docs|_freeze|_site|\.quarto)$
 (^|/)\.DS_Store$
+^\.github$
+^\.gitattributes$

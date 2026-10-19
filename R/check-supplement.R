@@ -7,8 +7,8 @@
 #' The checks, by the value in the `check` column:
 #'
 #' * `"large-file"`: a file larger than 100 MiB (104,857,600 bytes), which
-#'   GitHub refuses. A symbolic link is not counted, because git stores
-#'   only the link.
+#'   GitHub refuses. A symbolic link, or on Windows a junction, is not
+#'   counted, because git stores only the link.
 #' * `"saved-object"`: a saved R object (`.rds`, `.rda`, `.rdata`, `.qs`,
 #'   or `.qs2`, in any letter case). A fitted model saved this way can hold
 #'   the data it was fitted to.
@@ -213,8 +213,13 @@ github_file_limit <- 104857600
 
 check_git_files <- function(path, files) {
   full <- file.path(path, files)
-  size <- file.info(full, extra_cols = FALSE)$size
-  large <- !is.na(size) & size > github_file_limit & !is_link(full)
+  # git can list a name that is not valid UTF-8 from its index, and on
+  # Windows file.info() stops on such a name.
+  readable <- .Platform$OS.type != "windows" | validUTF8(full)
+  size <- rep(NA_real_, length(full))
+  size[readable] <- file.info(full[readable], extra_cols = FALSE)$size
+  large <- !is.na(size) & size > github_file_limit
+  large[large] <- !is_link(full[large])
   # useBytes keeps a name that is not valid UTF-8 in the match.
   saved <- grepl("\\.(rds|rda|rdata|qs|qs2)$", files, ignore.case = TRUE, useBytes = TRUE)
   shown <- show_text(files)

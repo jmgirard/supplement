@@ -1,0 +1,91 @@
+# Based on the usethis check-standard workflow, cut to the R release on
+# three systems, with the Quarto CLI that the template tests render with.
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+name: R-CMD-check
+
+permissions: read-all
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+
+    name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: windows-latest, r: 'release'}
+          - {os: macos-latest,   r: 'release'}
+          - {os: ubuntu-latest,  r: 'release'}
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      # The template tests call skip_on_cran(), so without this they skip.
+      NOT_CRAN: true
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 1.10.19
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck, any::pkgload
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          upload-snapshots: true
+          build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
+          error-on: '"warning"'
+
+      # R CMD check prints the test output only when a test fails. This step
+      # runs the tests again, prints each skip with its reason, and fails when
+      # a test skipped with one of the missing-tool reasons listed below.
+      - name: List skipped tests
+        if: always()
+        shell: Rscript {0}
+        run: |
+          res <- testthat::test_local(reporter = "silent", stop_on_failure = FALSE)
+          rows <- do.call(rbind, lapply(res, function(t) {
+            skips <- Filter(function(e) inherits(e, "expectation_skip"), t$results)
+            if (length(skips) == 0) return(NULL)
+            data.frame(file = t$file, test = t$test,
+                       reason = vapply(skips, conditionMessage, character(1)))
+          }))
+          cat(length(res), "tests ran.\n")
+          if (is.null(rows)) {
+            cat("No test skipped.\n")
+          } else {
+            print(rows, right = FALSE, row.names = FALSE)
+          }
+          passed <- sum(as.data.frame(res)$passed)
+          cat(passed, "expectations passed.\n")
+          if (length(res) == 0 || passed == 0) stop("No test ran.")
+          missing_tool <- c(
+            "On CRAN", "quarto is not on PATH", "git is not on PATH",
+            "git is not on the PATH", "git --version fails", "knitr cannot be loaded",
+            "rmarkdown cannot be loaded",
+            # skip_if_not_installed() names the package in braces.
+            "{knitr}", "{rmarkdown}"
+          )
+          if (!is.null(rows)) {
+            bad <- Reduce(`|`, lapply(missing_tool, grepl, x = rows$reason, fixed = TRUE))
+            if (any(bad)) stop(sum(bad), " tests skipped because a tool is missing.")
+          }

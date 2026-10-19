@@ -450,26 +450,39 @@ test_that("a file that cannot be put back is named in the error", {
   expect_identical(site_version(dir), "1.2.3")
 })
 
+# A link at an output path, to a file that exists or not, stops the release.
+# The names, the links, and _supplement.yml stay as they were, and the
+# target stays present or missing as before.
+expect_link_refused <- function(name, target) {
+  dir <- release_site('  version: "1.2.3"')
+  outside <- withr::local_tempfile()
+  if (target == "present") writeLines("outside", outside)
+  skip_if_not(file.symlink(outside, file.path(dir, name)), "cannot make a link")
+  # folder_state() cannot read a link to a missing file, so compare the
+  # names, the links, and _supplement.yml.
+  state <- function() {
+    names <- list.files(dir, all.files = TRUE, no.. = TRUE)
+    list(names, Sys.readlink(file.path(dir, names)), read_bytes(file.path(dir, "_supplement.yml")))
+  }
+  before <- state()
+  expect_true(is_link(file.path(dir, name)), info = paste(name, target))
+  expect_error(release("patch", path = dir), class = "supplement_error_file_exists")
+  expect_identical(state(), before)
+  expect_identical(file.exists(outside), target == "present")
+}
+
+test_that("a link to a missing output file is refused before any write", {
+  # On Windows such a link reads as a file that exists and cannot be read
+  # (candidate row "Windows file links").
+  skip_on_os("windows")
+  calls <- mock_check()
+  for (name in c("CITATION.cff", ".zenodo.json")) expect_link_refused(name, "missing")
+  expect_identical(calls$n, 0L)
+})
+
 test_that("a linked or unreadable output file is refused before any write", {
   calls <- mock_check()
-  for (name in c("CITATION.cff", ".zenodo.json")) {
-    for (target in c("missing", "present")) {
-      dir <- release_site('  version: "1.2.3"')
-      outside <- withr::local_tempfile()
-      if (target == "present") writeLines("outside", outside)
-      skip_if_not(file.symlink(outside, file.path(dir, name)), "cannot make a link")
-      # folder_state() cannot read a link to a missing file, so compare the
-      # names, the links, and _supplement.yml.
-      state <- function() {
-        names <- list.files(dir, all.files = TRUE, no.. = TRUE)
-        list(names, Sys.readlink(file.path(dir, names)), read_bytes(file.path(dir, "_supplement.yml")))
-      }
-      before <- state()
-      expect_error(release("patch", path = dir), class = "supplement_error_file_exists")
-      expect_identical(state(), before)
-      expect_identical(file.exists(outside), target == "present")
-    }
-  }
+  for (name in c("CITATION.cff", ".zenodo.json")) expect_link_refused(name, "present")
   expect_identical(calls$n, 0L)
 
   skip_on_os("windows")
@@ -557,7 +570,9 @@ test_that("an interrupt puts back the files, and a failed put-back is reported",
   mock_check()
   interrupt <- function() signalCondition(structure(class = c("interrupt", "condition"), list()))
   dir <- release_site('  version: "1.2.3"')
-  writeLines("old citation", file.path(dir, "CITATION.cff"))
+  # writeBin(), because writeLines() writes CRLF on Windows and the mock
+  # below matches these bytes.
+  writeBin(charToRaw("old citation\n"), file.path(dir, "CITATION.cff"))
   before <- folder_state(dir)
   # The write of .zenodo.json is interrupted after CITATION.cff is written.
   real_write_utf8 <- write_utf8

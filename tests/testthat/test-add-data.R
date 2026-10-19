@@ -162,7 +162,10 @@ test_that("a bad description stops and writes nothing", {
 })
 
 test_that("a file name that Quarto reads as Markdown stops", {
-  for (name in c("a b.csv", "it's.csv", "a--b.csv", "a._b.csv", ".hidden", "café.csv", "_x_.csv", "x.csv\n", "_data_", "_x-y_")) {
+  names <- c("a b.csv", "it's.csv", "a--b.csv", "a._b.csv", ".hidden", "café.csv", "_x_.csv", "x.csv\n", "_data_", "_x-y_")
+  # Windows does not allow a line break in a file name.
+  if (.Platform$OS.type == "windows") names <- setdiff(names, "x.csv\n")
+  for (name in names) {
     file <- source_file(name)
     expect_data_error("supplement_error_file_name", file = file, description = "D")
   }
@@ -265,6 +268,20 @@ test_that("a linked data folder or data file stops, so nothing is written outsid
     "supplement_error_file_exists", file = real, description = "D",
     setup = function(site) file.symlink(real, file.path(site, "data", "real.csv"))
   )
+})
+
+test_that("on Windows, a junction data folder stops, so nothing is written outside the site", {
+  skip_on_os(c("mac", "linux", "solaris"))
+  outside <- withr::local_tempdir("outside-")
+  outside_before <- folder_state(outside)
+  expect_data_error(
+    "supplement_error_file_exists", file = source_file(), description = "D",
+    setup = function(site) {
+      unlink(file.path(site, "data"), recursive = TRUE)
+      stopifnot(Sys.junction(outside, file.path(site, "data")))
+    }
+  )
+  expect_identical(folder_state(outside), outside_before)
 })
 
 test_that("a name that differs from a file in data/ only in letter case stops", {

@@ -202,6 +202,36 @@ test_that("a link where the template needs a folder stops, so nothing is written
   expect_identical(list.files(site, all.files = TRUE, no.. = TRUE), "data")
 })
 
+test_that("on Windows, a junction at a template folder path stops, so nothing is written outside", {
+  skip_on_os(c("mac", "linux", "solaris"))
+  parents <- unique(dirname(template_tracked))
+  folders <- setdiff(unique(c(parents, dirname(parents))), ".")
+  expect_setequal(folders, c("_extensions", "_extensions/supplement", "_scripts", "analyses", "data"))
+  for (folder in folders) {
+    site <- withr::local_tempdir()
+    outside <- withr::local_tempdir("outside-")
+    dir.create(dirname(file.path(site, folder)), showWarnings = FALSE, recursive = TRUE)
+    expect_true(Sys.junction(outside, file.path(site, folder)), info = folder)
+    expect_true(is_link(file.path(site, folder)), info = folder)
+    expect_error(create_supplement(site), class = "supplement_error_file_exists", info = folder)
+    expect_identical(list.files(outside, all.files = TRUE, no.. = TRUE), character(), info = folder)
+  }
+})
+
+test_that("on Windows, a trailing backslash makes the same files as no trailing separator", {
+  skip_on_os(c("mac", "linux", "solaris"))
+  plain <- file.path(withr::local_tempdir(), "site")
+  suppressMessages(create_supplement(plain))
+  expected <- sort(list.files(plain, recursive = TRUE, all.files = TRUE, no.. = TRUE))
+  expect_setequal(expected, template_tracked)
+  for (ending in c("\\", "\\\\", "\\/")) {
+    site <- file.path(withr::local_tempdir(), "site")
+    expect_message(create_supplement(paste0(site, ending)), "Made a supplement site", info = ending)
+    expect_identical(sort(list.files(site, recursive = TRUE, all.files = TRUE, no.. = TRUE)), expected,
+                     info = ending)
+  }
+})
+
 test_that("a copy or a folder that fails partway leaves an existing folder as it was", {
   skip_on_os("windows")
   skip_if(Sys.info()[["user"]] == "root", "root can read and write any file")

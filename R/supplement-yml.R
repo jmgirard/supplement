@@ -291,15 +291,46 @@ check_overwrite <- function(file, overwrite, call = parent.frame()) {
 }
 
 # TRUE for each path that holds a file, a folder, or a link.
-# file.exists() is FALSE for a link whose target is missing, and
-# Sys.readlink() is NA for a path that does not exist.
+# file.exists() is FALSE for a link whose target is missing (on Windows,
+# for a junction or a folder link), and Sys.readlink() is NA for a path
+# that does not exist.
 path_occupied <- function(paths) {
   file.exists(paths) | is_link(paths)
 }
 
 is_link <- function(paths) {
   link <- Sys.readlink(paths)
-  !is.na(link) & nzchar(link)
+  found <- !is.na(link) & nzchar(link)
+  if (.Platform$OS.type == "windows") {
+    found <- found | vapply(paths, is_reparse_point, logical(1), USE.NAMES = FALSE)
+  }
+  found
+}
+
+# On Windows, Sys.readlink() gives "" for a junction and for a symbolic
+# link. So a path that its parent folder lists counts as a link when it
+# does not exist, or when it resolves to a place other than its parent
+# folder plus its own name, letter case ignored. A file link to a missing
+# file passes both tests there (candidate row "Windows file links").
+is_reparse_point <- function(path) {
+  path <- drop_trailing_sep(path)
+  parent <- dirname(path)
+  name <- basename(path)
+  siblings <- list.files(parent, all.files = TRUE, no.. = TRUE)
+  # tolower() stops on a name that is not valid UTF-8.
+  siblings <- siblings[validUTF8(siblings)]
+  listed <- name %in% siblings || (validUTF8(name) && tolower(name) %in% tolower(siblings))
+  if (!listed) {
+    return(FALSE)
+  }
+  if (!file.exists(path)) {
+    return(TRUE)
+  }
+  resolved <- normalizePath(path, winslash = "/", mustWork = FALSE)
+  # A drive root keeps its separator ("D:/"), so drop it before the join.
+  folder <- sub("/+$", "", normalizePath(parent, winslash = "/", mustWork = FALSE))
+  expected <- paste0(folder, "/", name)
+  !identical(tolower(resolved), tolower(expected))
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x

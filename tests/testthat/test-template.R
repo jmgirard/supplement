@@ -24,6 +24,9 @@ test_that("report pages carry the site navbar and stored output", {
 
   frozen <- list.files(file.path(site$dir, "_freeze", "analyses", "example"), recursive = TRUE)
   expect_gt(length(frozen), 0)
+  # The report's figure reaches docs/ beside the page that shows it.
+  expect_match(page, 'src="example_files/figure-html/bootstrap-1.png"', fixed = TRUE)
+  expect_true(file.exists(file.path(site$dir, "docs", "analyses", "example_files", "figure-html", "bootstrap-1.png")))
 })
 
 test_that("the home page lists the reports through a Quarto listing", {
@@ -65,26 +68,31 @@ test_that("the project freezes output and renders into docs", {
 
 test_that("a full render with R unreachable runs no report code", {
   skip_if_no_quarto()
-  skip_on_os("windows")
-  skip_if(any(file.exists(c("/usr/bin/R", "/bin/R", "/usr/bin/Rscript", "/bin/Rscript"))),
-          "R is in /usr/bin or /bin")
   site <- site_copy()
+
+  # Quarto looks for Rscript in QUARTO_R before R_HOME, PATH, and the Windows
+  # registry. An empty folder there leaves Quarto no R to run, on every system.
+  no_r_env <- c(QUARTO_R = withr::local_tempdir("no-r-"), R_HOME = NA)
 
   page <- file.path(site$dir, "docs", "analyses", "example.html")
   before <- readBin(page, "raw", file.info(page)$size)
   frozen <- list.files(file.path(site$dir, "_freeze"), recursive = TRUE, full.names = TRUE)
   frozen_times <- file.info(frozen)$mtime
 
-  quarto <- unname(Sys.which("quarto"))
-  no_r <- run_in(
-    site$dir, "env",
-    c("-i", paste0("HOME=", shQuote(Sys.getenv("HOME"))), "PATH=/usr/bin:/bin", shQuote(quarto), "render")
-  )
-  expect_equal(no_r$status, 0L)
+  no_r <- withr::with_envvar(no_r_env, run_in(site$dir, "quarto", "render"))
+  expect_equal(no_r$status, 0L, info = paste(no_r$output, collapse = "\n"))
 
   after <- readBin(page, "raw", file.info(page)$size)
   expect_identical(after, before)
   expect_identical(file.info(frozen)$mtime, frozen_times)
+
+  # In the same environment, a page with R code and no stored output cannot
+  # render, because Quarto finds no R.
+  writeLines(c("---", "title: Unfrozen", "---", "", "```{r}", "1 + 1", "```"),
+             file.path(site$dir, "analyses", "unfrozen.qmd"))
+  unfrozen <- withr::with_envvar(no_r_env, run_in(site$dir, "quarto", c("render", "analyses/unfrozen.qmd")))
+  expect_false(unfrozen$status == 0L)
+  expect_match(paste(unfrozen$output, collapse = "\n"), "Unable to locate an installed version of R", fixed = TRUE)
 })
 
 test_that(".gitignore blocks fit files and keeps published output", {

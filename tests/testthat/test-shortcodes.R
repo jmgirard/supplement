@@ -229,13 +229,33 @@ test_that("the license shortcode stops unless its one argument is code or conten
 # File sizes from the size rule, stated apart from the code that applies it.
 size_cases <- c(
   "0" = "0 B", "999" = "999 B", "1000" = "1.0 KB", "1500" = "1.5 KB",
-  "999950" = "1.0 MB", "7690465" = "7.7 MB", "1000000000" = "1.0 GB"
+  "999950" = "1.0 MB", "7690465" = "7.7 MB", "1000000000" = "1.0 GB",
+  # One byte past 2 GiB and past 4 GiB, where a 32-bit file offset fails
+  # or wraps.
+  "2147483649" = "2.1 GB", "4294967297" = "4.3 GB"
 )
+
+# TRUE when fsutil made `path` a sparse file of `bytes` bytes. Where fsutil
+# fails, for example without the rights it needs, the caller writes the
+# file another way.
+windows_sparse_file <- function(path, bytes) {
+  file.create(path)
+  native <- normalizePath(path)
+  for (args in list(c("sparse", "setflag", native),
+                    c("file", "seteof", native, format(bytes, scientific = FALSE)))) {
+    if (system2("fsutil", shQuote(args), stdout = FALSE, stderr = FALSE) != 0L) {
+      return(FALSE)
+    }
+  }
+  TRUE
+}
 
 write_size_fixture <- function(path, bytes) {
   dir.create(dirname(path), showWarnings = FALSE, recursive = TRUE)
   if (bytes < 1e8) {
     writeBin(raw(bytes), path)
+  } else if (.Platform$OS.type == "windows" && windows_sparse_file(path, bytes)) {
+    # A sparse file, so the test does not write gigabytes to disk.
   } else {
     # A sparse file: seek past the end and write one byte.
     con <- file(path, "wb")
