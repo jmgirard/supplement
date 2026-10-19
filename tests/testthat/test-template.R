@@ -24,6 +24,9 @@ test_that("report pages carry the site navbar and stored output", {
 
   frozen <- list.files(file.path(site$dir, "_freeze", "analyses", "example"), recursive = TRUE)
   expect_gt(length(frozen), 0)
+  # The report's figure reaches docs/ beside the page that shows it.
+  expect_match(page, 'src="example_files/figure-html/bootstrap-1.png"', fixed = TRUE)
+  expect_true(file.exists(file.path(site$dir, "docs", "analyses", "example_files", "figure-html", "bootstrap-1.png")))
 })
 
 test_that("the home page lists the reports through a Quarto listing", {

@@ -23,9 +23,14 @@ template_dir <- function() {
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
+# The folder in its long form. On Windows the temporary folder can hold an
+# 8.3 short name such as RUNNER~1, and Quarto run from such a folder does
+# not find the figures that knitr writes, so they never reach docs/.
+long_dir <- function(dir) normalizePath(dir, winslash = "/", mustWork = TRUE)
+
 # Run a command in `dir` and return its exit status and output.
 run_in <- function(dir, command, args, env = character()) {
-  withr::with_dir(dir, {
+  withr::with_dir(long_dir(dir), {
     out <- suppressWarnings(
       system2(command, args, stdout = TRUE, stderr = TRUE, env = env)
     )
@@ -90,7 +95,7 @@ run_split <- function(dir, command, args) {
   out <- tempfile("stdout-")
   err <- tempfile("stderr-")
   on.exit(unlink(c(out, err)))
-  status <- withr::with_dir(dir, suppressWarnings(system2(command, args, stdout = out, stderr = err)))
+  status <- withr::with_dir(long_dir(dir), suppressWarnings(system2(command, args, stdout = out, stderr = err)))
   list(status = status, stdout = read_text(out), stderr = read_text(err))
 }
 
