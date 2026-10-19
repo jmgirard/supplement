@@ -116,8 +116,10 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
 
 - `_quarto.yml`: a website project with `freeze: true` (D-002), output in
   `docs/` (D-001), an Analyses navbar menu, and `data/**` and `figures/**`
-  as resources. A render copies the files in `figures/` at its start, so a
-  figure saved under a new name reaches `docs/` on the next render.
+  as resources. A render lists the files in `figures/` at its start and
+  copies them after the report code runs, so a changed figure under an
+  existing name reaches `docs/` in the same render, and a figure saved
+  under a new name reaches it on the next render.
 - `_scripts/setup.ts` (pre-render): gives `_gitignore` and `_README.md`
   their real names, merges missing rules into an existing `.gitignore`, and
   writes the guide to `SUPPLEMENT.md` beside an existing README (D-004,

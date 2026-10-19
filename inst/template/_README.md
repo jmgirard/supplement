@@ -235,7 +235,8 @@ code reads them as `file.path("fits", ...)`.
    that report's fit files. A missing fit file can make a report refit its
    model, which can take hours and give new estimates.
 2. Run `quarto render`, or `quarto render analyses/<name>.qmd` to re-run
-   one report.
+   one report. If the render saved a figure under a new name in
+   `figures/`, run `quarto render` again (see "Paper figures").
 3. Stage only `_freeze/`, `docs/`, and `figures/`, commit, and push:
 
    ```
@@ -268,22 +269,29 @@ folder, so its code writes there as `file.path("..", "figures", ...)`, for
 example:
 
 ```r
+dir.create(file.path("..", "figures"), showWarnings = FALSE)
 png(file.path("..", "figures", "model-fit.png"), width = 6, height = 4,
     units = "in", res = 300)
 ```
 
-The example report saves `figures/bootstrap-means.png` this way.
-If the folder is missing, the report makes it. Quarto copies `figures/`
-into `docs/`, so each figure has a web address such as
-`https://OWNER.github.io/REPO/figures/model-fit.png`.
+The `dir.create()` line makes the folder, because the template has no
+`figures/` folder until a report makes it. The example report saves
+`figures/bootstrap-means.png` this way. Quarto copies `figures/` into
+`docs/`, so each figure has a web address such as
+`https://OWNER.github.io/REPO/figures/model-fit.png`. Every file in
+`figures/` is published on the site, so keep drafts and private files out
+of it.
 
-Each render copies only the figures that were in `figures/` at its start. After a
-render saves a figure under a new name, run `quarto render` again, so that
-`docs/` holds it. Commit `figures/` with `_freeze/` and `docs/`.
+Each render copies only the figures that were in `figures/` at its start.
+After a render saves a figure under a new name, run `quarto render` again,
+so that `docs/` holds it. Commit `figures/` with `_freeze/` and `docs/`. To
+take a figure off the site, delete it from `figures/` and run a full
+render.
 
 PNG and PDF files saved directly in `analyses/` are not committed, because
-`.gitignore` blocks `analyses/*.png` and `analyses/*.pdf`. Save paper
-figures in `figures/` instead.
+`.gitignore` blocks `analyses/*.png` and `analyses/*.pdf`. Git on Linux
+reads these two rules in lower case only, so there it commits a file such
+as `analyses/plot.PNG`. Save paper figures in `figures/` instead.
 
 ## Publishing from one machine
 
@@ -305,6 +313,6 @@ search: false
 
 - Code (the `.qmd` files in `analyses/`, the scripts in `_scripts/`, and
   the website configuration): MIT, see `LICENSE.md`
-- Content (rendered reports in `_freeze/` and `docs/`, website text, and
-  data files): CC BY 4.0, see `LICENSE-CC-BY.md`. The third-party code that
+- Content (rendered reports in `_freeze/` and `docs/`, figures in
+  `figures/`, website text, and data files): CC BY 4.0, see `LICENSE-CC-BY.md`. The third-party code that
   Quarto copies into `docs/site_libs/` keeps its own licenses.
