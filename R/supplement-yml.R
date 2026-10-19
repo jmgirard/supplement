@@ -293,8 +293,10 @@ read_version <- function(meta, call = parent.frame()) {
   version
 }
 
+# The whole text must match. With perl = TRUE, `$` also matches before a
+# final "\n", so the pattern ends with `\z`.
 is_version <- function(x) {
-  grepl("^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$", x, perl = TRUE)
+  grepl("\\A(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\z", x, perl = TRUE)
 }
 
 version_error <- function(message, version, call) {

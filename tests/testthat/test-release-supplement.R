@@ -111,7 +111,9 @@ test_that("a version in bump is accepted only when it is greater, part by part a
 test_that("a bump that is not a word or a version is refused before check_supplement() runs", {
   calls <- mock_check()
   bad <- list("Patch", "1.0", "v1.0.0", "01.0.0", "1.0.0-rc1", " patch", "", NA_character_,
-              c("patch", "minor"), 1, NULL, character())
+              c("patch", "minor"), 1, NULL, character(),
+              # A line break or a space before, after, or inside a version.
+              "1.2.4\n", "1.2.4 ", "1.2.4\r\n", " 1.2.4", "1.2\n.4", "\n1.2.4", "1.2.4\t")
   dir <- release_site('  version: "1.2.3"')
   before <- folder_state(dir)
   for (bump in bad) {
@@ -129,7 +131,9 @@ test_that("a current version that is not valid, or that YAML reads as a number, 
     supplement_error_version = '  version: "01.0.0"',
     supplement_error_version = '  version: "1.0"',
     supplement_error_field_type = "  version: 1.10",
-    supplement_error_field_type = "  version: 2"
+    supplement_error_field_type = "  version: 2",
+    supplement_error_field_type = "  version: true",
+    supplement_error_field_type = '  version: ["1.2.3"]'
   )
   for (i in seq_along(cases)) {
     dir <- release_site(cases[[i]])
@@ -138,6 +142,15 @@ test_that("a current version that is not valid, or that YAML reads as a number, 
     expect_identical(folder_state(dir), before)
   }
   expect_identical(calls$n, 0L)
+})
+
+test_that("a current version is read with its outer spaces and line breaks removed", {
+  mock_check()
+  # "\n" inside double quotes is a line break in YAML.
+  dir <- release_site('  version: "1.2.3\\n"')
+  expect_identical(site_version(dir), "1.2.3\n")
+  release("patch", path = dir)
+  expect_identical(site_version(dir), "1.2.4")
 })
 
 # Release checks -----------------------------------------------------------

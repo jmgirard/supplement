@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -51,7 +51,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - [x] T5: Add roxygen documentation and run `devtools::document()`. Describe the function and the field in `README.md` and `inst/template/_README.md`, add a NEWS.md entry, and update DESIGN.md Architecture.
 - [x] T6: Make the `supplement_error_release_check` message give the number of problems also when only the git checks were skipped, and test it (review return 1).
 - [x] T7: Fix review return 2: refuse a linked or unreadable `CITATION.cff` or `.zenodo.json` before any write, restore only the files that differ from their old bytes, report a failed put-back after an interrupt, keep the printing inside the restore guard, make `write_utf8()` stop on a warning or a short write, word the not-greater message for an empty version, and add tests for each, the real check's exempt row, `pipe(`, and `version` in `full_supplement()`.
-- [ ] T8: Anchor `is_version()` in `R/supplement-yml.R` so that the whole text must match, with no line break or space before or after. Add the AC2 probes to the release tests, and a test that a quoted current `"1.2.3\n"` reads as `1.2.3` (review return 3).
+- [x] T8: Anchor `is_version()` in `R/supplement-yml.R` so that the whole text must match, with no line break or space before or after. Add the AC2 probes to the release tests, and a test that a quoted current `"1.2.3\n"` reads as `1.2.3` (review return 3).
 - [ ] T9: Make the 9 pass-3 fix-now items in the Review section: messages that fit a printing failure and files that were made or never touched (diff-bug #1, #2); a `CITATION.cff` or `.zenodo.json` that cannot be written refused before any write (diff-bug #3); the Errors section's "no file is changed" sentence and the help for a list `version` (diff-bug #6, blame-history #1); the DESIGN Architecture line (diff-bug #7); a no-warning assertion in the interrupt test (diff-bug #8); the test file's own `release_commands()` renamed (blame-history #8); and the subfolder `git add -A` caveat in README.md and the template's `_README.md` (prior-review #1).
 
 ## Work log
@@ -97,6 +97,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: question set: take any of the five "release edge cases" items into the re-cut — none.
 - 2026-10-18: re-cut chose to continue on the existing branch over a fresh branch from main, because T1 to T7 are done and checked there; falsified by a finding that the branch's design, not single defects, causes the returns.
 - 2026-10-18: the re-cut's plan commit goes on the branch, not on main, because the milestone file's history since the cut lives on the branch, and main's ROADMAP row already reads planned.
+- 2026-10-18: implement resumed the existing branch after the re-cut; main has not moved.
+- 2026-10-18: T8 done: `is_version()` matches with `\A…\z`; the bump test adds `"1.2.4\n"`, `"1.2.4 "`, `"1.2.4\r\n"`, `" 1.2.4"`, `"1.2\n.4"`, `"\n1.2.4"`, and `"1.2.4\t"` (only `"1.2.4\n"` passed before the fix, and that test failed red first); `true` and a list as the current version give `supplement_error_field_type`; a quoted `"1.2.3\n"` releases as `1.2.4`; 1728 tests pass. The DOI pattern in `bare_doi()` also ends with `$` under `perl = TRUE`, but its values are trimmed first; not in scope.
 
 ## Review
 
