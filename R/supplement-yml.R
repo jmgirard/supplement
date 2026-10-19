@@ -291,8 +291,9 @@ check_overwrite <- function(file, overwrite, call = parent.frame()) {
 }
 
 # TRUE for each path that holds a file, a folder, or a link.
-# file.exists() is FALSE for a link whose target is missing, and
-# Sys.readlink() is NA for a path that does not exist.
+# file.exists() is FALSE for a link whose target is missing (on Windows,
+# for a junction or a folder link), and Sys.readlink() is NA for a path
+# that does not exist.
 path_occupied <- function(paths) {
   file.exists(paths) | is_link(paths)
 }
@@ -315,7 +316,10 @@ is_reparse_point <- function(path) {
   path <- drop_trailing_sep(path)
   parent <- dirname(path)
   name <- basename(path)
-  listed <- tolower(name) %in% tolower(list.files(parent, all.files = TRUE, no.. = TRUE))
+  siblings <- list.files(parent, all.files = TRUE, no.. = TRUE)
+  # tolower() stops on a name that is not valid UTF-8.
+  siblings <- siblings[validUTF8(siblings)]
+  listed <- name %in% siblings || (validUTF8(name) && tolower(name) %in% tolower(siblings))
   if (!listed) {
     return(FALSE)
   }
@@ -323,7 +327,9 @@ is_reparse_point <- function(path) {
     return(TRUE)
   }
   resolved <- normalizePath(path, winslash = "/", mustWork = FALSE)
-  expected <- file.path(normalizePath(parent, winslash = "/", mustWork = FALSE), name)
+  # A drive root keeps its separator ("D:/"), so drop it before the join.
+  folder <- sub("/+$", "", normalizePath(parent, winslash = "/", mustWork = FALSE))
+  expected <- paste0(folder, "/", name)
   !identical(tolower(resolved), tolower(expected))
 }
 

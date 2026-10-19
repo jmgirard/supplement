@@ -7,8 +7,8 @@
 #' The checks, by the value in the `check` column:
 #'
 #' * `"large-file"`: a file larger than 100 MiB (104,857,600 bytes), which
-#'   GitHub refuses. A symbolic link is not counted, because git stores
-#'   only the link.
+#'   GitHub refuses. A symbolic link, or on Windows a junction, is not
+#'   counted, because git stores only the link.
 #' * `"saved-object"`: a saved R object (`.rds`, `.rda`, `.rdata`, `.qs`,
 #'   or `.qs2`, in any letter case). A fitted model saved this way can hold
 #'   the data it was fitted to.

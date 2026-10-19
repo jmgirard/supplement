@@ -171,8 +171,13 @@ local function file_size(path)
       return nil
     end
     while true do
-      local block = handle:read(1048576)
+      local block, err = handle:read(1048576)
       if block == nil then
+        -- read() gives nil at the end of the file, and nil with a message
+        -- on a read error, where the count would be wrong.
+        if err ~= nil then
+          size = nil
+        end
         break
       end
       size = size + #block

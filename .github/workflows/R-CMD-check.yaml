@@ -75,11 +75,15 @@ jobs:
           } else {
             print(rows, right = FALSE, row.names = FALSE)
           }
-          if (length(res) == 0) stop("No test ran.")
+          passed <- sum(as.data.frame(res)$passed)
+          cat(passed, "expectations passed.\n")
+          if (length(res) == 0 || passed == 0) stop("No test ran.")
           missing_tool <- c(
             "On CRAN", "quarto is not on PATH", "git is not on PATH",
             "git is not on the PATH", "git --version fails", "knitr cannot be loaded",
-            "rmarkdown cannot be loaded"
+            "rmarkdown cannot be loaded",
+            # skip_if_not_installed() names the package in braces.
+            "{knitr}", "{rmarkdown}"
           )
           if (!is.null(rows)) {
             bad <- Reduce(`|`, lapply(missing_tool, grepl, x = rows$reason, fixed = TRUE))

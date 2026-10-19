@@ -235,19 +235,27 @@ size_cases <- c(
   "2147483649" = "2.1 GB", "4294967297" = "4.3 GB"
 )
 
+# TRUE when fsutil made `path` a sparse file of `bytes` bytes. Where fsutil
+# fails, for example without the rights it needs, the caller writes the
+# file another way.
+windows_sparse_file <- function(path, bytes) {
+  file.create(path)
+  native <- normalizePath(path)
+  for (args in list(c("sparse", "setflag", native),
+                    c("file", "seteof", native, format(bytes, scientific = FALSE)))) {
+    if (system2("fsutil", shQuote(args), stdout = FALSE, stderr = FALSE) != 0L) {
+      return(FALSE)
+    }
+  }
+  TRUE
+}
+
 write_size_fixture <- function(path, bytes) {
   dir.create(dirname(path), showWarnings = FALSE, recursive = TRUE)
   if (bytes < 1e8) {
     writeBin(raw(bytes), path)
-  } else if (.Platform$OS.type == "windows") {
+  } else if (.Platform$OS.type == "windows" && windows_sparse_file(path, bytes)) {
     # A sparse file, so the test does not write gigabytes to disk.
-    file.create(path)
-    native <- normalizePath(path)
-    for (args in list(c("sparse", "setflag", native),
-                      c("file", "seteof", native, format(bytes, scientific = FALSE)))) {
-      status <- system2("fsutil", shQuote(args), stdout = FALSE, stderr = FALSE)
-      if (status != 0L) stop("fsutil ", args[1], " ", args[2], " failed with status ", status)
-    }
   } else {
     # A sparse file: seek past the end and write one byte.
     con <- file(path, "wb")
