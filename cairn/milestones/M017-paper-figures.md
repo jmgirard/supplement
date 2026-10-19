@@ -65,6 +65,7 @@ A site made from the template has a `figures/` folder that git tracks and the si
 - 2026-10-19: claim audit: 19 claims read, 0 corrected — NEWS.md, inst/template/_README.md, inst/template/_quarto.yml, inst/template/analyses/example.qmd, tests/testthat/test-template.R. The reader noted that `analyses/plot.PNG` is not ignored on a case-sensitive git (left as is; the README names lowercase rules).
 - 2026-10-19: the claim auditor's template test run failed once in "setup keeps both files when README.md and SUPPLEMENT.md exist" (`quarto render` exited 1, a test this branch does not touch); two later template runs passed. Added to the "template test flake" candidate row.
 - 2026-10-19: implement done; status review.
+- 2026-10-19: step-7 approval: m017-paper-figures approved for merge
 
 ## Decisions
 
