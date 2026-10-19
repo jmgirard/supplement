@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -131,6 +131,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: override: at the fifth-return stop the user chose "Fix and review again" over the recommended park; added T14 and T15 (minor amendment); status in-progress; review pass 6 keeps RR01's disposition rule.
 - 2026-10-18: T14 done: `restore()` removes a made output with `file.remove()`; the new test with the site at `site[ab]` beside `sitea` failed red first (the made `CITATION.cff` stayed and the sibling's was deleted) and passes now; no other `unlink()` call is in R/release-supplement.R; 227 release-test expectations pass.
 - 2026-10-18: T15 done: `bump` loses its names and class after `check_bump()` (the named and classed test errored red first); the skipped-plus-row probe compares `folder_state()`; each unwritable-file probe checks `calls$n`; the help says that `_supplement.yml` is read before the checks and a change saved meanwhile is lost; 1759 tests pass.
+- 2026-10-18: claim audit: 6 claims read, 0 corrected — R/release-supplement.R, man/release_supplement.Rd, tests/testthat/test-release-supplement.R (the T14 and T15 diff, same reader).
+- 2026-10-18: status review; handing off to /milestone-review under RR01's disposition rule.
 
 ## Decisions
 
