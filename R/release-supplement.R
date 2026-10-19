@@ -325,7 +325,9 @@ write_release_files <- function(read, lines, file, outputs, old, report, call = 
       target <- files[i]
       if (is.null(before[[i]])) {
         if (path_occupied(target) && !dir.exists(target)) {
-          unlink(target)
+          # unlink() reads `[`, `*`, and `?` in the path as a pattern, so it
+          # could remove a file in another folder. file.remove() does not.
+          suppressWarnings(file.remove(target))
           if (path_occupied(target)) failed <- c(failed, basename(target))
         }
         next

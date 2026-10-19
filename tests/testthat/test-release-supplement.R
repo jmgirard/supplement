@@ -323,6 +323,26 @@ test_that("a failed write puts back the files as they were", {
   }
 })
 
+test_that("a site path with pattern characters puts back only its own files", {
+  mock_check()
+  base <- withr::local_tempdir("release-")
+  # "site[ab]" read as a pattern matches "sitea", which holds its own
+  # CITATION.cff.
+  dir <- file.path(base, "site[ab]")
+  sibling <- file.path(base, "sitea")
+  dir.create(dir)
+  dir.create(sibling)
+  file.copy(file.path(release_site('  version: "1.2.3"'), "_supplement.yml"), dir)
+  writeLines("sibling citation", file.path(sibling, "CITATION.cff"))
+  before <- folder_state(dir)
+  sibling_before <- folder_state(sibling)
+  # CITATION.cff is made in "site[ab]", then the write of .zenodo.json fails.
+  local_mocked_bindings(write_zenodo = function(...) stop("disk full"))
+  expect_error(release("patch", path = dir), class = "supplement_error_release_write")
+  expect_identical(folder_state(dir), before)
+  expect_identical(folder_state(sibling), sibling_before)
+})
+
 test_that("a file that cannot be put back is named in the error", {
   mock_check()
   dir <- release_site('  version: "1.2.3"')
