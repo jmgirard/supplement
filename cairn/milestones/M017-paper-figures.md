@@ -38,7 +38,7 @@ A site made from the template has a `figures/` folder that git tracks and the si
 ## Tasks
 
 - [x] T1: Write the tests of AC1 and AC2 in `tests/testthat/test-template.R` (reuse `new_site()` from `helper-files.R:52` and `run_in()` from `helper-template.R`), and see the AC2 test fail against the current template. The AC1 test passes before the change too, as a guard that `figures/` stays out of the ignore rules.
-- [ ] T2: Add `"figures/**"` to `project.resources` in `inst/template/_quarto.yml` and the figure chunk to `inst/template/analyses/example.qmd`; run the tests to green with git, Quarto, and R available, so that no test of AC1 or AC2 skips, and check that a new site with no `figures/` folder still renders.
+- [x] T2: Add `"figures/**"` to `project.resources` in `inst/template/_quarto.yml` and the figure chunk to `inst/template/analyses/example.qmd`; run the tests to green with git, Quarto, and R available, so that no test of AC1 or AC2 skips, and check that a new site with no `figures/` folder still renders.
 - [ ] T3: Write the README section and Contents line, the NEWS.md entry, and the DESIGN.md template layout; run `devtools::test()`.
 
 ## Work log
@@ -55,5 +55,7 @@ A site made from the template has a `figures/` folder that git tracks and the si
 - 2026-10-19: started implementation on branch m017-paper-figures, cut from origin/main at e447c97.
 - 2026-10-19: implement chose `site_copy()` (a site made with `quarto use template` and set up by one full render) for the AC1 test and a fresh `use_template()` site for the AC2 test, in place of `new_site()`, which calls `create_supplement()` and does not render; AC2 needs its own site because the shared site's one full render does not copy the figure into `docs/`.
 - 2026-10-19: T1 done: two tests in `test-template.R`. Against the current template the AC1 test passes and the AC2 test fails at `figures/bootstrap-means.png` not existing (both paths).
+- 2026-10-19: implement chose a base-graphics `png()` device at 6 x 4 in, 300 dpi, with `dir.create(showWarnings = FALSE)`, in a new "Paper Figures" section of the example report; ggplot2 is not a template dependency.
+- 2026-10-19: T2 done: `"figures/**"` in `project.resources` and the figure chunk. Template tests pass with git, Quarto 1.10.19, and R present, no skips; a fresh site with no `figures/` renders (status 0), its first full render writes `figures/bootstrap-means.png` but no `docs/figures/`, and the second copies it. Full suite: 0 failures, 1 skip (case-insensitive disk).
 
 ## Decisions

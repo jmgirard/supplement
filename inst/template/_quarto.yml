@@ -8,8 +8,11 @@ project:
   render:
     - index.qmd
     - "analyses/*.qmd"
+  # Data files and paper figures are published as they are. A figure that a
+  # report saves to figures/ reaches docs/ on the next full render.
   resources:
     - "data/**"
+    - "figures/**"
   # Quarto runs these scripts itself; they need no R. See README.md or
   # SUPPLEMENT.md.
   pre-render: _scripts/setup.ts

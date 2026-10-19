@@ -25,3 +25,18 @@ set.seed(2026)
 boot_means <- replicate(200, mean(sample(dat$score, replace = TRUE)))
 hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
 ```
+
+## Paper Figures
+
+Save each figure for the paper in `figures/`, which git tracks and the site
+publishes. A report runs from its own folder, so it writes there as
+`file.path("..", "figures", ...)`.
+
+```{r}
+#| label: save-figure
+dir.create(file.path("..", "figures"), showWarnings = FALSE)
+png(file.path("..", "figures", "bootstrap-means.png"),
+    width = 6, height = 4, units = "in", res = 300)
+hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
+invisible(dev.off())
+```
