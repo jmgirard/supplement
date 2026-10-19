@@ -90,12 +90,12 @@ Pass 1, 2026-10-18, on m013-testthat-floor at f786ce8 (main at 538276b, not move
 - AC3 evidence: under testthat 3.3.2, `devtools::test()` with NOT_CRAN=true: exit 0, no failed or errored test, 1 skip (`test-add-data.R:309`); `devtools::check()`: 0 errors, 0 warnings, 0 notes. No rerun was needed.
 - gate: `cairn_validate.py` all checks passed; principle impact skipped (no principle changed); `devtools::document()` leaves no diff; no README.Rmd and no `_pkgdown.yml`; no new top-level files; `check()` clean as above; changelog: no NEWS.md entry, as the plan's Scope Out states (no package behavior changes).
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: D-014 calls R 4.6.1 "the only R where the run could take place", though the user declined an R 4.5 Docker run — fix now.
+- diff-bug #1: D-014 calls R 4.6.1 "the only R where the run could take place", though the user declined an R 4.5 Docker run — fix now, fixed 8582cc2.
 - diff-bug #2: the Goal was edited in place against its owner comment — reject (planned change: the user chose the re-cut at the T2 stop, and the work log records it).
-- diff-bug #3: D-014 states "On R below 4.6, the 3.2 releases build" with no check — fix now.
-- diff-bug #4: the investigation line says 24 testthat functions, T3 says 30 — fix now (a correcting work-log line; the 24 was a miscount).
+- diff-bug #3: D-014 states "On R below 4.6, the 3.2 releases build" with no check — fix now, fixed 8582cc2.
+- diff-bug #4: the investigation line says 24 testthat functions, T3 says 30 — fix now (a correcting work-log line; the 24 was a miscount), fixed 8582cc2.
 - diff-bug #5: AC2's filter depends on the default library's version — reject (false: AC2 names testthat 3.3.2, so a rerun with that version gives the same set).
-- diff-bug #6: testthat 3.3.0 declares `Depends: R (>= 4.1.0)` (3.2.0 declares 3.6.0), so the floor means the tests need R 4.1 — fix now (D-014 Consequences states it).
+- diff-bug #6: testthat 3.3.0 declares `Depends: R (>= 4.1.0)` (3.2.0 declares 3.6.0), so the floor means the tests need R 4.1 — fix now (D-014 Consequences states it), fixed 8582cc2.
 - diff-bug #7: the "testthat floor" candidate row is still open — reject (planned change: post-merge hygiene removes the row that carries "started M013").
 - blame-history #1: the floor changed at an implement stop and the Goal was re-cut in place — reject (planned change: the user's choice at the stop, logged).
 - blame-history #2: D-014 takes neither option D-013 framed and swaps a function-based reason for a build-based one — reject (false as a defect: D-014 supersedes D-013 by name and records the user's choice and its reason).
