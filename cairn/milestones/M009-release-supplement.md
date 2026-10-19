@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** blocked
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -35,10 +35,10 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 ## Coverage
 
 - AC1 → T1, T8
-- AC2 → T3, T4, T8
+- AC2 → T3, T4, T8, T11
 - AC3 → T3, T4, T6
 - AC4 → T2, T3, T4
-- AC5 → T3, T4, T7, T9
+- AC5 → T3, T4, T7, T9, T10, T12, T13
 - AC6 → T3, T4, T7, T9
 - AC7 → T5, T9
 
@@ -53,6 +53,10 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - [x] T7: Fix review return 2: refuse a linked or unreadable `CITATION.cff` or `.zenodo.json` before any write, restore only the files that differ from their old bytes, report a failed put-back after an interrupt, keep the printing inside the restore guard, make `write_utf8()` stop on a warning or a short write, word the not-greater message for an empty version, and add tests for each, the real check's exempt row, `pipe(`, and `version` in `full_supplement()`.
 - [x] T8: Anchor `is_version()` in `R/supplement-yml.R` so that the whole text must match, with no line break or space before or after. Add the AC2 probes to the release tests, and a test that a quoted current `"1.2.3\n"` reads as `1.2.3` (review return 3).
 - [x] T9: Make the 9 pass-3 fix-now items in the Review section: messages that fit a printing failure and files that were made or never touched (diff-bug #1, #2); a `CITATION.cff` or `.zenodo.json` that cannot be written refused before any write (diff-bug #3); the Errors section's "no file is changed" sentence and the help for a list `version` (diff-bug #6, blame-history #1); the DESIGN Architecture line (diff-bug #7); a no-warning assertion in the interrupt test (diff-bug #8); the test file's own `release_commands()` renamed (blame-history #8); and the subfolder `git add -A` caveat in README.md and the template's `_README.md` (prior-review #1).
+- [ ] T10: Amend AC5 to the bounded wording of RR01 question 2, without the pre-write refusal sentence and without the error-class detail, through the amendment protocol with a fresh re-audit (RR01 recommendation 2).
+- [ ] T11: Add AC2's five values `"1.2.3\n"`, `"1.2.3 "`, `"1.2.3\r\n"`, `" 1.2.3"`, and `"1.2\n.3"` to the bump test, and add a comment at `check_bump()` that `bump` is not trimmed (review return 4; RR01 question 4 item 1).
+- [ ] T12: In `read_outputs()`, refuse a missing `CITATION.cff` or `.zenodo.json` whose folder cannot be written, with a test that skips as root, and say so in the help and in DESIGN Architecture (pass 4 diff-bug #2).
+- [ ] T13: Move the unwritable-file tests into their own `test_that()` with their own skips (pass 4 diff-bug #3).
 
 ## Work log
 
@@ -105,6 +109,19 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: review return 4: AC2 fails as written in its test clause: the test probes the `1.2.4` forms of the five values that AC2 names, not AC2's `1.2.3` forms (pass 4 diff-bug #1); `check_bump()` refuses AC2's own values. This is the fourth defect return and comes after a re-cut, so the thrash rule (a) stops the run with the re-cut off its menu, and the disposition goes to the user.
 - 2026-10-18: the user chose to escalate at the fourth-return stop: /milestone-brief writes a review brief on why the reviews keep returning; owed on resume: AC2's five literal values in the test, and pass 4 diff-bug #2 and #3.
 - 2026-10-18: blocked on RB01 (cairn/reviews/RB01-m009-review-returns.md: why the reviews keep returning, and the smallest path to a passing review). The brief is committed on the branch, not on main, because the milestone file's history lives on the branch.
+- 2026-10-18: RR01 ingested (cairn/reviews/archive/RR01-m009-review-returns.md, advisory, no binding criteria): 4 apply, 3 consider, 3 reject; added T10 to T13 (minor amendment) and mapped AC2 and AC5 to them; status in-progress.
+- 2026-10-18: RR01 triage: recommendation 1 (fix the three owed items) — apply, T11 to T13; recommendation 2 (narrow AC5, make AC2 and its test agree) — apply, T10 for AC5, and T11 keeps AC2's wording and puts its literals in the test; recommendation 3 (a disposition rule for the next review) — apply, a LESSONS line and the next review's handoff; recommendation 4 (the `_supplement.yml` snapshot gap) — apply, candidate row "release snapshot gap".
+- 2026-10-18: RR01 triage: recommendation 5 (writers that take `meta`, so checks run before the first write) — consider, candidate row "release write order"; recommendation 6 (print outside the restore guard) — consider, the same row, because it reverses the return-2 choice and is the user's call; recommendation 7 (batch fix-now items into a follow-up round) — consider, a change to the cairn plugin's rules, outside this repository, named to the user.
+- 2026-10-18: RR01 triage: recommendation 8 (temporary files and rename) — reject: not atomic across three files, and Windows rename and stray temporary files add cases; recommendation 9 (split or fresh branch) — reject: every task is done and tested on the branch; recommendation 10 (raise the testthat floor now) — reject: a dependency change needs the user's approval, and the "testthat floor" row holds it.
+- 2026-10-18: RR01 findings 5.2 (an invalid-UTF-8 `bump` also gives a base warning) — candidate: "release edge cases" row; 5.3 (an interrupt after printing and before the guard closes undoes a finished release) — no action in M009, in the "release write order" row.
+- 2026-10-18: the next review floors a return only when a criterion's listed test or stated rule fails on a finding; every other finding is fix-now or a candidate row (RR01 recommendation 3).
+- 2026-10-18: `cairn_validate` warns that 13 tasks pass the split tripwire of 10; not split, per RR01 recommendation 9 (T1 to T9 are done, and T10 to T13 are one round). The RB/RR pair is archived and committed on the branch, as the brief was.
+
+## Decisions
+
+- 2026-10-18 (RR01): Three of the four defect returns came from criterion wording: AC5 quantified over an open domain ("for any reason", "each file it made"), AC2 invited probes outside its list ("any other `bump`") and later carried literal strings that the test did not use, and AC3's test did not check its stated rule. Only return 3 (`$` under `perl = TRUE`) was a defect that reaches users.
+- 2026-10-18 (RR01): The snapshot-and-restore design of `write_release_files()` is sound and stays. Its cost is that `write_citation()` and `write_zenodo()` read `_supplement.yml` from disk, so their checks run after the first write; moving them before it is follow-up work, not M009 work.
+- 2026-10-18 (RR01): M009 is not split or re-cut again. One implement round fixes the owed items and narrows AC5, and the next review judges each criterion against its listed tests and stated rules.
 
 ## Review
 
