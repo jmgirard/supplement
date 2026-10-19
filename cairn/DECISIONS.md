@@ -68,3 +68,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** `release_supplement()` changes the value of `supplement.version` in `_supplement.yml`. D-010 covers only inserted lines.
 **Decision:** A function that changes one value in a site's YAML file replaces only the value's text on its key's line, writes the new value in double quotes, and keeps the spaces and comment after it. Before it writes, it reads the result with the yaml package and stops unless the result is the old map with only that value changed.
 **Consequences:** Such a function handles a one-line scalar in a block-style map and refuses other forms, such as a block scalar, a flow map, or a value on the next line, with the line to add by hand.
+
+### D-012 (2026-10-18): License ids get a shape check, not a list check
+
+**Context:** `write_citation()` and `write_zenodo()` write license ids from `_supplement.yml` as given. A check could test the SPDX id shape, or also test each id against a copy of Zenodo's license list shipped with the package.
+**Decision:** The writers check only the shape of each id. The user chose this at the M010 plan gate, because a shipped copy of the list can fall out of date as Zenodo adds ids.
+**Consequences:** A well-formed id that Zenodo or the CFF 1.2.0 license list does not know still writes, so the output can fail their own checks. Ids with spaces, such as `CC BY 4.0`, stop the writers.
