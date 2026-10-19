@@ -149,6 +149,10 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
 Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when quarto is missing.
 The metadata writer tests need no Quarto.
+`.github/workflows/R-CMD-check.yaml` runs `R CMD check` on Windows, macOS,
+and Ubuntu with the R release and Quarto 1.10, with `NOT_CRAN=true` so the
+render tests run, then lists the skipped tests and fails on a skip for a
+missing tool (D-016).
 
 ## Known issues
 
