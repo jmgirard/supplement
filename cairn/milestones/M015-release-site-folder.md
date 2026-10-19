@@ -39,7 +39,7 @@ For a site in a subfolder of its git repository, the commands that `release_supp
 
 - [x] T1: Write the tests of AC1 to AC3 in `tests/testthat/test-release-supplement.R` (use `skip_if_no_git()` from `helper-template.R`; set a repo-local `user.name` and `user.email`, because the test helpers blank the global git configuration). See the AC1 and AC2 tests fail against the current `git add -A` and `git commit` lines. The AC3 case passes before the change too, as a guard that the top-of-repository release keeps working.
 - [x] T2: Change `release_commands()` and the `report_release()` message (`R/release-supplement.R:473-492`), and run the tests to green with git on the PATH, so that no test of AC2 or AC3 skips.
-- [ ] T3: Update the roxygen block of `release_supplement()` (`R/release-supplement.R:61-68`), `README.md:149-161`, `inst/template/_README.md:179-181`, DESIGN.md, and NEWS.md; run `devtools::document()`, then the AC4 grep.
+- [x] T3: Update the roxygen block of `release_supplement()` (`R/release-supplement.R:61-68`), `README.md:149-161`, `inst/template/_README.md:179-181`, DESIGN.md, and NEWS.md; run `devtools::document()`, then the AC4 grep.
 
 ## Work log
 
@@ -55,5 +55,6 @@ For a site in a subfolder of its git repository, the commands that `release_supp
 - 2026-10-19: started on branch m015-release-site-folder; status in-progress.
 - 2026-10-19: T1 done: `expected_commands()` holds the new forms; two tests run the returned `git add` and `git commit` (split with `scan()`, run through `git_in()`) in a new repository. Before the change the subfolder test failed 2 expectations (outside paths in the commit, `staged.txt` no longer listed as staged) and the top-of-repository test passed, as planned.
 - 2026-10-19: T2 done: `release_commands()` adds `-- .` to `git status`, `git add -A`, and `git commit`; the `report_release()` line now says the commands stage and commit only the files in the site folder. `test-release-supplement.R` passes with no skip.
+- 2026-10-19: T3 done: roxygen, `man/release_supplement.Rd`, `README.md`, `inst/template/_README.md`, NEWS.md (the unreleased `release_supplement()` entry, edited in place), and DESIGN.md describe the `-- .` commands; the AC4 grep finds only `git add -A -- .`. `devtools::test()`: 239 tests, 0 failed, 1 skipped (the case-sensitive-disk test in `test-add-data.R`, which skips on macOS).
 
 ## Decisions

@@ -99,7 +99,9 @@ refusals run again on the outputs. It then stops on any problem but a
 `CITATION.cff` DOI row. It then writes `_supplement.yml` and the two built
 texts. When a write stops, or on an interrupt, it puts back each file
 whose bytes changed and removes each file it made. After the writes it
-prints the git and `gh` release commands, outside that guard. It starts
+prints the git and `gh` release commands, outside that guard; `git status`,
+`git add -A`, and `git commit` end in `-- .`, so the release commit holds
+only files under the site folder, the files `check_supplement()` checked. It starts
 no process itself.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 

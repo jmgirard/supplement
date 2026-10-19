@@ -58,14 +58,16 @@
 #' files are written, so an error or an interrupt while it prints keeps
 #' the files of the release.
 #'
-#' The printed commands, for version `X.Y.Z`, are `git status`,
-#' `git add -A`, `git commit -m "Release vX.Y.Z"`, `git tag vX.Y.Z`,
-#' `git push`, `git push origin vX.Y.Z`, and
-#' `gh release create vX.Y.Z --generate-notes`. `git add -A` adds every file
-#' in the git repository that git does not ignore, also files outside the
-#' site folder. When the site folder is the top of the repository, these are
-#' the files that the git checks of [check_supplement()] read, so `docs/`
-#' and `_freeze/` reach the release. The last command
+#' The printed commands, for version `X.Y.Z`, are `git status -- .`,
+#' `git add -A -- .`, `git commit -m "Release vX.Y.Z" -- .`,
+#' `git tag vX.Y.Z`, `git push`, `git push origin vX.Y.Z`, and
+#' `gh release create vX.Y.Z --generate-notes`. The `-- .` limits the first
+#' three commands to the site folder, so they stage and commit only files
+#' under the site folder. These are the files that the git checks of
+#' [check_supplement()] read, so `docs/` and `_freeze/` reach the release.
+#' When the site is a subfolder of its repository, a change outside the
+#' site folder, also one that was staged before, stays out of the release
+#' commit. The last command
 #' needs the GitHub command-line tool (`gh`). When Zenodo's GitHub
 #' integration is turned on for the repository, Zenodo archives the release
 #' and gives it a version DOI. Add that DOI to `zenodo.version-doi` in
