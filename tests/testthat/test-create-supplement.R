@@ -262,6 +262,32 @@ test_that("a failed write removes what the call made and keeps the rest", {
   expect_identical(folder_state(existing), before)
 })
 
+test_that("a failed write on a path with pattern characters removes only what the call made", {
+  local_mocked_bindings(fill_repo = function(path, repo) stop("planted failure"))
+  for (name in pattern_names()) {
+    base <- withr::local_tempdir()
+    sibling <- file.path(base, "sitea")
+    dir.create(sibling)
+    writeLines("# Mine", file.path(sibling, "README.md"))
+    sibling_before <- folder_state(sibling)
+    expect_error(create_supplement(file.path(base, name, "inner"), repo = "jdoe/site"),
+                 class = "supplement_error_write", regexp = "planted failure")
+    expect_identical(folder_state(sibling), sibling_before, info = name)
+    expect_identical(list.files(base, all.files = TRUE, no.. = TRUE), "sitea", info = name)
+  }
+})
+
+test_that("a failed write on a path that starts with ~ removes what the call made", {
+  local_mocked_bindings(fill_repo = function(path, repo) stop("planted failure"))
+  home <- withr::local_tempdir()
+  withr::local_envvar(HOME = home)
+  skip_if(path.expand("~") != home, "~ does not follow HOME")
+  # The parent exists, so every path that the call made starts with ~.
+  expect_error(create_supplement("~/site", repo = "jdoe/site"),
+               class = "supplement_error_write", regexp = "planted failure")
+  expect_identical(list.files(home, all.files = TRUE, no.. = TRUE), character())
+})
+
 test_that("a bad repo stops and leaves no new folder", {
   parent <- withr::local_tempdir()
   site <- file.path(parent, "site")

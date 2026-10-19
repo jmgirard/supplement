@@ -133,14 +133,19 @@ git_run <- function(args, dir) {
   if (!nzchar(Sys.which("git"))) {
     return(NULL)
   }
-  out <- tempfile("git-")
-  on.exit(unlink(out))
+  out <- git_out_file()
+  # expand = FALSE, so that `[`, `*`, or `?` in the temporary folder's path
+  # does not match another file.
+  on.exit(unlink(out, expand = FALSE))
   owd <- setwd(dir)
   on.exit(setwd(owd), add = TRUE)
   status <- suppressWarnings(system2("git", args, stdout = out, stderr = FALSE))
   bytes <- if (file.exists(out)) readBin(out, "raw", file.size(out)) else raw()
   list(status = status, stdout = bytes)
 }
+
+# The temporary file that holds git's standard output.
+git_out_file <- function() tempfile("git-")
 
 # The files in `path` that git tracks or does not ignore, as paths relative to
 # `path`, or NULL with the reason when git cannot list them.

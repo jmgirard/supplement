@@ -82,7 +82,7 @@ create_supplement <- function(path, repo = NULL) {
   # the missing parents of `path` included.
   made <- character()
   done <- FALSE
-  on.exit(if (!done) unlink(rev(made), recursive = TRUE))
+  on.exit(if (!done) remove_made(made))
   for (folder in c(missing_parents(path), file.path(path, folders))) {
     if (!dir.exists(folder)) {
       if (!dir.create(folder, showWarnings = FALSE)) {
@@ -146,6 +146,13 @@ missing_parents <- function(path) {
     path <- parent
   }
   out
+}
+
+# Remove the files and folders that a call made. unlink() reads `[`, `*`,
+# and `?` in a path as a pattern unless `expand = FALSE`, and then it also
+# skips `~`, so expand that first.
+remove_made <- function(made) {
+  unlink(path.expand(rev(made)), recursive = TRUE, expand = FALSE)
 }
 
 write_error <- function(message, call = parent.frame(), .envir = parent.frame()) {
