@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -82,6 +82,8 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: review return 2: AC5 fails as written: a dangling-link `CITATION.cff` gets a target file outside the site that a failed release does not remove (diff-bug #1), and a failure while printing the commands is not rolled back (diff-bug #11); the return also carries the fix-now findings diff-bug #2, #3, #4, #6, #9, #12, and blame-history #1 (Review section).
 - 2026-10-18: implement resumed for review return 2; added T7 (minor amendment) and mapped AC5 and AC6 to it.
 - 2026-10-18: T7 done: `read_outputs()` refuses a linked output (`supplement_error_file_exists`) or an unreadable one (`supplement_error_write`) before `check_supplement()` runs; `restore()` writes back only files whose bytes differ and removes only files it made; an interrupt with a failed put-back warns; `report_release()` runs inside the guard; `write_utf8()` writes through `write_checked()`; the not-greater message names an empty version; `full_supplement()` has `version`; planted defects for each fix turn tests red; 1715 tests pass.
+- 2026-10-18: claim audit: 22 claims read, 0 corrected — R/release-supplement.R, R/write-citation.R, R/supplement-yml.R, man/release_supplement.Rd, man/write_citation.Rd, man/write_zenodo.Rd, tests (the T7 diff, same reader).
+- 2026-10-18: status review; handing off to /milestone-review.
 
 ## Review
 
