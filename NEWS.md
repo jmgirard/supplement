@@ -27,11 +27,12 @@
   pages there that cannot be read. It finds DOIs that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It returns
   the problems as a data frame.
-* `release_supplement()` prepares a release. If a value in
-  `_supplement.yml` stops `write_citation()` or `write_zenodo()`, for
-  example an empty `citation`, the function stops with the same error
-  before any check. If `CITATION.cff` or `.zenodo.json` is a folder or a
-  link, it also stops before any check. It then runs
+* `release_supplement()` prepares a release. An empty `citation` is one
+  value that stops `write_citation()` or `write_zenodo()`. If
+  `_supplement.yml` holds such a value, the release stops before
+  `check_supplement()` runs, with an error of the same class and message. If
+  `CITATION.cff` or `.zenodo.json` is a folder or a link, it also stops
+  before `check_supplement()` runs. It then runs
   `check_supplement()`. When that finds a problem or skips its git checks,
   the function stops. If `_supplement.yml`, `CITATION.cff`, or
   `.zenodo.json` changes while the check runs, the function stops and

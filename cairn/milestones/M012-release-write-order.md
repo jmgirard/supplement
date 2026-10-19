@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M012: release_supplement() checks every value before it writes a file
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -75,6 +75,8 @@
 - 2026-10-18: T4 done: `write_release_files()` takes the built `texts` and writes them with `write_utf8()`; the failed-write test now mocks `write_checked()` once per file over all three files, and the pattern-path and interrupt tests mock `write_utf8()` for `.zenodo.json` in place of `write_zenodo()`. The AC3 byte test covers LF, CRLF, and a BOM site per `probe_values` entry; a planted defect (texts built from the pre-bump map) failed it at line 353 and five other tests, then was restored. `devtools::test()` clean.
 - 2026-10-18: T5 done: `write_release_files()` lost its `report` argument; `release_supplement()` calls `report_release()` after it returns. The two AC5 tests failed on the T4 code and pass now. The release-write message dropped "even if a message above says that they were written", since nothing prints inside the guard now. `devtools::test()` clean.
 - 2026-10-18: T6 done: rewrote the help passages AC7 names, added the stop order to Errors and a bullet for the writers' value classes, rewrote the NEWS.md bullet and the DESIGN.md Architecture paragraph; also added one sentence on the value stop to README.md and `inst/template/_README.md`, which describe the release. `devtools::document()` regenerated `man/release_supplement.Rd`; `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-10-18: claim audit: 32 claims read, 9 corrected — R/release-supplement.R, R/write-citation.R, NEWS.md, README.md, inst/template/_README.md (the writer-error claims now say same class and message, naming `release_supplement()`; the stop order puts an output refusal before the changed stop; "before any check" became "before `check_supplement()` runs"; the no-file-changed sentence is limited to the listed classes). The same reader re-read the 9 and found them true.
+- 2026-10-18: implement done; status review. `devtools::test()` clean after the claim fixes.
 
 ## Decisions
 

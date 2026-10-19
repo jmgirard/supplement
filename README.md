@@ -131,8 +131,8 @@ parts after it to 0. An empty version counts as `0.0.0`, so `"major"`
 gives `1.0.0`. A version must be greater than the current version.
 
 If a value in `_supplement.yml` stops `write_citation()` or
-`write_zenodo()`, the function stops with the same error and changes no
-file. Before it changes any file, the function runs `check_supplement()`. If
+`write_zenodo()`, the function also stops and changes no file. Its error
+has the same class and message. Before it changes any file, the function runs `check_supplement()`. If
 that finds a problem, or skips its git checks, the function stops and
 changes no file. If `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`
 changes while the check runs, the function also stops and writes none of

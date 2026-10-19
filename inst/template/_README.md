@@ -156,8 +156,8 @@ supplement::release_supplement("major")
 Give `"patch"`, `"minor"`, `"major"`, or a version such as `"1.0.0"`. A
 word raises that part of the version and sets the parts after it to 0, and
 an empty version counts as `0.0.0`. If a value in `_supplement.yml` stops
-`write_citation()` or `write_zenodo()`, the function stops with the same
-error and changes no file. Before it changes any file, the
+`write_citation()` or `write_zenodo()`, the function also stops and
+changes no file. Its error has the same class and message. Before it changes any file, the
 function runs `check_supplement()`. When that finds a problem or skips its
 git checks, the function stops and changes no file. If `_supplement.yml`,
 `CITATION.cff`, or `.zenodo.json` changes while the check runs, the

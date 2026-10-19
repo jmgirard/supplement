@@ -94,8 +94,9 @@ write_citation <- function(path = ".", overwrite = FALSE) {
   invisible(file)
 }
 
-# The lines of CITATION.cff for the `supplement` map `meta`. An error
-# names `call`, the function that the user called.
+# The text of CITATION.cff for the `supplement` map `meta`, as strings
+# that write_utf8() joins with line breaks. An error names `call`, the
+# function that the user called.
 citation_text <- function(meta, call = parent.frame()) {
   require_fields(meta, "paper-title", call = call)
   authors <- read_authors(meta, call = call)

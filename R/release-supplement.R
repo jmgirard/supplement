@@ -42,8 +42,9 @@
 #' Before it runs [check_supplement()], the function makes the new text of
 #' `CITATION.cff` and `.zenodo.json` from `_supplement.yml` with the new
 #' version. So a value that [write_citation()] or [write_zenodo()] refuses,
-#' such as an empty `citation`, stops the function with the error of that
-#' function, before the check runs and before any file is changed.
+#' such as an empty `citation`, stops the function with the class and
+#' message of that function's error, before the check runs and before any
+#' file is changed.
 #'
 #' Before it changes any file, the function stops when `CITATION.cff` or
 #' `.zenodo.json` is a link, because a write would go through the link, or
@@ -82,17 +83,17 @@
 #' parser. An error while the function prints the commands, after it wrote
 #' the files, reaches you as it is. Otherwise the function stops with an
 #' error of class `supplement_error` and one of these classes. When it
-#' stops, no file is changed, unless a file that changed cannot be put
-#' back. The `supplement_error_release_write` message then names that file.
+#' stops with one of these classes, no file is changed, unless a file that
+#' changed cannot be put back. The `supplement_error_release_write` message then names that file.
 #'
 #' The function checks in this order, and stops at the first problem:
 #' `bump` and `path`; `_supplement.yml` (no file, not UTF-8, not valid
 #' YAML, no `supplement` map); the current version and `bump`; the
 #' `version:` line; the values that the new `CITATION.cff` and
-#' `.zenodo.json` hold; the two output files; [check_supplement()]; a file
-#' that changed during the check, or an output file that is now a link, a
-#' folder, or a file that cannot be read or written; the problems that
-#' [check_supplement()] found; the writes.
+#' `.zenodo.json` hold; the two output files; [check_supplement()]; an
+#' output file that is now a link, a folder, or a file that cannot be read
+#' or written, also when another file changed; a file that changed during
+#' the check; the problems that [check_supplement()] found; the writes.
 #'
 #' * `supplement_error_argument`: `bump` is not one of the forms above, or
 #'   `path` is not a single non-empty string.
@@ -103,8 +104,9 @@
 #'   `_supplement.yml`, such as `supplement_error_missing_field`,
 #'   `supplement_error_license`, `supplement_error_orcid`, and
 #'   `supplement_error_author_name`: a value that [write_citation()] or
-#'   [write_zenodo()] refuses. The function raises the same error as they
-#'   do, before [check_supplement()] runs.
+#'   [write_zenodo()] refuses. The error has the same class and message as
+#'   theirs, names `release_supplement()`, and comes before
+#'   [check_supplement()] runs.
 #' * `supplement_error_field_type`: `version` is a list, or YAML reads it
 #'   as a number or as true/false, such as an unquoted `1.10`. Write it as
 #'   one value in quotes, such as `"1.10.0"`. Another value of the kinds
@@ -119,10 +121,11 @@
 #'   `_supplement.yml` as the old file with the new version.
 #' * `supplement_error_changed`: `_supplement.yml`, `CITATION.cff`, or
 #'   `.zenodo.json` changed while [check_supplement()] ran. This error
-#'   comes before a `supplement_error_release_check` error. A change that
-#'   makes `CITATION.cff` or `.zenodo.json` a link, a folder, or a file that
-#'   cannot be read or written, gives the `supplement_error_file_exists` or
-#'   `supplement_error_write` error instead.
+#'   comes before a `supplement_error_release_check` error. When
+#'   `CITATION.cff` or `.zenodo.json` is now a link, a folder, or a file
+#'   that cannot be read or written, the `supplement_error_file_exists` or
+#'   `supplement_error_write` error comes instead, also when another file
+#'   changed.
 #' * `supplement_error_release_check`: [check_supplement()] found a problem
 #'   other than a `"doi-mismatch"` problem for `CITATION.cff`, or it
 #'   skipped its git checks.
