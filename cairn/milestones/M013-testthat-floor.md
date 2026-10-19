@@ -76,6 +76,7 @@ DESCRIPTION's testthat floor is 3.3.0, the first CRAN release after 3.2.3; testt
 - 2026-10-18: implement done; status review.
 - 2026-10-18: correction: the investigation line's "24 testthat functions" was a miscount; the AC2 sweep keeps 30 names that the tests call (diff-bug #4).
 - 2026-10-18: review fix: D-014 Context now says R 4.6.1 was the only R installed, that a Docker run was possible but not done, and that the 3.2 releases were not tried on an older R; its Consequences add the R 4.1 need from testthat 3.3.0 (diff-bug #1, #3, #6).
+- 2026-10-18: step-7 approval: m013-testthat-floor approved for merge
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
