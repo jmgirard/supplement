@@ -35,8 +35,9 @@ supplement:
   # With Zenodo's GitHub integration turned on for the repository, Zenodo
   # gives these after the next GitHub release. version-doi names one
   # release, and concept-doi names all of them. The badge shows version-doi,
-  # or concept-doi when version-doi is empty. Write a DOI without
-  # "https://doi.org/", for example "10.5281/zenodo.1234567".
+  # or concept-doi when version-doi is empty. Write a DOI such as
+  # "10.5281/zenodo.1234567". A "https://doi.org/" or "doi:" in front is
+  # removed.
   zenodo:
     version-doi: ""
     concept-doi: ""

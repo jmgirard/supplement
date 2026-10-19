@@ -45,7 +45,7 @@ The page footer, the DOI badge, and the two citation files agree with the licens
 
 - [x] T1: Add the `supplement-license` shortcode and its name table to `supplement.lua`. Add render tests for the six AC2 shapes in `tests/testthat/test-shortcodes.R`.
 - [x] T2: Change the footer in `inst/template/_quarto.yml` (line 40) to use the shortcode. Update the license sentences in `_supplement.yml` (lines 3 to 4) and `_README.md` (lines 47 to 49), and add `supplement-license` to the `_README.md` shortcode list. Add the AC1 render test.
-- [ ] T3: Remove the DOI prefix in `supplement-doi` (`supplement.lua` line 20). Update the DOI comment in `_supplement.yml`. Add the AC3 render tests.
+- [x] T3: Remove the DOI prefix in `supplement-doi` (`supplement.lua` line 20). Update the DOI comment in `_supplement.yml`. Add the AC3 render tests.
 - [ ] T4: Add the license shape check to `R/supplement-yml.R` and call it from `R/write-citation.R` and `R/write-zenodo.R` before any write. Document the new class in both help pages and add the AC4 tests.
 - [ ] T5: Add the NEWS.md entries and update the shortcode list in the DESIGN.md Architecture section. Read the help pages and template text again against AC5.
 
@@ -69,6 +69,7 @@ The page footer, the DOI badge, and the two citation files agree with the licens
 - 2026-10-18: implement started on branch m010-license-doi-agree, cut from main at b8ba50c.
 - 2026-10-18: T1 done. `supplement-license` looks up a lowercase-keyed table of eight ids and passes the value through `as_written()` first, so a value that names a path is not rewritten on subfolder pages. Three render tests cover the six AC2 shapes. `devtools::test()` clean.
 - 2026-10-18: T2 done. The footer uses both shortcodes, and the `_supplement.yml` comments and `_README.md` say the footer shows the licenses. The footer render test failed four times with the old fixed footer planted, and passes with the new one. `devtools::test()` clean.
+- 2026-10-18: T3 done. A Lua `bare_doi()` removes the prefixes from both DOI values before the badge is built, and the `_supplement.yml` DOI comment says so. The render test has the six AC3 prefixes plus a concept-DOI case. With main's Lua planted, all 7 cases failed. `devtools::test()` clean.
 
 ## Decisions
 

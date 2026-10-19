@@ -29,6 +29,24 @@ test_that("the DOI badge shows the version DOI, then the concept DOI", {
   expect_match(concept$html, doi_badge_rx("10.5281/zenodo.111"), perl = TRUE)
 })
 
+test_that("the DOI badge removes a doi: or doi.org link prefix", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  bare <- "10.5281/zenodo.333"
+  prefixes <- c("https://doi.org/", "https://www.doi.org/", "http://dx.doi.org/",
+                "doi:", "doi: ", "HTTPS://DOI.ORG/")
+  for (prefix in prefixes) {
+    page <- render_doi_page(zenodo_yaml(version = paste0(prefix, bare)))
+    expect_equal(page$status, 0L, info = prefix)
+    expect_match(page$html, doi_badge_rx(bare), perl = TRUE, info = prefix)
+  }
+
+  # The concept DOI gets the same treatment.
+  page <- render_doi_page(zenodo_yaml(concept = paste0("https://doi.org/", bare)))
+  expect_equal(page$status, 0L)
+  expect_match(page$html, doi_badge_rx(bare), perl = TRUE)
+})
+
 test_that("empty DOI and archive values render nothing", {
   skip_if_no_quarto(needs_r = FALSE)
 

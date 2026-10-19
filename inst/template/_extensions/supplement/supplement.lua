@@ -15,12 +15,32 @@ local function value(meta, ...)
   return pandoc.utils.stringify(node)
 end
 
+-- The DOI without a leading "doi:" (and the spaces after it) or
+-- "http(s)://" plus "doi.org/", "dx.doi.org/", or "www.doi.org/", in any
+-- letter case.
+local function bare_doi(id)
+  local lower = id:lower()
+  local rest = lower:match("^doi:%s*()")
+  if rest ~= nil then
+    return id:sub(rest)
+  end
+  for _, scheme in ipairs({ "http://", "https://" }) do
+    for _, host in ipairs({ "doi.org/", "dx.doi.org/", "www.doi.org/" }) do
+      local prefix = scheme .. host
+      if lower:sub(1, #prefix) == prefix then
+        return id:sub(#prefix + 1)
+      end
+    end
+  end
+  return id
+end
+
 -- The DOI badge links to the version DOI. Before Zenodo mints one, it links
 -- to the concept DOI, and with neither it shows nothing.
 local function doi(args, kwargs, meta)
-  local id = value(meta, "zenodo", "version-doi")
+  local id = bare_doi(value(meta, "zenodo", "version-doi"))
   if id == "" then
-    id = value(meta, "zenodo", "concept-doi")
+    id = bare_doi(value(meta, "zenodo", "concept-doi"))
   end
   if id == "" then
     return pandoc.Inlines({})
