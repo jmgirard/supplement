@@ -21,11 +21,11 @@ When the yaml package cannot read `_supplement.yml` or `_quarto.yml`, the packag
 
 ## Acceptance criteria
 
-- [ ] AC1: Each of `write_citation()`, `write_zenodo()`, `check_supplement()`, `release_supplement()`, and `add_data()` is called on a site whose `_supplement.yml` holds one of five shapes that the yaml package refuses: an unclosed flow sequence (`citation: [x`), an unclosed flow map (`zenodo: {a: 1`), a line under `supplement:` indented with a tab instead of spaces, a second value on a key line (`paper-title: a: b`), and a key given twice in the `supplement:` map. For each call, a test asserts that the error has the classes `supplement_error_parse` and `supplement_error`, and that `folder_state()` of the site is the same before and after the call. It also asserts that the error message, with each run of white space made one space, holds `_supplement.yml` and the trimmed message that `yaml::yaml.load()` gives for the same text, also with white space made one space.
-- [ ] AC2: `add_report()` is called on a site whose `_quarto.yml` holds each of the five shapes of AC1, at the top level in place of under `supplement:`. A test asserts the classes `supplement_error_parse` and `supplement_error`, `_quarto.yml` and the `yaml::yaml.load()` message in the error message (white space made one space, as in AC1), and an unchanged `folder_state()`.
-- [ ] AC3: The Errors section of the help page of each of the six functions lists `supplement_error_parse`, and `grep -rn "error of the YAML" R/ man/` finds nothing.
-- [ ] AC4: NEWS.md has an entry that names `supplement_error_parse` and the six functions.
-- [ ] AC5: `Rscript -e 'devtools::document()'` leaves no diff, and `Rscript -e 'devtools::test()'` reports no failure.
+- [x] AC1: Each of `write_citation()`, `write_zenodo()`, `check_supplement()`, `release_supplement()`, and `add_data()` is called on a site whose `_supplement.yml` holds one of five shapes that the yaml package refuses: an unclosed flow sequence (`citation: [x`), an unclosed flow map (`zenodo: {a: 1`), a line under `supplement:` indented with a tab instead of spaces, a second value on a key line (`paper-title: a: b`), and a key given twice in the `supplement:` map. For each call, a test asserts that the error has the classes `supplement_error_parse` and `supplement_error`, and that `folder_state()` of the site is the same before and after the call. It also asserts that the error message, with each run of white space made one space, holds `_supplement.yml` and the trimmed message that `yaml::yaml.load()` gives for the same text, also with white space made one space.
+- [x] AC2: `add_report()` is called on a site whose `_quarto.yml` holds each of the five shapes of AC1, at the top level in place of under `supplement:`. A test asserts the classes `supplement_error_parse` and `supplement_error`, `_quarto.yml` and the `yaml::yaml.load()` message in the error message (white space made one space, as in AC1), and an unchanged `folder_state()`.
+- [x] AC3: The Errors section of the help page of each of the six functions lists `supplement_error_parse`, and `grep -rn "error of the YAML" R/ man/` finds nothing.
+- [x] AC4: NEWS.md has an entry that names `supplement_error_parse` and the six functions.
+- [x] AC5: `Rscript -e 'devtools::document()'` leaves no diff, and `Rscript -e 'devtools::test()'` reports no failure.
 
 ## Coverage
 
@@ -61,3 +61,11 @@ When the yaml package cannot read `_supplement.yml` or `_quarto.yml`, the packag
 - 2026-10-19: status review; `devtools::document()` no diff, `devtools::test()` clean.
 
 ## Decisions
+
+## Review
+
+- AC1: `test_file("tests/testthat/test-parse-errors.R")` on the branch: the `_supplement.yml` test ran 130 expectations (5 shapes, each a parser check plus 5 calls with 5 checks: both classes, the file name, the parser message with white space made one space, an unchanged `folder_state()`), 0 failed. The same test file against a `git archive main` copy: 50 of 130 failed. The shapes are `citation: [x`, `zenodo: {a: 1`, a tab-indented `version:` line under `supplement:`, `paper-title: a: b`, and `repeated:` twice under `supplement:`.
+- AC2: the same run, `_quarto.yml` test: 30 expectations (the five shapes at the top level, the tab shape as `extra:` with a tab-indented child, each with the parser check and the five `add_report()` checks), 0 failed on the branch, 10 failed on the `main` copy.
+- AC3: `tools::parse_Rd()` on the six Rd files: each has one Errors section, and each holds `supplement_error_parse`. `grep -rn "error of the YAML" R/ man/` exits 1 with no output.
+- AC4: NEWS.md's new entry names `supplement_error_parse`, `write_citation()`, `write_zenodo()`, `check_supplement()`, `release_supplement()`, `add_data()`, and `add_report()`.
+- AC5: `devtools::document()` wrote no file and `git status` showed only this milestone file; `devtools::test()`: 241 tests, 2723 expectations, 0 failed, 0 errors, 1 skipped (a case-sensitive-disk test on this case-insensitive disk).
