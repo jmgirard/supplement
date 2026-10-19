@@ -292,6 +292,52 @@ test_that("a malformed ORCID iD is refused", {
   }
 })
 
+# Values that do not have the shape of an SPDX license id.
+bad_license_ids <- c(
+  "space between words" = "MIT License",
+  "slash" = "CC/BY",
+  "OR expression" = "MIT OR Apache-2.0",
+  "two final plus signs" = "GPL-2.0++",
+  "plus between letters" = "A+B",
+  "leading hyphen" = "-MIT"
+)
+
+test_that("a license value that is not an SPDX id stops each writer and keeps the old file", {
+  fields <- list("CITATION.cff" = c("code", "content"), ".zenodo.json" = "content")
+  for (file in names(writers)) {
+    for (field in fields[[file]]) {
+      for (shape in names(bad_license_ids)) {
+        meta <- full_supplement()
+        meta$license[[field]] <- bad_license_ids[[shape]]
+        dir <- local_site(meta)
+        path <- file.path(dir, file)
+        writeLines("old text", path)
+        old <- readBin(path, "raw", file.size(path))
+        info <- paste(file, field, shape)
+        err <- expect_error(writers[[file]](dir, overwrite = TRUE),
+                            class = "supplement_error_license", info = info)
+        expect_s3_class(err, "supplement_error")
+        expect_match(conditionMessage(err), paste0("supplement.license.", field), fixed = TRUE, info = info)
+        expect_identical(readBin(path, "raw", file.size(path) + 1), old, info = info)
+      }
+    }
+  }
+})
+
+test_that("SPDX-shaped license ids are written", {
+  for (id in c("CC-BY-4.0", "GPL-2.0+")) {
+    meta <- full_supplement()
+    meta$license <- list(code = id, content = id)
+    dir <- local_site(meta)
+    for (file in names(writers)) {
+      path <- writers[[file]](dir)
+      # .zenodo.json takes Zenodo's lowercase ids.
+      written <- if (file == ".zenodo.json") tolower(id) else id
+      expect_match(read_text(path), paste0('"', written, '"'), fixed = TRUE, info = paste(file, id))
+    }
+  }
+})
+
 test_that("an existing file is kept when overwrite is FALSE", {
   dir <- local_site(full_supplement())
   for (file in names(writers)) {

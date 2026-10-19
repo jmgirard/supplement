@@ -62,6 +62,12 @@ text value belongs, or \code{license} (and, for \code{\link[=write_citation]{wri
 \item \code{supplement_error_doi}: for \code{\link[=write_citation]{write_citation()}}, \code{zenodo.concept-doi}
 or \code{zenodo.version-doi}, with its prefix removed, is not \code{10.}, four
 to nine digits, \code{/}, and a suffix with no spaces.
+\item \code{supplement_error_license}: \code{license.content} (and, for
+\code{\link[=write_citation]{write_citation()}}, \code{license.code}) is not empty and does not have the
+shape of an SPDX license id: a letter or digit, then letters, digits,
+\code{.}, or \code{-}, and at most one \code{+} at the end. For example, \verb{CC BY 4.0}
+has spaces, so it is an error, and \code{CC-BY-4.0} is not. The check does
+not test that SPDX or Zenodo knows the id.
 \item \code{supplement_error_version}: \code{version} is not empty and is not three
 whole numbers joined by \code{.}, each \code{0} or without a leading zero, such
 as \verb{1.0.0} or \verb{0.10.2}.
