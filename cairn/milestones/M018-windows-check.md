@@ -88,6 +88,7 @@
 - 2026-10-19: review deviation: pushed the branch at review start (CI run 39307109221 on 9d8364d) to get Windows evidence on the final code before the merge question; the question set allowed early pushes, and the workflow runs on push.
 - 2026-10-19: correction to the plan line "1 GB fixture copied into `docs/` refuted at plan": it was wrong. Quarto copies each file the data table links into `docs/`; on the Mac `docs/sizes/f.bin` for a 2 GiB fixture exists and uses 4 KB. The item goes to the new candidate row "Windows large data files".
 - 2026-10-19: review fix-now on the branch: the Windows `is_link()` drops a drive root's separator before the join (diff-bug #1), filters names that are not valid UTF-8 before `tolower()` (prior-review #1); the Lua byte count gives nil on a read error; the size fixture falls back to the seek write when fsutil fails; the skip list also matches `{knitr}` and `{rmarkdown}` and fails when no expectation passed; NEWS wording; two comments and the `check_supplement()` help.
+- 2026-10-19: step-7 approval: m018-windows-check approved for merge
 
 ## Decisions
 
