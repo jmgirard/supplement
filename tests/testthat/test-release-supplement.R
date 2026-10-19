@@ -298,6 +298,24 @@ test_that("a failed write puts back the files as they were", {
   }
 })
 
+test_that("a file that cannot be put back is named in the error", {
+  mock_check()
+  dir <- release_site('  version: "1.2.3"')
+  writeLines("old citation", file.path(dir, "CITATION.cff"))
+  real_write_checked <- write_checked
+  local_mocked_bindings(
+    write_utf8 = function(text, file) stop("disk full"),
+    write_checked = function(bytes, file, ...) {
+      if (basename(file) == "CITATION.cff") stop("still full")
+      real_write_checked(bytes, file, ...)
+    }
+  )
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
+  expect_match(conditionMessage(err), "CITATION\\.cff.? could not be put back")
+  expect_no_match(conditionMessage(err), "got their old text back", fixed = TRUE)
+  expect_identical(site_version(dir), "1.2.3")
+})
+
 test_that("an empty citation, which stops write_zenodo(), puts back the files", {
   mock_check()
   dir <- release_site('  version: "1.2.3"')

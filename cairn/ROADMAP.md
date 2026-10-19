@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-18 (M008 done and archived, M005 row pruned, releas
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M009 | release_supplement() raises the version and prints release commands | in-progress | M008 | high | milestones/M009-release-supplement.md |
+| M009 | release_supplement() raises the version and prints release commands | review | M008 | high | milestones/M009-release-supplement.md |
 | M008 | check_supplement() lists release problems | done | — | high | milestones/archive/M008-check-supplement.md |
 | M007 | add_report() and add_data() list new site files | done | M006 | high | milestones/archive/M007-add-report-data.md |
 | M006 | create_supplement() makes a site from the template | done | — | high | milestones/archive/M006-create-supplement.md |
@@ -32,4 +32,5 @@ _Last hygiene check: 2026-10-18 (M008 done and archived, M005 row pruned, releas
 - release check edge cases: from the M008 review. A file in Git LFS reads as its full size in the large-file check, a large or `.rds` file committed earlier and since deleted is not seen though a push still sends it, and a second Zenodo badge on the home page (for a related dataset) gives a `doi-mismatch` row. A large file that is staged and then deleted from disk gives no row, and a `docs/` folder with no `index.html` (one report rendered by name) gives no `not-rendered` row. A report that `.gitignore` blocks still gets a `no-stored-output` row, a UTF-16 `CITATION.cff` is judged though GitHub reads only UTF-8, and on a Mac without developer tools `git --version` may open an install dialog (not confirmed). — added 2026-10-18
 - YAML parse errors: a `_supplement.yml` with a YAML syntax error stops `read_supplement()` with the yaml package's unclassed error, so `write_citation()`, `write_zenodo()`, and `check_supplement()` give no `supplement_error`. From the M008 review. — added 2026-10-18
 - testthat floor: tests use `expect_no_error()` and `expect_no_warning()`, which need testthat 3.1.5, while DESCRIPTION says `testthat (>= 3.0.0)`. Raise the floor (a dependency change) or use `expect_error(x, NA)`. From the M008 review. — added 2026-10-18
+- release from a subfolder: `release_supplement()` prints `git add -A`, which stages every file that git does not ignore in the whole repository, while `check_supplement()` lists files from the site folder only. For a site in a subfolder of its repository, files outside the site reach the release commit unchecked. Print `git add -A .`, or check from the top of the repository. From the M009 claim audit. — added 2026-10-18
 - [low] existing-site migration: a helper that converts a site with the old `src/` and `analyses/` layout to the freeze layout. Out of scope for version 1. — added 2026-10-18

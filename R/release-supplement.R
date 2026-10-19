@@ -38,8 +38,10 @@
 #' `git add -A`, `git commit -m "Release vX.Y.Z"`, `git tag vX.Y.Z`,
 #' `git push`, `git push origin vX.Y.Z`, and
 #' `gh release create vX.Y.Z --generate-notes`. `git add -A` adds every file
-#' that git does not ignore, which are the files that [check_supplement()]
-#' checked, so `docs/` and `_freeze/` reach the release. The last command
+#' in the git repository that git does not ignore, also files outside the
+#' site folder. When the site folder is the top of the repository, these are
+#' the files that the git checks of [check_supplement()] read, so `docs/`
+#' and `_freeze/` reach the release. The last command
 #' needs the GitHub command-line tool (`gh`). When Zenodo's GitHub
 #' integration is turned on for the repository, Zenodo archives the release
 #' and gives it a version DOI. Add that DOI to `zenodo.version-doi` in
@@ -53,15 +55,22 @@
 #' @return The release commands as a character vector, invisibly.
 #'
 #' @section Errors:
-#' The function stops with an error of class `supplement_error` and one of
-#' these classes. It changes no file before it stops.
+#' A `_supplement.yml` that is not valid YAML gives the error of the YAML
+#' parser. Otherwise the function stops with an error of class
+#' `supplement_error` and one of these classes. When it stops, no file is
+#' changed.
 #'
 #' * `supplement_error_argument`: `bump` is not one of the forms above, or
 #'   `path` is not a single non-empty string.
 #' * `supplement_error_no_metadata`, `supplement_error_no_map`: as for
 #'   [write_citation()].
+#' * `supplement_error_encoding`: `_supplement.yml` is not UTF-8 text.
 #' * `supplement_error_field_type`: `version` is a list, or YAML reads it
-#'   as a number, such as an unquoted `1.10`. Put it in quotes.
+#'   as a number or as true/false, such as an unquoted `1.10`. Put it in
+#'   quotes. [check_supplement()] also stops with this class, for a DOI
+#'   that is not one text value or a `zenodo` that is not a map.
+#' * `supplement_error_doi`: a DOI in `_supplement.yml` is not a DOI, as
+#'   for [check_supplement()].
 #' * `supplement_error_version`: `version` is not empty and is not a
 #'   version, or the version in `bump` is not greater than it.
 #' * `supplement_error_no_version`: `_supplement.yml` has no one-line
@@ -73,7 +82,8 @@
 #'   skipped its git checks.
 #' * `supplement_error_release_write`: a write of `_supplement.yml`,
 #'   `CITATION.cff`, or `.zenodo.json` stopped, and the files got their old
-#'   text back. The error of the write is the `parent` of this error.
+#'   text back. If a file cannot be put back, the message names it. The
+#'   error of the write is the `parent` of this error.
 #'
 #' @seealso [check_supplement()] for the checks, and [write_citation()] and
 #'   [write_zenodo()] for the files that the release writes again.
@@ -162,9 +172,10 @@ next_version <- function(current, bump, call = parent.frame()) {
 
 # 1 when version `a` is greater than `b`, -1 when it is smaller, and 0
 # when they are equal, part by part as whole numbers. The parts have no
-# leading zeros, so a longer part is the greater one, and parts of equal
-# length compare as text. The parts are not read as numbers, so a part
-# larger than R can hold as a whole number still compares exactly.
+# leading zeros, so a longer part is the greater one, and in parts of equal
+# length the first digit that differs decides. A part is not read as one
+# number, so a part larger than R can hold as a whole number still
+# compares exactly.
 compare_versions <- function(a, b) {
   a <- strsplit(a, ".", fixed = TRUE)[[1]]
   b <- strsplit(b, ".", fixed = TRUE)[[1]]
@@ -173,7 +184,12 @@ compare_versions <- function(a, b) {
       return(sign(nchar(a[i]) - nchar(b[i])))
     }
     if (a[i] != b[i]) {
-      return(if (a[i] > b[i]) 1 else -1)
+      # The first digit that differs decides, read as a number so that the
+      # locale's text order plays no part.
+      da <- as.integer(strsplit(a[i], "", fixed = TRUE)[[1]])
+      db <- as.integer(strsplit(b[i], "", fixed = TRUE)[[1]])
+      j <- which(da != db)[1]
+      return(sign(da[j] - db[j]))
     }
   }
   0
@@ -224,15 +240,26 @@ write_release_files <- function(path, read, lines, file, call = parent.frame()) 
     if (file.exists(output) && !dir.exists(output)) readBin(output, "raw", file.size(output))
   })
   existed <- path_occupied(outputs)
+  # The files that could not be put back, or an empty vector.
   restore <- function() {
-    try(write_checked(read$bytes, file), silent = TRUE)
+    failed <- character()
+    put_back <- function(bytes, target) {
+      ok <- tryCatch({
+        write_checked(bytes, target)
+        TRUE
+      }, error = function(e) FALSE)
+      if (!ok) failed <<- c(failed, basename(target))
+    }
+    put_back(read$bytes, file)
     for (i in seq_along(outputs)) {
       if (!is.null(old[[i]])) {
-        try(write_checked(old[[i]], outputs[i]), silent = TRUE)
+        put_back(old[[i]], outputs[i])
       } else if (!existed[i] && path_occupied(outputs[i]) && !dir.exists(outputs[i])) {
         unlink(outputs[i])
+        if (path_occupied(outputs[i])) failed <- c(failed, basename(outputs[i]))
       }
     }
+    failed
   }
   done <- FALSE
   on.exit(if (!done) restore(), add = TRUE)
@@ -243,11 +270,16 @@ write_release_files <- function(path, read, lines, file, call = parent.frame()) 
       write_zenodo(path, overwrite = TRUE)
     },
     error = function(e) {
-      restore()
+      failed <- restore()
       done <<- TRUE
       cli::cli_abort(
-        c("The release stopped while writing the site files, so nothing was changed.",
-          "i" = "{.file _supplement.yml}, {.file CITATION.cff}, and {.file .zenodo.json} got their old text back."),
+        if (length(failed) == 0) {
+          c("The release stopped while writing the site files, so nothing was changed.",
+            "i" = "{.file _supplement.yml}, {.file CITATION.cff}, and {.file .zenodo.json} got their old text back.")
+        } else {
+          c("The release stopped while writing the site files, and {.file {failed}} could not be put back.",
+            "!" = "Check {.file {failed}} by hand, for example with {.code git diff}.")
+        },
         parent = e,
         class = c("supplement_error_release_write", "supplement_error"),
         call = call

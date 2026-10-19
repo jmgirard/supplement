@@ -130,8 +130,9 @@ such as `"1.0.0"`. A word raises that part of the version and sets the
 parts after it to 0. An empty version counts as `0.0.0`, so `"major"`
 gives `1.0.0`. A version must be greater than the current version.
 
-The function first runs `check_supplement()`. If that finds a problem, or
-skips its git checks, the function stops and changes no file. A DOI in
+Before it changes any file, the function runs `check_supplement()`. If
+that finds a problem, or skips its git checks, the function stops and
+changes no file. A DOI in
 `CITATION.cff` that differs from `_supplement.yml` does not stop it,
 because the release writes that file again. The function then changes the
 version in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json`

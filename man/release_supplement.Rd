@@ -56,8 +56,10 @@ The printed commands, for version \code{X.Y.Z}, are \verb{git status},
 \verb{git add -A}, \verb{git commit -m "Release vX.Y.Z"}, \verb{git tag vX.Y.Z},
 \verb{git push}, \verb{git push origin vX.Y.Z}, and
 \verb{gh release create vX.Y.Z --generate-notes}. \verb{git add -A} adds every file
-that git does not ignore, which are the files that \code{\link[=check_supplement]{check_supplement()}}
-checked, so \verb{docs/} and \verb{_freeze/} reach the release. The last command
+in the git repository that git does not ignore, also files outside the
+site folder. When the site folder is the top of the repository, these are
+the files that the git checks of \code{\link[=check_supplement]{check_supplement()}} read, so \verb{docs/}
+and \verb{_freeze/} reach the release. The last command
 needs the GitHub command-line tool (\code{gh}). When Zenodo's GitHub
 integration is turned on for the repository, Zenodo archives the release
 and gives it a version DOI. Add that DOI to \code{zenodo.version-doi} in
@@ -66,15 +68,22 @@ it.
 }
 \section{Errors}{
 
-The function stops with an error of class \code{supplement_error} and one of
-these classes. It changes no file before it stops.
+A \verb{_supplement.yml} that is not valid YAML gives the error of the YAML
+parser. Otherwise the function stops with an error of class
+\code{supplement_error} and one of these classes. When it stops, no file is
+changed.
 \itemize{
 \item \code{supplement_error_argument}: \code{bump} is not one of the forms above, or
 \code{path} is not a single non-empty string.
 \item \code{supplement_error_no_metadata}, \code{supplement_error_no_map}: as for
 \code{\link[=write_citation]{write_citation()}}.
+\item \code{supplement_error_encoding}: \verb{_supplement.yml} is not UTF-8 text.
 \item \code{supplement_error_field_type}: \code{version} is a list, or YAML reads it
-as a number, such as an unquoted \code{1.10}. Put it in quotes.
+as a number or as true/false, such as an unquoted \code{1.10}. Put it in
+quotes. \code{\link[=check_supplement]{check_supplement()}} also stops with this class, for a DOI
+that is not one text value or a \code{zenodo} that is not a map.
+\item \code{supplement_error_doi}: a DOI in \verb{_supplement.yml} is not a DOI, as
+for \code{\link[=check_supplement]{check_supplement()}}.
 \item \code{supplement_error_version}: \code{version} is not empty and is not a
 version, or the version in \code{bump} is not greater than it.
 \item \code{supplement_error_no_version}: \verb{_supplement.yml} has no one-line
@@ -86,7 +95,8 @@ other than a \code{"doi-mismatch"} problem for \code{CITATION.cff}, or it
 skipped its git checks.
 \item \code{supplement_error_release_write}: a write of \verb{_supplement.yml},
 \code{CITATION.cff}, or \code{.zenodo.json} stopped, and the files got their old
-text back. The error of the write is the \code{parent} of this error.
+text back. If a file cannot be put back, the message names it. The
+error of the write is the \code{parent} of this error.
 }
 }
 

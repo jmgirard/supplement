@@ -1,6 +1,6 @@
 # M009: release_supplement() raises the version and prints release commands
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** M008
 - **Driving RR:** —
@@ -69,3 +69,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: T3 done: `tests/testthat/test-release-supplement.R` mocks `check_supplement()`; planted defects (no restore, DOI row counted, skipped checks ignored, versions compared as text) each turn tests red.
 - 2026-10-18: T4 done: `R/release-supplement.R`. Choices: parts compare by length then as text, so parts beyond R's whole numbers stay exact; a failed write stops with a new class `supplement_error_release_write` whose `parent` is the write's error; a failed re-read stops with `supplement_error_yaml`, as in `add_report()`; the no-version error shows the line with the current value; an empty `version:` line is replaced; 1672 tests pass.
 - 2026-10-18: T5 done: README "Make a release" section, template `_README.md` "Make a release" section and version mentions, NEWS entries, DESIGN Architecture lines; no `_pkgdown.yml` exists, so no reference row. A real run on a rendered `create_supplement()` site in a git repository found no problems, set `1.0.0` in all three files, and printed the seven commands.
+- 2026-10-18: claim audit: 84 claims read, 9 corrected — R/release-supplement.R, man/release_supplement.Rd, README.md, inst/template/_README.md, NEWS.md
+- 2026-10-18: after the audit: a write-back that fails is now named in the `supplement_error_release_write` message (new test), and `compare_versions()` compares the first differing digit as a number, not by locale text order; 1676 tests pass.
+- 2026-10-18: claim audit found that `git add -A` stages the whole repository while `check_supplement()` reads the site folder only, so AC6's "adds the files that check_supplement() checked" holds only for a site at the top of its repository; the help page says so, and a "release from a subfolder" candidate row holds the fix.
+- 2026-10-18: status review; handing off to /milestone-review.

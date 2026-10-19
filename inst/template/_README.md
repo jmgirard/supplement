@@ -149,12 +149,14 @@ supplement::release_supplement("major")
 
 Give `"patch"`, `"minor"`, `"major"`, or a version such as `"1.0.0"`. A
 word raises that part of the version and sets the parts after it to 0, and
-an empty version counts as `0.0.0`. The function first runs
-`check_supplement()`. When that finds a problem or skips its git checks,
-the function stops and changes no file. It then changes the version in `_supplement.yml`
-and writes `CITATION.cff` and `.zenodo.json` again. Last, it prints the git
-and GitHub commands that commit the site, tag it, push it, and make the
-GitHub release. It runs none of them. Run them yourself in this folder.
+an empty version counts as `0.0.0`. Before it changes any file, the
+function runs `check_supplement()`. When that finds a problem or skips its
+git checks, the function stops and changes no file. A DOI in
+`CITATION.cff` that differs from `_supplement.yml` does not stop it,
+because the release writes that file again. It then changes the version
+in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json` again.
+Last, it prints the git and GitHub commands that commit the site, tag it,
+push it, and make the GitHub release. It runs none of them. Run them yourself in this folder.
 After Zenodo archives the release, add the new version DOI to
 `_supplement.yml` and render the site again.
 
