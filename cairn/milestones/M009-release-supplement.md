@@ -103,6 +103,7 @@ Export `release_supplement()`, which raises the site version in `_supplement.yml
 - 2026-10-18: claim audit: 24 claims read, 0 corrected — R/release-supplement.R, R/supplement-yml.R, README.md, inst/template/_README.md, man/release_supplement.Rd, tests (the T8 and T9 diff, same reader).
 - 2026-10-18: status review; handing off to /milestone-review.
 - 2026-10-18: review return 4: AC2 fails as written in its test clause: the test probes the `1.2.4` forms of the five values that AC2 names, not AC2's `1.2.3` forms (pass 4 diff-bug #1); `check_bump()` refuses AC2's own values. This is the fourth defect return and comes after a re-cut, so the thrash rule (a) stops the run with the re-cut off its menu, and the disposition goes to the user.
+- 2026-10-18: the user chose to escalate at the fourth-return stop: /milestone-brief writes a review brief on why the reviews keep returning; owed on resume: AC2's five literal values in the test, and pass 4 diff-bug #2 and #3.
 
 ## Review
 
