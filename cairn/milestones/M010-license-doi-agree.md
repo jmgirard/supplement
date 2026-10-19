@@ -86,3 +86,32 @@ Pass 1, 2026-10-18, on branch head e11596b (main at b8ba50c, not moved).
 - AC3: test "the DOI badge removes a doi: or doi.org link prefix": 14 expectations, 0 failed, 0 skipped, over the six listed prefixes plus a concept-DOI case, each matched with `doi_badge_rx()` on the bare DOI. The existing tests "the DOI badge shows the version DOI, then the concept DOI" (5) and "empty DOI and archive values render nothing" (3) pass. Plant check in T3: 7 of 7 cases failed with main's Lua.
 - AC4: `license_id()` (`R/supplement-yml.R`) matches `\A[A-Za-z0-9][A-Za-z0-9.-]*\+?\z` and raises classes `supplement_error_license` and `supplement_error`. `write_citation()` calls it on `license.code` and `license.content`, and `write_zenodo()` on `license.content`, before `check_overwrite()` and any write. Test "a license value that is not an SPDX id stops each writer and keeps the old file": 72 expectations (3 writer-field pairs × 6 shapes × class, `supplement_error` class, field name, unchanged bytes with `overwrite = TRUE`), 0 failed. Test "SPDX-shaped license ids are written" (`CC-BY-4.0`, `GPL-2.0+`, both writers): 4 expectations, 0 failed. Plant check in T4: the test failed with a no-op `license_id()`.
 - AC5: `man/write_citation.Rd` and `man/write_zenodo.Rd` each name `supplement_error_license` once. A grep of `_supplement.yml` and `_README.md` for "license names in the page footer are" and "set in `_quarto.yml`" finds nothing, and both "No page shows" sentences now name only the preprint and authors. `_supplement.yml:38-40` says a `https://doi.org/` or `doi:` in front is removed. `_README.md:71` lists `supplement-license`. NEWS.md lines 41, 46, and 50 hold the footer, badge, and license entries.
+
+Consistency gate: `cairn_validate.py` all checks passed. No principle changed, so `cairn_impact` was skipped. `devtools::document()` no diff. No README.Rmd and no `_pkgdown.yml`, so those checks do not apply. NEWS.md has the entries. No new top-level files. `devtools::check()`: 0 errors, 0 warnings, 0 notes (1m 58s, on 3d9d0af).
+
+spawned: diff-bug, blame-history, prior-review
+
+- diff-bug #1: the shape check accepts `--`, which the footer shows as an en dash — follow-up, row "footer and badge edge cases".
+- diff-bug #2: the `release_supplement()` help page does not mention a bad license id — follow-up, row "footer and badge edge cases" (the late failure itself is in "release write order").
+- diff-bug #3: footer link targets stay `LICENSE.md` and `LICENSE-CC-BY.md` while the label follows `_supplement.yml` — follow-up, row "footer and badge edge cases".
+- diff-bug #4: the error hint says only "no spaces", which does not help for `/`, `++`, `A+B`, or `-MIT` — fix now, fixed c7f9596.
+- diff-bug #5: the shortcode shows an id the writers refuse, with no stop — follow-up, row "footer and badge edge cases".
+- diff-bug #6: a list value flattens to `MITApache-2.0` in the footer — follow-up, row "footer and badge edge cases".
+- diff-bug #7: a prefix-only version DOI makes the badge fall back to the concept DOI — follow-up, row "footer and badge edge cases".
+- diff-bug #8: `%s*` and `\s*` also match tabs, wider than AC3's "spaces" — reject, false: removing tabs too does not break AC3, and Lua matches R.
+- diff-bug #9: `unique()` keeps `MIT` and `mit` as two CFF licenses — follow-up, row "footer and badge edge cases" (predates the branch).
+- diff-bug #10: `write_zenodo()` does not check `license.code` — reject, planned change (AC4).
+- diff-bug #11: `_README.md` DOI sentence named only `https://doi.org/` — fix now, fixed c7f9596.
+- diff-bug #12: an unwrapped 110-character comment line in `_supplement.yml` and long R lines — fix now, fixed c7f9596.
+- diff-bug #13: the DOI-prefix test does not pass stderr as `info` — fix now, fixed c7f9596.
+- blame-history #1: the footer label and link target can disagree — follow-up, row "footer and badge edge cases" (same as diff-bug #3).
+- blame-history #2: a render succeeds with an id the writers refuse — follow-up, row "footer and badge edge cases" (same as diff-bug #5).
+- blame-history #3: SPDX expressions such as `MIT OR Apache-2.0` now stop the writers — reject, planned change (AC4, D-012).
+- blame-history #4: two copies of the DOI prefix rule with no shared test — follow-up, row "footer and badge edge cases".
+- blame-history #5: the `_supplement.yml` DOI comment reverses M004's "write a DOI without https://doi.org/" — reject, planned change (AC5, plan gate).
+- blame-history #6: `gpl-3.0-only` read "GPL 3.0", dropping "only" — fix now, now "GPL 3.0 only", fixed c7f9596.
+- prior-review #1: `--` in an id becomes an en dash in the footer (M004 lesson) — follow-up, row "footer and badge edge cases" (same as diff-bug #1).
+- prior-review #2: an empty license value gives an empty footer link — reject, planned change (Scope Out).
+- prior-review #3: a list value shows in the footer while the writers refuse it — follow-up, row "footer and badge edge cases" (same as diff-bug #6).
+
+Return floor: no finding shows a criterion failing or a load-bearing defect, so status stays `review`. After the fixes, `devtools::document()` no diff and `devtools::test()` clean.
