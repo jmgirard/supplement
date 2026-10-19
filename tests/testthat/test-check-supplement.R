@@ -72,8 +72,10 @@ test_that("a rendered site in a git repository has no problems", {
   expect_identical(names(result), c("check", "file", "problem"))
   expect_identical(nrow(result), 0L, info = paste(c(
     paste(result$file, result$problem),
-    list.files(file.path(site, "docs", "analyses"), recursive = TRUE, all.files = TRUE),
-    grep("<img", readLines(file.path(site, "docs", "analyses", "example.html"), warn = FALSE), value = TRUE)
+    "analyses:", list.files(file.path(site, "analyses"), recursive = TRUE, all.files = TRUE),
+    "_freeze:", list.files(file.path(site, "_freeze"), recursive = TRUE, all.files = TRUE),
+    "docs:", list.files(file.path(site, "docs"), recursive = TRUE, all.files = TRUE),
+    "render:", rendered$output
   ), collapse = "\n"))
   expect_identical(attr(result, "skipped"), character())
   for (col in names(result)) expect_type(result[[col]], "character")
