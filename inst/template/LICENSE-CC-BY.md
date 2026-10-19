@@ -4,7 +4,8 @@ Copyright (c) YEAR AUTHORS
 
 The non-code content of this repository is licensed under the Creative
 Commons Attribution 4.0 International License. This content is the rendered
-reports in `_freeze/` and `docs/`, the website text, and the data files.
+reports in `_freeze/` and `docs/`, the figures in `figures/`, the website
+text, and the data files.
 The third-party code that Quarto copies into `docs/site_libs/` keeps its own
 licenses.
 

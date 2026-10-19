@@ -83,8 +83,8 @@ The printed commands, for version \code{X.Y.Z}, are \verb{git status -- .},
 three commands to the site folder: \verb{git status} shows, and \verb{git add} and
 \verb{git commit} stage and commit, only files under the site folder. These
 are the files that the git checks of
-\code{\link[=check_supplement]{check_supplement()}} read, so \verb{docs/} and \verb{_freeze/} reach the release
-when git does not ignore them, as in the template.
+\code{\link[=check_supplement]{check_supplement()}} read, so \verb{docs/}, \verb{_freeze/}, and \verb{figures/} reach
+the release when git does not ignore them, as in the template.
 When the site is a subfolder of its repository, a change outside the
 site folder, also one that was staged before, stays out of the release
 commit. A file outside the site folder that was staged before the

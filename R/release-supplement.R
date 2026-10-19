@@ -65,8 +65,8 @@
 #' three commands to the site folder: `git status` shows, and `git add` and
 #' `git commit` stage and commit, only files under the site folder. These
 #' are the files that the git checks of
-#' [check_supplement()] read, so `docs/` and `_freeze/` reach the release
-#' when git does not ignore them, as in the template.
+#' [check_supplement()] read, so `docs/`, `_freeze/`, and `figures/` reach
+#' the release when git does not ignore them, as in the template.
 #' When the site is a subfolder of its repository, a change outside the
 #' site folder, also one that was staged before, stays out of the release
 #' commit. A file outside the site folder that was staged before the

@@ -9,6 +9,7 @@ Website: https://OWNER.github.io/REPO/
 
 - `analyses/`: Quarto source files (`.qmd`), one per report
 - `data/`: shared data files
+- `figures/`: figures for the paper, saved by the reports and published on the site
 - `_freeze/`: stored output of each report, so the site rebuilds without running report code
 - `_supplement.yml`: facts about the paper, such as its title, citation, DOIs, and data files
 - `index.qmd`, `_quarto.yml`: website source
@@ -203,7 +204,7 @@ time you save its file.
 After you delete or rename a report, run a full render. It clears `docs/`,
 so the old page does not stay on the site.
 
-Commit `_freeze/` and `docs/` with the source files.
+Commit `_freeze/`, `docs/`, and `figures/` with the source files.
 
 ## Setup scripts
 
@@ -234,11 +235,12 @@ code reads them as `file.path("fits", ...)`.
    that report's fit files. A missing fit file can make a report refit its
    model, which can take hours and give new estimates.
 2. Run `quarto render`, or `quarto render analyses/<name>.qmd` to re-run
-   one report.
-3. Stage only `_freeze/` and `docs/`, commit, and push:
+   one report. If the render saved a figure under a new name in
+   `figures/`, run `quarto render` again (see "Paper figures").
+3. Stage only `_freeze/`, `docs/`, and `figures/`, commit, and push:
 
    ```
-   git add _freeze docs
+   git add _freeze docs figures
    git commit -m "Render reports"
    git push
    ```
@@ -260,6 +262,37 @@ before `pp_check()` or a bootstrap. Without a seed, every render that runs the
 report's code redraws the figures. The numbers can stay the same while the
 figures change.
 
+## Paper figures
+
+Save each figure for the paper in `figures/`. A report runs from its own
+folder, so its code writes there as `file.path("..", "figures", ...)`, for
+example:
+
+```r
+dir.create(file.path("..", "figures"), showWarnings = FALSE)
+png(file.path("..", "figures", "model-fit.png"), width = 6, height = 4,
+    units = "in", res = 300)
+```
+
+The `dir.create()` line makes the folder, because the template has no
+`figures/` folder until a report makes it. The example report saves
+`figures/bootstrap-means.png` this way. Quarto copies `figures/` into
+`docs/`, so each figure has a web address such as
+`https://OWNER.github.io/REPO/figures/model-fit.png`. Every file in
+`figures/` is published on the site, so keep drafts and private files out
+of it.
+
+Each render copies only the figures that were in `figures/` at its start.
+After a render saves a figure under a new name, run `quarto render` again,
+so that `docs/` holds it. Commit `figures/` with `_freeze/` and `docs/`. To
+take a figure off the site, delete it from `figures/` and run a full
+render.
+
+PNG and PDF files saved directly in `analyses/` are not committed, because
+`.gitignore` blocks `analyses/*.png` and `analyses/*.pdf`. Git on Linux
+reads these two rules in lower case only, so there it commits a file such
+as `analyses/plot.PNG`. Save paper figures in `figures/` instead.
+
 ## Publishing from one machine
 
 Render and push the site from one machine. The theme file name in
@@ -280,6 +313,6 @@ search: false
 
 - Code (the `.qmd` files in `analyses/`, the scripts in `_scripts/`, and
   the website configuration): MIT, see `LICENSE.md`
-- Content (rendered reports in `_freeze/` and `docs/`, website text, and
-  data files): CC BY 4.0, see `LICENSE-CC-BY.md`. The third-party code that
+- Content (rendered reports in `_freeze/` and `docs/`, figures in
+  `figures/`, website text, and data files): CC BY 4.0, see `LICENSE-CC-BY.md`. The third-party code that
   Quarto copies into `docs/site_libs/` keeps its own licenses.
