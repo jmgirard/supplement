@@ -58,6 +58,7 @@ For a site in a subfolder of its git repository, the commands that `release_supp
 - 2026-10-19: T3 done: roxygen, `man/release_supplement.Rd`, `README.md`, `inst/template/_README.md`, NEWS.md (the unreleased `release_supplement()` entry, edited in place), and DESIGN.md describe the `-- .` commands; the AC4 grep finds only `git add -A -- .`. `devtools::test()`: 239 tests, 0 failed, 1 skipped (the case-sensitive-disk test in `test-add-data.R`, which skips on macOS).
 - 2026-10-19: claim audit: 19 claims read, 2 corrected — README.md, inst/template/_README.md ("the files the git checks of `check_supplement()` read"), R/release-supplement.R and its Rd (`docs/` and `_freeze/` reach the release when git does not ignore them). Its merge-in-progress note is the existing row "release during a merge".
 - 2026-10-19: all tasks done; `test-release-supplement.R` 43 tests, 0 failed, 0 skipped after the corrections; status review.
+- 2026-10-19: step-7 approval: m015-release-site-folder approved for merge.
 
 ## Decisions
 
