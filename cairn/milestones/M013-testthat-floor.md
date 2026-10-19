@@ -74,6 +74,8 @@ DESCRIPTION's testthat floor is 3.3.0, the first CRAN release after 3.2.3; testt
 - 2026-10-18: T4 done: under testthat 3.3.2, `devtools::test()` with NOT_CRAN=true: 0 failures, 1 skip (`test-add-data.R:309`); `devtools::check()`: 0 errors, 0 warnings, 0 notes.
 - 2026-10-18: claim audit: 2 claims read, 0 corrected — DESCRIPTION (the tests pass under 3.3.0: holds; 3.3.0 as a need: 3.2.0's NAMESPACE already exports every called function, so the floor is the oldest release shown to pass, as D-014 states; outside text must not call 3.3.0 required).
 - 2026-10-18: implement done; status review.
+- 2026-10-18: correction: the investigation line's "24 testthat functions" was a miscount; the AC2 sweep keeps 30 names that the tests call (diff-bug #4).
+- 2026-10-18: review fix: D-014 Context now says R 4.6.1 was the only R installed, that a Docker run was possible but not done, and that the 3.2 releases were not tried on an older R; its Consequences add the R 4.1 need from testthat 3.3.0 (diff-bug #1, #3, #6).
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

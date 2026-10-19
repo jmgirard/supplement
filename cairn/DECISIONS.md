@@ -83,6 +83,6 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 
 ### D-014 (2026-10-18): The testthat floor in Suggests is 3.3.0 (supersedes D-013)
 
-**Context:** M013 planned a 3.2.0 floor (D-013) and a test run under that release. The source of testthat 3.2.0 to 3.2.3 does not compile under R 4.6.1, the only R where the run could take place, and 3.3.0, the next CRAN release, does. On R below 4.6, the 3.2 releases build.
+**Context:** M013 planned a 3.2.0 floor (D-013) and a test run under that release. The source of testthat 3.2.0 to 3.2.3 does not compile under R 4.6.1, the only R installed on the machine that ran the tests, and 3.3.0, the next CRAN release, does. Running 3.2.0 in a Docker image with an older R was possible but not done. The 3.2 releases were not tried on an older R.
 **Decision:** DESCRIPTION lists `testthat (>= 3.3.0)` under Suggests. The user chose this at the M013 implement stop, so that the floor is a release the tests are shown to pass under. The floor comes from what could be built and run, not from a function the tests need. It is not a claim that 3.3.0 is the oldest release that works.
-**Consequences:** Someone with testthat 3.2.x on an older R is asked to update before running the tests. A later test that calls a function newer than 3.3.0 needs the floor raised by hand.
+**Consequences:** Someone with testthat 3.2.x on an older R is asked to update before running the tests. testthat 3.3.0 declares `Depends: R (>= 4.1.0)`, so running the tests needs R 4.1 or later, while the package itself declares no R version. A later test that calls a function newer than 3.3.0 needs the floor raised by hand.
