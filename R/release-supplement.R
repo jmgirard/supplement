@@ -113,8 +113,10 @@ release_supplement <- function(bump, path = ".") {
     bump <- NULL
   }
   check_bump(bump)
-  # Drop names and a class, so that the version written is a plain string.
-  bump <- as.vector(unclass(bump))
+  # Drop names and a class (an S4 one included), so that the version
+  # written is a plain string.
+  bump <- as.character(bump)
+  attributes(bump) <- NULL
   check_path(path)
   path <- drop_trailing_sep(path)
   meta <- read_supplement(path)

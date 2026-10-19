@@ -80,7 +80,12 @@ test_that("a word raises that part of the version and sets the later parts to 0"
 
 test_that("a bump with names or a class works as the plain string", {
   mock_check()
+  methods::setClass("version_string", contains = "character", where = environment())
+  # The version cases test the attribute drop, because the version is
+  # written as given. A word gives a new string, so its cases pass either
+  # way.
   bumps <- list(c(v = "1.3.0"), structure("1.3.0", class = "my_class"),
+                methods::new("version_string", "1.3.0"),
                 c(v = "minor"), structure("minor", class = "my_class"))
   for (bump in bumps) {
     dir <- release_site('  version: "1.2.3"')
@@ -350,8 +355,14 @@ test_that("a site path with pattern characters puts back only its own files", {
   before <- folder_state(dir)
   sibling_before <- folder_state(sibling)
   # CITATION.cff is made in "site[ab]", then the write of .zenodo.json fails.
-  local_mocked_bindings(write_zenodo = function(...) stop("disk full"))
-  expect_error(release("patch", path = dir), class = "supplement_error_release_write")
+  made <- FALSE
+  local_mocked_bindings(write_zenodo = function(...) {
+    made <<- file.exists(file.path(dir, "CITATION.cff"))
+    stop("disk full")
+  })
+  err <- expect_error(release("patch", path = dir), class = "supplement_error_release_write")
+  expect_match(conditionMessage(err$parent), "disk full", fixed = TRUE)
+  expect_true(made)
   expect_identical(folder_state(dir), before)
   expect_identical(folder_state(sibling), sibling_before)
 })
