@@ -1,10 +1,3 @@
-doi_badge_rx <- function(doi) {
-  paste0(
-    '<a [^>]*href="https://doi\\.org/', rx_escape(doi), '"[^>]*>\\s*',
-    '<img [^>]*src="https://zenodo\\.org/badge/DOI/', rx_escape(doi), '\\.svg"'
-  )
-}
-
 render_doi_page <- function(zenodo) {
   dir <- shortcode_site(
     zenodo,
@@ -47,6 +40,43 @@ test_that("the DOI badge removes a doi: or doi.org link prefix", {
   expect_match(page$html, doi_badge_rx(bare), perl = TRUE)
 })
 
+test_that("a DOI value that is not a DOI stops the render and names the field", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  good <- "10.5281/zenodo.111"
+  # A prefix with no DOI after it does not fall back to the other DOI.
+  page <- render_doi_page(zenodo_yaml(version = "doi:", concept = good))
+  expect_false(page$status == 0L)
+  expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
+
+  # The value that the badge does not show is checked too.
+  page <- render_doi_page(zenodo_yaml(version = good, concept = "10.528/zenodo.1"))
+  expect_false(page$status == 0L)
+  expect_match(page$stderr, "supplement-doi: supplement.zenodo.concept-doi ", fixed = TRUE)
+
+  page <- render_doi_page(c("zenodo:", paste0("  version-doi: [", good, "]")))
+  expect_false(page$status == 0L)
+  expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
+})
+
+test_that("a null or block DOI value reads as empty or as its text, and two paragraphs stop", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  for (empty_value in c("", "~", "null")) {
+    page <- render_doi_page(c("zenodo:", paste("  version-doi:", empty_value), paste("  concept-doi:", empty_value)))
+    expect_equal(page$status, 0L, info = paste(empty_value, page$stderr))
+    expect_no_match(page$html, "zenodo.org/badge", fixed = TRUE, info = empty_value)
+  }
+
+  page <- render_doi_page(c("zenodo:", "  version-doi: >", "    10.5281/zenodo.333"))
+  expect_equal(page$status, 0L, info = page$stderr)
+  expect_match(page$html, doi_badge_rx("10.5281/zenodo.333"), perl = TRUE)
+
+  page <- render_doi_page(c("zenodo:", "  version-doi: |", "    10.5281/zenodo.1", "", "    2"))
+  expect_false(page$status == 0L)
+  expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
+})
+
 test_that("empty DOI and archive values render nothing", {
   skip_if_no_quarto(needs_r = FALSE)
 
@@ -82,23 +112,19 @@ license_yaml <- function(code, content) {
   c("license:", sprintf('  code: "%s"', code), sprintf('  content: "%s"', content))
 }
 
-# The page text between BEFORE and AFTER, with runs of white space made one
-# space.
-between_markers <- function(html) {
-  m <- regmatches(html, regexpr("BEFORE[\\s\\S]*?AFTER", html, perl = TRUE))
-  gsub("\\s+", " ", m)
-}
-
 test_that("the license shortcode shows readable names for listed ids in any letter case", {
   skip_if_no_quarto(needs_r = FALSE)
 
   page <- render_license_page(license_yaml("CC-BY-4.0", "cc0-1.0"))
   expect_equal(page$status, 0L, info = page$stderr)
-  expect_equal(between_markers(page$html), "BEFORE CC BY 4.0 MID CC0 1.0 AFTER")
+  expect_equal(strip_tags(between_markers(page$html)), "BEFORE CC BY 4.0 MID CC0 1.0 AFTER")
+  expect_equal(spdx_links(between_markers(page$html)), spdx_url(c("CC-BY-4.0", "CC0-1.0")))
 
+  # A listed id links to its SPDX spelling.
   page <- render_license_page(license_yaml("Cc-By-Sa-4.0", "mIT"))
   expect_equal(page$status, 0L, info = page$stderr)
-  expect_equal(between_markers(page$html), "BEFORE CC BY-SA 4.0 MID MIT AFTER")
+  expect_equal(strip_tags(between_markers(page$html)), "BEFORE CC BY-SA 4.0 MID MIT AFTER")
+  expect_equal(spdx_links(between_markers(page$html)), spdx_url(c("CC-BY-SA-4.0", "MIT")))
 })
 
 test_that("the license shortcode shows an unlisted id as written", {
@@ -106,7 +132,8 @@ test_that("the license shortcode shows an unlisted id as written", {
 
   page <- render_license_page(license_yaml("EUPL-1.2", "GPL-2.0+"))
   expect_equal(page$status, 0L, info = page$stderr)
-  expect_equal(between_markers(page$html), "BEFORE EUPL-1.2 MID GPL-2.0+ AFTER")
+  expect_equal(strip_tags(between_markers(page$html)), "BEFORE EUPL-1.2 MID GPL-2.0+ AFTER")
+  expect_equal(spdx_links(between_markers(page$html)), spdx_url(c("EUPL-1.2", "GPL-2.0+")))
 })
 
 test_that("the license shortcode shows nothing for an empty value or no license map", {
@@ -119,6 +146,84 @@ test_that("the license shortcode shows nothing for an empty value or no license 
   absent <- render_license_page('paper-title: "A title"')
   expect_equal(absent$status, 0L, info = absent$stderr)
   expect_equal(between_markers(absent$html), "BEFORE MID AFTER")
+
+  # An empty list or map, or a YAML null, is empty, as it is for
+  # write_citation().
+  for (empty_value in c("[]", "{}", "", "~", "null")) {
+    page <- render_license_page(c("license:", paste("  code:", empty_value), paste("  content:", empty_value)))
+    expect_equal(page$status, 0L, info = paste(empty_value, page$stderr))
+    expect_equal(between_markers(page$html), "BEFORE MID AFTER", info = empty_value)
+  }
+})
+
+# A license map with `value`, a line of YAML, in `field`, and MIT in the
+# other field.
+license_field_yaml <- function(field, value) {
+  other <- setdiff(c("code", "content"), field)
+  c("license:", paste0("  ", field, ": ", value), paste0("  ", other, ': "MIT"'))
+}
+
+# The render stopped with a message from the license shortcode that names
+# `text`.
+expect_license_stop <- function(page, text, info) {
+  expect_false(page$status == 0L, info = info)
+  expect_match(page$stderr, "supplement-license:", fixed = TRUE, info = info)
+  expect_match(page$stderr, text, fixed = TRUE, info = info)
+}
+
+test_that("a license value that is not one SPDX id stops the render and names the field", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  shapes <- c(
+    "a list of two ids" = "[MIT, Apache-2.0]",
+    "a map" = "{name: MIT}",
+    "a space" = '"CC BY 4.0"',
+    "two hyphens" = '"GPL--3.0"',
+    "three dots" = '"MIT..."',
+    "Markdown emphasis" = '"*MIT*"',
+    "a code span" = '"`MIT`"'
+  )
+  for (field in c("code", "content")) {
+    for (shape in names(shapes)) {
+      info <- paste(field, shape)
+      page <- render_license_page(license_field_yaml(field, shapes[[shape]]))
+      expect_license_stop(page, paste0("supplement.license.", field, " "), info)
+    }
+  }
+})
+
+test_that("a block or folded license value reads as its text, and two paragraphs stop", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  page <- render_license_page(c("license:", "  code: |", "    MIT", "  content: >", "    CC-BY-4.0"))
+  expect_equal(page$status, 0L, info = page$stderr)
+  expect_equal(strip_tags(between_markers(page$html)), "BEFORE MIT MID CC BY 4.0 AFTER")
+
+  page <- render_license_page(c("license:", "  code: |", "    MIT", "", "    X", '  content: "MIT"'))
+  expect_license_stop(page, "supplement.license.code ", "two paragraphs")
+})
+
+test_that("the license id error explains -- and ... only when Quarto changed them", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  hint <- "Quarto reads -- as a dash"
+  page <- render_license_page(license_field_yaml("code", '"GPL--3.0"'))
+  expect_license_stop(page, hint, "two hyphens")
+  page <- render_license_page(license_field_yaml("code", '"MIT."'))
+  expect_license_stop(page, "not an SPDX license id: 'MIT.'", "final dot")
+  expect_no_match(page$stderr, hint, fixed = TRUE)
+})
+
+test_that("the license shortcode stops unless its one argument is code or content", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  calls <- c("{{< supplement-license >}}", "{{< supplement-license other >}}",
+             "{{< supplement-license code content >}}", "{{< supplement-license code foo=bar >}}")
+  for (call in calls) {
+    dir <- shortcode_site(license_yaml("MIT", "CC-BY-4.0"), list("index.qmd" = call))
+    page <- run_split(dir, "quarto", "render")
+    expect_license_stop(page, "one argument, code or content", call)
+  }
 })
 
 # File sizes from the size rule, stated apart from the code that applies it.
@@ -297,19 +402,26 @@ test_that("the page footer shows the licenses set in _supplement.yml", {
   expect_equal(use_template(dir)$status, 0L)
 
   yml <- file.path(dir, "_supplement.yml")
-  set_supplement_value(yml, "code", "CC0-1.0")
-  set_supplement_value(yml, "content", "CC-BY-SA-4.0")
-
-  rendered <- run_in(dir, "quarto", "render")
-  expect_equal(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
-  for (page in c("index.html", "analyses/example.html")) {
-    footer <- footer_center(read_text(file.path(dir, "docs", page)))
-    expect_match(footer, "CC0 1.0", fixed = TRUE, info = page)
-    expect_match(footer, "CC BY-SA 4.0", fixed = TRUE, info = page)
-    expect_no_match(footer, "MIT", fixed = TRUE, info = page)
-    expect_no_match(footer, "CC BY 4.0", fixed = TRUE, info = page)
-    expect_match(footer, "/LICENSE.md", fixed = TRUE, info = page)
-    expect_match(footer, "/LICENSE-CC-BY.md", fixed = TRUE, info = page)
+  # Each case: the two ids, the footer text, and the SPDX link targets.
+  # An empty value keeps its label and has no name or link.
+  cases <- list(
+    list(ids = c("CC0-1.0", "cc-by-sa-4.0"), text = "Code: CC0 1.0 · Content: CC BY-SA 4.0",
+         links = spdx_url(c("CC0-1.0", "CC-BY-SA-4.0"))),
+    list(ids = c("EUPL-1.2", ""), text = "Code: EUPL-1.2 · Content:",
+         links = spdx_url("EUPL-1.2"))
+  )
+  for (case in cases) {
+    set_supplement_value(yml, "code", case$ids[[1]])
+    set_supplement_value(yml, "content", case$ids[[2]])
+    rendered <- run_in(dir, "quarto", "render")
+    expect_equal(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+    for (page in c("index.html", "analyses/example.html")) {
+      info <- paste(page, case$text)
+      footer <- footer_center(read_text(file.path(dir, "docs", page)))
+      expect_equal(strip_tags(footer), case$text, info = info)
+      expect_equal(spdx_links(footer), case$links, info = info)
+      expect_no_match(footer, "LICENSE", fixed = TRUE, info = info)
+    }
   }
 })
 

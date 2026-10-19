@@ -30,7 +30,9 @@ affiliation, in the order of \verb{_supplement.yml}.
 empty, \code{zenodo.version-doi}. A \verb{doi:}, \verb{https://doi.org/}, or
 \verb{http://dx.doi.org/} in front is removed.
 \item \code{license}: the SPDX identifiers in \code{license.code} and
-\code{license.content}.
+\code{license.content}. SPDX ids do not depend on letter case, so when the
+two differ only in letter case, such as \code{MIT} and \code{mit}, the file
+holds one id, spelled as in \code{license.code}.
 }
 
 Empty values are left out. In each value, every run of spaces and line
@@ -62,10 +64,12 @@ or \code{zenodo.version-doi}, with its prefix removed, is not \code{10.}, four
 to nine digits, \code{/}, and a suffix with no spaces.
 \item \code{supplement_error_license}: \code{license.content} (and, for
 \code{\link[=write_citation]{write_citation()}}, \code{license.code}) is not empty and does not have the
-shape of an SPDX license id: a letter or digit, then letters, digits,
-\code{.}, or \code{-}, and at most one \code{+} at the end. For example, \verb{CC BY 4.0}
-has spaces, so it is an error, and \code{CC-BY-4.0} is not. The check does
-not test that SPDX or Zenodo knows the id.
+shape of an SPDX license id: letters or digits, then groups of one \code{.}
+or \code{-} and more letters or digits, and at most one \code{+} at the end. For
+example, \verb{CC BY 4.0} has spaces and \code{GPL--3.0} has two hyphens in a
+row, so both are errors, and \code{CC-BY-4.0} is not. The check does not
+test that SPDX or Zenodo knows the id. The template's page footer
+applies the same check, so such a value also stops the site render.
 \item \code{supplement_error_version}: \code{version} is not empty and is not three
 whole numbers joined by \code{.}, each \code{0} or without a leading zero, such
 as \verb{1.0.0} or \verb{0.10.2}.

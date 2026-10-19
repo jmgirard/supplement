@@ -190,3 +190,29 @@ quarto_header <- function(html) {
   m <- regmatches(html, regexpr('<header id="quarto-header"[\\s\\S]*?</header>', html, perl = TRUE))
   if (length(m) == 0) "" else m
 }
+
+# A pattern for the DOI badge: a link to doi.org around Zenodo's badge
+# image, both for `doi`.
+doi_badge_rx <- function(doi) {
+  paste0(
+    '<a [^>]*href="https://doi\\.org/', rx_escape(doi), '"[^>]*>\\s*',
+    '<img [^>]*src="https://zenodo\\.org/badge/DOI/', rx_escape(doi), '\\.svg"'
+  )
+}
+
+# The footer's link target for each license id (SPDX has a page there only
+# for the ids it lists).
+spdx_url <- function(ids) paste0("https://spdx.org/licenses/", ids, ".html")
+
+# The link targets in `html` that start with https://spdx.org/, in order.
+spdx_links <- function(html) {
+  links <- regmatches(html, gregexpr('href="https://spdx\\.org/[^"]*"', html))[[1]]
+  sub('^href="([^"]*)"$', "\\1", links)
+}
+
+# The page text between BEFORE and AFTER, with runs of white space made one
+# space.
+between_markers <- function(html) {
+  m <- regmatches(html, regexpr("BEFORE[\\s\\S]*?AFTER", html, perl = TRUE))
+  gsub("\\s+", " ", m)
+}

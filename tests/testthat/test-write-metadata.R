@@ -174,9 +174,13 @@ test_that("one license, or two equal ones, is written as one id", {
   cases <- list(
     list(code = "MIT", content = ""),
     list(code = "", content = "CC-BY-4.0"),
-    list(code = "CC-BY-4.0", content = "CC-BY-4.0")
+    list(code = "CC-BY-4.0", content = "CC-BY-4.0"),
+    # SPDX ids do not depend on letter case, so these are one id, written
+    # as in `code`.
+    list(code = "CC-BY-4.0", content = "cc-by-4.0"),
+    list(code = "mit", content = "MIT")
   )
-  expected <- c("MIT", "CC-BY-4.0", "CC-BY-4.0")
+  expected <- c("MIT", "CC-BY-4.0", "CC-BY-4.0", "CC-BY-4.0", "mit")
   for (i in seq_along(cases)) {
     meta <- full_supplement()
     meta$license <- cases[[i]]

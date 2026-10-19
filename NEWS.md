@@ -53,15 +53,26 @@
   `license.content` of `_supplement.yml`, in place of a fixed MIT and
   CC BY 4.0. A new `supplement-license` shortcode shows a readable name
   for common ids, such as CC BY 4.0 for `CC-BY-4.0`, and any other id as
-  written.
+  written. Each name links to `https://spdx.org/licenses/<id>.html` in
+  place of links to `LICENSE.md` and `LICENSE-CC-BY.md`. SPDX keeps that
+  page only for ids on its license and exception lists. A license value that is
+  not one SPDX id stops the render. Examples are `CC BY 4.0`, `GPL--3.0`,
+  and a list. A call also stops the render unless it has one argument,
+  `code` or `content`, and no named argument.
 * The `supplement-doi` badge removes the prefixes in front of a DOI that
   `write_citation()` removes: `doi:`, and `http://` or `https://` with
   `doi.org/`, `dx.doi.org/`, or `www.doi.org/`. A DOI written as such a
-  doi.org address no longer breaks the badge.
+  doi.org address no longer breaks the badge. A `zenodo.version-doi` or
+  `zenodo.concept-doi` value that `write_citation()` refuses, such as
+  `doi:` alone, stops the render.
 * `write_citation()` stops with `supplement_error_license` for a
   `license.code` or `license.content` value that does not have the shape
-  of an SPDX id, such as `CC BY 4.0` with spaces. `write_zenodo()` does
-  the same for `license.content`.
+  of an SPDX id. An id is letters and digits, with one `.` or `-` between
+  groups and at most one `+` at the end. Examples of other values are
+  `CC BY 4.0` with spaces and `GPL--3.0` with two hyphens in a row.
+  `write_zenodo()` does the same for `license.content`, and the footer's
+  `supplement-license` shortcode uses the same rule. When the two ids
+  differ only in letter case, `CITATION.cff` holds one of them.
 * The template's `_supplement.yml` has a `version` field for the site
   version, such as `"1.0.0"`. When it is not empty, `write_citation()`
   and `write_zenodo()` write it. They stop for a value that is not three

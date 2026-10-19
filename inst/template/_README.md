@@ -60,7 +60,8 @@ The home page shows the values with these shortcodes:
   `https://doi.org/` and the DOI. It uses `zenodo.version-doi`. When that
   value is empty, it uses `zenodo.concept-doi`. When both are empty, it
   shows nothing. A `doi:` or `https://doi.org/` in front of the DOI is
-  removed.
+  removed. If either value is not a DOI, for example `doi:` alone, the
+  render stops with an error that names the field.
 - `{{< supplement-download >}}` shows a link to `zenodo.archive-url`. When
   that value is empty, it shows nothing.
 - `{{< supplement-data-table >}}`, on a line by itself, shows a table with
@@ -72,7 +73,13 @@ The home page shows the values with these shortcodes:
   `{{< supplement-license content >}}` show `license.code` and
   `license.content`. The page footer in `_quarto.yml` uses them. A common
   id shows as a readable name, for example `CC-BY-4.0` as CC BY 4.0. Any
-  other id shows as written, and an empty value shows nothing.
+  other id shows as written, and an empty value shows nothing. Each name
+  links to `https://spdx.org/licenses/<id>.html`, a page that SPDX keeps
+  only for ids on its license and exception lists. Write each id as letters and
+  digits, with one `.` or `-` between groups and at most one `+` at the
+  end. Other values, for example `CC BY 4.0`, `GPL--3.0`, or a list, stop
+  the render with an error that names the field. `write_citation()`
+  refuses these values too.
 
 If you turn on Zenodo's GitHub integration for this repository, Zenodo
 gives the DOIs after the next GitHub release. The version DOI names
@@ -109,7 +116,9 @@ citation for the repository. `write_zenodo()` writes `.zenodo.json`. When
 Zenodo archives a GitHub release, it reads that file. Both files take the
 title, the version, and the authors from `_supplement.yml`, and they
 leave out an empty version. `CITATION.cff` also takes
-both licenses and the concept DOI. If the concept DOI is empty, it takes
+both licenses and the concept DOI. When the two license ids differ only
+in letter case, it takes the one spelled as in `license.code`. If the
+concept DOI is empty, it takes
 the version DOI. `.zenodo.json` also takes the citation. Its
 `license` field holds one license, so it gets the content license. Give
 each author a `family` name and `given` names. When a file exists, the
