@@ -49,6 +49,60 @@ test_that("the download link points at the archive", {
   expect_match(page$html, "BEFORE\\s+MID", perl = TRUE)
 })
 
+render_license_page <- function(supplement) {
+  dir <- shortcode_site(
+    supplement,
+    list("index.qmd" = "BEFORE {{< supplement-license code >}} MID {{< supplement-license content >}} AFTER"),
+    env = parent.frame()
+  )
+  rendered <- run_split(dir, "quarto", "render")
+  list(status = rendered$status, stderr = rendered$stderr,
+       html = if (rendered$status == 0L) read_text(file.path(dir, "docs", "index.html")) else "")
+}
+
+license_yaml <- function(code, content) {
+  c("license:", sprintf('  code: "%s"', code), sprintf('  content: "%s"', content))
+}
+
+# The page text between BEFORE and AFTER, with runs of white space made one
+# space.
+between_markers <- function(html) {
+  m <- regmatches(html, regexpr("BEFORE[\\s\\S]*?AFTER", html, perl = TRUE))
+  gsub("\\s+", " ", m)
+}
+
+test_that("the license shortcode shows readable names for listed ids in any letter case", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  page <- render_license_page(license_yaml("CC-BY-4.0", "cc0-1.0"))
+  expect_equal(page$status, 0L, info = page$stderr)
+  expect_equal(between_markers(page$html), "BEFORE CC BY 4.0 MID CC0 1.0 AFTER")
+
+  page <- render_license_page(license_yaml("Cc-By-Sa-4.0", "mIT"))
+  expect_equal(page$status, 0L, info = page$stderr)
+  expect_equal(between_markers(page$html), "BEFORE CC BY-SA 4.0 MID MIT AFTER")
+})
+
+test_that("the license shortcode shows an unlisted id as written", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  page <- render_license_page(license_yaml("EUPL-1.2", "GPL-2.0+"))
+  expect_equal(page$status, 0L, info = page$stderr)
+  expect_equal(between_markers(page$html), "BEFORE EUPL-1.2 MID GPL-2.0+ AFTER")
+})
+
+test_that("the license shortcode shows nothing for an empty value or no license map", {
+  skip_if_no_quarto(needs_r = FALSE)
+
+  empty <- render_license_page(license_yaml("", ""))
+  expect_equal(empty$status, 0L, info = empty$stderr)
+  expect_equal(between_markers(empty$html), "BEFORE MID AFTER")
+
+  absent <- render_license_page('paper-title: "A title"')
+  expect_equal(absent$status, 0L, info = absent$stderr)
+  expect_equal(between_markers(absent$html), "BEFORE MID AFTER")
+})
+
 # File sizes from the size rule, stated apart from the code that applies it.
 size_cases <- c(
   "0" = "0 B", "999" = "999 B", "1000" = "1.0 KB", "1500" = "1.5 KB",

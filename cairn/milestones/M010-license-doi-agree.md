@@ -1,13 +1,13 @@
 # M010: The footer, the DOI badge, and the citation files agree with _supplement.yml
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template pages and two exported writers change for site authors
-- **Branch/PR:** —
+- **Branch/PR:** m010-license-doi-agree
 
 ## Goal
 
@@ -43,7 +43,7 @@ The page footer, the DOI badge, and the two citation files agree with the licens
 
 ## Tasks
 
-- [ ] T1: Add the `supplement-license` shortcode and its name table to `supplement.lua`. Add render tests for the six AC2 shapes in `tests/testthat/test-shortcodes.R`.
+- [x] T1: Add the `supplement-license` shortcode and its name table to `supplement.lua`. Add render tests for the six AC2 shapes in `tests/testthat/test-shortcodes.R`.
 - [ ] T2: Change the footer in `inst/template/_quarto.yml` (line 40) to use the shortcode. Update the license sentences in `_supplement.yml` (lines 3 to 4) and `_README.md` (lines 47 to 49), and add `supplement-license` to the `_README.md` shortcode list. Add the AC1 render test.
 - [ ] T3: Remove the DOI prefix in `supplement-doi` (`supplement.lua` line 20). Update the DOI comment in `_supplement.yml`. Add the AC3 render tests.
 - [ ] T4: Add the license shape check to `R/supplement-yml.R` and call it from `R/write-citation.R` and `R/write-zenodo.R` before any write. Document the new class in both help pages and add the AC4 tests.
@@ -66,6 +66,8 @@ The page footer, the DOI badge, and the two citation files agree with the licens
 - 2026-10-18: plan chose a shape check shared in `R/supplement-yml.R` over a check in each writer, because both writers read the same fields; falsified by a writer that needs a different id rule.
 - 2026-10-18: test scope: render tests for AC1 to AC3 skip without Quarto, as the existing shortcode tests do. AC4 tests need no Quarto.
 - 2026-10-18: changelog: three NEWS.md bullets under the development version.
+- 2026-10-18: implement started on branch m010-license-doi-agree, cut from main at b8ba50c.
+- 2026-10-18: T1 done. `supplement-license` looks up a lowercase-keyed table of eight ids and passes the value through `as_written()` first, so a value that names a path is not rewritten on subfolder pages. Three render tests cover the six AC2 shapes. `devtools::test()` clean.
 
 ## Decisions
 

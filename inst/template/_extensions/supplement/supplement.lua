@@ -120,6 +120,32 @@ local function as_written(text, offset)
   return text
 end
 
+-- Readable names for common SPDX license ids, keyed by the id in lowercase,
+-- because SPDX ids do not depend on letter case.
+local license_names = {
+  ["mit"] = "MIT",
+  ["apache-2.0"] = "Apache 2.0",
+  ["bsd-3-clause"] = "BSD 3-Clause",
+  ["gpl-3.0-only"] = "GPL 3.0",
+  ["gpl-3.0-or-later"] = "GPL 3.0 or later",
+  ["cc-by-4.0"] = "CC BY 4.0",
+  ["cc-by-sa-4.0"] = "CC BY-SA 4.0",
+  ["cc0-1.0"] = "CC0 1.0",
+}
+
+-- `{{< supplement-license code >}}` or `{{< supplement-license content >}}`
+-- shows the license in `supplement.license.code` or
+-- `supplement.license.content`: the readable name of a listed id, any other
+-- id as written, and nothing for an empty value.
+local function license(args, kwargs, meta)
+  local key = args[1] and pandoc.utils.stringify(args[1]) or ""
+  local id = as_written(value(meta, "license", key), quarto.project.offset or ".")
+  if id == "" then
+    return pandoc.Inlines({})
+  end
+  return pandoc.Inlines(license_names[id:lower()] or id)
+end
+
 -- One row per entry under `supplement.data`, with each link written
 -- relative to the page that holds the table. A missing file stops the
 -- render, because a site without its data must not be published.
@@ -172,4 +198,5 @@ return {
   ["supplement-doi"] = doi,
   ["supplement-download"] = download,
   ["supplement-data-table"] = data_table,
+  ["supplement-license"] = license,
 }
