@@ -76,14 +76,19 @@ that it made, and stops. It prints the commands only after the three
 files are written, so an error or an interrupt while it prints keeps
 the files of the release.
 
-The printed commands, for version \code{X.Y.Z}, are \verb{git status},
-\verb{git add -A}, \verb{git commit -m "Release vX.Y.Z"}, \verb{git tag vX.Y.Z},
-\verb{git push}, \verb{git push origin vX.Y.Z}, and
-\verb{gh release create vX.Y.Z --generate-notes}. \verb{git add -A} adds every file
-in the git repository that git does not ignore, also files outside the
-site folder. When the site folder is the top of the repository, these are
-the files that the git checks of \code{\link[=check_supplement]{check_supplement()}} read, so \verb{docs/}
-and \verb{_freeze/} reach the release. The last command
+The printed commands, for version \code{X.Y.Z}, are \verb{git status -- .},
+\verb{git add -A -- .}, \verb{git commit -m "Release vX.Y.Z" -- .},
+\verb{git tag vX.Y.Z}, \verb{git push}, \verb{git push origin vX.Y.Z}, and
+\verb{gh release create vX.Y.Z --generate-notes}. The \code{-- .} limits the first
+three commands to the site folder: \verb{git status} shows, and \verb{git add} and
+\verb{git commit} stage and commit, only files under the site folder. These
+are the files that the git checks of
+\code{\link[=check_supplement]{check_supplement()}} read, so \verb{docs/} and \verb{_freeze/} reach the release
+when git does not ignore them, as in the template.
+When the site is a subfolder of its repository, a change outside the
+site folder, also one that was staged before, stays out of the release
+commit. A file outside the site folder that was staged before the
+release stays staged, so a later \verb{git commit} adds it. The last command
 needs the GitHub command-line tool (\code{gh}). When Zenodo's GitHub
 integration is turned on for the repository, Zenodo archives the release
 and gives it a version DOI. Add that DOI to \code{zenodo.version-doi} in

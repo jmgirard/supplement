@@ -146,9 +146,9 @@ stay. If a write stops, the three files get their old text back.
 Last, the function prints the commands that make the release, for example:
 
 ```sh
-git status
-git add -A
-git commit -m "Release v1.0.0"
+git status -- .
+git add -A -- .
+git commit -m "Release v1.0.0" -- .
 git tag v1.0.0
 git push
 git push origin v1.0.0
@@ -156,9 +156,12 @@ gh release create v1.0.0 --generate-notes
 ```
 
 It runs none of them. Read them, then run them yourself in the site
-folder. `git add -A` stages every file that git does not ignore in the
-whole repository. If the site is in a subfolder of its repository, look
-for files outside the site in the `git status` output before you commit. The last command needs the [GitHub command-line
+folder. With the `-- .`, `git status` shows only files under the site
+folder, and `git add` and `git commit` stage and commit only these files.
+These are the files that the git checks of `check_supplement()` read.
+If the site is in a subfolder of its repository, changes outside the site
+stay out of the release commit. A file outside the site that was staged
+before the release stays staged, so a later `git commit` adds it. The last command needs the [GitHub command-line
 tool](https://cli.github.com), `gh`. After Zenodo archives the release, add the
 new version DOI to `_supplement.yml` and render the site again.
 

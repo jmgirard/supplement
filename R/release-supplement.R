@@ -58,14 +58,19 @@
 #' files are written, so an error or an interrupt while it prints keeps
 #' the files of the release.
 #'
-#' The printed commands, for version `X.Y.Z`, are `git status`,
-#' `git add -A`, `git commit -m "Release vX.Y.Z"`, `git tag vX.Y.Z`,
-#' `git push`, `git push origin vX.Y.Z`, and
-#' `gh release create vX.Y.Z --generate-notes`. `git add -A` adds every file
-#' in the git repository that git does not ignore, also files outside the
-#' site folder. When the site folder is the top of the repository, these are
-#' the files that the git checks of [check_supplement()] read, so `docs/`
-#' and `_freeze/` reach the release. The last command
+#' The printed commands, for version `X.Y.Z`, are `git status -- .`,
+#' `git add -A -- .`, `git commit -m "Release vX.Y.Z" -- .`,
+#' `git tag vX.Y.Z`, `git push`, `git push origin vX.Y.Z`, and
+#' `gh release create vX.Y.Z --generate-notes`. The `-- .` limits the first
+#' three commands to the site folder: `git status` shows, and `git add` and
+#' `git commit` stage and commit, only files under the site folder. These
+#' are the files that the git checks of
+#' [check_supplement()] read, so `docs/` and `_freeze/` reach the release
+#' when git does not ignore them, as in the template.
+#' When the site is a subfolder of its repository, a change outside the
+#' site folder, also one that was staged before, stays out of the release
+#' commit. A file outside the site folder that was staged before the
+#' release stays staged, so a later `git commit` adds it. The last command
 #' needs the GitHub command-line tool (`gh`). When Zenodo's GitHub
 #' integration is turned on for the repository, Zenodo archives the release
 #' and gives it a version DOI. Add that DOI to `zenodo.version-doi` in
@@ -473,9 +478,12 @@ write_release_files <- function(read, lines, file, outputs, texts, old, call = p
 release_commands <- function(version) {
   tag <- paste0("v", version)
   c(
-    "git status",
-    "git add -A",
-    sprintf('git commit -m "Release %s"', tag),
+    # `-- .` limits each command to the site folder, the files that
+    # check_supplement() checked, also when the site is a subfolder of its
+    # repository and files outside it are changed or staged.
+    "git status -- .",
+    "git add -A -- .",
+    sprintf('git commit -m "Release %s" -- .', tag),
     paste("git tag", tag),
     "git push",
     paste("git push origin", tag),
@@ -487,7 +495,7 @@ report_release <- function(path, version, commands) {
   cli::cli_alert_success(
     "Set {.field version} to {.val {version}} in {.file _supplement.yml}, and wrote {.file CITATION.cff} and {.file .zenodo.json}."
   )
-  cli::cli_text("Run these commands in {.path {path}} to make the release. {.code git status} shows the files that {.code git add -A} adds.")
+  cli::cli_text("Run these commands in {.path {path}} to make the release. The {.code git add} and {.code git commit} commands stage and commit only the files in this folder, and {.code git status -- .} shows them.")
   cli::cli_code(commands)
   cli::cli_text(
     "After Zenodo archives the release, add its new version DOI to {.field zenodo.version-doi} in {.file _supplement.yml}, and render the site again."
