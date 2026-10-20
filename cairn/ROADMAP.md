@@ -7,6 +7,7 @@ _Last hygiene check: 2026-10-20 (M022 done and archived; "Fix false positives in
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
+| M023 | add_report() and add_data() refuse names that Windows cannot use | planned | — | normal | milestones/M023-windows-names.md |
 | M022 | The link check reads every page once and refuses links out of docs | done | M021 | normal | milestones/archive/M022-link-pages.md |
 | M021 | The link check reads links only from tags | done | — | normal | milestones/archive/M021-link-reader.md |
 | M020 | A failed project script shows its exit code in the test log | done | — | high | milestones/archive/M020-script-exit-code.md |
@@ -15,7 +16,7 @@ _Last hygiene check: 2026-10-20 (M022 done and archived; "Fix false positives in
 
 - Build a package site with pkgdown: a package site built with the toolkit itself. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review). — added 2026-10-18, split 2026-10-19
 - Write a first-time publishing guide: a first-time guide to GitHub Pages and Zenodo. — added 2026-10-18, split 2026-10-19
-- Refuse names that Windows cannot use: Windows-safe names: from the M007 review. add_report() accepts names that Windows reserves, such as `con`, and add_data() accepts base names that end in `.`, which Windows strips. Narrowed 2026-10-19 by M018, which made `is_link()` find junctions. — added 2026-10-18
+- Refuse names that Windows cannot use: Windows-safe names: from the M007 review. add_report() accepts names that Windows reserves, such as `con`, and add_data() accepts base names that end in `.`, which Windows strips. Narrowed 2026-10-19 by M018, which made `is_link()` find junctions. — added 2026-10-18 — started M023
 - Check web links on the rendered site: web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
 - Find stale stored output for reports: stale stored output: `check_supplement()` finds reports with code but no stored output in `_freeze/`. Also find stored output that is older than its report source, from the source hash in each `execute-results/html.json`. From the M008 plan. — added 2026-10-18
 - Find missing output in more chunk shapes: stored output chunk shapes: from the M008 review. The `no-stored-output` check misses chunks written ```` ``` {r} ````, chunks inside a `>` blockquote, `{R}`, and reports with only inline `r` code, and a four-backtick block that shows ```` ```{r} ```` as text gives a false row. See also "Find stale stored output for reports". — added 2026-10-18
