@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-19 (M019 review: narrowed template test flake, adde
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M020 | A failed project script shows its exit code in the test log | in-progress | — | high | milestones/M020-script-exit-code.md |
+| M020 | A failed project script shows its exit code in the test log | review | — | high | milestones/M020-script-exit-code.md |
 | M019 | A failing template test prints the cause of the failure | done | — | high | milestones/archive/M019-template-test-flake.md |
 | M018 | The package checks and template renders pass on Windows in CI | done | — | high | milestones/archive/M018-windows-check.md |
 | M017 | The template publishes paper figures from a figures folder | done | — | normal | milestones/archive/M017-paper-figures.md |

@@ -1,6 +1,6 @@
 # M020: A failed project script shows its exit code in the test log
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -35,8 +35,8 @@ When a project script fails during a template test's render, the test log shows 
 
 - [x] T1: In `tests/testthat/test-template.R`, add a test (skips with `skip_if_no_quarto()`) that makes a site with `use_template()`, writes `Deno.exit(3);` as the whole of `_scripts/setup.ts`, runs `run_in(dir, "quarto", "render")`, and checks `expect_command_fails()` and a fixed-string match of the code line. Run it before T2 and see it fail on the missing line (failure identity: the match, not the status).
 - [x] T2: In `run_in()` (`helper-template.R:32`), when `command` is `"quarto"`, run the command inside `withr::with_envvar(c(QUARTO_LOG_LEVEL = "DEBUG"), …)`; not through `system2(env =)`, which Windows does not pass to commands such as quarto. Leave `run_split()` and `git_in()` as they are. Update the helper's comment and the `cairn/DESIGN.md` test paragraph (around line 155) from a same-session read of the code. Run `devtools::test()`.
-- [ ] T3: Run the full suite 20 times on the Mac in the background, counting failures from `as.data.frame(devtools::test(reporter = "silent"))`. For each failure, record in the work log the test name and the `code:` line or its absence. If a failure shows a cause in this repo, stop and amend this milestone for the fix. If it shows a cause in Quarto or Deno, write a draft issue for quarto-dev/quarto-cli (Quarto version, exit code, steps) to `cairn/references/quarto-script-exit.md` with its `INDEX.md` line.
-- [ ] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings) and confirm the T1 test is not in the Windows job's skip list in CI.
+- [x] T3: Run the full suite 20 times on the Mac in the background, counting failures from `as.data.frame(devtools::test(reporter = "silent"))`. For each failure, record in the work log the test name and the `code:` line or its absence. If a failure shows a cause in this repo, stop and amend this milestone for the fix. If it shows a cause in Quarto or Deno, write a draft issue for quarto-dev/quarto-cli (Quarto version, exit code, steps) to `cairn/references/quarto-script-exit.md` with its `INDEX.md` line.
+- [x] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings). The check that the T1 test is not in the Windows job's skip list in CI waits for the PR's CI run at review.
 
 ## Work log
 
@@ -53,6 +53,9 @@ When a project script fails during a template test's render, the test log shows 
 - 2026-10-19: started on branch m020-script-exit-code.
 - 2026-10-19: T1: the new test failed before T2 on the match only (status check passed; output held only "Running script '_scripts/setup.ts'"); it uses `skip_if_no_quarto(needs_r = FALSE)` because the script fails before any R code runs.
 - 2026-10-19: T2: `run_in()` wraps the call in `withr::with_envvar()` with `QUARTO_LOG_LEVEL=DEBUG` when `command` is "quarto"; the T1 test passes; DESIGN.md test paragraph updated; `devtools::test()` 252 tests, 0 failed, 0 errors, 5 skipped (4 min 23 s).
+- 2026-10-19: T3: 20 full-suite runs on the Mac (testthat 3.3.2, run in the background with no other job): each 252 tests, 0 failed, 0 errors, 5 skipped (the same 5 each run: four Windows-only tests and one case-sensitive-disk test). No failure, so no exit code was read, no cause was found, and no issue draft was written. M019 saw 1 failure in 10 runs.
+- 2026-10-19: T4: `devtools::check()` 0 errors, 0 warnings, 0 notes. Minor amendment: the CI skip-list part of T4 moved to review, because CI runs only after review pushes the branch.
+- 2026-10-19: claim audit: not owed — internal tier.
 
 ## Decisions
 
