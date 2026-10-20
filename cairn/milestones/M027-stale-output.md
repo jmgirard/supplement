@@ -66,6 +66,7 @@
 - 2026-10-20: T5: the first `devtools::test()` and `devtools::check()` run (one command) each gave 1 failure and 1 error, with no output kept; the test that failed is not known. Six later `devtools::test()` runs gave 283 results, 0 failed, 0 errors, and a second `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Open concern for review: a possible intermittent test.
 - 2026-10-20: claim audit: 33 claims read, 1 corrected — tests/testthat/test-check-supplement.R (fixture comment said every expected hash came from the LF text; the re-read of the new wording holds).
 - 2026-10-20: status → review.
+- 2026-10-20: step-7 approval: m027-stale-output approved for merge
 
 ## Decisions
 
