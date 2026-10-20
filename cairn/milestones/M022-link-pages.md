@@ -21,12 +21,12 @@
 
 ## Acceptance criteria
 
-- [ ] AC1: Pages in hidden places are read. An `<a href>` to a missing file on `docs/.hidden/page.html`, on `docs/.page.html`, and on `docs/sub/.deep/page.html` gives a `broken-link` row for that page.
-- [ ] AC2: The page listing does not enter a linked folder. With `docs/loop` a symbolic link to `docs/` and `docs/inner` a symbolic link to `docs/sub`, each page's `broken-link` rows appear once, with `file` the page's own path (`docs/sub/page.html`, never `docs/inner/page.html` or `docs/loop/…`), and neither link gives a row of its own.
-- [ ] AC3: Each link in `docs/`, to a file or a folder, whose target exists and resolves to a place outside `docs/` gives one `broken-link` row, with `file` the link's path in the site and a `problem` that says the link points outside `docs/`, so the published site lacks its target. A target equal to `docs/` or under it is inside. Tested shapes: a file link to the site's `_supplement.yml`, a file link to a file outside the site folder, a file link `docs/out.html` to a page outside the site folder that holds a link to a missing file, and a folder link to a folder outside the site folder. The `.html` file link gives only its AC3 row: the page it points to is not read for links. A file link and a folder link whose targets are inside `docs/` give no such row.
-- [ ] AC4: A link on a page whose target path passes through or ends at a link of AC3 gives a `broken-link` row for that page link. Tested shapes: with `docs/private` a folder link to a folder outside the site that holds `x.csv`, `<a href="private/x.csv">` gives a row; with `docs/data.csv` a file link to a file outside the site, `<a href="data.csv">` gives a row. The same links through links whose targets are inside `docs/` give no row, as today.
+- [x] AC1: Pages in hidden places are read. An `<a href>` to a missing file on `docs/.hidden/page.html`, on `docs/.page.html`, and on `docs/sub/.deep/page.html` gives a `broken-link` row for that page.
+- [x] AC2: The page listing does not enter a linked folder. With `docs/loop` a symbolic link to `docs/` and `docs/inner` a symbolic link to `docs/sub`, each page's `broken-link` rows appear once, with `file` the page's own path (`docs/sub/page.html`, never `docs/inner/page.html` or `docs/loop/…`), and neither link gives a row of its own.
+- [x] AC3: Each link in `docs/`, to a file or a folder, whose target exists and resolves to a place outside `docs/` gives one `broken-link` row, with `file` the link's path in the site and a `problem` that says the link points outside `docs/`, so the published site lacks its target. A target equal to `docs/` or under it is inside. Tested shapes: a file link to the site's `_supplement.yml`, a file link to a file outside the site folder, a file link `docs/out.html` to a page outside the site folder that holds a link to a missing file, and a folder link to a folder outside the site folder. The `.html` file link gives only its AC3 row: the page it points to is not read for links. A file link and a folder link whose targets are inside `docs/` give no such row.
+- [x] AC4: A link on a page whose target path passes through or ends at a link of AC3 gives a `broken-link` row for that page link. Tested shapes: with `docs/private` a folder link to a folder outside the site that holds `x.csv`, `<a href="private/x.csv">` gives a row; with `docs/data.csv` a file link to a file outside the site, `<a href="data.csv">` gives a row. The same links through links whose targets are inside `docs/` give no row, as today.
 - [ ] AC5: On Windows, a junction in `docs/` to a folder outside `docs/` gives the AC3 row, and a page link through it gives the AC4 row.
-- [ ] AC6: The `broken-link` bullet of the `check_supplement()` help page states the rules of AC1 to AC4, and NEWS.md has an entry for the change.
+- [x] AC6: The `broken-link` bullet of the `check_supplement()` help page states the rules of AC1 to AC4, and NEWS.md has an entry for the change.
 
 ## Coverage
 
@@ -67,3 +67,11 @@
 ## Decisions
 
 ## Review
+
+- 2026-10-20 sync: branch contains origin/main (fe04e4d); main has not moved since the cut.
+- AC1 evidence: `testthat::test_file()` at 67075ea, test "pages in hidden folders and hidden pages are read" passed (exact sorted rows for `docs/.hidden/page.html`, `docs/.page.html`, `docs/sub/.deep/page.html`); with main's `R/check-supplement.R` in a scratch copy, the same test failed (no rows).
+- AC2 evidence: same run, test "the page listing does not enter a linked folder" passed (rows exactly once at `docs/index.html` and `docs/sub/page.html`, no `inner`/`loop` rows); with main's code it failed (rows repeated under `docs/loop/…` and `docs/inner/…`).
+- AC3 evidence: same run, test "a link in docs to a place outside docs gives one row" passed (exactly the four outside rows for `meta.yml`, `secret.txt`, `out.html`, `ext`; no row from the page behind `out.html`; no row for the inside links `alias.csv`, `inner`); with main's code it failed.
+- AC4 evidence: same run, test "a page link through a link to a place outside docs gives a row" passed (rows for `private/x.csv` and `data.csv` plus their two outside rows; none for `inner/y.csv` or `alias.csv`); with main's code it failed. The suite had 28 tests, 0 failed, 0 errors.
+- AC5 evidence: pending. The test skipped on the Mac ("On Mac"). Its evidence is the Windows job of `R-CMD-check` on the PR, read after step 8 opens it and before the merge.
+- AC6 evidence: `man/check_supplement.Rd` lines 41-53 at 67075ea state hidden files and folders are read (AC1), linked folders are not entered and pages are read at their own path (AC2), a link whose existing target is outside `docs/` gives its own row and its page is not read, while one inside gives none (AC3), and a page link through or ending at such a link counts (AC4); NEWS.md's last bullet describes the change.
