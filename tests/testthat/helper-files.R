@@ -48,6 +48,21 @@ pattern_names <- function() {
   if (.Platform$OS.type == "windows") "site[ab]" else c("site[ab]", "site?", "site*")
 }
 
+# The 22 ASCII names that Windows reserves for devices, written here and not
+# read from the package, and every letter-case spelling of each one.
+windows_device_names <- c(
+  "con", "prn", "aux", "nul", paste0("com", 1:9), paste0("lpt", 1:9)
+)
+case_spellings <- function(x) {
+  chars <- strsplit(x, "")[[1]]
+  options <- lapply(chars, function(ch) unique(c(tolower(ch), toupper(ch))))
+  grid <- expand.grid(options, stringsAsFactors = FALSE)
+  apply(grid, 1, paste, collapse = "")
+}
+windows_device_spellings <- function() {
+  unlist(lapply(windows_device_names, case_spellings), use.names = FALSE)
+}
+
 # A new site made by create_supplement() in a temporary folder.
 new_site <- function(env = parent.frame()) {
   site <- withr::local_tempdir("site-", .local_envir = env)

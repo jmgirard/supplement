@@ -19,6 +19,9 @@
 #'
 #' @param name The file name of the report, without `.qmd`. It is ASCII
 #'   letters, digits, `-`, and `_`, and starts with a letter or a digit.
+#'   It cannot be a name that Windows reserves for a device, in any letter
+#'   case: `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`, or `LPT1` to
+#'   `LPT9`.
 #' @param title The title of the report. It shows in the Analyses menu and
 #'   on the home page.
 #' @param description A short description of the report for the home
@@ -36,7 +39,9 @@
 #'   `title` is not a single string with a character other than white
 #'   space, or `description` is not a single string.
 #' * `supplement_error_report_name`: `name` is not a single string of ASCII
-#'   letters, digits, `-`, and `_` that starts with a letter or a digit.
+#'   letters, digits, `-`, and `_` that starts with a letter or a digit, or
+#'   it is a name that Windows reserves for a device, in any letter case:
+#'   `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`, or `LPT1` to `LPT9`.
 #' * `supplement_error_line_break`: `title` or `description` holds a line
 #'   break.
 #' * `supplement_error_no_config`: `path` holds no `_quarto.yml`.
@@ -82,6 +87,13 @@ add_report <- function(name, title, description = "", path = ".") {
     cli::cli_abort(
       c("{.arg name} must be one file name made of ASCII letters, digits, {.code -}, and {.code _}.",
         "i" = "It must start with a letter or a digit, and it has no {.code .qmd} at the end."),
+      class = c("supplement_error_report_name", "supplement_error")
+    )
+  }
+  if (windows_reserved(name)) {
+    cli::cli_abort(
+      c("{.arg name} cannot be {.val {name}}, because Windows reserves that name for a device and cannot make the file.",
+        "i" = "Choose another {.arg name}. Nothing was written."),
       class = c("supplement_error_report_name", "supplement_error")
     )
   }

@@ -97,7 +97,9 @@ Quarto reads each value in `_supplement.yml` as Markdown, so some
 characters in a file name change before the shortcode sees it. For
 example, `a--b.csv` becomes `a–b.csv` and `_raw_.csv` becomes `raw.csv`.
 Use file names made of letters, digits, `.`, `-`, and `_`, with no two of
-those symbols in a row.
+those symbols in a row. Windows cannot use a name that ends in `.`. It
+also cannot use a name whose part before the first `.` is a device name,
+such as `con.csv`. `add_data()` refuses both kinds of name.
 
 The shortcodes come from the extension in `_extensions/supplement/`. Commit
 that folder with the rest of the site.

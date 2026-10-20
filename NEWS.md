@@ -19,6 +19,9 @@
   the Analyses menu in `_quarto.yml`. `add_data()` copies a data file into
   `data/` and adds it to the `data` list in `_supplement.yml`. Both
   functions add lines as text, so the comments in these files stay.
+  Both refuse names that Windows reserves for a device, such as `con`, in
+  any letter case. `add_data()` also refuses such a name with an
+  extension, such as `con.csv`, and a file name that ends in `.`.
 * `check_supplement()` lists the problems in a site before a release, and
   changes no file. It finds files larger than 100 MiB, and saved R
   objects that git tracks or does not ignore. It finds reports with code

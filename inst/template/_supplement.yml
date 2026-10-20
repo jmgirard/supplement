@@ -50,7 +50,9 @@ supplement:
   # Files for the data table on the home page. Paths are relative to this
   # folder. A file that does not exist stops the render. Use file names
   # made of letters, digits, ".", "-", and "_", with no two of those
-  # symbols in a row, because Quarto reads each value as Markdown.
+  # symbols in a row, because Quarto reads each value as Markdown. Windows
+  # cannot use a name that ends in "." or that starts with a device name
+  # such as "con" before its first ".", as in "con.csv".
   data:
     - file: data/example.csv
       description: "Example data for the example report"

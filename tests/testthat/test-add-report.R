@@ -145,6 +145,31 @@ test_that("a bad name stops and writes nothing", {
   }
 })
 
+test_that("a name that Windows reserves for a device stops and writes nothing", {
+  spellings <- windows_device_spellings()
+  expect_length(spellings, 176)
+  expect_length(unique(spellings), 176)
+  site <- new_site()
+  before <- folder_state(site)
+  for (name in spellings) {
+    err <- expect_error(add_report(name, "X", path = site), class = "supplement_error_report_name")
+    expect_match(conditionMessage(err), "Windows", info = name)
+  }
+  expect_identical(folder_state(site), before)
+
+  # Names that start with a device name, a part of one, and com0, which
+  # Microsoft's list does not hold, are written and listed.
+  for (name in c("console", "com10", "com0", "lpt", "nul_x")) {
+    suppressMessages(add_report(name, "X", path = site))
+    expect_true(file.exists(file.path(site, "analyses", paste0(name, ".qmd"))), info = name)
+  }
+  items <- yaml_list(lines_utf8(file.path(site, "_quarto.yml")), menu)
+  expect_identical(
+    vapply(items, `[[`, "", "href"),
+    paste0("analyses/", c("example", "console", "com10", "com0", "lpt", "nul_x"), ".qmd")
+  )
+})
+
 test_that("a bad title or description stops and writes nothing", {
   for (title in list("", "   ", NA_character_, c("a", "b"), 1)) {
     expect_report_error("supplement_error_argument", name = "x", title = title)
