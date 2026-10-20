@@ -295,13 +295,22 @@ test_that("inline R code gives a row only under engine: knitr in the front matte
 test_that("reading front matter runs no !expr code", {
   site <- new_site()
   withr::local_options(yaml.eval.expr = TRUE)
-  marker <- file.path(withr::local_tempdir(), "ran")
-  # Run as code, this value would make the file and give the text "knitr".
-  engine <- sprintf("engine: !expr \"c(file.create('%s'), 'knitr')[2]\"", marker)
+  marker <- expr_marker()
+  engine <- paste("engine:", expr_value(marker, "knitr"))
   report_lines(site, "inline-expr", c("---", engine, "---", "", "Two is `r 1 + 1`."))
 
   rows <- rows_of(check_quiet(site), "no-stored-output")
   expect_identical(rows$file, "analyses/example.qmd")
+  expect_false(file.exists(marker))
+})
+
+test_that("reading CITATION.cff runs no !expr code", {
+  site <- new_site()
+  withr::local_options(yaml.eval.expr = TRUE)
+  marker <- expr_marker()
+  writeLines(paste("doi:", expr_value(marker, "10.5281/zenodo.1")), file.path(site, "CITATION.cff"))
+
+  expect_no_error(check_quiet(site))
   expect_false(file.exists(marker))
 })
 

@@ -449,3 +449,17 @@ test_that("a read-only _supplement.yml gives R's error and the copy is removed",
   expect_false(inherits(err, "supplement_error"))
   expect_identical(folder_state(site), before)
 })
+
+test_that("reading _supplement.yml runs no !expr code", {
+  site <- new_site()
+  withr::local_options(yaml.eval.expr = TRUE)
+  marker <- expr_marker()
+  meta <- file.path(site, "_supplement.yml")
+  lines <- readLines(meta)
+  i <- grep("description: \"Example data", lines, fixed = TRUE)
+  lines[i] <- paste0("      description: ", expr_value(marker, "Example data"))
+  writeLines(lines, meta)
+
+  expect_message(add_data(source_file(), "Scores", path = site), "Copied")
+  expect_false(file.exists(marker))
+})

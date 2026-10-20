@@ -385,3 +385,18 @@ test_that("a read-only _quarto.yml gives R's error and the report file is remove
   expect_match(conditionMessage(err), "cannot open", fixed = TRUE)
   expect_identical(folder_state(site), before)
 })
+
+test_that("finding the Analyses menu runs no !expr code", {
+  site <- new_site()
+  withr::local_options(yaml.eval.expr = TRUE)
+  marker <- expr_marker()
+  quarto <- file.path(site, "_quarto.yml")
+  lines <- readLines(quarto)
+  i <- grep("^        text: Home$", lines)
+  expect_length(i, 1)
+  lines[i] <- paste0("        text: ", expr_value(marker, "Home"))
+  writeLines(lines, quarto)
+
+  expect_message(add_report("models", "Models", path = site))
+  expect_false(file.exists(marker))
+})

@@ -1,13 +1,13 @@
 # M025: Package functions read YAML without running R code
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — exported functions that read the site's YAML files
-- **Branch/PR:** —
+- **Branch/PR:** m025-yaml-no-expr
 
 ## Goal
 
@@ -35,7 +35,7 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 
 ## Tasks
 
-- [ ] T1: Add the three AC2 tests, in `tests/testthat/test-add-data.R`, `test-check-supplement.R`, and `test-add-report.R`, in the shape of the test "reading front matter runs no !expr code" (`test-check-supplement.R:295`). Put each `!expr` value where the call reaches the parse site under change: for `add_data()`, a key that `read_supplement()` accepts and the `data` list read at `R/add-data.R:204` holds; for `add_report()`, a navbar item that `yaml_find_list()` passes to `yaml_scalar()` before it finds Analyses. Run each test against the code on main and record in the work log that it makes the marker file there (LESSONS M010).
+- [x] T1: Add the three AC2 tests, in `tests/testthat/test-add-data.R`, `test-check-supplement.R`, and `test-add-report.R`, in the shape of the test "reading front matter runs no !expr code" (`test-check-supplement.R:295`). Put each `!expr` value where the call reaches the parse site under change: for `add_data()`, a key that `read_supplement()` accepts and the `data` list read at `R/add-data.R:204` holds; for `add_report()`, a navbar item that `yaml_find_list()` passes to `yaml_scalar()` before it finds Analyses. Run each test against the code on main and record in the work log that it makes the marker file there (LESSONS M010).
 - [ ] T2: Add `eval.expr = FALSE` at the three calls, or route the two calls with the sequence handler through `yaml_load_list()` (`R/yaml-insert.R:175`). Run the AC1 grep and record its lines in the work log.
 - [ ] T3: Add a bullet to `NEWS.md` under 0.0.0.9000, which is not released.
 - [ ] T4: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
@@ -52,6 +52,9 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 - 2026-10-20: lessons surfaced: M024 (`eval.expr = FALSE` and the marker-file test), M010 (prove a test fails against main).
 - 2026-10-20: changelog: a new bullet under 0.0.0.9000.
 - 2026-10-20: criteria audit (full mode, fresh Opus reader): 1 finding, taken. AC1 bound a property of the grep and missed a call over several lines; it now promises that each parser call passes `eval.expr = FALSE`, with the grep as the procedure that finds the calls. AC2 to AC4 had no finding.
+- 2026-10-20: implement started on branch m025-yaml-no-expr, cut from main at bca59f7.
+- 2026-10-20: T1: added "reading _supplement.yml runs no !expr code" (test-add-data.R, value in the example item's `description`), "finding the Analyses menu runs no !expr code" (test-add-report.R, value in the Home item's `text`), and "reading CITATION.cff runs no !expr code" (test-check-supplement.R, value in `doi`). On main's R code each fails with "Expected `file.exists(marker)` to be FALSE", actual TRUE.
+- 2026-10-20: T1: new helpers `expr_marker()` and `expr_value()` in helper-files.R build the marker path with `/` (`normalizePath(winslash = "/")`), because a Windows path's `\` in a double-quoted YAML string is an escape. The M024 front matter test now uses them; with `\` on Windows its value did not parse, so it passed without reaching the `!expr` code.
 
 ## Decisions
 
