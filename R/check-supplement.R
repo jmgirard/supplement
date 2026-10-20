@@ -17,8 +17,8 @@
 #'   stored output in `_freeze/`. A full render then runs its code, which
 #'   needs the data.
 #' * `"not-rendered"`: the site has no `docs/` folder.
-#' * `"broken-link"`: a quoted `href` or `src` link on a page in `docs/` to
-#'   a file that is not in `docs/`, or to a folder there with no
+#' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
+#'   `docs/` to a file that is not in `docs/`, or to a folder there with no
 #'   `index.html`, or a link that ends with `/` to a file. A page that
 #'   cannot be read, such as a link to a missing file, also counts. Links
 #'   that start with `/`, `#`, or a scheme such as
@@ -27,6 +27,32 @@
 #'   name counts as broken, also on a disk that ignores case. A link that
 #'   also differs from the name in Unicode form (for example `é` written
 #'   as `e` plus an accent) is not caught.
+#'
+#'   Links are read from start tags only, as a browser reads them. Comments,
+#'   `<!...>` and `<?...>` markup, and the text of `<script>`, `<style>`,
+#'   `<textarea>`, and `<title>` elements are skipped, and so is page text
+#'   such as `<code>` text. Attribute names match in any letter case, and
+#'   only whole names count, so `data-href` and `data-src` are not read. A
+#'   value can be in double quotes, in single quotes, or unquoted, where it
+#'   runs to the next space or `>`. Each value is handled in this order:
+#'   character references are decoded; spaces, tabs, line breaks, and form
+#'   feeds at its ends are removed and tabs and line breaks inside it are
+#'   dropped; links with a scheme, `/`, or `#` at the start are skipped;
+#'   then `%` escapes are decoded. The decoded references are `&amp;`,
+#'   `&lt;`, `&gt;`, `&quot;`, and `&apos;` (in lower case, with the `;`),
+#'   and number references such as `&#38;` or `&#x26;` with the `;` that
+#'   name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
+#'   159. A row shows the link after the references are decoded and the
+#'   ends removed.
+#'
+#'   In these cases the check reads a page differently from a browser:
+#'   every other reference (such as `&eacute;`, `&AMP;`, or `&#38` with no
+#'   `;`) stays as written; the text of `<noscript>`, `<xmp>`, `<iframe>`,
+#'   `<noembed>`, `<noframes>`, and `<plaintext>` elements and
+#'   `<![CDATA[...]]>` sections is read as markup; the four skipped
+#'   elements are also skipped inside `<svg>` and `<math>`; a comment ends
+#'   only at the first `-->`; and a second attribute of the same name is
+#'   also read.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
@@ -292,22 +318,83 @@ check_links <- function(path) {
   do.call(rbind, c(list(problem_rows()), rows))
 }
 
-# The quoted href and src values on a page that point to a place inside
-# the site, each once, or NULL when the page cannot be read, such as a
-# link whose target is missing.
+# The href, src, and xlink:href values on a page that point to a place
+# inside the site, each once, or NULL when the page cannot be read, such
+# as a link whose target is missing.
 page_links <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
     return(NULL)
   }
-  attrs <- regmatches(html, gregexpr("\\b(href|src)\\s*=\\s*(\"[^\"]*\"|'[^']*')", html, perl = TRUE))[[1]]
-  # (?s) lets `.` match a line break inside the quotes. A browser drops
-  # tabs and line breaks from a link (the URL standard's parser does), so
-  # they are dropped here too.
-  values <- sub("(?s)^[^=]*=\\s*.(.*).$", "\\1", attrs, perl = TRUE)
+  values <- decode_refs(tag_links(html))
+  # A browser trims spaces and control characters from the ends of a
+  # link, and drops tabs and line breaks inside it (the URL standard's
+  # parser does), so they are dropped here too.
+  values <- gsub("^[\t\n\f\r ]+|[\t\n\f\r ]+$", "", values, perl = TRUE)
   values <- gsub("[\t\n\r]", "", values)
   skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
   unique(values[!skip])
+}
+
+# Parts of the patterns that read start tags, after the HTML standard's
+# tokenizer: an attribute name runs to a space, `/`, `>`, or `=`, and an
+# unquoted value runs to a space or `>`.
+html_space <- "[\t\n\f\r ]"
+html_attr <- paste0(
+  "[^\t\n\f\r />][^\t\n\f\r />=]*",
+  "(?:", html_space, "*=", html_space, "*(?:\"[^\"]*\"|'[^']*'|[^\t\n\f\r >]*))?"
+)
+# The rest of a start tag after its name: attributes and the spaces or `/`
+# between them, then `>`. A `>` inside a quoted value does not end the tag.
+html_tag_rest <- paste0("(?>(?:[\t\n\f\r /]+|(?>", html_attr, "))*)>")
+html_start_tag <- paste0("<[A-Za-z][^\t\n\f\r />]*", html_tag_rest)
+
+# The raw values of the href, src, and xlink:href attributes in the start
+# tags of `html`. Comments, `<!...>` and `<?...>` markup, and the text of
+# script, style, textarea, and title elements are not read, as a browser
+# reads no tags there. Each start tag is kept, so `<script src>` is read.
+tag_links <- function(html) {
+  skipped <- paste0(
+    "(?i)<!--[\\s\\S]*?(?:-->|\\z)|<[!?][^>]*(?:>|\\z)",
+    "|(<(script|style|textarea|title)(?=[\t\n\f\r />])", html_tag_rest, ")",
+    "[\\s\\S]*?(?:</\\2(?=[\t\n\f\r />])[^>]*(?:>|\\z)|\\z)",
+    "|(", html_start_tag, ")"
+  )
+  html <- gsub(skipped, "\\1\\3", html, perl = TRUE)
+  tags <- regmatches(html, gregexpr(html_start_tag, html, perl = TRUE))[[1]]
+  rests <- sub("^<[^\t\n\f\r />]*", "", tags)
+  attrs <- unlist(regmatches(rests, gregexpr(html_attr, rests, perl = TRUE)))
+  attr_names <- tolower(sub("(?s)^([^=\t\n\f\r ]*).*", "\\1", attrs, perl = TRUE))
+  links <- attrs[attr_names %in% c("href", "src", "xlink:href")]
+  values <- sub(paste0("(?s)^[^=]*=", html_space, "*"), "", links, perl = TRUE)
+  sub("(?s)^([\"'])(.*)\\1$", "\\2", values, perl = TRUE)
+}
+
+# Decode the character references `&amp;`, `&lt;`, `&gt;`, `&quot;`, and
+# `&apos;`, and number references (`&#38;`, `&#x26;`) with a `;` that name
+# a code point from 1 to 0x10FFFF, other than a surrogate or 128 to 159.
+# Every other reference stays as written.
+decode_refs <- function(x) {
+  pattern <- "&(?:amp|lt|gt|quot|apos);|&#[0-9]+;|&#[xX][0-9A-Fa-f]+;"
+  refs <- regmatches(x, gregexpr(pattern, x, perl = TRUE))
+  regmatches(x, gregexpr(pattern, x, perl = TRUE)) <- lapply(refs, function(ref) {
+    named <- c("&amp;" = "&", "&lt;" = "<", "&gt;" = ">", "&quot;" = "\"", "&apos;" = "'")
+    vapply(ref, function(r) {
+      if (r %in% names(named)) {
+        return(named[[r]])
+      }
+      hex <- grepl("^&#[xX]", r)
+      digits <- sub("^&#[xX]?0*([0-9A-Fa-f]*);$", "\\1", r)
+      # More than 7 digits is above 0x10FFFF in either base.
+      code <- if (nchar(digits) > 7) NA else strtoi(if (nzchar(digits)) digits else "0", if (hex) 16L else 10L)
+      if (is.na(code) || code < 1 || code > 0x10FFFF || (code >= 0xD800 && code <= 0xDFFF) ||
+          (code >= 128 && code <= 159)) {
+        return(r)
+      }
+      intToUtf8(code)
+    }, character(1), USE.NAMES = FALSE)
+  })
+  x
 }
 
 # TRUE when a relative link on `page` (a path inside `docs`) reaches a file

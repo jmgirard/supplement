@@ -35,8 +35,8 @@ a folder inside it, with an R, Python, or Julia code chunk and no
 stored output in \verb{_freeze/}. A full render then runs its code, which
 needs the data.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
-\item \code{"broken-link"}: a quoted \code{href} or \code{src} link on a page in \verb{docs/} to
-a file that is not in \verb{docs/}, or to a folder there with no
+\item \code{"broken-link"}: an \code{href}, \code{src}, or \code{xlink:href} link on a page in
+\verb{docs/} to a file that is not in \verb{docs/}, or to a folder there with no
 \code{index.html}, or a link that ends with \code{/} to a file. A page that
 cannot be read, such as a link to a missing file, also counts. Links
 that start with \code{/}, \verb{#}, or a scheme such as
@@ -45,6 +45,32 @@ Pages matches letter case, so a link whose case differs from the file
 name counts as broken, also on a disk that ignores case. A link that
 also differs from the name in Unicode form (for example \code{é} written
 as \code{e} plus an accent) is not caught.
+
+Links are read from start tags only, as a browser reads them. Comments,
+\verb{<!...>} and \verb{<?...>} markup, and the text of \verb{<script>}, \verb{<style>},
+\verb{<textarea>}, and \verb{<title>} elements are skipped, and so is page text
+such as \verb{<code>} text. Attribute names match in any letter case, and
+only whole names count, so \code{data-href} and \code{data-src} are not read. A
+value can be in double quotes, in single quotes, or unquoted, where it
+runs to the next space or \code{>}. Each value is handled in this order:
+character references are decoded; spaces, tabs, line breaks, and form
+feeds at its ends are removed and tabs and line breaks inside it are
+dropped; links with a scheme, \code{/}, or \verb{#} at the start are skipped;
+then \verb{\%} escapes are decoded. The decoded references are \verb{&amp;},
+\verb{&lt;}, \verb{&gt;}, \verb{&quot;}, and \verb{&apos;} (in lower case, with the \verb{;}),
+and number references such as \verb{&#38;} or \verb{&#x26;} with the \verb{;} that
+name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
+159. A row shows the link after the references are decoded and the
+ends removed.
+
+In these cases the check reads a page differently from a browser:
+every other reference (such as \verb{&eacute;}, \verb{&AMP;}, or \verb{&#38} with no
+\verb{;}) stays as written; the text of \verb{<noscript>}, \verb{<xmp>}, \verb{<iframe>},
+\verb{<noembed>}, \verb{<noframes>}, and \verb{<plaintext>} elements and
+\verb{<![CDATA[...]]>} sections is read as markup; the four skipped
+elements are also skipped inside \verb{<svg>} and \verb{<math>}; a comment ends
+only at the first \verb{-->}; and a second attribute of the same name is
+also read.
 \item \code{"doi-mismatch"}: the DOI in \code{CITATION.cff} differs from the one that
 \code{\link[=write_citation]{write_citation()}} writes from \verb{_supplement.yml}, or the DOI badge on
 \code{docs/index.html} differs from \code{zenodo.version-doi} (or

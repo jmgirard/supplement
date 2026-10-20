@@ -57,6 +57,7 @@
 - 2026-10-19: plan decided to read unquoted values, which the pattern skipped, because the reader must parse them to find the next attribute and a browser follows them.
 - 2026-10-19: started on branch `m021-link-reader`, cut from `main` at `99abded`.
 - 2026-10-19: T1: four tests added after the broken-link test; before T2 each failed on its target shape (comment and raw-text links gave rows; `HREF`, `Src`, `XLINK:HREF` gave none and `data-*`/`ng-src` gave rows; trimmed and unquoted values misread; references not decoded; `decode_refs()` missing).
+- 2026-10-19: checkpoint (T2 and T3 written, not ticked): `tag_links()` and `decode_refs()` replace the pattern in `page_links()`; the check test file passes; a scratch comparison on a rendered template site gave the same link set on both pages under the a01b723 reader and the new one, and 0 broken-link rows; a 3.7 MB page reads in 0.4 s. Help page, NEWS, and DESIGN text written. Full suite and `devtools::check()` running.
 
 ## Decisions
 
