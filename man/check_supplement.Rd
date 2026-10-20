@@ -53,8 +53,11 @@ such as \verb{<code>} text. Attribute names match in any letter case, and
 only whole names count, so \code{data-href} and \code{data-src} are not read. A
 value can be in double quotes, in single quotes, or unquoted, where it
 runs to the next space or \code{>}. An attribute with no \code{=}, such as
-\verb{<a href>}, has an empty value and is not checked. Each value is
-handled in this order:
+\verb{<a href>}, has an empty value and is not checked. A start tag that the
+end of the page cuts off is not read, as a browser drops it. A page
+whose markup goes past the limits of the PCRE pattern engine (such as
+a comment of millions of \code{-} characters) counts as a page that cannot
+be read. Each value is handled in this order:
 character references are decoded; spaces, tabs, line breaks, and form
 feeds at its ends are removed and tabs and line breaks inside it are
 dropped; links with a scheme, \code{/}, or \verb{#} at the start are skipped;
@@ -73,8 +76,12 @@ text of \verb{<noscript>}, \verb{<xmp>}, \verb{<iframe>}, \verb{<noembed>}, \ver
 and \verb{<plaintext>} elements is read as markup, and so is the text of a
 \verb{<![CDATA[...]]>} section after its first \code{>}. The four skipped
 elements are also skipped inside \verb{<svg>} and \verb{<math>}. A comment ends
-only at the first \verb{-->}. A second attribute of the same name is also
-read.
+only at the first \verb{-->}, so \verb{<!-->} and \verb{<!--->} also run to the next
+\verb{-->}. A script ends at its first \verb{</script>}, also when its text holds
+\verb{<!--} and \verb{<script>}, where a browser reads on to a later
+\verb{</script>}. A byte that is not valid UTF-8, which the check shows as
+\verb{<e9>} and so on, ends an unquoted value. A second attribute of the
+same name is also read.
 \item \code{"doi-mismatch"}: the DOI in \code{CITATION.cff} differs from the one that
 \code{\link[=write_citation]{write_citation()}} writes from \verb{_supplement.yml}, or the DOI badge on
 \code{docs/index.html} differs from \code{zenodo.version-doi} (or

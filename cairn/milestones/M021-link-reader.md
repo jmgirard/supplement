@@ -30,12 +30,12 @@
 
 ## Coverage
 
-- AC1 → T1, T2
+- AC1 → T1, T2, T5
 - AC2 → T1, T2
 - AC3 → T1, T2
 - AC4 → T1, T2
 - AC5 → T2, T4
-- AC6 → T3
+- AC6 → T3, T5
 
 ## Tasks
 
@@ -43,6 +43,7 @@
 - [x] T2: In `R/check-supplement.R`, replace the `regmatches()` pattern in `page_links()` with a reader that walks the page text: it skips `<!--` to the first `-->`, other `<!…>` and `<?…>` to `>`, and the text of the four elements to their end tag; it reads attributes from each start tag and keeps the values of the three names; it decodes and trims each value in the AC3 order (a helper beside `percent_decode()`). Keep `link_ok()` as it is. Run `devtools::test()`; the existing broken-link test and the rendered-site test must pass unchanged.
 - [x] T3: Update the `broken-link` bullet in the roxygen block at the top of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `R/check-supplement.R` text in the `cairn/DESIGN.md` Architecture section.
 - [x] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings).
+- [ ] T5: Review return 1. In `tag_links()`, use possessive unrolled loops for comment and raw-text bodies so a body over 5 MB does not hit PCRE's match limit; let a start tag end at the end of the page and drop it there, so time stays linear and an unclosed tag gives no link; run `unique()` before `decode_refs()`; in `page_links()`, treat a warning from `tag_links()` as a page that cannot be read. Add tests: a 6 MB script body with link text, unclosed comment and raw-text elements at the end of a page, an unclosed tag at the end of a page, many `<a ` with no `>`, a warning from the reader, and `decode_refs()` on a vector. State `<!-->`, script double-escaped text, and an invalid byte in an unquoted value as limits on the help page.
 
 ## Work log
 
@@ -66,6 +67,9 @@
 - 2026-10-19: implement complete; status set to review.
 - 2026-10-20: review fix-now: an `href`, `src`, or `xlink:href` with no `=` (`<a href>`) gave the link "href"; it now has an empty value and gives no row (shape added to the AC3 test, which fails without the fix; help sentence added). README.md, the template `_README.md`, and the first NEWS bullet no longer say "quoted" links. Full suite: 256 tests, 0 failed, 5 skipped.
 - 2026-10-20: review return 1: AC1 fails for script text: a `<script>`, `<style>`, or comment body over about 5 MB makes the skip `gsub()` in `tag_links()` hit PCRE's match limit, so the text is read as links and gives false rows (diff-bug #1); with it, diff-bug #3, #4, #5, #6, #7, #8, #10, and the #11 test gaps (see the Review section).
+- 2026-10-20: minor amendment: T5 added for review return 1, mapped from AC1 and AC6; status in-progress.
+- 2026-10-20: implement choice: `<!-->` and `<!--->` stay a stated limit (help page) rather than ending the comment at once, because the Scope Out list states "a comment ends only at the first `-->`" and a code change there would need a scope amendment.
+- 2026-10-20: checkpoint (T5 written, not ticked): the new tests failed before the fix (PCRE warning and a `\"gone-big.csv\"` row on the 6 MB script page, a `gone-4.csv` row from the unclosed tag, no unreadable row for a reader warning; the 20,000 unclosed `<a ` page took 11.2 s) and pass after it (0.17 s); probes: a 16 MB script reads in 0.05 s, an 8 MB data URI in 0.09 s, and 6 million `-` in a comment or 3 million attributes give a PCRE warning, now a page that cannot be read. Full suite, `devtools::check()`, and a claim audit of the new prose are running.
 
 ## Decisions
 

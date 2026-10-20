@@ -433,6 +433,50 @@ test_that("character references in a link are decoded by the stated rules", {
   ))
   expect_setequal(broken_pairs(site), paste0("docs/refs.html `", kept, "`"))
   expect_identical(decode_refs("&lt;&gt;&quot;&apos;&amp;&#233;&#x1F600;"), "<>\"'&é\U0001F600")
+  expect_identical(decode_refs(c("é&amp;", "", "&amp;amp;", "none")), c("é&", "", "&amp;", "none"))
+})
+
+test_that("large skipped text and unclosed markup give the stated rows", {
+  site <- new_site()
+  # Over 5 MB of script text, as a large htmlwidget writes, is still
+  # skipped, and the reader then goes on.
+  rows <- strrep('{"cell": "<a href=\\"gone-big.csv\\">x</a>"}, ', 120000)
+  write_page(site, "big.html", c(
+    sprintf('<script type="application/json">[%s]</script>', rows),
+    '<a href="after-big.csv">x</a>'
+  ))
+  # Each page ends inside markup that never closes.
+  write_page(site, "end-comment.html", c('<a href="before-1.csv">x</a>', '<!-- <a href="gone-1.csv">'))
+  write_page(site, "end-script.html", c('<a href="before-2.csv">x</a>', '<script> <a href="gone-2.csv">'))
+  write_page(site, "end-title.html", c('<a href="before-3.csv">x</a>', '<TITLE> <a href="gone-3.csv">'))
+  # writeLines() ends the file with a line break, so these tags run to the
+  # end of the page with no `>`.
+  writeLines(c('<a href="before-4.csv">x</a>', "<div title=\"<a href='gone-4.csv'>\""),
+             file.path(site, "docs", "end-tag.html"))
+  # Many tags that never close, which took time that grew with the square
+  # of their count.
+  writeLines(c('<a href="before-5.csv">x</a>', strrep("<a ", 20000)),
+             file.path(site, "docs", "many-open.html"))
+  time <- system.time(expect_warning(pairs <- broken_pairs(site), NA))[["elapsed"]]
+  expect_setequal(pairs, c(
+    "docs/big.html `after-big.csv`",
+    "docs/end-comment.html `before-1.csv`", "docs/end-script.html `before-2.csv`",
+    "docs/end-title.html `before-3.csv`", "docs/end-tag.html `before-4.csv`",
+    "docs/many-open.html `before-5.csv`"
+  ))
+  expect_lt(time, 30)
+})
+
+test_that("a page whose markup the reader cannot finish counts as unreadable", {
+  site <- new_site()
+  write_page(site, "index.html", '<a href="gone.csv">x</a>')
+  local_mocked_bindings(tag_links = function(html) {
+    warning("PCRE error 'match limit exceeded'")
+    "gone.csv"
+  })
+  rows <- rows_of(check_quiet(site), "broken-link")
+  expect_identical(rows$file, "docs/index.html")
+  expect_match(rows$problem, "cannot be read")
 })
 
 test_that("DOIs that differ between files give a doi-mismatch row", {

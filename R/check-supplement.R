@@ -35,8 +35,11 @@
 #'   only whole names count, so `data-href` and `data-src` are not read. A
 #'   value can be in double quotes, in single quotes, or unquoted, where it
 #'   runs to the next space or `>`. An attribute with no `=`, such as
-#'   `<a href>`, has an empty value and is not checked. Each value is
-#'   handled in this order:
+#'   `<a href>`, has an empty value and is not checked. A start tag that the
+#'   end of the page cuts off is not read, as a browser drops it. A page
+#'   whose markup goes past the limits of the PCRE pattern engine (such as
+#'   a comment of millions of `-` characters) counts as a page that cannot
+#'   be read. Each value is handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
 #'   dropped; links with a scheme, `/`, or `#` at the start are skipped;
@@ -55,8 +58,12 @@
 #'   and `<plaintext>` elements is read as markup, and so is the text of a
 #'   `<![CDATA[...]]>` section after its first `>`. The four skipped
 #'   elements are also skipped inside `<svg>` and `<math>`. A comment ends
-#'   only at the first `-->`. A second attribute of the same name is also
-#'   read.
+#'   only at the first `-->`, so `<!-->` and `<!--->` also run to the next
+#'   `-->`. A script ends at its first `</script>`, also when its text holds
+#'   `<!--` and `<script>`, where a browser reads on to a later
+#'   `</script>`. A byte that is not valid UTF-8, which the check shows as
+#'   `<e9>` and so on, ends an unquoted value. A second attribute of the
+#'   same name is also read.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
@@ -324,13 +331,19 @@ check_links <- function(path) {
 
 # The href, src, and xlink:href values on a page that point to a place
 # inside the site, each once, or NULL when the page cannot be read, such
-# as a link whose target is missing.
+# as a link whose target is missing. A warning from tag_links(), such as
+# a PCRE match limit, which makes gsub() return its input unchanged,
+# also counts as a page that cannot be read.
 page_links <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
     return(NULL)
   }
-  values <- decode_refs(tag_links(html))
+  links <- tryCatch(tag_links(html), warning = function(w) NULL)
+  if (is.null(links)) {
+    return(NULL)
+  }
+  values <- decode_refs(unique(links))
   # A browser trims spaces and control characters from the ends of a
   # link; here only spaces, tabs, line breaks, and form feeds are trimmed.
   # Tabs and line breaks inside a link are dropped, as the URL standard's
@@ -344,29 +357,40 @@ page_links <- function(file) {
 # Parts of the patterns that read start tags, after the HTML standard's
 # tokenizer: an attribute name runs to a space, `/`, `>`, or `=`, and an
 # unquoted value runs to a space or `>`.
+# Every repeat below is possessive (`*+`, `++`), so PCRE never backtracks
+# into it: the time stays linear, and a long comment or script body does
+# not reach PCRE's match limit.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
-  "[^\t\n\f\r />][^\t\n\f\r />=]*",
-  "(?:", html_space, "*=", html_space, "*(?:\"[^\"]*\"|'[^']*'|[^\t\n\f\r >]*))?"
+  "[^\t\n\f\r />][^\t\n\f\r />=]*+",
+  "(?:", html_space, "*+=", html_space, "*+(?:\"[^\"]*+\"|'[^']*+'|[^\t\n\f\r >]*+))?+"
 )
 # The rest of a start tag after its name: attributes and the spaces or `/`
 # between them, then `>`. A `>` inside a quoted value does not end the tag.
-html_tag_rest <- paste0("(?>(?:[\t\n\f\r /]+|(?>", html_attr, "))*)>")
-html_start_tag <- paste0("<[A-Za-z][^\t\n\f\r />]*", html_tag_rest)
+# A tag can also run to the end of the page, so a `<` that no `>` follows
+# is matched once, not again from each later `<`; tag_links() drops it.
+html_tag_rest <- paste0("(?:[\t\n\f\r /]++|", html_attr, ")*+(?:>|\\z)")
+html_start_tag <- paste0("<[A-Za-z][^\t\n\f\r />]*+", html_tag_rest)
 
 # The raw values of the href, src, and xlink:href attributes in the start
 # tags of `html`. Comments, `<!...>` and `<?...>` markup, and the text of
 # script, style, textarea, and title elements are not read, as a browser
 # reads no tags there. Each start tag is kept, so `<script src>` is read.
+# A start tag that the end of the page cuts off is not read, as a browser
+# drops it.
 tag_links <- function(html) {
   skipped <- paste0(
-    "(?i)<!--[\\s\\S]*?(?:-->|\\z)|<[!?][^>]*(?:>|\\z)",
+    "(?i)<!--[^-]*+(?:-(?!->)[^-]*+)*+(?:-->|\\z)|<[!?][^>]*+(?:>|\\z)",
     "|(<(script|style|textarea|title)(?=[\t\n\f\r />])", html_tag_rest, ")",
-    "[\\s\\S]*?(?:</\\2(?=[\t\n\f\r />])[^>]*(?:>|\\z)|\\z)",
+    "[^<]*+(?:<(?!/\\2(?=[\t\n\f\r />]))[^<]*+)*+",
+    "(?:</\\2(?=[\t\n\f\r />])[^>]*+(?:>|\\z))?+",
     "|(", html_start_tag, ")"
   )
   html <- gsub(skipped, "\\1\\3", html, perl = TRUE)
   tags <- regmatches(html, gregexpr(html_start_tag, html, perl = TRUE))[[1]]
+  # No unquoted value or name holds `>`, so a tag that ends with `>`
+  # closed before the end of the page.
+  tags <- tags[endsWith(tags, ">")]
   rests <- sub("^<[^\t\n\f\r />]*", "", tags)
   attrs <- unlist(regmatches(rests, gregexpr(html_attr, rests, perl = TRUE)))
   attr_names <- tolower(sub("(?s)^([^=\t\n\f\r ]*).*", "\\1", attrs, perl = TRUE))
