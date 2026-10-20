@@ -467,6 +467,20 @@ test_that("large skipped text and unclosed markup give the stated rows", {
   expect_lt(time, 30)
 })
 
+test_that("a long page with non-ASCII text is read in linear time", {
+  site <- new_site()
+  touch(file.path(site, "docs", "données.csv"))
+  write_page(site, "index.html", c(
+    "<p>café</p>",
+    strrep('<p>text — more</p><a href="données.csv">x</a>', 20000),
+    '<a href="gone-é.csv">x</a>'
+  ))
+  time <- system.time(pairs <- broken_pairs(site))[["elapsed"]]
+  expect_identical(pairs, "docs/index.html `gone-é.csv`")
+  expect_true(validUTF8(pairs))
+  expect_lt(time, 10)
+})
+
 test_that("a page whose markup the reader cannot finish counts as unreadable", {
   site <- new_site()
   write_page(site, "index.html", '<a href="gone.csv">x</a>')

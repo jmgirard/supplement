@@ -386,8 +386,18 @@ tag_links <- function(html) {
     "(?:</\\2(?=[\t\n\f\r />])[^>]*+(?:>|\\z))?+",
     "|(", html_start_tag, ")"
   )
-  html <- gsub(skipped, "\\1\\3", html, perl = TRUE)
-  tags <- regmatches(html, gregexpr(html_start_tag, html, perl = TRUE))[[1]]
+  # The page is matched as bytes. Without useBytes, R turns the byte
+  # offset of each match into a character offset when the text holds a
+  # non-ASCII character, at a cost that grows with the offset, so a page
+  # with many tags took time that grew with the square of their count.
+  # Bytes are safe here because read_page_text() returns valid UTF-8 and
+  # every delimiter in these patterns is ASCII. The results are marked
+  # UTF-8 again, since strings marked "bytes" make file.path() and
+  # sprintf() stop.
+  html <- gsub(skipped, "\\1\\3", html, perl = TRUE, useBytes = TRUE)
+  Encoding(html) <- "UTF-8"
+  tags <- regmatches(html, gregexpr(html_start_tag, html, perl = TRUE, useBytes = TRUE))[[1]]
+  Encoding(tags) <- "UTF-8"
   # No unquoted value or name holds `>`, so a tag that ends with `>`
   # closed before the end of the page.
   tags <- tags[endsWith(tags, ">")]

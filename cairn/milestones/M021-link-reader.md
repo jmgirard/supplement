@@ -70,6 +70,7 @@
 - 2026-10-20: minor amendment: T5 added for review return 1, mapped from AC1 and AC6; status in-progress.
 - 2026-10-20: implement choice: `<!-->` and `<!--->` stay a stated limit (help page) rather than ending the comment at once, because the Scope Out list states "a comment ends only at the first `-->`" and a code change there would need a scope amendment.
 - 2026-10-20: checkpoint (T5 written, not ticked): the new tests failed before the fix (PCRE warning and a `\"gone-big.csv\"` row on the 6 MB script page, a `gone-4.csv` row from the unclosed tag, no unreadable row for a reader warning; the 20,000 unclosed `<a ` page took 11.2 s) and pass after it (0.17 s); probes: a 16 MB script reads in 0.05 s, an 8 MB data URI in 0.09 s, and 6 million `-` in a comment or 3 million attributes give a PCRE warning, now a page that cannot be read. Full suite, `devtools::check()`, and a claim audit of the new prose are running.
+- 2026-10-20: T5 addition from a late diff-bug finding (its addendum to pass 1): on a page with a non-ASCII character, `gregexpr()` and `regmatches()` over the whole page took time that grew with the square of the tag count (20,000 tags: 26 s in the reviewer's run, 31.6 s in the new test before the fix). The whole-page `gsub()` and `gregexpr()` now use `useBytes = TRUE` and mark the results UTF-8 again (a code comment says why, against the M008 lesson); the test "a long page with non-ASCII text is read in linear time" now passes, and `tag_links()` reads that page in 0.125 s with `gé.csv` intact.
 
 ## Decisions
 
