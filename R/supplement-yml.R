@@ -302,7 +302,7 @@ is_link <- function(paths) {
   link <- Sys.readlink(paths)
   found <- !is.na(link) & nzchar(link)
   if (.Platform$OS.type == "windows") {
-    found <- found | vapply(paths, is_reparse_point, logical(1), USE.NAMES = FALSE)
+    found <- found | is_reparse_point(paths)
   }
   found
 }
@@ -312,25 +312,35 @@ is_link <- function(paths) {
 # does not exist, or when it resolves to a place other than its parent
 # folder plus its own name, letter case ignored. A file link to a missing
 # file passes both tests there (candidate row "Windows file links").
-is_reparse_point <- function(path) {
-  path <- drop_trailing_sep(path)
-  parent <- dirname(path)
-  name <- basename(path)
-  siblings <- list.files(parent, all.files = TRUE, no.. = TRUE)
-  # tolower() stops on a name that is not valid UTF-8.
-  siblings <- siblings[validUTF8(siblings)]
-  listed <- name %in% siblings || (validUTF8(name) && tolower(name) %in% tolower(siblings))
-  if (!listed) {
-    return(FALSE)
+# Each parent folder is listed and normalized once, so that the paths of
+# one folder take time that grows with their count, not its square.
+is_reparse_point <- function(paths) {
+  paths <- drop_trailing_sep(paths)
+  parents <- dirname(paths)
+  names <- basename(paths)
+  found <- logical(length(paths))
+  for (parent in unique(parents)) {
+    i <- which(parents == parent)
+    siblings <- list.files(parent, all.files = TRUE, no.. = TRUE)
+    # tolower() stops on a name that is not valid UTF-8.
+    siblings <- siblings[validUTF8(siblings)]
+    name <- names[i]
+    valid <- validUTF8(name)
+    listed <- name %in% siblings
+    listed[valid] <- listed[valid] | tolower(name[valid]) %in% tolower(siblings)
+    # A listed name is valid UTF-8, since every sibling is.
+    i <- i[listed]
+    if (length(i) == 0) {
+      next
+    }
+    missing <- !file.exists(paths[i])
+    resolved <- normalizePath(paths[i], winslash = "/", mustWork = FALSE)
+    # A drive root keeps its separator ("D:/"), so drop it before the join.
+    folder <- sub("/+$", "", normalizePath(parent, winslash = "/", mustWork = FALSE))
+    expected <- paste0(folder, "/", names[i])
+    found[i] <- missing | tolower(resolved) != tolower(expected)
   }
-  if (!file.exists(path)) {
-    return(TRUE)
-  }
-  resolved <- normalizePath(path, winslash = "/", mustWork = FALSE)
-  # A drive root keeps its separator ("D:/"), so drop it before the join.
-  folder <- sub("/+$", "", normalizePath(parent, winslash = "/", mustWork = FALSE))
-  expected <- paste0(folder, "/", name)
-  !identical(tolower(resolved), tolower(expected))
+  found
 }
 
 `%||%` <- function(x, y) if (is.null(x)) y else x

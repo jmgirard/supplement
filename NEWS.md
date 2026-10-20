@@ -124,6 +124,7 @@
   folder. Before, a symbolic link in `docs/` to a folder there repeated
   the rows of each page in that folder. A link to `docs/` itself repeated
   them many times. A symbolic link in `docs/` to an existing file or
-  folder outside `docs/` now gives a `broken-link` row. The published site does not have its target. On
-  Windows, a junction does the same. A link on a page that goes
+  folder outside `docs/` now gives a `broken-link` row. The published
+  site does not have its target. On Windows, a junction in `docs/` to a
+  folder outside `docs/` also gives that row. A link on a page that goes
   through such a link also gives a row.

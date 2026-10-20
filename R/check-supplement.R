@@ -23,8 +23,9 @@
 #'   cannot be read, such as a link to a missing file, also counts. Pages
 #'   in every folder of `docs/` are read, hidden files and folders (names
 #'   that start with `.`) included. A symbolic link to a folder, or on
-#'   Windows a junction, is not entered. So a page in a folder that a link
-#'   inside `docs/` points to is read once, at its own path. A symbolic
+#'   Windows a junction, is not entered. A page in a folder that such a
+#'   link points to is read once, at its own path, when the folder is in
+#'   `docs/`. A symbolic
 #'   link in `docs/` to a page file in `docs/` is read as a page of its own.
 #'   A symbolic link or junction in `docs/` whose target exists outside
 #'   `docs/` gives a row of its own, because the published site does not
@@ -331,12 +332,15 @@ check_links <- function(path) {
     return(problem_rows("not-rendered", "docs", "The site has no docs/ folder. Render the site."))
   }
   entries <- docs_entries(docs)
-  outside <- outside_links(docs, entries$links)
+  root <- docs_root(docs)
+  outside <- outside_links(root, entries$links)
   # A page that a link outside docs/ points to is not in the published
   # site, so it is not read.
   # useBytes keeps a name that is not valid UTF-8 in the match.
   html <- grepl("\\.html$", entries$files, useBytes = TRUE)
-  pages <- entries$files[html & !(entries$files %in% outside)]
+  # The walk lists a folder's files before its subfolders, so sort the
+  # pages by path, in byte order, which does not depend on the locale.
+  pages <- sort(entries$files[html & !(entries$files %in% outside)], method = "radix")
   rows <- lapply(pages, function(page) {
     links <- page_links(file.path(docs, page))
     if (is.null(links)) {
@@ -351,8 +355,10 @@ check_links <- function(path) {
         "The link check cannot read this page: its markup goes past the limits of the PCRE pattern engine."
       ))
     }
+    # With no link in docs/, no part of a path can resolve outside it, so
+    # link_ok() skips that test.
     broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page,
-                            has_links = length(entries$links) > 0)]
+                            root = if (length(entries$links) > 0) root)]
     problem_rows(
       "broken-link", rep_len(file.path("docs", page), length(broken)),
       sprintf("The page links to a file that is not in the site: `%s`", broken)
@@ -390,25 +396,39 @@ docs_entries <- function(docs) {
   list(files = files, links = links)
 }
 
-# The links among `links` (paths relative to `docs`) whose target exists
-# and resolves to a place outside `docs`. A link whose target is missing is
-# left to the other link checks.
-outside_links <- function(docs, links) {
-  full <- file.path(docs, links)
-  links[file.exists(full) & !in_docs(full, docs)]
+# The normalized path of `docs`. A drive root keeps its separator ("D:/"),
+# so it is dropped before a join.
+docs_root <- function(docs) {
+  sub("/+$", "", normalizePath(docs, winslash = "/", mustWork = FALSE))
 }
 
-# TRUE for each path that resolves to `docs` or to a place under it. On
+# The links among `links` (paths relative to docs/) whose target exists
+# and resolves to a place outside `root`, the normalized docs/ path. A link
+# whose target is missing is left to the other link checks.
+outside_links <- function(root, links) {
+  full <- file.path(root, links)
+  links[file.exists(full) & !in_docs(full, root)]
+}
+
+# TRUE for each path that resolves to `root` (the normalized docs/ path)
+# or to a place under it. Each path starts with `root`, so a path that
+# normalizePath() cannot resolve stays under it and counts as inside. On
 # Windows, letter case is ignored, as in is_reparse_point().
-in_docs <- function(paths, docs) {
-  # A drive root keeps its separator ("D:/"), so drop it before the join.
-  root <- sub("/+$", "", normalizePath(docs, winslash = "/", mustWork = FALSE))
+in_docs <- function(paths, root) {
   resolved <- normalizePath(paths, winslash = "/", mustWork = FALSE)
   if (.Platform$OS.type == "windows") {
-    root <- tolower(root)
-    resolved <- tolower(resolved)
+    root <- utf8_lower(root)
+    resolved <- utf8_lower(resolved)
   }
   resolved == root | startsWith(resolved, paste0(root, "/"))
+}
+
+# tolower() for each string that is valid UTF-8. tolower() stops on a
+# string that is not, so such a string stays as it is.
+utf8_lower <- function(x) {
+  valid <- validUTF8(x)
+  x[valid] <- tolower(x[valid])
+  x
 }
 
 # The href, src, and xlink:href values on a page that point to a place
@@ -555,9 +575,9 @@ decode_refs <- function(x) {
 
 # TRUE when a relative link on `page` (a path inside `docs`) reaches a file
 # in `docs`, or a folder there with an index.html, and no part of its path
-# resolves to a place outside `docs`. `has_links` is FALSE when `docs`
-# holds no link, so that no part can resolve outside it.
-link_ok <- function(link, docs, page, has_links = TRUE) {
+# resolves to a place outside `docs`. `root` is the normalized path of
+# `docs` (docs_root()), or NULL to skip the test of the path's parts.
+link_ok <- function(link, docs, page, root = docs_root(docs)) {
   target <- sub("[?#].*$", "", link)
   if (!nzchar(target)) {
     return(TRUE)
@@ -586,11 +606,11 @@ link_ok <- function(link, docs, page, has_links = TRUE) {
   # A path that passes through or ends at a link to a place outside docs/
   # is not in the published site. This also finds a link inside docs/ that
   # a linked folder there leads to.
-  if (has_links && length(kept) > 0) {
-    prefixes <- file.path(docs, vapply(seq_along(kept), function(i) paste(kept[seq_len(i)], collapse = "/"),
+  if (!is.null(root) && length(kept) > 0) {
+    prefixes <- file.path(root, vapply(seq_along(kept), function(i) paste(kept[seq_len(i)], collapse = "/"),
                                        character(1)))
     present <- file.exists(prefixes)
-    if (!all(in_docs(prefixes[present], docs))) {
+    if (!all(in_docs(prefixes[present], root))) {
       return(FALSE)
     }
   }

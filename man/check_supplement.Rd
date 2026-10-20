@@ -41,8 +41,9 @@ needs the data.
 cannot be read, such as a link to a missing file, also counts. Pages
 in every folder of \verb{docs/} are read, hidden files and folders (names
 that start with \code{.}) included. A symbolic link to a folder, or on
-Windows a junction, is not entered. So a page in a folder that a link
-inside \verb{docs/} points to is read once, at its own path. A symbolic
+Windows a junction, is not entered. A page in a folder that such a
+link points to is read once, at its own path, when the folder is in
+\verb{docs/}. A symbolic
 link in \verb{docs/} to a page file in \verb{docs/} is read as a page of its own.
 A symbolic link or junction in \verb{docs/} whose target exists outside
 \verb{docs/} gives a row of its own, because the published site does not

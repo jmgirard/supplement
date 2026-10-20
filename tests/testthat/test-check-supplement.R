@@ -585,6 +585,39 @@ test_that("a page link through a link to a place outside docs gives a row", {
   )))
 })
 
+test_that("relative link targets and links in hidden folders are judged by where they resolve", {
+  # A relative target written with `/` is not tested on Windows.
+  skip_on_os("windows")
+  site <- new_site()
+  docs <- file.path(site, "docs")
+  touch(file.path(docs, "data", "ok.csv"))
+  dir.create(file.path(docs, ".hidden"))
+  symlink_or_skip("../_supplement.yml", file.path(docs, "rel.yml"))
+  symlink_or_skip("../../_supplement.yml", file.path(docs, ".hidden", "meta.yml"))
+  symlink_or_skip("data/ok.csv", file.path(docs, "alias.csv"))
+  symlink_or_skip(".", file.path(docs, "self"))
+  expect_identical(link_rows(site), sort(outside_row(c("rel.yml", ".hidden/meta.yml"))))
+})
+
+test_that("the Windows link test gives the rules' answer for each path of a folder", {
+  # is_reparse_point() is plain R, so its rules run on every system.
+  dir <- withr::local_tempdir()
+  outside <- withr::local_tempdir("outside-")
+  touch(file.path(dir, "file.txt"))
+  dir.create(file.path(dir, "folder"))
+  touch(file.path(dir, "sub", "deep.txt"))
+  writeLines("x", file.path(outside, "target.txt"))
+  symlink_or_skip(file.path(outside, "target.txt"), file.path(dir, "file-link"))
+  symlink_or_skip(outside, file.path(dir, "folder-link"))
+  symlink_or_skip(file.path(outside, "missing.txt"), file.path(dir, "dangling"))
+  names <- c("file.txt", "folder", "file-link", "folder-link", "dangling", "not-there", "sub/deep.txt", "folder/")
+  expect_identical(
+    is_reparse_point(file.path(dir, names)),
+    c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE)
+  )
+  expect_identical(is_reparse_point(character()), logical())
+})
+
 test_that("on Windows, a junction in docs to a folder outside docs gives the rows of a link", {
   skip_on_os(c("mac", "linux", "solaris"))
   site <- new_site()

@@ -75,3 +75,30 @@
 - AC4 evidence: same run, test "a page link through a link to a place outside docs gives a row" passed (rows for `private/x.csv` and `data.csv` plus their two outside rows; none for `inner/y.csv` or `alias.csv`); with main's code it failed. The suite had 28 tests, 0 failed, 0 errors.
 - AC5 evidence: pending. The test skipped on the Mac ("On Mac"). Its evidence is the Windows job of `R-CMD-check` on the PR, read after step 8 opens it and before the merge.
 - AC6 evidence: `man/check_supplement.Rd` lines 41-53 at 67075ea state hidden files and folders are read (AC1), linked folders are not entered and pages are read at their own path (AC2), a link whose existing target is outside `docs/` gives its own row and its page is not read, while one inside gives none (AC3), and a page link through or ending at such a link counts (AC4); NEWS.md's last bullet describes the change.
+- gate (pass 1): `cairn_validate.py` all checks passed; no principle changed (no `cairn_impact`); `devtools::document()` no diff; no README.Rmd and no pkgdown site; NEWS.md has the entry; no new top-level file; `devtools::check()` at 61b5ca5: 0 errors, 0 warnings, 0 notes.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: a page link to a folder (`sub/`, `sub`, `.`, `./`) whose `index.html` is a link outside docs/ gives no row, because the outside-path test runs before `index.html` is added (reproduced) — floor return (AC4 fails: the target path ends at an outside link)
+- diff-bug #2: the walk calls `is_link()` per entry, and on Windows `is_reparse_point()` lists the parent folder per path, so time grows with the square of a folder's size — fix now (`is_reparse_point()` takes a vector and lists and normalizes each parent once; same answers as main's on a mixed fixture; 3,000 files 0.047 s)
+- diff-bug #3: `in_docs()` normalizes docs/ on every call — fix now (`docs_root()` once in `check_links()`, passed to `link_ok()` as `root`)
+- diff-bug #4: a path that `normalizePath()` cannot resolve keeps its input, which need not start with the normalized root, so it reads as outside — fix now (paths are built from the normalized root, so an unresolved path stays under it); the matching Windows `is_reparse_point()` case is pre-existing (M018) — that part reject (pre-existing, not this diff)
+- diff-bug #5: the row text assumes GitHub Pages lacks an outside target, which was not checked — reject (planned change: the question-set answer counts such a link as broken; the work log records the premise as unchecked)
+- diff-bug #6: row order changed (outside rows first, folder files before subfolders) — fix now for pages (sorted by path in byte order); outside rows first kept (planned layout)
+- diff-bug #7: `tolower()` in `in_docs()` stops on a name that is not valid UTF-8 on Windows — fix now (`utf8_lower()`)
+- diff-bug #8: test gaps (folder link to an outside `index.html`, relative link targets, an outside link in a hidden folder, `has_links` equivalence, Windows file links) — fix now for relative targets and the hidden folder (new test); the folder-index gap goes with the floor return; `has_links` reject (the argument is now `root`, and the AC1 test runs the no-link path); Windows file links reject (the AC1 to AC4 tests run in the Windows CI job, read with AC5)
+- diff-bug #9: NEWS line past the wrap width, a help sentence that reads as covering outside folders — fix now (NEWS rewrapped, sentence names folders in docs/); roxygen line breaks reject (style; Rd reflows)
+- blame-history #1: same as diff-bug #7 — fix now (`utf8_lower()`)
+- blame-history #2: same as diff-bug #2 and #3 — fix now
+- blame-history #3: pages behind an outside folder link are no longer read — reject (planned change, AC3)
+- blame-history #4: `useBytes = TRUE` makes a non-UTF-8 `.html` name match — reject (intended, stated in the comment)
+- blame-history #5: no D-entry for the outside-link rule — reject (planned change: a milestone-local decision, recorded in this file's work log)
+- prior-review #1: same as diff-bug #7 — fix now
+- prior-review #2: on Windows a dangling file link passes `file.exists()`, so it would get the outside row — reject (false: per the M018 observation in "Detect broken file links on Windows", `normalizePath()` gives the link's own path, which is inside docs/, so no outside row, and the page still gives "cannot be read")
+- prior-review #3: test gaps for past defect classes (non-ASCII, `[`, non-UTF-8, dangling) — reject (the older tests cover non-ASCII and the dangling page at test-check-supplement.R:311; macOS cannot make a non-UTF-8 name)
+- prior-review #4: same as diff-bug #2 — fix now
+- prior-review #5: NEWS "a junction does the same" is unclear — fix now (names the junction to a folder outside docs/)
+- ripple #1: the "Fix false positives in the link check" row still lists the fixed defects — reject (planned: the row graduates at post-merge hygiene)
+- ripple #2: README "It checks only relative links, which point inside the site" — reject (false: still true of page links; the new rows concern symbolic links in docs/)
+- ripple #3: README.md and inst/template/_README.md list the broken-link cases without the outside link — fix now (bullet added to both)
+- ripple #4: `page_links()` comment says links "point to a place inside the site" — reject (false: the diff did not change what `page_links()` returns)
+- ripple #5: the "Check web links on the rendered site" row says the check tests only links inside docs/ — reject (false: still true)
+- ripple #6: `docs_entries()` depends on `is_link()`, which misses a Windows file link to a missing file — reject (pre-existing, owned by "Detect broken file links on Windows")
