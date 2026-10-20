@@ -50,6 +50,7 @@ A symbolic link or junction in \verb{docs/} whose target exists outside
 have its target. A page that it points to, or a page in a folder that
 it points to, is not read. A link
 on a page whose path passes through or ends at such a link also counts.
+For a link to a folder, the folder's \code{index.html} is part of that path.
 A symbolic link or junction whose target is \verb{docs/} or a place in it
 gives no row of its own. Links
 that start with \code{/}, \verb{#}, or a scheme such as

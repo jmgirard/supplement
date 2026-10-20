@@ -32,6 +32,7 @@
 #'   have its target. A page that it points to, or a page in a folder that
 #'   it points to, is not read. A link
 #'   on a page whose path passes through or ends at such a link also counts.
+#'   For a link to a folder, the folder's `index.html` is part of that path.
 #'   A symbolic link or junction whose target is `docs/` or a place in it
 #'   gives no row of its own. Links
 #'   that start with `/`, `#`, or a scheme such as
@@ -603,21 +604,21 @@ link_ok <- function(link, docs, page, root = docs_root(docs)) {
       kept <- c(kept, part)
     }
   }
+  if (dir.exists(file.path(docs, paste(kept, collapse = "/")))) {
+    kept <- c(kept, "index.html")
+  } else if (wants_folder) {
+    return(FALSE)
+  }
   # A path that passes through or ends at a link to a place outside docs/
-  # is not in the published site. This also finds a link inside docs/ that
-  # a linked folder there leads to.
-  if (!is.null(root) && length(kept) > 0) {
+  # is not in the published site. The index.html of a folder link counts.
+  # This also finds a link inside docs/ that a linked folder there leads to.
+  if (!is.null(root)) {
     prefixes <- file.path(root, vapply(seq_along(kept), function(i) paste(kept[seq_len(i)], collapse = "/"),
                                        character(1)))
     present <- file.exists(prefixes)
     if (!all(in_docs(prefixes[present], root))) {
       return(FALSE)
     }
-  }
-  if (dir.exists(file.path(docs, paste(kept, collapse = "/")))) {
-    kept <- c(kept, "index.html")
-  } else if (wants_folder) {
-    return(FALSE)
   }
   # GitHub Pages matches letter case, so each part must match the name on
   # disk, also on a disk that ignores case.

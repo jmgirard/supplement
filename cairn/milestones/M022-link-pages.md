@@ -33,7 +33,7 @@
 - AC1 → T1, T2
 - AC2 → T1, T2
 - AC3 → T1, T2
-- AC4 → T1, T2
+- AC4 → T1, T2, T5
 - AC5 → T1, T4
 - AC6 → T3
 
@@ -43,6 +43,7 @@
 - [x] T2: In `R/check-supplement.R`, list pages with a walk over `list.files(all.files = TRUE, no.. = TRUE)` that enters a folder only when `is_link()` is FALSE for it; collect each link it meets; compare each link's normalized target with `normalizePath(docs)` (a path equal to it, or one that starts with it plus `/`, is inside); give one row per link outside, and do not read an outside `.html` link as a page. In `link_ok()`, check each path part against those links, so a target that passes through or ends at an outside link is broken. Run `devtools::test()`.
 - [x] T3: Update the `broken-link` bullet in the roxygen block of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `cairn/DESIGN.md` Architecture text, and add the linked-`docs/` case to the "Release check edge cases" Known issues entry.
 - [x] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings). The AC5 evidence is the AC5 test run (not skipped) in the Windows job of the `R-CMD-check` workflow on the milestone's pull request; at review, read that job's test output.
+- [x] T5: Review return 1: a page link to a folder (`sub/`, `sub`, `.`, `./`) whose `index.html` is a link outside `docs/` gives a `broken-link` row. Test first, then test the path's parts after `index.html` is added in `link_ok()`.
 
 ## Work log
 
@@ -64,6 +65,8 @@
 - 2026-10-20: T4: `devtools::check()` on the Mac at 60458f6: 0 errors, 0 warnings, 0 notes. The AC5 test has not run yet: it skips on the Mac, and its evidence is the Windows job of `R-CMD-check` on the PR, read at review.
 - 2026-10-20: status review; handed to /milestone-review.
 - 2026-10-20: review return 1: AC4 fails for a page link to a folder (`sub/`, `sub`, `.`, `./`) whose `index.html` is a link to a place outside docs/: `link_ok()` tests the path's parts for outside links before it adds `index.html`, and skips the test when the path is empty, so no row comes (diff-bug #1, reproduced). Fix-now findings landed in 08aae7c.
+- 2026-10-20: implement resumed for review return 1; T5 added (minor amendment, Coverage AC4 → T1, T2, T5).
+- 2026-10-20: T5: test "a page link to a folder whose index.html is a link outside docs gives a row" failed before the fix for `sub/`, `sub`, `./`, `.`; `link_ok()` now tests the path's parts after adding `index.html`, and the path is never empty there; help bullet adds that a folder's `index.html` is part of the path; `devtools::test()` clean.
 
 ## Decisions
 

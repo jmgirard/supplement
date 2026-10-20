@@ -585,6 +585,24 @@ test_that("a page link through a link to a place outside docs gives a row", {
   )))
 })
 
+test_that("a page link to a folder whose index.html is a link outside docs gives a row", {
+  site <- new_site()
+  docs <- file.path(site, "docs")
+  outside <- withr::local_tempdir("outside-")
+  writeLines("<p>outside</p>", file.path(outside, "page.html"))
+  dir.create(file.path(docs, "sub"), recursive = TRUE)
+  symlink_or_skip(file.path(outside, "page.html"), file.path(docs, "index.html"))
+  symlink_or_skip(file.path(outside, "page.html"), file.path(docs, "sub", "index.html"))
+  write_page(site, "page.html", c(
+    '<a href="sub/">a</a>', '<a href="sub">b</a>', '<a href="sub/index.html">c</a>',
+    '<a href="./">d</a>', '<a href=".">e</a>'
+  ))
+  expect_identical(link_rows(site), sort(c(
+    outside_row(c("index.html", "sub/index.html")),
+    page_row("page.html", c("sub/", "sub", "sub/index.html", "./", "."))
+  )))
+})
+
 test_that("relative link targets and links in hidden folders are judged by where they resolve", {
   # A relative target written with `/` is not tested on Windows.
   skip_on_os("windows")
