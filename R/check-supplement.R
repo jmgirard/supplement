@@ -42,17 +42,19 @@
 #'   `&lt;`, `&gt;`, `&quot;`, and `&apos;` (in lower case, with the `;`),
 #'   and number references such as `&#38;` or `&#x26;` with the `;` that
 #'   name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
-#'   159. A row shows the link after the references are decoded and the
-#'   ends removed.
+#'   159. A row shows the link after the references are decoded, the ends
+#'   removed, and the tabs and line breaks inside it dropped.
 #'
-#'   In these cases the check reads a page differently from a browser:
-#'   every other reference (such as `&eacute;`, `&AMP;`, or `&#38` with no
-#'   `;`) stays as written; the text of `<noscript>`, `<xmp>`, `<iframe>`,
-#'   `<noembed>`, `<noframes>`, and `<plaintext>` elements and
-#'   `<![CDATA[...]]>` sections is read as markup; the four skipped
-#'   elements are also skipped inside `<svg>` and `<math>`; a comment ends
-#'   only at the first `-->`; and a second attribute of the same name is
-#'   also read.
+#'   These are the main cases where the check reads a page differently
+#'   from a browser. Every other reference (such as `&eacute;`, `&AMP;`, or
+#'   `&#38` with no `;`) stays as written. Other control characters at the
+#'   ends of a link, such as `&#1;`, stay, while a browser removes them. The
+#'   text of `<noscript>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`,
+#'   and `<plaintext>` elements is read as markup, and so is the text of a
+#'   `<![CDATA[...]]>` section after its first `>`. The four skipped
+#'   elements are also skipped inside `<svg>` and `<math>`. A comment ends
+#'   only at the first `-->`. A second attribute of the same name is also
+#'   read.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
@@ -328,8 +330,9 @@ page_links <- function(file) {
   }
   values <- decode_refs(tag_links(html))
   # A browser trims spaces and control characters from the ends of a
-  # link, and drops tabs and line breaks inside it (the URL standard's
-  # parser does), so they are dropped here too.
+  # link; here only spaces, tabs, line breaks, and form feeds are trimmed.
+  # Tabs and line breaks inside a link are dropped, as the URL standard's
+  # parser does.
   values <- gsub("^[\t\n\f\r ]+|[\t\n\f\r ]+$", "", values, perl = TRUE)
   values <- gsub("[\t\n\r]", "", values)
   skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)

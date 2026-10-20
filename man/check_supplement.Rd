@@ -60,17 +60,19 @@ then \verb{\%} escapes are decoded. The decoded references are \verb{&amp;},
 \verb{&lt;}, \verb{&gt;}, \verb{&quot;}, and \verb{&apos;} (in lower case, with the \verb{;}),
 and number references such as \verb{&#38;} or \verb{&#x26;} with the \verb{;} that
 name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
-159. A row shows the link after the references are decoded and the
-ends removed.
+159. A row shows the link after the references are decoded, the ends
+removed, and the tabs and line breaks inside it dropped.
 
-In these cases the check reads a page differently from a browser:
-every other reference (such as \verb{&eacute;}, \verb{&AMP;}, or \verb{&#38} with no
-\verb{;}) stays as written; the text of \verb{<noscript>}, \verb{<xmp>}, \verb{<iframe>},
-\verb{<noembed>}, \verb{<noframes>}, and \verb{<plaintext>} elements and
-\verb{<![CDATA[...]]>} sections is read as markup; the four skipped
-elements are also skipped inside \verb{<svg>} and \verb{<math>}; a comment ends
-only at the first \verb{-->}; and a second attribute of the same name is
-also read.
+These are the main cases where the check reads a page differently
+from a browser. Every other reference (such as \verb{&eacute;}, \verb{&AMP;}, or
+\verb{&#38} with no \verb{;}) stays as written. Other control characters at the
+ends of a link, such as \verb{&#1;}, stay, while a browser removes them. The
+text of \verb{<noscript>}, \verb{<xmp>}, \verb{<iframe>}, \verb{<noembed>}, \verb{<noframes>},
+and \verb{<plaintext>} elements is read as markup, and so is the text of a
+\verb{<![CDATA[...]]>} section after its first \code{>}. The four skipped
+elements are also skipped inside \verb{<svg>} and \verb{<math>}. A comment ends
+only at the first \verb{-->}. A second attribute of the same name is also
+read.
 \item \code{"doi-mismatch"}: the DOI in \code{CITATION.cff} differs from the one that
 \code{\link[=write_citation]{write_citation()}} writes from \verb{_supplement.yml}, or the DOI badge on
 \code{docs/index.html} differs from \code{zenodo.version-doi} (or

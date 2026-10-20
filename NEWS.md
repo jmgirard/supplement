@@ -116,6 +116,6 @@
   as `data-href`, and it reported those as broken links. It now decodes
   character references such as `&amp;`, so a link to `R&D.csv` written as
   `R&amp;D.csv` is no longer reported. It reads `HREF` and other letter
-  cases, unquoted values, and `xlink:href`, and it removes the spaces at
-  the ends of a link. The help page lists the cases that it still reads
-  differently from a browser.
+  cases (also in `xlink:href`) and unquoted values, and it removes the
+  spaces at the ends of a link. The help page lists the main cases that
+  it still reads differently from a browser.
