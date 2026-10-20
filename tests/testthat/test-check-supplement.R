@@ -229,7 +229,7 @@ test_that("reports with code but no stored output give a no-stored-output row", 
   expect_no_error(rows <- rows_of(check_quiet(site), "no-stored-output"))
   # example.qmd from the template has R chunks and no stored output yet.
   expect_setequal(rows$file, file.path("analyses", c("r-chunk.qmd", "python-chunk.qmd", "callout.qmd",
-                                                      "hidden-only.qmd", "example.qmd")))
+                                                      "rust-block.qmd", "hidden-only.qmd", "example.qmd")))
 })
 
 # Write a report from its lines, with no front matter added.
@@ -267,6 +267,46 @@ test_that("chunk starts in more shapes give a no-stored-output row", {
   expect_setequal(rows$file, file.path("analyses", paste0(expected, ".qmd")))
 })
 
+test_that("chunks of any engine give a no-stored-output row", {
+  site <- new_site()
+  # Quarto starts Jupyter for a chunk name that no engine claims, and knitr
+  # runs the same chunk under engine: knitr.
+  names <- c("bash", "sql", "html", "include", "Rcpp", "rust", "my_eng2", "dotnet", "ojsx")
+  for (name in names) {
+    report_lines(site, paste0("engine-", name),
+                 c("---", "title: Fixture", "---", "", paste0("```{", name, "}"), "x", "```"))
+  }
+
+  rows <- rows_of(check_quiet(site), "no-stored-output")
+  expect_setequal(rows$file, file.path("analyses", paste0(c(paste0("engine-", names), "example"), ".qmd")))
+})
+
+# Write a report from raw bytes, so that it can hold a nul byte and any line
+# ends.
+report_bytes <- function(site, name, ...) {
+  parts <- lapply(list(...), function(x) if (is.character(x)) charToRaw(x) else x)
+  writeBin(unlist(parts), file.path(site, "analyses", paste0(name, ".qmd")))
+}
+
+test_that("a nul byte or other line ends do not hide a chunk", {
+  site <- new_site()
+  nul <- as.raw(0)
+  front <- "---\ntitle: Fixture\n---\n\n"
+  report_bytes(site, "nul-other-line", front, "a", nul, "b\n\n```{r}\n1 + 1\n```\n")
+  report_bytes(site, "nul-in-braces", front, "```{r", nul, "}\n1 + 1\n```\n")
+  report_bytes(site, "crlf-bash", "---\r\ntitle: Fixture\r\n---\r\n\r\n```{bash}\r\necho hi\r\n```\r\n")
+  report_bytes(site, "cr-bash", "---\rtitle: Fixture\r---\r\r```{bash}\recho hi\r```\r")
+  # Quarto's chunk scan reads a nul as a character that is not white space
+  # and not part of a name, so these start no engine.
+  report_bytes(site, "nul-after-brace", front, "```{r}", nul, "\n1 + 1\n```\n")
+  report_bytes(site, "nul-before-ticks", front, nul, "```{r}\n1 + 1\n```\n")
+  report_bytes(site, "nul-in-ojs", front, "```{ojs", nul, "}\n1 + 1\n```\n")
+
+  expect_no_error(rows <- rows_of(check_quiet(site), "no-stored-output"))
+  expected <- c("nul-other-line", "nul-in-braces", "crlf-bash", "cr-bash", "example")
+  expect_setequal(rows$file, file.path("analyses", paste0(expected, ".qmd")))
+})
+
 test_that("inline R code gives a row only under engine: knitr in the front matter", {
   site <- new_site()
   inline <- "Two is `r 1 + 1`."
@@ -282,14 +322,20 @@ test_that("inline R code gives a row only under engine: knitr in the front matte
   report_lines(site, "inline-bad-yaml", c("---", "engine: knitr", "title: [open", "---", "", inline))
   report_lines(site, "inline-scalar", c("---", "knitr", "---", "", inline))
   report_lines(site, "inline-list", c("---", "engine: [knitr]", "---", "", inline))
-  # Inline code counts only on one line, and only as `r` and a space.
+  # Inline code counts only on one line.
   report_lines(site, "inline-split", c("---", "engine: knitr", "---", "", "Two is `r 1 +", "1`."))
-  report_lines(site, "inline-hash", c("---", "engine: knitr", "---", "", "Two is `r# 1 + 1`."))
   report_lines(site, "knitr-no-code", c("---", "engine: knitr", "---", "", "Plain text."))
+  # knitr also runs `r#` code and Quarto's `{r}` syntax with a space.
+  report_lines(site, "inline-hash", c("---", "engine: knitr", "---", "", "Two is `r# 1 + 1`."))
+  report_lines(site, "inline-hash-tight", c("---", "engine: knitr", "---", "", "Two is `r#1+1`."))
+  report_lines(site, "inline-braces", c("---", "engine: knitr", "---", "", "Two is `{r} 1 + 1`."))
+  report_lines(site, "inline-braces-no-engine", c("---", "title: Fixture", "---", "", "Two is `{r} 1 + 1`."))
+  report_lines(site, "inline-braces-tight", c("---", "engine: knitr", "---", "", "Two is `{r}1+1`."))
 
   expect_no_error(rows <- rows_of(check_quiet(site), "no-stored-output"))
-  expect_setequal(rows$file, file.path("analyses", c("inline-knitr.qmd", "inline-knitr-blank.qmd",
-                                                     "example.qmd")))
+  expected <- c("inline-knitr", "inline-knitr-blank", "inline-hash", "inline-hash-tight", "inline-braces",
+                "example")
+  expect_setequal(rows$file, file.path("analyses", paste0(expected, ".qmd")))
 })
 
 test_that("reading front matter runs no !expr code", {
@@ -324,9 +370,16 @@ test_that("code blocks that are not chunks give no no-stored-output row", {
   }
   block("dot-class", "```{.r}")
   block("escaped", "```{{r}}")
-  block("rust", "```{rust}")
-  block("rcpp", "```{Rcpp}")
   block("text-after-brace", "```{r} x")
+  block("raw-html", "```{=html}")
+  block("digit-first", "```{1r}")
+  # Quarto draws these itself and starts no engine for them.
+  block("mermaid", "```{mermaid}")
+  block("mermaid-upper", "```{Mermaid}")
+  block("mermaid-label", "```{mermaid label}")
+  block("dot", "```{dot}")
+  block("ojs", "```{ojs}")
+  block("ojs-upper", "```{OJS}")
 
   rows <- rows_of(check_quiet(site), "no-stored-output")
   expect_identical(rows$file, "analyses/example.qmd")

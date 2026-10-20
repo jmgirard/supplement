@@ -308,15 +308,34 @@ check_git_files <- function(path, files) {
 
 # Stored output ---------------------------------------------------------------
 
-# The start of an R, Python, or Julia code chunk, as knitr's chunk pattern
-# and Quarto's chunk scan read it: any mix of spaces, tabs, and `>`, three
-# or more backticks, then the engine name in braces. The letter case is
+# The start of a code chunk, as Quarto's chunk scan (quarto.js 1.10.19,
+# languagesWithClasses()) reads it: any mix of spaces, tabs, and `>`, three
+# or more backticks, then a name in braces. Quarto starts an engine for every
+# name but ojs, mermaid, and dot, in any letter case. The letter case is
 # spelled out, because `(?i)` with useBytes follows the locale.
+not_engine <- "([Oo][Jj][Ss]|[Mm][Ee][Rr][Mm][Aa][Ii][Dd]|[Dd][Oo][Tt])(?![A-Za-z0-9_.])"
 chunk_start <- paste0(
-  "^[ \\t>]*`{3,}[ \\t]*\\{",
-  "([Rr]|[Pp][Yy][Tt][Hh][Oo][Nn]|[Jj][Uu][Ll][Ii][Aa])",
-  "([ ,].*)?\\}[ \\t]*\\z"
+  "^[ \\t>]*`{3,}[ \\t]*\\{(?!", not_engine, ")",
+  "[A-Za-z][A-Za-z0-9_.]*+[^}]*\\}[ \\t]*\\z"
 )
+
+# Inline R code that knitr runs: `r code`, `r#code`, or Quarto's `{r} code`.
+inline_r <- "`(r[ #]|\\{r\\} )[^`]+`"
+
+# The lines of a report, split at LF, CR LF, or CR. A nul byte is read as
+# the byte 0x01, which, like a nul in Quarto's chunk scan, is no character
+# that the chunk and inline patterns name, so a nul inside the braces of a
+# chunk start keeps the match and one before or after it ends the match.
+# readLines() would cut each line at its nul. A report that cannot be read,
+# such as a link whose target is missing, has no lines.
+read_report_lines <- function(report) {
+  bytes <- tryCatch(readBin(report, "raw", n = file.size(report)),
+                    error = function(e) raw(), warning = function(w) raw())
+  bytes[bytes == as.raw(0)] <- as.raw(1)
+  lines <- strsplit(rawToChar(bytes), "\r\n|\r|\n", perl = TRUE, useBytes = TRUE)[[1]]
+  Encoding(lines) <- "UTF-8"
+  lines
+}
 
 # TRUE when the report's front matter is a YAML map whose top-level
 # `engine` is the text "knitr". The front matter starts at a first `---`
@@ -351,12 +370,9 @@ check_stored_output <- function(path) {
   reports <- file.path(dir, names[!startsWith(names, ".")])
   reports <- reports[!dir.exists(reports)]
   missing <- vapply(reports, function(report) {
-    # A report that cannot be read, such as a link whose target is missing,
-    # has no code that a render could run.
-    lines <- tryCatch(readLines(report, warn = FALSE, encoding = "UTF-8"),
-                      error = function(e) character(), warning = function(w) character())
+    lines <- read_report_lines(report)
     has_code <- any(grepl(chunk_start, lines, perl = TRUE, useBytes = TRUE)) ||
-      (any(grepl("`r [^`]+`", lines, perl = TRUE, useBytes = TRUE)) && engine_is_knitr(lines))
+      (any(grepl(inline_r, lines, perl = TRUE, useBytes = TRUE)) && engine_is_knitr(lines))
     name <- sub("\\.qmd$", "", basename(report))
     # Hidden files such as .DS_Store are not stored output.
     stored <- list.files(file.path(path, "_freeze", "analyses", name, "execute-results"),
