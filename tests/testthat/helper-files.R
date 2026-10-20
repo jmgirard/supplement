@@ -74,7 +74,11 @@ new_site <- function(env = parent.frame()) {
 # its parts, so that it can go in a double-quoted YAML string on Windows.
 expr_marker <- function(env = parent.frame()) {
   dir <- withr::local_tempdir("expr-", .local_envir = env)
-  file.path(normalizePath(dir, winslash = "/"), "ran")
+  marker <- file.path(normalizePath(dir, winslash = "/"), "ran")
+  # A quote in the path would break the value that expr_value() writes, and
+  # a test would then pass without reaching the `!expr` code.
+  expect_false(grepl("['\"]", marker))
+  marker
 }
 
 # A YAML `!expr` value. Run as code, it makes `marker` and gives `text`.

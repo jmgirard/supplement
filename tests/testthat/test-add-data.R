@@ -457,6 +457,7 @@ test_that("reading _supplement.yml runs no !expr code", {
   meta <- file.path(site, "_supplement.yml")
   lines <- readLines(meta)
   i <- grep("description: \"Example data", lines, fixed = TRUE)
+  expect_length(i, 1)
   lines[i] <- paste0("      description: ", expr_value(marker, "Example data"))
   writeLines(lines, meta)
 

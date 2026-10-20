@@ -200,8 +200,7 @@ add_data <- function(file, description, path = ".") {
     missing_class = "supplement_error_no_data_list",
     hand = hand
   )
-  text <- paste(sub("\r$", "", edit$read$lines), collapse = "\n")
-  doc <- yaml_load_list(text)
+  doc <- yaml_load_list(yaml_lines_text(edit$read$lines))
   files <- vapply(yaml_get(doc, data_path), function(x) {
     f <- if (is_map(x)) x[["file"]]
     if (is.character(f) && length(f) == 1) sub("^(\\./)+", "", f) else NA_character_

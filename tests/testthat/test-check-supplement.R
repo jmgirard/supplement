@@ -310,7 +310,10 @@ test_that("reading CITATION.cff runs no !expr code", {
   marker <- expr_marker()
   writeLines(paste("doi:", expr_value(marker, "10.5281/zenodo.1")), file.path(site, "CITATION.cff"))
 
-  expect_no_error(check_quiet(site))
+  # The value is read as the text of its code, which is not a DOI.
+  expect_no_error(rows <- rows_of(check_quiet(site), "doi-mismatch"))
+  expect_identical(rows$file, "CITATION.cff")
+  expect_match(rows$problem, "not a DOI", fixed = TRUE)
   expect_false(file.exists(marker))
 })
 

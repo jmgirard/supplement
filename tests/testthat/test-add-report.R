@@ -397,6 +397,6 @@ test_that("finding the Analyses menu runs no !expr code", {
   lines[i] <- paste0("        text: ", expr_value(marker, "Home"))
   writeLines(lines, quarto)
 
-  expect_message(add_report("models", "Models", path = site))
+  expect_message(add_report("models", "Models", path = site), "added it to the Analyses menu")
   expect_false(file.exists(marker))
 })

@@ -72,3 +72,22 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 - AC3 evidence (2026-10-20): the last bullet under 0.0.0.9000 in NEWS.md reads "Package functions read YAML files without running `!expr` code, also when `options(yaml.eval.expr = TRUE)` is set. Such a value is read as the text of its R code."
 - AC4 evidence, local part (2026-10-20): fresh `devtools::test()` 277 tests, 0 failed, 0 errors, 7 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow part is recorded at the PR; the box stays open until then.
 - Consistency gate (2026-10-20): `cairn_validate.py` all checks passed; `devtools::document()` gives no diff; no README.Rmd and no `_pkgdown.yml`; NEWS.md has the entry; no new top-level file; full check as in AC4.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the add_data test has no `expect_length(i, 1)` guard, so a changed template line makes it pass with no `!expr` — fix now.
+- diff-bug #2: a quote in the temp path breaks the value, and two tests then pass on main — fix now (`expr_marker()` checks for quotes).
+- diff-bug #3: the add_report test's `expect_message()` has no pattern — fix now ("added it to the Analyses menu").
+- diff-bug #4: the CITATION test does not show that `check_cff_doi()` read the file — fix now (asserts the `doi-mismatch` row and "not a DOI").
+- diff-bug #5: DESIGN.md does not state the `eval.expr = FALSE` rule — fix now (Architecture paragraph on `R/yaml-insert.R`).
+- diff-bug #6: `yaml_scalar("[a]")` gives "a", so `text: [Analyses]` matches — follow-up, new row "Match menu items only on plain text" (it was there before M025).
+- diff-bug #7: yaml in Imports has no floor though the code needs `eval.expr` — follow-up, absorbed into the row "Keep tests within the Suggests floors" (there before M025).
+- blame-history #1: `R/add-data.R:203-204` parsed the text with no final line break, unlike `yaml_lines_text()` (M016) — fix now (the line this diff changed now calls `yaml_lines_text()`).
+- blame-history #2: the `eval.expr = FALSE` setting is in two places, and NEWS does not name the menu lookup — reject (planned change): NEWS covers every package read; one place is the follow-up row of diff-bug #6, because that route changes what the lookup matches.
+- prior-review #1: `yaml_scalar()` reads a one-item flow sequence as text, against the M005 sequence rule — follow-up, same row as diff-bug #6.
+- prior-review #2: `yaml_scalar()` repeats the setting in place of `yaml_load_list()`, against the M024 reuse fix — reject (planned change), as blame-history #2.
+- ripple #1: the candidate row "Read YAML without running R code" describes the gap this diff closes — reject (planned change): post-merge hygiene removes the row.
+- ripple #2: the M005 lesson tells readers to pass the sequence handler with no `eval.expr` — fix now (lesson corrected in place, pointing at `yaml_load_list()`).
+- ripple #3: DESIGN.md Known issue "Release write order remainder" says the release parses with `yaml.load()` — reject (false): the reviewer found it still accurate, and it is about line breaks.
+- ripple #4: DESIGN.md says readers of `_supplement.yml` call `yaml_read_file_text()`, but `add_data()` parses again with `yaml_load_list()` — reject (false): that second parse reads text the first read already parsed, so the error-class claim still holds.
+- ripple #5: the M024 lesson states the rule the diff applies — reject (false), no conflict.
+- ripple #6: test-only YAML reads omit `eval.expr = FALSE` — reject (planned change): Scope covers package code, and no test that sets the option calls them.
+- 2026-10-20: after the fixes, `devtools::test()` 277 tests, 0 failed, 0 errors, 7 skipped.
