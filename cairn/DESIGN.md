@@ -85,6 +85,9 @@ package's error into `supplement_error_parse`, which names the file and
 gives the parser's message. `read_supplement()`, the release read, and
 `append_item()` call it, so every function that reads `_supplement.yml`
 or `_quarto.yml` gives that class for a file that does not parse.
+Every YAML parse in `R/` goes through `yaml_load_list()` or
+`yaml_scalar()`, and both pass `eval.expr = FALSE`, so no read runs
+`!expr` code under `options(yaml.eval.expr = TRUE)` (M025).
 `R/add-utils.R` holds the checks the two share.
 `R/check-supplement.R`: `check_supplement()` changes no file and returns
 its problems as a data frame (`check`, `file`, `problem`), with a

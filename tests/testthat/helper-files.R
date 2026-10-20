@@ -70,6 +70,22 @@ new_site <- function(env = parent.frame()) {
   site
 }
 
+# A path for a marker file in a new temporary folder, with `/` between
+# its parts, so that it can go in a double-quoted YAML string on Windows.
+expr_marker <- function(env = parent.frame()) {
+  dir <- withr::local_tempdir("expr-", .local_envir = env)
+  marker <- file.path(normalizePath(dir, winslash = "/"), "ran")
+  # A quote in the path would break the value that expr_value() writes, and
+  # a test would then pass without reaching the `!expr` code.
+  expect_false(grepl("['\"]", marker))
+  marker
+}
+
+# A YAML `!expr` value. Run as code, it makes `marker` and gives `text`.
+expr_value <- function(marker, text) {
+  sprintf("!expr \"c(file.create('%s'), '%s')[2]\"", marker, text)
+}
+
 # Values that YAML can read as something other than the text, or that
 # need escapes in a double-quoted string.
 probe_values <- c(
