@@ -21,9 +21,9 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 
 ## Acceptance criteria
 
-- [ ] AC1: Each call in `R/` to `yaml::yaml.load()`, `yaml::yaml.load_file()`, or `yaml::read_yaml()` passes `eval.expr = FALSE`. The calls are the ones that `grep -nE 'yaml\.load|read_yaml' R/*.R` finds, each read to its closing parenthesis, comments left out.
-- [ ] AC2: Three tests set `withr::local_options(yaml.eval.expr = TRUE)` and write a `!expr` value whose code, if run, makes a marker file. Each test checks that the call completes and that the marker file does not exist after it. The value is in `_supplement.yml` for `add_data()`, in the `doi` of `CITATION.cff` for `check_supplement()`, and in the `text` of a navbar item before the Analyses item in `_quarto.yml` for `add_report()`.
-- [ ] AC3: `NEWS.md` says that package functions read YAML files without running `!expr` code, also when `options(yaml.eval.expr = TRUE)` is set.
+- [x] AC1: Each call in `R/` to `yaml::yaml.load()`, `yaml::yaml.load_file()`, or `yaml::read_yaml()` passes `eval.expr = FALSE`. The calls are the ones that `grep -nE 'yaml\.load|read_yaml' R/*.R` finds, each read to its closing parenthesis, comments left out.
+- [x] AC2: Three tests set `withr::local_options(yaml.eval.expr = TRUE)` and write a `!expr` value whose code, if run, makes a marker file. Each test checks that the call completes and that the marker file does not exist after it. The value is in `_supplement.yml` for `add_data()`, in the `doi` of `CITATION.cff` for `check_supplement()`, and in the `text` of a navbar item before the Analyses item in `_quarto.yml` for `add_report()`.
+- [x] AC3: `NEWS.md` says that package functions read YAML files without running `!expr` code, also when `options(yaml.eval.expr = TRUE)` is set.
 - [ ] AC4: `devtools::test()` passes with no failures, and `devtools::check()` gives 0 errors and 0 warnings. The R-CMD-check workflow passes on Windows, macOS, and Ubuntu.
 
 ## Coverage
@@ -65,3 +65,10 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 ## Decisions
 
 ## Review
+
+- 2026-10-20: sync: `origin/main` is bca59f7, the branch's base; no merge needed.
+- AC1 evidence (2026-10-20): `grep -nE 'yaml\.load|read_yaml' R/*.R` gives 3 lines: `R/supplement-yml.R:34` (a comment), `R/yaml-insert.R:176` (`yaml_load_list()`, `eval.expr = FALSE`), and `R/yaml-insert.R:427` (`yaml_scalar()`, `eval.expr = FALSE`). Each call is on one line, so its closing parenthesis is on the line the grep shows.
+- AC2 evidence (2026-10-20): fresh `devtools::test()`: "reading _supplement.yml runs no !expr code" (test-add-data.R, 2 expectations), "finding the Analyses menu runs no !expr code" (test-add-report.R, 3), and "reading CITATION.cff runs no !expr code" (test-check-supplement.R, 2) pass with 0 failed. Each sets `yaml.eval.expr = TRUE`, checks that the call completes, and checks that the marker file is absent. On main's R code each failed on the marker (work log, T1), and the claim audit saw each fail without `eval.expr = FALSE`.
+- AC3 evidence (2026-10-20): the last bullet under 0.0.0.9000 in NEWS.md reads "Package functions read YAML files without running `!expr` code, also when `options(yaml.eval.expr = TRUE)` is set. Such a value is read as the text of its R code."
+- AC4 evidence, local part (2026-10-20): fresh `devtools::test()` 277 tests, 0 failed, 0 errors, 7 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow part is recorded at the PR; the box stays open until then.
+- Consistency gate (2026-10-20): `cairn_validate.py` all checks passed; `devtools::document()` gives no diff; no README.Rmd and no `_pkgdown.yml`; NEWS.md has the entry; no new top-level file; full check as in AC4.
