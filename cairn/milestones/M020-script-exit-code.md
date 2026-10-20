@@ -67,11 +67,11 @@ When a project script fails during a template test's render, the test log shows 
 - AC2: waits for the PR's CI run; checked before the merge from the Windows job's result and skip list.
 - Gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; no README.Rmd or `_pkgdown.yml`; no new top-level file; no NEWS.md entry (tests only); `devtools::check()` 0 errors, 0 warnings, 0 notes after the fix-now changes.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: the code-line match was a substring of the joined output, so "code: 30" would also match — fix now (exact line with `expect_contains()`).
+- diff-bug #1: the code-line match was a substring of the joined output, so "code: 30" would also match — fix now (exact line with `expect_contains()`), fixed c43871d.
 - diff-bug #2: `quarto inspect` output in `run_in()` now holds debug lines before the JSON — reject, planned change: the inspect test's regex matches pass (AC3 evidence), and no test parses that output.
-- diff-bug #3: the helper comment said debug lines go to standard error, which `run_in()` merges into `output` — fix now (comment says the lines are in `output` and a match must allow for them).
-- diff-bug #4: a caller's own `QUARTO_LOG_LEVEL` was overridden — fix now (`run_in()` sets the variable only when it is unset; DESIGN.md says so).
-- diff-bug #5: `identical(command, "quarto")` missed a full path or `quarto.exe` — fix now (compares the base name without `.exe`).
+- diff-bug #3: the helper comment said debug lines go to standard error, which `run_in()` merges into `output` — fix now (comment says the lines are in `output` and a match must allow for them), fixed c43871d.
+- diff-bug #4: a caller's own `QUARTO_LOG_LEVEL` was overridden — fix now (`run_in()` sets the variable only when it is unset; DESIGN.md says so), fixed c43871d.
+- diff-bug #5: `identical(command, "quarto")` missed a full path or `quarto.exe` — fix now (compares the base name without `.exe`), fixed c43871d.
 - diff-bug #6: each failed quarto check now prints about 317 debug lines — reject, planned change (Scope In).
 - diff-bug #7: the criteria boxes were unticked and AC2 unproven — reject, false at review: review ticks each box against its evidence, and AC2 waits on PR CI.
 - blame-history #1: the AC1 test matches a Quarto log line that a Quarto upgrade can change — reject, planned change: AC1 names that line, and CI pins Quarto 1.10 (D-016).
