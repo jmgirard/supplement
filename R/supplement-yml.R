@@ -338,7 +338,8 @@ is_reparse_point <- function(paths) {
     # A drive root keeps its separator ("D:/"), so drop it before the join.
     folder <- sub("/+$", "", normalizePath(parent, winslash = "/", mustWork = FALSE))
     expected <- paste0(folder, "/", names[i])
-    found[i] <- missing | tolower(resolved) != tolower(expected)
+    # A resolved path or a parent can still be invalid UTF-8.
+    found[i] <- missing | utf8_lower(resolved) != utf8_lower(expected)
   }
   found
 }

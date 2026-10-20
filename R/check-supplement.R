@@ -25,16 +25,16 @@
 #'   that start with `.`) included. A symbolic link to a folder, or on
 #'   Windows a junction, is not entered. A page in a folder that such a
 #'   link points to is read once, at its own path, when the folder is in
-#'   `docs/`. A symbolic
-#'   link in `docs/` to a page file in `docs/` is read as a page of its own.
-#'   A symbolic link or junction in `docs/` whose target exists outside
-#'   `docs/` gives a row of its own, because the published site does not
-#'   have its target. A page that it points to, or a page in a folder that
-#'   it points to, is not read. A link
-#'   on a page whose path passes through or ends at such a link also counts.
-#'   For a link to a folder, the folder's `index.html` is part of that path.
-#'   A symbolic link or junction whose target is `docs/` or a place in it
-#'   gives no row of its own. Links
+#'   `docs/`. A symbolic link in `docs/` to a page file in `docs/` is read
+#'   as a page of its own. A symbolic link or junction in `docs/` whose
+#'   target exists and resolves to a place outside `docs/` gives a row of
+#'   its own, because the published site does not have its target. So a
+#'   link to such a link also gives a row. A page that it points to, or a
+#'   page in a folder that it points to, is not read. A link on a page whose
+#'   path passes through or ends at such a link also counts. For a link to
+#'   a folder, the folder's `index.html` is part of that path. A symbolic
+#'   link or junction that resolves to `docs/` or a place in it gives no row
+#'   of its own. Links
 #'   that start with `/`, `#`, or a scheme such as
 #'   `https:` are not checked, and no web address is requested. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
@@ -341,7 +341,12 @@ check_links <- function(path) {
   html <- grepl("\\.html$", entries$files, useBytes = TRUE)
   # The walk lists a folder's files before its subfolders, so sort the
   # pages by path, in byte order, which does not depend on the locale.
-  pages <- sort(entries$files[html & !(entries$files %in% outside)], method = "radix")
+  # The radix sort stops on a name with no encoding mark that is not valid
+  # UTF-8, so the sort keys are marked as bytes.
+  pages <- entries$files[html & !(entries$files %in% outside)]
+  keys <- pages
+  Encoding(keys) <- "bytes"
+  pages <- pages[order(keys, method = "radix")]
   rows <- lapply(pages, function(page) {
     links <- page_links(file.path(docs, page))
     if (is.null(links)) {
@@ -365,6 +370,9 @@ check_links <- function(path) {
       sprintf("The page links to a file that is not in the site: `%s`", broken)
     )
   })
+  keys <- outside
+  Encoding(keys) <- "bytes"
+  outside <- outside[order(keys, method = "radix")]
   outside_rows <- problem_rows(
     "broken-link", file.path("docs", outside),
     rep_len("It is a link to a place outside docs/, so the published site does not have its target.",

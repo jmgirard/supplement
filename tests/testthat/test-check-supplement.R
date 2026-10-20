@@ -550,7 +550,9 @@ test_that("a link in docs to a place outside docs gives one row", {
   writeLines("secret", file.path(outside, "secret.txt"))
   # The page that docs/out.html points to is not read.
   writeLines('<a href="gone-out.csv">x</a>', file.path(outside, "out.html"))
+  # Nor is a page in the folder that docs/ext points to.
   dir.create(file.path(outside, "folder"))
+  writeLines('<a href="gone-ext.csv">x</a>', file.path(outside, "folder", "page.html"))
   touch(file.path(docs, "data", "ok.csv"))
   symlink_or_skip(file.path(site, "_supplement.yml"), file.path(docs, "meta.yml"))
   symlink_or_skip(file.path(outside, "secret.txt"), file.path(docs, "secret.txt"))
@@ -603,6 +605,17 @@ test_that("a page link to a folder whose index.html is a link outside docs gives
   )))
 })
 
+test_that("a page name that is not valid UTF-8 does not stop the link check", {
+  site <- new_site()
+  write_page(site, "index.html", '<a href="gone.csv">x</a>')
+  # "caf<e9>.html" sorts before "index.html" in byte order.
+  bad <- rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9, 0x2e, 0x68, 0x74, 0x6d, 0x6c)))
+  made <- suppressWarnings(file.create(file.path(site, "docs", bad)))
+  skip_if_not(made && length(list.files(file.path(site, "docs"))) == 2,
+              "this file system cannot hold a name that is not valid UTF-8")
+  expect_identical(link_rows(site), page_row("index.html", "gone.csv"))
+})
+
 test_that("relative link targets and links in hidden folders are judged by where they resolve", {
   # A relative target written with `/` is not tested on Windows.
   skip_on_os("windows")
@@ -628,10 +641,14 @@ test_that("the Windows link test gives the rules' answer for each path of a fold
   symlink_or_skip(file.path(outside, "target.txt"), file.path(dir, "file-link"))
   symlink_or_skip(outside, file.path(dir, "folder-link"))
   symlink_or_skip(file.path(outside, "missing.txt"), file.path(dir, "dangling"))
-  names <- c("file.txt", "folder", "file-link", "folder-link", "dangling", "not-there", "sub/deep.txt", "folder/")
+  names <- c("file.txt", "folder", "file-link", "folder-link", "dangling", "not-there", "sub/deep.txt", "folder/",
+             "FILE.TXT", "FILE-LINK")
+  # On a disk that ignores letter case, the folder lists "FILE-LINK" only
+  # in another case, and it still counts as a link.
+  ignores_case <- file.exists(file.path(dir, "FILE.TXT"))
   expect_identical(
     is_reparse_point(file.path(dir, names)),
-    c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE)
+    c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, ignores_case)
   )
   expect_identical(is_reparse_point(character()), logical())
 })

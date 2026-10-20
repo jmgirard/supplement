@@ -108,8 +108,8 @@ finds:
 - DOIs in `CITATION.cff` or on the home page that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
 
-It checks only relative links, which point inside the site. It does not
-check links that start with `/` and requests no web address. For the
+On pages, it checks only relative links, which point inside the site. It
+does not check links that start with `/` and requests no web address. For the
 file size and saved object checks, it reads the file list from git. When
 git cannot run or the folder is not in a git work tree, it skips those two
 checks and says so.

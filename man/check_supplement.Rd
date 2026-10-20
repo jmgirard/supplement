@@ -43,16 +43,16 @@ in every folder of \verb{docs/} are read, hidden files and folders (names
 that start with \code{.}) included. A symbolic link to a folder, or on
 Windows a junction, is not entered. A page in a folder that such a
 link points to is read once, at its own path, when the folder is in
-\verb{docs/}. A symbolic
-link in \verb{docs/} to a page file in \verb{docs/} is read as a page of its own.
-A symbolic link or junction in \verb{docs/} whose target exists outside
-\verb{docs/} gives a row of its own, because the published site does not
-have its target. A page that it points to, or a page in a folder that
-it points to, is not read. A link
-on a page whose path passes through or ends at such a link also counts.
-For a link to a folder, the folder's \code{index.html} is part of that path.
-A symbolic link or junction whose target is \verb{docs/} or a place in it
-gives no row of its own. Links
+\verb{docs/}. A symbolic link in \verb{docs/} to a page file in \verb{docs/} is read
+as a page of its own. A symbolic link or junction in \verb{docs/} whose
+target exists and resolves to a place outside \verb{docs/} gives a row of
+its own, because the published site does not have its target. So a
+link to such a link also gives a row. A page that it points to, or a
+page in a folder that it points to, is not read. A link on a page whose
+path passes through or ends at such a link also counts. For a link to
+a folder, the folder's \code{index.html} is part of that path. A symbolic
+link or junction that resolves to \verb{docs/} or a place in it gives no row
+of its own. Links
 that start with \code{/}, \verb{#}, or a scheme such as
 \verb{https:} are not checked, and no web address is requested. GitHub
 Pages matches letter case, so a link whose case differs from the file
