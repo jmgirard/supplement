@@ -61,6 +61,7 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 - 2026-10-20: T4: `devtools::document()` gives no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR.
 - 2026-10-20: claim audit: 9 claims read, 1 corrected — NEWS.md ("read as its text" became "read as the text of its R code"; the reader found the old words could mean the value the code gives). The reader also ran the four `!expr` tests against in-memory copies of `yaml_load_list()` and `yaml_scalar()` without `eval.expr = FALSE`, and each failed.
 - 2026-10-20: implement done; status set to review.
+- 2026-10-20: step-7 approval: m025-yaml-no-expr approved for merge
 
 ## Decisions
 
