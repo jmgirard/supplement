@@ -91,3 +91,4 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 - ripple #5: the M024 lesson states the rule the diff applies — reject (false), no conflict.
 - ripple #6: test-only YAML reads omit `eval.expr = FALSE` — reject (planned change): Scope covers package code, and no test that sets the option calls them.
 - 2026-10-20: after the fixes, `devtools::test()` 277 tests, 0 failed, 0 errors, 7 skipped.
+- 2026-10-20: the 7 fix-now items (diff-bug #1 to #5, blame-history #1, ripple #2), fixed 6117ed2; `devtools::check()` after them 0 errors, 0 warnings, 0 notes. Totals: 17 findings, 7 fixed, 3 follow-up, 7 rejected.
