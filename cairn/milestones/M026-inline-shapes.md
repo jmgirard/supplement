@@ -1,13 +1,13 @@
 # M026: check_supplement() finds code of any engine and more inline shapes
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — an exported check whose rows stop `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m026-inline-shapes
 
 ## Goal
 
@@ -39,7 +39,7 @@
 
 ## Tasks
 
-- [ ] T1: Probe Quarto 1.10.19 for the AC1, AC2, and AC4 shapes not probed at plan: render each report by name in a scratch site with `freeze: true` and record in the work log which ones start an engine (LESSONS M024). Read the engine choice in `/Applications/quarto/bin/quarto.js` (`languagesWithClasses()` at line 31721 and its callers) to confirm that only `ojs`, `mermaid`, and `dot` start no engine. A probe that refutes a criterion goes to the amendment protocol.
+- [x] T1: Probe Quarto 1.10.19 for the AC1, AC2, and AC4 shapes not probed at plan: render each report by name in a scratch site with `freeze: true` and record in the work log which ones start an engine (LESSONS M024). Read the engine choice in `/Applications/quarto/bin/quarto.js` (`languagesWithClasses()` at line 31721 and its callers) to confirm that only `ojs`, `mermaid`, and `dot` start no engine. A probe that refutes a criterion goes to the amendment protocol.
 - [ ] T2: In `tests/testthat/test-check-supplement.R`, next to the test "chunk starts in more shapes give a no-stored-output row" (line 240), add the AC1 to AC4 reports. Change the M024 cases that this milestone turns: `{rust}` and `{Rcpp}` now give a row (`rust-block` at line 219, and lines 315–316), and so does `r#` inline code (line 287). Write the nul byte with `writeBin()`. Run the new row cases against the code on main and record that each fails there (LESSONS M010).
 - [ ] T3: In `R/check-supplement.R`, replace `chunk_start` (line 315) with the code rule, with the three names spelled as `[Oo][Jj][Ss]` and so on (LESSONS M021), and widen the inline pattern at line 359. Replace the `readLines()` call at line 356, which reads a file with a nul byte as empty, with a read that keeps the other lines.
 - [ ] T4: Edit the roxygen item for `"no-stored-output"` and run `devtools::document()`. Edit the existing `NEWS.md` bullet for `check_supplement()`. Read `inst/template/_README.md` line 145 and edit it where it no longer holds.
@@ -58,6 +58,9 @@
 - 2026-10-20: plan gate chose Quarto's chunk scan with three names left out over a list of knitr engine names, because Quarto picks the engine and starts Jupyter for any other name; falsified by a Quarto version that starts no engine for a name the rule counts.
 - 2026-10-20: changelog: the existing 0.0.0.9000 bullet for `check_supplement()` gets the change, with no new bullet.
 - 2026-10-20: criteria audit (full mode, fresh Opus reader): 5 findings, all taken. AC1 defines the name as the longest ASCII run, leaves out only a whole `ojs`, `mermaid`, or `dot`, notes Quarto's wider white space, and adds `{dotnet}` and `{ojsx}`; AC2 adds `{mermaid label}`. AC1 and AC3 test one report per shape. AC4 states the nul and line-end rule and adds a nul on the chunk line and a CR LF `{bash}` report. T2 names `rust-block` at line 219. AC5 and AC6 had no finding.
+- 2026-10-20: implement started; branch m026-inline-shapes cut from main at 1095994.
+- 2026-10-20: T1 probes on Quarto 1.10.19, `freeze: true`, render by name, no Jupyter installed: `{Rcpp}`, `{rust}`, `{dotnet}`, `{ojsx}`, a CR LF `{bash}` report, and a CR-only `{bash}` report start Jupyter; `{mermaid label}`, `{.r}`, `{=html}`, `{{r}}`, `{1r}`, and `{r} x` start no engine. A nul on another line, and a nul between `r` and `}` of `{r}`, run knitr and write `execute-results/html.json`; a nul after the `}` or before the backticks of the only chunk line starts no engine.
+- 2026-10-20: T1 code read: `markdownExecutionEngine()` (`quarto.js:77266`) launches knitr for `r`, julia for `julia`, and Jupyter for any other scanned name except `ojs` and the cell handlers `languages()` lists (`mermaid` at 132330, `dot` at 132692); the scan lowercases the name (31727). This confirms AC1 and AC2. The nul-after-`}` probe refutes AC4's "drops each nul" rule, so AC4 goes to the amendment protocol.
 
 ## Decisions
 
