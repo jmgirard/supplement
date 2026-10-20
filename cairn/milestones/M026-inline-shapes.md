@@ -73,6 +73,7 @@
 - 2026-10-20: claim audit: 22 claims read, 3 corrected — R/check-supplement.R, man/check_supplement.Rd, tests/testthat/test-check-supplement.R. The help's white-space limit now names where Quarto reads other white space, text that runs across lines, and U+2028/U+2029; a test comment no longer says knitr runs every listed engine (knitr 1.52 knows bash, sql, and Rcpp of them); a test comment no longer says Quarto draws ojs. The reader re-read all three: hold.
 - 2026-10-20: open note: Quarto's inline pattern also takes a tab after `{r}` (the claim reader's finding); AC3 names a space, so the check does not count `{r}` and a tab.
 - 2026-10-20: all tasks done; status set to review.
+- 2026-10-20: step-7 approval: m026-inline-shapes approved for merge
 
 ## Decisions
 
