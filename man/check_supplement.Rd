@@ -36,7 +36,8 @@ full render then runs its code, which needs the data. A report has
 code when a line starts an R, Python, or Julia code chunk: any mix of
 spaces, tabs, and \code{>} characters, three or more backticks, optional
 spaces or tabs, then \verb{\{r}, \verb{\{python}, or \verb{\{julia} in any letter case.
-A space, a comma, or \verb{\}} follows the name, and the line ends with \verb{\}}.
+A space, a comma, or \verb{\}} follows the name, and the line ends with \verb{\}}
+and optional spaces or tabs.
 A report with no chunk also has code when it has inline R code on
 one line (a backtick, \code{r}, a space, text, and a backtick) and the
 top-level \code{engine} in its own front matter is \code{knitr}. Inline code

@@ -18,7 +18,8 @@
 #'   code when a line starts an R, Python, or Julia code chunk: any mix of
 #'   spaces, tabs, and `>` characters, three or more backticks, optional
 #'   spaces or tabs, then `{r`, `{python`, or `{julia` in any letter case.
-#'   A space, a comma, or `}` follows the name, and the line ends with `}`.
+#'   A space, a comma, or `}` follows the name, and the line ends with `}`
+#'   and optional spaces or tabs.
 #'   A report with no chunk also has code when it has inline R code on
 #'   one line (a backtick, `r`, a space, text, and a backtick) and the
 #'   top-level `engine` in its own front matter is `knitr`. Inline code
@@ -318,9 +319,10 @@ chunk_start <- paste0(
 )
 
 # TRUE when the report's front matter is a YAML map whose top-level
-# `engine` is the text "knitr". Quarto finds front matter at a first `---`
+# `engine` is the text "knitr". The front matter starts at a first `---`
 # line that only blank lines come before and that a line that is not blank
-# follows. It ends at the next `---` or `...` line.
+# follows, and it ends at the next `---` or `...` line. Quarto also accepts
+# an indented first `---`; this check needs `---` at the start of its line.
 engine_is_knitr <- function(lines) {
   blank <- grepl("^[ \\t]*\\z", lines, perl = TRUE, useBytes = TRUE)
   first <- which(!blank)[1]
