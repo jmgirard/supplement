@@ -66,6 +66,7 @@
 - 2026-10-20: T3: the `"no-stored-output"` help item states the code rule, the inline rule, the limits, and what counts as stored output. The `check_supplement()` NEWS bullet names the new shapes. `README.md` line 100 and `inst/template/_README.md` line 145 say only "with code", which still holds, so they are unchanged. `devtools::document()` run.
 - 2026-10-20: T4: `devtools::check()` at 96d9a7d: 0 errors, 0 warnings, 0 notes. `devtools::test()` after the claim fixes: 0 failures, 4259 passes, 7 skips. The R-CMD-check workflow runs at the PR.
 - 2026-10-20: claim audit: 19 claims read, 2 corrected — R/check-supplement.R, man/check_supplement.Rd. The help item now says the line can end with spaces or tabs after `}`. The `engine_is_knitr()` comment now states the check's own rule and that Quarto also accepts an indented first `---`. The same reader re-read both corrections and found that both hold.
+- 2026-10-20: step-7 approval: m024-chunk-shapes approved for merge.
 
 ## Decisions
 
