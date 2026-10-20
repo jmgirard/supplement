@@ -37,9 +37,12 @@
 #'   runs to the next space or `>`. An attribute with no `=`, such as
 #'   `<a href>`, has an empty value and is not checked. A start tag that the
 #'   end of the page cuts off is not read, as a browser drops it. A page
-#'   whose markup goes past the limits of the PCRE pattern engine (such as
-#'   a comment of millions of `-` characters) counts as a page that cannot
-#'   be read. Each value is handled in this order:
+#'   whose markup goes past the limits of the PCRE pattern engine gives one
+#'   row that says so, in place of its link rows. Such a page holds
+#'   millions of `-` in one comment, millions of `<` in the text of one
+#'   script, style, textarea, or title element (about 5 million did, in a
+#'   page of 20 MB), or millions of attributes in one tag. Each value is
+#'   handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
 #'   dropped; links with a scheme, `/`, or `#` at the start are skipped;
@@ -324,6 +327,12 @@ check_links <- function(path) {
         "The page cannot be read, or it is a link to a missing file."
       ))
     }
+    if (isFALSE(links)) {
+      return(problem_rows(
+        "broken-link", file.path("docs", page),
+        "The link check cannot read this page: its markup goes past the limits of the PCRE pattern engine."
+      ))
+    }
     broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page)]
     problem_rows(
       "broken-link", rep_len(file.path("docs", page), length(broken)),
@@ -335,17 +344,17 @@ check_links <- function(path) {
 
 # The href, src, and xlink:href values on a page that point to a place
 # inside the site, each once, or NULL when the page cannot be read, such
-# as a link whose target is missing. A warning from tag_links(), such as
-# a PCRE match limit, which makes gsub() return its input unchanged,
-# also counts as a page that cannot be read.
+# as a link whose target is missing. It is FALSE after a warning from
+# tag_links(), such as a PCRE match limit, which makes gsub() return its
+# input unchanged.
 page_links <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
     return(NULL)
   }
-  links <- tryCatch(tag_links(html), warning = function(w) NULL)
-  if (is.null(links)) {
-    return(NULL)
+  links <- tryCatch(tag_links(html), warning = function(w) FALSE)
+  if (isFALSE(links)) {
+    return(FALSE)
   }
   values <- decode_refs(unique(links))
   # A browser trims spaces and control characters from the ends of a
@@ -363,10 +372,11 @@ page_links <- function(file) {
 # unquoted value runs to a space or `>`.
 # Every repeat in the html_* parts and in the `skipped` pattern of
 # tag_links() is possessive (`*+`, `++`), so PCRE never backtracks into it
-# and the time stays linear. A comment or script body of a few megabytes
-# stays under PCRE's match limit. A run of millions of `-` in a comment,
-# or millions of attributes in one tag, can still reach it; page_links()
-# then counts the page as unreadable.
+# and the time stays linear. PCRE's match limit counts the steps of one
+# match, so a comment that holds millions of `-`, a script, style,
+# textarea, or title body that holds millions of `<`, or one tag with
+# millions of attributes can still reach it (about 5 million `<` in one
+# script body did); page_links() then returns FALSE.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
   "[^\t\n\f\r />][^\t\n\f\r />=]*+",
@@ -379,6 +389,37 @@ html_attr <- paste0(
 html_tag_rest <- paste0("(?:[\t\n\f\r /]++|", html_attr, ")*+(?:>|\\z)")
 html_start_tag <- paste0("<[A-Za-z][^\t\n\f\r />]*+", html_tag_rest)
 
+# A pattern that matches `word` in any ASCII letter case, such as
+# `[Tt][Ii][Tt][Ll][Ee]`. PCRE's `(?i)` on bytes, and toupper() and
+# tolower(), follow the locale, where `i` and `I` need not pair (Turkish).
+ascii_any_case <- function(word) {
+  chars <- strsplit(word, "", fixed = TRUE)[[1]]
+  upper <- chartr("abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", chars)
+  paste0("[", upper, chars, "]", collapse = "")
+}
+
+ascii_lower <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", x)
+
+# One script, style, textarea, or title element: its start tag (kept, in a
+# capture group), then its text up to its end tag or the end of the page.
+html_raw_text <- function(name) {
+  name <- ascii_any_case(name)
+  end <- paste0("/", name, "(?=[\t\n\f\r />])")
+  paste0(
+    "(<", name, "(?=[\t\n\f\r />])", html_tag_rest, ")",
+    "[^<]*+(?:<(?!", end, ")[^<]*+)*+",
+    "(?:<", end, "[^>]*+(?:>|\\z))?+"
+  )
+}
+
+# Comments, `<!...>` and `<?...>` markup, the four raw-text elements (groups
+# 1 to 4 keep their start tags), and other start tags (group 5).
+html_skipped <- paste0(
+  "<!--[^-]*+(?:-(?!->)[^-]*+)*+(?:-->|\\z)|<[!?][^>]*+(?:>|\\z)|",
+  paste(vapply(c("script", "style", "textarea", "title"), html_raw_text, character(1)), collapse = "|"),
+  "|(", html_start_tag, ")"
+)
+
 # The raw values of the href, src, and xlink:href attributes in the start
 # tags of `html`. Comments, `<!...>` and `<?...>` markup, and the text of
 # script, style, textarea, and title elements are not read, as a browser
@@ -387,13 +428,6 @@ html_start_tag <- paste0("<[A-Za-z][^\t\n\f\r />]*+", html_tag_rest)
 # drops it. A quote that never closes is read as the start of an unquoted
 # value instead, so that tag ends at the next `>` and is read.
 tag_links <- function(html) {
-  skipped <- paste0(
-    "(?i)<!--[^-]*+(?:-(?!->)[^-]*+)*+(?:-->|\\z)|<[!?][^>]*+(?:>|\\z)",
-    "|(<(script|style|textarea|title)(?=[\t\n\f\r />])", html_tag_rest, ")",
-    "[^<]*+(?:<(?!/\\2(?=[\t\n\f\r />]))[^<]*+)*+",
-    "(?:</\\2(?=[\t\n\f\r />])[^>]*+(?:>|\\z))?+",
-    "|(", html_start_tag, ")"
-  )
   # The page is matched as bytes. Without useBytes, R turns the byte
   # offset of each match into a character offset when the text holds a
   # non-ASCII character, at a cost that grows with the offset, so a page
@@ -402,16 +436,20 @@ tag_links <- function(html) {
   # every delimiter in these patterns is ASCII. The results are marked
   # UTF-8 again, since strings marked "bytes" make file.path() and
   # sprintf() stop.
-  html <- gsub(skipped, "\\1\\3", html, perl = TRUE, useBytes = TRUE)
+  # Each kept start tag, and each removed part, is followed by a space, so
+  # a `<` in the text before a removed comment cannot join the text after
+  # it into a new tag.
+  html <- gsub(html_skipped, "\\1\\2\\3\\4\\5 ", html, perl = TRUE, useBytes = TRUE)
   Encoding(html) <- "UTF-8"
   tags <- regmatches(html, gregexpr(html_start_tag, html, perl = TRUE, useBytes = TRUE))[[1]]
   Encoding(tags) <- "UTF-8"
   # No unquoted value or name holds `>`, so a tag that ends with `>`
-  # closed before the end of the page.
-  tags <- tags[endsWith(tags, ">")]
+  # closed before the end of the page. Tags with no href or src are not
+  # parsed further.
+  tags <- tags[endsWith(tags, ">") & grepl("[Hh][Rr][Ee][Ff]|[Ss][Rr][Cc]", tags)]
   rests <- sub("^<[^\t\n\f\r />]*", "", tags)
   attrs <- unlist(regmatches(rests, gregexpr(html_attr, rests, perl = TRUE)))
-  attr_names <- tolower(sub("(?s)^([^=\t\n\f\r ]*).*", "\\1", attrs, perl = TRUE))
+  attr_names <- ascii_lower(sub("(?s)^([^=\t\n\f\r ]*).*", "\\1", attrs, perl = TRUE))
   links <- attrs[attr_names %in% c("href", "src", "xlink:href")]
   # An attribute with no `=`, such as `<a href>`, has an empty value.
   links <- links[grepl("=", links, fixed = TRUE)]

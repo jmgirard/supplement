@@ -140,3 +140,9 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - blame-history #3 (pass 2): `<<!-- c -->a href="gone.csv">` joins into a tag after the comment is removed; main did the same — follow-up, the same new row
 - blame-history #4 (pass 2): `</ foo <a href="gone.csv">` is not read as a bogus comment; main did the same — follow-up, the same new row
 - blame-history #5 (pass 2): the choice of a base R reader over an HTML parser package has no D-entry — fix now (D-017 added)
+- diff-bug #1 (pass 2): a raw-text body with about 5 million `<` (20 MB) reaches PCRE's match limit, so the page gets the unreadable row where main read it — follow-up, new candidate row "Read huge script bodies past PCRE limits"; the limit is stated in the help page and the code comment
+- diff-bug #2 (pass 2): a PCRE-limit page got the "cannot be read, or it is a link to a missing file" text — fix now (its own row text; `page_links()` returns FALSE)
+- diff-bug #3 (pass 2): removing a comment or `<?…?>` joined a text `<` to the text after it into a false tag — fix now (each removed or kept part is followed by a space; AC1 test shape `<p>a <<!-- c -->a href="gone-joined.csv">`, which a probe shows is read without the space); blame-history #3 is fixed with it and dropped from the "Close the link reader's browser gaps" row
+- diff-bug #4 (pass 2): the 30 s bound with 20,000 unclosed `<a ` did not catch the old pattern (11.2 s) — fix now (60,000 tags, 10 s bound)
+- diff-bug #5 (pass 2): tags with no link were parsed further, 2.05 s for 1.2M tags — fix now (prefilter on `href`/`src` text; 200,000 table rows read in 0.26 s)
+- diff-bug #6 (pass 2): `(?i)` on bytes and `tolower()` follow the locale's case tables (Turkish `i`) — fix now (explicit ASCII letter classes from `ascii_any_case()`, and `ascii_lower()` with `chartr()`)

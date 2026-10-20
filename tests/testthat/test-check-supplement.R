@@ -363,6 +363,8 @@ test_that("link-shaped text outside start tags gives no broken-link row", {
     '<a href="after-code.csv">x</a>',
     sprintf("<p>%s</p>", text),
     '<a href="after-p.csv">x</a>',
+    # A text `<` before a comment does not join the text after it.
+    '<p>a <<!-- c -->a href="gone-joined.csv">x</p>',
     '<script src="gone.js"></script>'
   ))
   expect_setequal(
@@ -455,7 +457,7 @@ test_that("large skipped text and unclosed markup give the stated rows", {
              file.path(site, "docs", "end-tag.html"))
   # Many tags that never close, which took time that grew with the square
   # of their count.
-  writeLines(c('<a href="before-5.csv">x</a>', strrep("<a ", 20000)),
+  writeLines(c('<a href="before-5.csv">x</a>', strrep("<a ", 60000)),
              file.path(site, "docs", "many-open.html"))
   time <- system.time(expect_warning(pairs <- broken_pairs(site), NA))[["elapsed"]]
   expect_setequal(pairs, c(
@@ -464,7 +466,9 @@ test_that("large skipped text and unclosed markup give the stated rows", {
     "docs/end-title.html `before-3.csv`", "docs/end-tag.html `before-4.csv`",
     "docs/many-open.html `before-5.csv`"
   ))
-  expect_lt(time, 30)
+  # 20,000 such tags took 11 s with the earlier pattern, so 60,000 would
+  # take about 100 s.
+  expect_lt(time, 10)
 })
 
 test_that("a long page with non-ASCII text is read in linear time", {
@@ -490,7 +494,7 @@ test_that("a page whose markup the reader cannot finish counts as unreadable", {
   })
   rows <- rows_of(check_quiet(site), "broken-link")
   expect_identical(rows$file, "docs/index.html")
-  expect_match(rows$problem, "cannot be read")
+  expect_match(rows$problem, "cannot read this page: its markup goes past the limits", fixed = TRUE)
 })
 
 test_that("DOIs that differ between files give a doi-mismatch row", {
