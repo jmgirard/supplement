@@ -318,7 +318,13 @@ check_links <- function(path) {
   if (!dir.exists(docs)) {
     return(problem_rows("not-rendered", "docs", "The site has no docs/ folder. Render the site."))
   }
-  pages <- list.files(docs, pattern = "\\.html$", recursive = TRUE)
+  entries <- docs_entries(docs)
+  outside <- outside_links(docs, entries$links)
+  # A page that a link outside docs/ points to is not in the published
+  # site, so it is not read.
+  # useBytes keeps a name that is not valid UTF-8 in the match.
+  html <- grepl("\\.html$", entries$files, useBytes = TRUE)
+  pages <- entries$files[html & !(entries$files %in% outside)]
   rows <- lapply(pages, function(page) {
     links <- page_links(file.path(docs, page))
     if (is.null(links)) {
@@ -333,13 +339,64 @@ check_links <- function(path) {
         "The link check cannot read this page: its markup goes past the limits of the PCRE pattern engine."
       ))
     }
-    broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page)]
+    broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page,
+                            has_links = length(entries$links) > 0)]
     problem_rows(
       "broken-link", rep_len(file.path("docs", page), length(broken)),
       sprintf("The page links to a file that is not in the site: `%s`", broken)
     )
   })
-  do.call(rbind, c(list(problem_rows()), rows))
+  outside_rows <- problem_rows(
+    "broken-link", file.path("docs", outside),
+    rep_len("It is a link to a place outside docs/, so the published site does not have its target.",
+            length(outside))
+  )
+  do.call(rbind, c(list(outside_rows), rows))
+}
+
+# The files in `docs`, hidden ones included, and its links (symbolic links,
+# and on Windows junctions), as paths relative to `docs`. A linked folder is
+# listed as a link and not entered, so a link loop is read once, and the
+# pages in a folder that a link inside docs/ points to are read at their
+# own path.
+docs_entries <- function(docs) {
+  files <- character()
+  links <- character()
+  queue <- ""
+  while (length(queue) > 0) {
+    rel <- queue[1]
+    queue <- queue[-1]
+    names <- list.files(if (nzchar(rel)) file.path(docs, rel) else docs, all.files = TRUE, no.. = TRUE)
+    paths <- if (nzchar(rel)) file.path(rel, names) else names
+    full <- file.path(docs, paths)
+    link <- is_link(full)
+    folder <- dir.exists(full)
+    links <- c(links, paths[link])
+    files <- c(files, paths[!folder])
+    queue <- c(queue, paths[folder & !link])
+  }
+  list(files = files, links = links)
+}
+
+# The links among `links` (paths relative to `docs`) whose target exists
+# and resolves to a place outside `docs`. A link whose target is missing is
+# left to the other link checks.
+outside_links <- function(docs, links) {
+  full <- file.path(docs, links)
+  links[file.exists(full) & !in_docs(full, docs)]
+}
+
+# TRUE for each path that resolves to `docs` or to a place under it. On
+# Windows, letter case is ignored, as in is_reparse_point().
+in_docs <- function(paths, docs) {
+  # A drive root keeps its separator ("D:/"), so drop it before the join.
+  root <- sub("/+$", "", normalizePath(docs, winslash = "/", mustWork = FALSE))
+  resolved <- normalizePath(paths, winslash = "/", mustWork = FALSE)
+  if (.Platform$OS.type == "windows") {
+    root <- tolower(root)
+    resolved <- tolower(resolved)
+  }
+  resolved == root | startsWith(resolved, paste0(root, "/"))
 }
 
 # The href, src, and xlink:href values on a page that point to a place
@@ -485,8 +542,10 @@ decode_refs <- function(x) {
 }
 
 # TRUE when a relative link on `page` (a path inside `docs`) reaches a file
-# in `docs`, or a folder there with an index.html.
-link_ok <- function(link, docs, page) {
+# in `docs`, or a folder there with an index.html, and no part of its path
+# resolves to a place outside `docs`. `has_links` is FALSE when `docs`
+# holds no link, so that no part can resolve outside it.
+link_ok <- function(link, docs, page, has_links = TRUE) {
   target <- sub("[?#].*$", "", link)
   if (!nzchar(target)) {
     return(TRUE)
@@ -510,6 +569,17 @@ link_ok <- function(link, docs, page) {
       kept <- kept[-length(kept)]
     } else {
       kept <- c(kept, part)
+    }
+  }
+  # A path that passes through or ends at a link to a place outside docs/
+  # is not in the published site. This also finds a link inside docs/ that
+  # a linked folder there leads to.
+  if (has_links && length(kept) > 0) {
+    prefixes <- file.path(docs, vapply(seq_along(kept), function(i) paste(kept[seq_len(i)], collapse = "/"),
+                                       character(1)))
+    present <- file.exists(prefixes)
+    if (!all(in_docs(prefixes[present], docs))) {
+      return(FALSE)
     }
   }
   if (dir.exists(file.path(docs, paste(kept, collapse = "/")))) {

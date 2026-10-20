@@ -40,7 +40,7 @@
 ## Tasks
 
 - [x] T1: In `tests/testthat/test-check-supplement.R`, add one test per criterion AC1 to AC5 with the listed shapes. Symbolic-link tests skip with a stated reason where `file.symlink()` returns FALSE (Windows without developer mode); the AC5 test makes junctions with `Sys.junction()` and skips off Windows. Each test asserts the exact set of (file, problem) rows. Run them before T2 and see each fail for the shape it targets.
-- [ ] T2: In `R/check-supplement.R`, list pages with a walk over `list.files(all.files = TRUE, no.. = TRUE)` that enters a folder only when `is_link()` is FALSE for it; collect each link it meets; compare each link's normalized target with `normalizePath(docs)` (a path equal to it, or one that starts with it plus `/`, is inside); give one row per link outside, and do not read an outside `.html` link as a page. In `link_ok()`, check each path part against those links, so a target that passes through or ends at an outside link is broken. Run `devtools::test()`.
+- [x] T2: In `R/check-supplement.R`, list pages with a walk over `list.files(all.files = TRUE, no.. = TRUE)` that enters a folder only when `is_link()` is FALSE for it; collect each link it meets; compare each link's normalized target with `normalizePath(docs)` (a path equal to it, or one that starts with it plus `/`, is inside); give one row per link outside, and do not read an outside `.html` link as a page. In `link_ok()`, check each path part against those links, so a target that passes through or ends at an outside link is broken. Run `devtools::test()`.
 - [ ] T3: Update the `broken-link` bullet in the roxygen block of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `cairn/DESIGN.md` Architecture text, and add the linked-`docs/` case to the "Release check edge cases" Known issues entry.
 - [ ] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings). The AC5 evidence is the AC5 test run (not skipped) in the Windows job of the `R-CMD-check` workflow on the milestone's pull request; at review, read that job's test output.
 
@@ -57,6 +57,7 @@
 - 2026-10-20: implement started; branch m022-link-pages cut from origin/main at fe04e4d.
 - 2026-10-20: T1: five tests added to test-check-supplement.R; run before T2 on the Mac, the AC1 to AC4 tests failed for their shapes (hidden pages unread, the loop repeated pages to many levels, out.html read as a page with no outside rows, no rows through outside links); the AC5 test skips off Windows, so its first run is the Windows CI job.
 - 2026-10-20: chose the AC3 row text "It is a link to a place outside docs/, so the published site does not have its target." and kept the existing page-link row text for AC4 rows.
+- 2026-10-20: T2: `docs_entries()` walks docs/ with a queue (hidden names included, linked folders listed and not entered), `outside_links()` and `in_docs()` compare normalized paths with `normalizePath(docs)` (case ignored on Windows, as in `is_reparse_point()`); `link_ok()` fails a link when any existing part of its path resolves outside docs/, which also covers a linked folder inside docs/ that leads to an outside link (checked in a scratch run), and skips that check when docs/ holds no link; outside rows come first in the result. `devtools::test()` clean on the Mac.
 
 ## Decisions
 
