@@ -25,10 +25,12 @@
 * `check_supplement()` lists the problems in a site before a release, and
   changes no file. It finds files larger than 100 MiB, and saved R
   objects that git tracks or does not ignore. It finds reports with code
-  and no stored output, and a missing `docs/` folder. A code chunk counts
-  in any letter case, with a space or tab before `{`, and inside a `>`
-  block quote. If the report's front matter sets `engine: knitr`, inline
-  R code also counts. It also finds
+  and no stored output, and a missing `docs/` folder. A code chunk of any
+  engine counts, such as `{bash}` or `{sql}`, but not `{ojs}`,
+  `{mermaid}`, or `{dot}`. It counts in any letter case, with a space or
+  tab before `{`, and inside a `>` block quote. If the report's front
+  matter sets `engine: knitr`, inline R code also counts: `r` and a space,
+  `r#`, or `{r}` and a space after the first backtick. It also finds
   relative links in `docs/` to files that are not in `docs/`, and
   pages there that cannot be read. It finds DOIs that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It returns
