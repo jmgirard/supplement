@@ -61,6 +61,7 @@
 - 2026-10-20: T4 done at 76780de: `devtools::test()` 4262 expectations, 0 failed, 7 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR.
 - 2026-10-20: claim audit: 20 claims read, 2 corrected — R/add-data.R (the `supplement_error_file_name` entry now names a leading `.` and `_` at both ends), tests/testthat/helper-files.R ("22 ASCII names"); a test comment in test-add-report.R reworded. After the fixes, `devtools::document()` rewrote `man/add_data.Rd`; the two test files pass (595 and 1325 expectations, 0 failed).
 - 2026-10-20: implement complete; status set to review.
+- 2026-10-20: step-7 approval: m023-windows-names approved for merge
 
 ## Decisions
 
