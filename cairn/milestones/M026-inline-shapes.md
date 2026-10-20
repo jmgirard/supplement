@@ -1,6 +1,6 @@
 # M026: check_supplement() finds code of any engine and more inline shapes
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -43,7 +43,7 @@
 - [x] T2: In `tests/testthat/test-check-supplement.R`, next to the test "chunk starts in more shapes give a no-stored-output row" (line 240), add the AC1 to AC4 reports. Change the M024 cases that this milestone turns: `{rust}` and `{Rcpp}` now give a row (`rust-block` at line 219, and lines 315–316), and so does `r#` inline code (line 287). Write the nul byte with `writeBin()`. Run the new row cases against the code on main and record that each fails there (LESSONS M010).
 - [x] T3: In `R/check-supplement.R`, replace `chunk_start` (line 315) with the code rule, with the three names spelled as `[Oo][Jj][Ss]` and so on (LESSONS M021), and widen the inline pattern at line 359. Replace the `readLines()` call at line 356, which reads a file with a nul byte as empty, with a read that keeps the other lines.
 - [x] T4: Edit the roxygen item for `"no-stored-output"` and run `devtools::document()`. Edit the existing `NEWS.md` bullet for `check_supplement()`. Read `inst/template/_README.md` line 145 and edit it where it no longer holds.
-- [ ] T5: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
+- [x] T5: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
 
@@ -69,6 +69,10 @@
 - 2026-10-20: verify: `devtools::test()` 279 tests, 0 failed, 0 errors, 7 skipped. Stop: AC4 wording goes to the user after its second re-audit.
 - 2026-10-20: substantive amendment: AC4 now reads each nul as a character that the code rule's literal parts do not match, in place of dropping it, and lists seven reports (four rows, three no rows); the user chose the proposed text at the stop. The tests and code of T2 and T3 already match it.
 - 2026-10-20: T4: the `"no-stored-output"` help item states the code rule, the inline rule, and the limits (one-line inline code, only the report's own top-level `engine: knitr`, chunks under `engine: markdown`, Quarto's wider white space, nul as no named character); inline examples stay in words because roxygen runs `` `r ...` `` spans. The NEWS bullet names any engine, the three left out, and the inline shapes. `inst/template/_README.md` line 145 ("reports directly in `analyses/` with code and no stored output") still holds, so it is unchanged.
+- 2026-10-20: T5: `devtools::test()` 279 tests, 0 failed, 0 errors, 7 skipped (at e427e57); `devtools::check()` 0 errors, 0 warnings, 0 notes (at 0d72975); after the claim fixes, which touch only comments and help text, the check-supplement tests pass again (39, 0 failed). The R-CMD-check workflow runs at the PR.
+- 2026-10-20: claim audit: 22 claims read, 3 corrected — R/check-supplement.R, man/check_supplement.Rd, tests/testthat/test-check-supplement.R. The help's white-space limit now names where Quarto reads other white space, text that runs across lines, and U+2028/U+2029; a test comment no longer says knitr runs every listed engine (knitr 1.52 knows bash, sql, and Rcpp of them); a test comment no longer says Quarto draws ojs. The reader re-read all three: hold.
+- 2026-10-20: open note: Quarto's inline pattern also takes a tab after `{r}` (the claim reader's finding); AC3 names a space, so the check does not count `{r}` and a tab.
+- 2026-10-20: all tasks done; status set to review.
 
 ## Decisions
 

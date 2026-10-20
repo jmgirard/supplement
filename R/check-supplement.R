@@ -24,8 +24,10 @@
 #'   count, because Quarto starts no engine for it. Every other name counts,
 #'   such as `{bash}` or `{sql}`, and so does a chunk in a report whose
 #'   front matter sets `engine: markdown`. Quarto also reads other white
-#'   space, line breaks included, where this rule reads spaces and tabs,
-#'   and such chunk starts are not found. A nul byte in a report counts as
+#'   space, line breaks included, between the backticks and `{` and after
+#'   `}`. It lets the text after the name run across lines, and it starts
+#'   a line after U+2028 or U+2029. Such chunk starts are not found.
+#'   A nul byte in a report counts as
 #'   a character that is none of those this rule names.
 #'   A report with no chunk also has code when it has inline R code on
 #'   one line and the top-level `engine` in its own front matter is

@@ -269,8 +269,9 @@ test_that("chunk starts in more shapes give a no-stored-output row", {
 
 test_that("chunks of any engine give a no-stored-output row", {
   site <- new_site()
-  # Quarto starts Jupyter for a chunk name that no engine claims, and knitr
-  # runs the same chunk under engine: knitr.
+  # Quarto starts Jupyter for a chunk name that no engine claims. Under
+  # engine: knitr, knitr runs only engines it knows, such as bash, sql, or
+  # Rcpp.
   names <- c("bash", "sql", "html", "include", "Rcpp", "rust", "my_eng2", "dotnet", "ojsx")
   for (name in names) {
     report_lines(site, paste0("engine-", name),
@@ -373,7 +374,7 @@ test_that("code blocks that are not chunks give no no-stored-output row", {
   block("text-after-brace", "```{r} x")
   block("raw-html", "```{=html}")
   block("digit-first", "```{1r}")
-  # Quarto draws these itself and starts no engine for them.
+  # Quarto starts no engine for these.
   block("mermaid", "```{mermaid}")
   block("mermaid-upper", "```{Mermaid}")
   block("mermaid-label", "```{mermaid label}")

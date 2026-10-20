@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-20 (M025 done and archived; "Read YAML without runn
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M026 | check_supplement() finds code of any engine and more inline shapes | in-progress | — | normal | milestones/M026-inline-shapes.md |
+| M026 | check_supplement() finds code of any engine and more inline shapes | review | — | normal | milestones/M026-inline-shapes.md |
 | M027 | check_supplement() finds stored output older than its report | planned | — | normal | milestones/M027-stale-output.md |
 | M025 | Package functions read YAML without running R code | done | — | normal | milestones/archive/M025-yaml-no-expr.md |
 | M024 | check_supplement() finds code chunks in more shapes | done | — | normal | milestones/archive/M024-chunk-shapes.md |
