@@ -1,13 +1,13 @@
 # M024: check_supplement() finds code chunks in more shapes
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — an exported check whose rows stop `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m024-chunk-shapes
 
 ## Goal
 
@@ -39,7 +39,7 @@
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-check-supplement.R`, next to the test "reports with code but no stored output give a no-stored-output row" (line 210), add the AC1 to AC4 reports. Write tabs with `"\t"` in R strings. Run the new row cases against the code on main and record that each fails there.
+- [x] T1: In `tests/testthat/test-check-supplement.R`, next to the test "reports with code but no stored output give a no-stored-output row" (line 210), add the AC1 to AC4 reports. Write tabs with `"\t"` in R strings. Run the new row cases against the code on main and record that each fails there.
 - [ ] T2: In `check_stored_output()` (`R/check-supplement.R:299`), replace the regex at line 313 with the code rule. Spell the engine names as `[Rr]` and so on, because `(?i)` with `useBytes` follows the locale (LESSONS M021). Add the inline rule with a small front matter reader. Parse with `yaml::yaml.load()` inside `tryCatch()` and `suppressWarnings()` (LESSONS M008, M005). Check that the result is a named list before reading `engine`.
 - [ ] T3: Edit the roxygen item for `"no-stored-output"` and run `devtools::document()`. Edit the existing `NEWS.md` bullet for `check_supplement()`, because version 0.0.0.9000 is not released. Read `README.md` line 100 and `inst/template/_README.md` line 145, and edit each one where it no longer holds.
 - [ ] T4: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
@@ -60,6 +60,8 @@
 - 2026-10-20: plan gate chose a code rule that follows knitr's and Quarto's chunk-start patterns over the old rule plus three listed fixes, because the release check exists to predict what a render runs; falsified by a Quarto version whose chunk scan differs from knitr's pattern.
 - 2026-10-20: plan gate chose to read only a top-level `engine: knitr` (user answer) over counting any inline R code, because a plain report runs no inline code and a false row stops a release; falsified by a common site setup that turns on knitr with no chunk and no `engine` key.
 - 2026-10-20: changelog: the existing 0.0.0.9000 bullet for `check_supplement()` gets the change, with no new bullet.
+- 2026-10-20: implement started on branch m024-chunk-shapes, cut from main at ca5edb7.
+- 2026-10-20: T1: three tests added (row shapes, inline rule, non-chunk blocks), with a `report_lines()` helper for reports with no front matter added. Against the code on main all three fail: 10 of the 13 AC1 chunk starts and both inline knitr cases give no row, and `{r} x` gives a row. The AC4, four-backtick, `{julia label}`, and tab-indent cases already gave rows. This commit carries the failing tests.
 
 ## Decisions
 

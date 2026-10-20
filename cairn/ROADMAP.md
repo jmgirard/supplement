@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-20 (M023 done and archived; "Refuse names that Wind
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M024 | check_supplement() finds code chunks in more shapes | planned | — | normal | milestones/M024-chunk-shapes.md |
+| M024 | check_supplement() finds code chunks in more shapes | in-progress | — | normal | milestones/M024-chunk-shapes.md |
 | M023 | add_report() and add_data() refuse names that Windows cannot use | done | — | normal | milestones/archive/M023-windows-names.md |
 | M022 | The link check reads every page once and refuses links out of docs | done | M021 | normal | milestones/archive/M022-link-pages.md |
 | M021 | The link check reads links only from tags | done | — | normal | milestones/archive/M021-link-reader.md |
