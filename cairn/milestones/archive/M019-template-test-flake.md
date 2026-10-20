@@ -1,0 +1,11 @@
+# M019: A failing template test prints the cause of the failure
+
+**Status:** done (2026-10-19, PR #20 https://github.com/jmgirard/supplement/pull/20)
+
+**Goal:** A failing template test prints the output of the command it checked, and a cause of the template test flake that the repeat runs find is fixed.
+
+**Outcome:** `tests/testthat/helper-template.R` adds `expect_status(result, status = 0L, output = NULL)` and `expect_command_fails(result)`, built on `expect()`; the failure message shows the deparsed status, the expected status and output, and every line the command printed (stdout and stderr, from `run_in()`). `exit_status()` refuses a NULL, NA, fractional, text, or length-2 status. Every exit-status check in `test-template.R` uses them, including the four `git init` results and the `git check-ignore` results, which were unchecked; the three `expect_length(kept$output, 0)` checks became `expect_status(kept, 1L, output = character())`. Three new tests check the helpers, one with an Rscript child that writes to stdout and stderr and exits 1 (skips on CRAN). DESIGN.md names the helpers. Repeat runs: 30 template-file runs passed, 10 full-suite runs with 1 failure, 3 CI runs on main passed (main's old tests). The failure: a full `quarto render` exited 1 printing only "Running script '_scripts/setup.ts'"; Quarto 1.10.19's `runScripts()` throws an empty `Error` on a failed project script, and 1,000 full renders plus 400 runs of the failed sequence passed, so no cause in this repo was found and no template code changed. The "template test flake" row holds the output and the next step (`QUARTO_LOG_LEVEL=DEBUG`).
+
+**Decisions:** plan gate: ship diagnostics only, no retry of failed renders.
+
+**Review:** criteria audit (full) narrowed all three draft criteria before the plan; claim audit 10 claims, 1 corrected. One review pass, four lenses: 21 findings, 19 fixed (helper status coercion and NULL/NA handling, expected-output message, precondition `info`, CRAN skip, `check-ignore` status checks, DESIGN.md, row and work-log corrections; 3 of them the Windows check, settled by PR CI), 2 rejected (planned change), 0 to rows. 0 amendments. CI green on all six PR checks; `R CMD check` 0/0/0 on the Mac. New row "status check output" from the plan; "template test flake" narrowed, not graduated.
