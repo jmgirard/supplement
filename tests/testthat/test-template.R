@@ -49,7 +49,7 @@ test_that("a render whose setup script fails with no output shows the script's e
 
   rendered <- run_in(dir, "quarto", "render")
   expect_command_fails(rendered)
-  expect_match(paste(rendered$output, collapse = "\n"), "[execProcess] Success: false, code: 3", fixed = TRUE)
+  expect_contains(rendered$output, "[execProcess] Success: false, code: 3")
 })
 
 test_that("a new site renders and holds its setup files", {
