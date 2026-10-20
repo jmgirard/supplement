@@ -34,7 +34,9 @@
 #'   such as `<code>` text. Attribute names match in any letter case, and
 #'   only whole names count, so `data-href` and `data-src` are not read. A
 #'   value can be in double quotes, in single quotes, or unquoted, where it
-#'   runs to the next space or `>`. Each value is handled in this order:
+#'   runs to the next space or `>`. An attribute with no `=`, such as
+#'   `<a href>`, has an empty value and is not checked. Each value is
+#'   handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
 #'   dropped; links with a scheme, `/`, or `#` at the start are skipped;
@@ -369,6 +371,8 @@ tag_links <- function(html) {
   attrs <- unlist(regmatches(rests, gregexpr(html_attr, rests, perl = TRUE)))
   attr_names <- tolower(sub("(?s)^([^=\t\n\f\r ]*).*", "\\1", attrs, perl = TRUE))
   links <- attrs[attr_names %in% c("href", "src", "xlink:href")]
+  # An attribute with no `=`, such as `<a href>`, has an empty value.
+  links <- links[grepl("=", links, fixed = TRUE)]
   values <- sub(paste0("(?s)^[^=]*=", html_space, "*"), "", links, perl = TRUE)
   sub("(?s)^([\"'])(.*)\\1$", "\\2", values, perl = TRUE)
 }

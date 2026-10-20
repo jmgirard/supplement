@@ -64,6 +64,7 @@
 - 2026-10-19: checkpoint: the claim audit corrected 5 of 41 claims (NEWS said `xlink:href` reading was new; the help page's limit list read as complete and its CDATA and row-shape wording was off; a code comment said control characters are trimmed). The re-read of the corrections is pending.
 - 2026-10-19: claim audit: 41 claims read, 5 corrected — NEWS.md, R/check-supplement.R, man/check_supplement.Rd (the same reader re-read the 5 corrections once and found them true).
 - 2026-10-19: implement complete; status set to review.
+- 2026-10-20: review fix-now: an `href`, `src`, or `xlink:href` with no `=` (`<a href>`) gave the link "href"; it now has an empty value and gives no row (shape added to the AC3 test, which fails without the fix; help sentence added). README.md, the template `_README.md`, and the first NEWS bullet no longer say "quoted" links. Full suite: 256 tests, 0 failed, 5 skipped.
 
 ## Decisions
 

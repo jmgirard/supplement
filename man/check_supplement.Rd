@@ -52,7 +52,9 @@ Links are read from start tags only, as a browser reads them. Comments,
 such as \verb{<code>} text. Attribute names match in any letter case, and
 only whole names count, so \code{data-href} and \code{data-src} are not read. A
 value can be in double quotes, in single quotes, or unquoted, where it
-runs to the next space or \code{>}. Each value is handled in this order:
+runs to the next space or \code{>}. An attribute with no \code{=}, such as
+\verb{<a href>}, has an empty value and is not checked. Each value is
+handled in this order:
 character references are decoded; spaces, tabs, line breaks, and form
 feeds at its ends are removed and tabs and line breaks inside it are
 dropped; links with a scheme, \code{/}, or \verb{#} at the start are skipped;

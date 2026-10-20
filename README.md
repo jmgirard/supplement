@@ -100,8 +100,8 @@ finds:
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
 - a site with no `docs/` folder
-- quoted relative links in `docs/` to files that are not in `docs/`, or to
-  folders there with no `index.html`
+- relative `href`, `src`, and `xlink:href` links in `docs/` to files that
+  are not in `docs/`, or to folders there with no `index.html`
 - pages in `docs/` that cannot be read
 - DOIs in `CITATION.cff` or on the home page that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read

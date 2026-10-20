@@ -23,7 +23,7 @@
   changes no file. It finds files larger than 100 MiB, and saved R
   objects that git tracks or does not ignore. It finds reports with code
   and no stored output, and a missing `docs/` folder. It also finds
-  quoted relative links in `docs/` to files that are not in `docs/`, and
+  relative links in `docs/` to files that are not in `docs/`, and
   pages there that cannot be read. It finds DOIs that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It returns
   the problems as a data frame.

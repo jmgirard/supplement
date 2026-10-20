@@ -405,7 +405,9 @@ test_that("quoted and unquoted values are read and trimmed", {
     "<a href=gone-c.csv>unquoted</a>",
     "<a href='gone-d.csv'>single</a>",
     "<a href=data/ok.csv/>slash</a>",
-    '<a href="&#109;ailto&#58;a@example.org">mail</a>'
+    '<a href="&#109;ailto&#58;a@example.org">mail</a>',
+    # An attribute with no `=` has an empty value, so it is no link.
+    "<a href>bare</a><script src></script><a HREF >bare</a>"
   ))
   expect_setequal(
     broken_pairs(site),
