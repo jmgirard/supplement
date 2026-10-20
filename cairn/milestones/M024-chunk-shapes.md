@@ -41,7 +41,7 @@
 
 - [x] T1: In `tests/testthat/test-check-supplement.R`, next to the test "reports with code but no stored output give a no-stored-output row" (line 210), add the AC1 to AC4 reports. Write tabs with `"\t"` in R strings. Run the new row cases against the code on main and record that each fails there.
 - [x] T2: In `check_stored_output()` (`R/check-supplement.R:299`), replace the regex at line 313 with the code rule. Spell the engine names as `[Rr]` and so on, because `(?i)` with `useBytes` follows the locale (LESSONS M021). Add the inline rule with a small front matter reader. Parse with `yaml::yaml.load()` inside `tryCatch()` and `suppressWarnings()` (LESSONS M008, M005). Check that the result is a named list before reading `engine`.
-- [ ] T3: Edit the roxygen item for `"no-stored-output"` and run `devtools::document()`. Edit the existing `NEWS.md` bullet for `check_supplement()`, because version 0.0.0.9000 is not released. Read `README.md` line 100 and `inst/template/_README.md` line 145, and edit each one where it no longer holds.
+- [x] T3: Edit the roxygen item for `"no-stored-output"` and run `devtools::document()`. Edit the existing `NEWS.md` bullet for `check_supplement()`, because version 0.0.0.9000 is not released. Read `README.md` line 100 and `inst/template/_README.md` line 145, and edit each one where it no longer holds.
 - [ ] T4: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
@@ -63,6 +63,7 @@
 - 2026-10-20: implement started on branch m024-chunk-shapes, cut from main at ca5edb7.
 - 2026-10-20: T1: three tests added (row shapes, inline rule, non-chunk blocks), with a `report_lines()` helper for reports with no front matter added. Against the code on main all three fail: 10 of the 13 AC1 chunk starts and both inline knitr cases give no row, and `{r} x` gives a row. The AC4, four-backtick, `{julia label}`, and tab-indent cases already gave rows. This commit carries the failing tests.
 - 2026-10-20: T2: `chunk_start` pattern and `engine_is_knitr()` added in `R/check-supplement.R`. The front matter is parsed with sequences kept as lists, because a probe showed that `engine: [knitr]` otherwise reads as the text `knitr` (LESSONS M005); a test for it was added. A guard covers a `---` line right after the first one, where `seq.int()` counts down. `devtools::test()`: 0 failures, 4259 passes, 7 skips.
+- 2026-10-20: T3: the `"no-stored-output"` help item states the code rule, the inline rule, the limits, and what counts as stored output. The `check_supplement()` NEWS bullet names the new shapes. `README.md` line 100 and `inst/template/_README.md` line 145 say only "with code", which still holds, so they are unchanged. `devtools::document()` run.
 
 ## Decisions
 

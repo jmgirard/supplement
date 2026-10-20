@@ -31,9 +31,20 @@ counted, because git stores only the link.
 or \code{.qs2}, in any letter case). A fitted model saved this way can hold
 the data it was fitted to.
 \item \code{"no-stored-output"}: a \code{.qmd} report directly in \verb{analyses/}, not in
-a folder inside it, with an R, Python, or Julia code chunk and no
-stored output in \verb{_freeze/}. A full render then runs its code, which
-needs the data.
+a folder inside it, with code and no stored output in \verb{_freeze/}. A
+full render then runs its code, which needs the data. A report has
+code when a line starts an R, Python, or Julia code chunk: any mix of
+spaces, tabs, and \code{>} characters, three or more backticks, optional
+spaces or tabs, then \verb{\{r}, \verb{\{python}, or \verb{\{julia} in any letter case.
+A space, a comma, or \verb{\}} follows the name, and the line ends with \verb{\}}.
+A report with no chunk also has code when it has inline R code on
+one line (a backtick, \code{r}, a space, text, and a backtick) and the
+top-level \code{engine} in its own front matter is \code{knitr}. Inline code
+that spans lines is not found. Nor is knitr that a \code{knitr} key,
+\code{execute: engine}, an included file, or \verb{_metadata.yml} turns on.
+A report has no stored output when
+\verb{_freeze/analyses/<name>/execute-results/} holds no file other than
+hidden files and the files in hidden folders.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
 \item \code{"broken-link"}: an \code{href}, \code{src}, or \code{xlink:href} link on a page in
 \verb{docs/} to a file that is not in \verb{docs/}, or to a folder there with no
