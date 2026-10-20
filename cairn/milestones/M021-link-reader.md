@@ -1,6 +1,6 @@
 # M021: The link check reads links only from tags
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -43,7 +43,7 @@
 - [x] T2: In `R/check-supplement.R`, replace the `regmatches()` pattern in `page_links()` with a reader that walks the page text: it skips `<!--` to the first `-->`, other `<!…>` and `<?…>` to `>`, and the text of the four elements to their end tag; it reads attributes from each start tag and keeps the values of the three names; it decodes and trims each value in the AC3 order (a helper beside `percent_decode()`). Keep `link_ok()` as it is. Run `devtools::test()`; the existing broken-link test and the rendered-site test must pass unchanged.
 - [x] T3: Update the `broken-link` bullet in the roxygen block at the top of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `R/check-supplement.R` text in the `cairn/DESIGN.md` Architecture section.
 - [x] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings).
-- [ ] T5: Review return 1. In `tag_links()`, use possessive unrolled loops for comment and raw-text bodies so a body over 5 MB does not hit PCRE's match limit; let a start tag end at the end of the page and drop it there, so time stays linear and an unclosed tag gives no link; run `unique()` before `decode_refs()`; in `page_links()`, treat a warning from `tag_links()` as a page that cannot be read. Add tests: a 6 MB script body with link text, unclosed comment and raw-text elements at the end of a page, an unclosed tag at the end of a page, many `<a ` with no `>`, a warning from the reader, and `decode_refs()` on a vector. State `<!-->`, script double-escaped text, and an invalid byte in an unquoted value as limits on the help page.
+- [x] T5: Review return 1. In `tag_links()`, use possessive unrolled loops for comment and raw-text bodies so a body over 5 MB does not hit PCRE's match limit; let a start tag end at the end of the page and drop it there, so time stays linear and an unclosed tag gives no link; run `unique()` before `decode_refs()`; in `page_links()`, treat a warning from `tag_links()` as a page that cannot be read. Add tests: a 6 MB script body with link text, unclosed comment and raw-text elements at the end of a page, an unclosed tag at the end of a page, many `<a ` with no `>`, a warning from the reader, and `decode_refs()` on a vector. State `<!-->`, script double-escaped text, and an invalid byte in an unquoted value as limits on the help page.
 
 ## Work log
 
@@ -73,6 +73,7 @@
 - 2026-10-20: T5 addition from a late diff-bug finding (its addendum to pass 1): on a page with a non-ASCII character, `gregexpr()` and `regmatches()` over the whole page took time that grew with the square of the tag count (20,000 tags: 26 s in the reviewer's run, 31.6 s in the new test before the fix). The whole-page `gsub()` and `gregexpr()` now use `useBytes = TRUE` and mark the results UTF-8 again (a code comment says why, against the M008 lesson); the test "a long page with non-ASCII text is read in linear time" now passes, and `tag_links()` reads that page in 0.125 s with `gé.csv` intact.
 - 2026-10-20: checkpoint: the claim audit of the T5 prose corrected 4 of 29 claims (the possessive and match-limit comment; a quote that never closes is read, not dropped; an invalid byte's `>` ends the whole tag; the tag_links() header). The re-read of the corrections is pending.
 - 2026-10-20: claim audit: 29 claims read, 4 corrected — R/check-supplement.R, man/check_supplement.Rd (the same reader re-read the 4 corrections and the new useBytes comment once and found them true). The first suite run after T5 (before the useBytes fix) gave 258 tests, 0 failed, 5 skipped; the stale `devtools::check()` run was stopped, and both rerun on `3f6389d`.
+- 2026-10-20: T5 done on `cd36256`: `devtools::test()` 259 tests, 0 failed, 0 errors, 5 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes. Implement complete; status set to review.
 
 ## Decisions
 
