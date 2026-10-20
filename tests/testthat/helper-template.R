@@ -29,12 +29,27 @@ template_dir <- function() {
 long_dir <- function(dir) normalizePath(dir, winslash = "/", mustWork = TRUE)
 
 # Run a command in `dir` and return its exit status and output.
+#
+# Quarto runs with QUARTO_LOG_LEVEL=DEBUG unless the variable is already
+# set. Quarto 1.10 turns a failed project script into an error with no
+# message, and only its debug lines show the script's exit code
+# ("[execProcess] Success: false, code: 3"). The debug lines are part of
+# `output`, so a failed status check shows them with the rest; a check
+# that matches the output of a quarto command must allow for them.
+# The variable is set with withr, because on Windows system2() passes `env`
+# only to commands such as R that read it from their command line.
 run_in <- function(dir, command, args, env = character()) {
-  withr::with_dir(long_dir(dir), {
+  is_quarto <- sub("\\.exe$", "", basename(command), ignore.case = TRUE) == "quarto"
+  log_level <- if (is_quarto && Sys.getenv("QUARTO_LOG_LEVEL") == "") {
+    c(QUARTO_LOG_LEVEL = "DEBUG")
+  } else {
+    character()
+  }
+  withr::with_dir(long_dir(dir), withr::with_envvar(log_level, {
     out <- suppressWarnings(
       system2(command, args, stdout = TRUE, stderr = TRUE, env = env)
     )
-  })
+  }))
   list(status = attr(out, "status") %||% 0L, output = out)
 }
 

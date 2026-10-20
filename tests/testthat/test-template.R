@@ -39,6 +39,19 @@ test_that("a status check shows the expected output and refuses a missing status
   }
 })
 
+test_that("a render whose setup script fails with no output shows the script's exit code", {
+  skip_if_no_quarto(needs_r = FALSE)
+  dir <- withr::local_tempdir("site-")
+  expect_status(use_template(dir))
+  # Quarto turns a failed project script into an error with no message, so
+  # without debug logging the render prints only "Running script ...".
+  writeLines("Deno.exit(3);", file.path(dir, "_scripts", "setup.ts"))
+
+  rendered <- run_in(dir, "quarto", "render")
+  expect_command_fails(rendered)
+  expect_contains(rendered$output, "[execProcess] Success: false, code: 3")
+})
+
 test_that("a new site renders and holds its setup files", {
   skip_if_no_quarto()
   site <- site_copy()

@@ -157,6 +157,10 @@ In `tests/testthat/test-template.R`, each exit-status check of a command
 shows everything the command printed when it fails, through
 `expect_status()` or `expect_command_fails()` (`helper-template.R`), or
 through `info` in the one test of those helpers.
+`run_in()` runs `quarto` with `QUARTO_LOG_LEVEL=DEBUG` unless the variable
+is already set, so the output of a
+render whose project script failed holds the script's exit code;
+`run_split()` sets no log level.
 `.github/workflows/R-CMD-check.yaml` runs `R CMD check` on Windows, macOS,
 and Ubuntu with the R release and Quarto 1.10, with `NOT_CRAN=true` so the
 render tests run, then lists the skipped tests and fails on a skip for a
