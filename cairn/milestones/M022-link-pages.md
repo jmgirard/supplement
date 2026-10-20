@@ -59,6 +59,7 @@
 - 2026-10-20: chose the AC3 row text "It is a link to a place outside docs/, so the published site does not have its target." and kept the existing page-link row text for AC4 rows.
 - 2026-10-20: T2: `docs_entries()` walks docs/ with a queue (hidden names included, linked folders listed and not entered), `outside_links()` and `in_docs()` compare normalized paths with `normalizePath(docs)` (case ignored on Windows, as in `is_reparse_point()`); `link_ok()` fails a link when any existing part of its path resolves outside docs/, which also covers a linked folder inside docs/ that leads to an outside link (checked in a scratch run), and skips that check when docs/ holds no link; outside rows come first in the result. `devtools::test()` clean on the Mac.
 - 2026-10-20: T3: `broken-link` help bullet extended from a same-session read of `check_links()`, `docs_entries()`, `outside_links()`, and `link_ok()`; `devtools::document()` run; NEWS.md bullet added (sentences split to pass the simple-english hook); DESIGN.md Architecture text names the walk and `in_docs()`, and the "Release check edge cases" entry names the linked-`docs/` case.
+- 2026-10-20: claim audit: 48 claims read, 3 corrected — NEWS.md, R/check-supplement.R, man/check_supplement.Rd ("each page is read once" did not hold for a symbolic link to a page file, which is read as its own page; the NEWS outside-link sentence now says the target must exist).
 
 ## Decisions
 

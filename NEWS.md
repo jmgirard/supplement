@@ -120,10 +120,10 @@
   spaces at the ends of a link. The help page lists the main cases that
   it still reads differently from a browser.
 * `check_supplement()` now reads pages in hidden folders of `docs/` and
-  hidden pages, such as `docs/.page.html`. It reads each page once. Before,
-  a symbolic link in `docs/` to a folder there repeated the rows of each
-  page in that folder. A link to `docs/` itself repeated them many times.
-  A symbolic link in `docs/` to a file or folder outside `docs/` now gives
-  a `broken-link` row. The published site does not have its target. On
+  hidden pages, such as `docs/.page.html`. It does not enter a linked
+  folder. Before, a symbolic link in `docs/` to a folder there repeated
+  the rows of each page in that folder. A link to `docs/` itself repeated
+  them many times. A symbolic link in `docs/` to an existing file or
+  folder outside `docs/` now gives a `broken-link` row. The published site does not have its target. On
   Windows, a junction does the same. A link on a page that goes
   through such a link also gives a row.

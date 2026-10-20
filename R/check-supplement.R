@@ -23,8 +23,9 @@
 #'   cannot be read, such as a link to a missing file, also counts. Pages
 #'   in every folder of `docs/` are read, hidden files and folders (names
 #'   that start with `.`) included. A symbolic link to a folder, or on
-#'   Windows a junction, is not entered, so each page is read once, at its
-#'   own path. A symbolic link or junction in `docs/` whose target exists
+#'   Windows a junction, is not entered. So each page in a linked folder is
+#'   read once, at its own path. A symbolic link to a page file is read as
+#'   a page of its own. A symbolic link or junction in `docs/` whose target exists
 #'   outside `docs/` gives a row of its own, because the published site does
 #'   not have its target. A page that it points to is not read. A link
 #'   on a page whose path passes through or ends at such a link also counts.
