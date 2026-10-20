@@ -102,12 +102,14 @@ finds:
 - a site with no `docs/` folder
 - relative `href`, `src`, and `xlink:href` links in `docs/` to files that
   are not in `docs/`, or to folders there with no `index.html`
+- symbolic links in `docs/` to existing files or folders outside `docs/`,
+  and on Windows junctions to folders outside `docs/`
 - pages in `docs/` that cannot be read
 - DOIs in `CITATION.cff` or on the home page that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
 
-It checks only relative links, which point inside the site. It does not
-check links that start with `/` and requests no web address. For the
+On pages, it checks only relative links, which point inside the site. It
+does not check links that start with `/` and requests no web address. For the
 file size and saved object checks, it reads the file list from git. When
 git cannot run or the folder is not in a git work tree, it skips those two
 checks and says so.

@@ -20,7 +20,21 @@
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no
 #'   `index.html`, or a link that ends with `/` to a file. A page that
-#'   cannot be read, such as a link to a missing file, also counts. Links
+#'   cannot be read, such as a link to a missing file, also counts. Pages
+#'   in every folder of `docs/` are read, hidden files and folders (names
+#'   that start with `.`) included. A symbolic link to a folder, or on
+#'   Windows a junction, is not entered. A page in a folder that such a
+#'   link points to is read once, at its own path, when the folder is in
+#'   `docs/`. A symbolic link in `docs/` to a page file in `docs/` is read
+#'   as a page of its own. A symbolic link or junction in `docs/` whose
+#'   target exists and resolves to a place outside `docs/` gives a row of
+#'   its own, because the published site does not have its target. So a
+#'   link to such a link also gives a row. A page that it points to, or a
+#'   page in a folder that it points to, is not read. A link on a page whose
+#'   path passes through or ends at such a link also counts. For a link to
+#'   a folder, the folder's `index.html` is part of that path. A symbolic
+#'   link or junction that resolves to `docs/` or a place in it gives no row
+#'   of its own. Links
 #'   that start with `/`, `#`, or a scheme such as
 #'   `https:` are not checked, and no web address is requested. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
@@ -318,7 +332,21 @@ check_links <- function(path) {
   if (!dir.exists(docs)) {
     return(problem_rows("not-rendered", "docs", "The site has no docs/ folder. Render the site."))
   }
-  pages <- list.files(docs, pattern = "\\.html$", recursive = TRUE)
+  entries <- docs_entries(docs)
+  root <- docs_root(docs)
+  outside <- outside_links(root, entries$links)
+  # A page that a link outside docs/ points to is not in the published
+  # site, so it is not read.
+  # useBytes keeps a name that is not valid UTF-8 in the match.
+  html <- grepl("\\.html$", entries$files, useBytes = TRUE)
+  # The walk lists a folder's files before its subfolders, so sort the
+  # pages by path, in byte order, which does not depend on the locale.
+  # The radix sort stops on a name with no encoding mark that is not valid
+  # UTF-8, so the sort keys are marked as bytes.
+  pages <- entries$files[html & !(entries$files %in% outside)]
+  keys <- pages
+  Encoding(keys) <- "bytes"
+  pages <- pages[order(keys, method = "radix")]
   rows <- lapply(pages, function(page) {
     links <- page_links(file.path(docs, page))
     if (is.null(links)) {
@@ -333,13 +361,83 @@ check_links <- function(path) {
         "The link check cannot read this page: its markup goes past the limits of the PCRE pattern engine."
       ))
     }
-    broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page)]
+    # With no link in docs/, no part of a path can resolve outside it, so
+    # link_ok() skips that test.
+    broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page,
+                            root = if (length(entries$links) > 0) root)]
     problem_rows(
       "broken-link", rep_len(file.path("docs", page), length(broken)),
       sprintf("The page links to a file that is not in the site: `%s`", broken)
     )
   })
-  do.call(rbind, c(list(problem_rows()), rows))
+  keys <- outside
+  Encoding(keys) <- "bytes"
+  outside <- outside[order(keys, method = "radix")]
+  outside_rows <- problem_rows(
+    "broken-link", file.path("docs", outside),
+    rep_len("It is a link to a place outside docs/, so the published site does not have its target.",
+            length(outside))
+  )
+  do.call(rbind, c(list(outside_rows), rows))
+}
+
+# The files in `docs`, hidden ones included, and its links (symbolic links,
+# and on Windows junctions), as paths relative to `docs`. A linked folder is
+# listed as a link and not entered, so a link loop is read once, and the
+# pages in a folder that a link inside docs/ points to are read at their
+# own path.
+docs_entries <- function(docs) {
+  files <- character()
+  links <- character()
+  queue <- ""
+  while (length(queue) > 0) {
+    rel <- queue[1]
+    queue <- queue[-1]
+    names <- list.files(if (nzchar(rel)) file.path(docs, rel) else docs, all.files = TRUE, no.. = TRUE)
+    paths <- if (nzchar(rel)) file.path(rel, names) else names
+    full <- file.path(docs, paths)
+    link <- is_link(full)
+    folder <- dir.exists(full)
+    links <- c(links, paths[link])
+    files <- c(files, paths[!folder])
+    queue <- c(queue, paths[folder & !link])
+  }
+  list(files = files, links = links)
+}
+
+# The normalized path of `docs`. A drive root keeps its separator ("D:/"),
+# so it is dropped before a join.
+docs_root <- function(docs) {
+  sub("/+$", "", normalizePath(docs, winslash = "/", mustWork = FALSE))
+}
+
+# The links among `links` (paths relative to docs/) whose target exists
+# and resolves to a place outside `root`, the normalized docs/ path. A link
+# whose target is missing is left to the other link checks.
+outside_links <- function(root, links) {
+  full <- file.path(root, links)
+  links[file.exists(full) & !in_docs(full, root)]
+}
+
+# TRUE for each path that resolves to `root` (the normalized docs/ path)
+# or to a place under it. Each path starts with `root`, so a path that
+# normalizePath() cannot resolve stays under it and counts as inside. On
+# Windows, letter case is ignored, as in is_reparse_point().
+in_docs <- function(paths, root) {
+  resolved <- normalizePath(paths, winslash = "/", mustWork = FALSE)
+  if (.Platform$OS.type == "windows") {
+    root <- utf8_lower(root)
+    resolved <- utf8_lower(resolved)
+  }
+  resolved == root | startsWith(resolved, paste0(root, "/"))
+}
+
+# tolower() for each string that is valid UTF-8. tolower() stops on a
+# string that is not, so such a string stays as it is.
+utf8_lower <- function(x) {
+  valid <- validUTF8(x)
+  x[valid] <- tolower(x[valid])
+  x
 }
 
 # The href, src, and xlink:href values on a page that point to a place
@@ -485,8 +583,10 @@ decode_refs <- function(x) {
 }
 
 # TRUE when a relative link on `page` (a path inside `docs`) reaches a file
-# in `docs`, or a folder there with an index.html.
-link_ok <- function(link, docs, page) {
+# in `docs`, or a folder there with an index.html, and no part of its path
+# resolves to a place outside `docs`. `root` is the normalized path of
+# `docs` (docs_root()), or NULL to skip the test of the path's parts.
+link_ok <- function(link, docs, page, root = docs_root(docs)) {
   target <- sub("[?#].*$", "", link)
   if (!nzchar(target)) {
     return(TRUE)
@@ -516,6 +616,17 @@ link_ok <- function(link, docs, page) {
     kept <- c(kept, "index.html")
   } else if (wants_folder) {
     return(FALSE)
+  }
+  # A path that passes through or ends at a link to a place outside docs/
+  # is not in the published site. The index.html of a folder link counts.
+  # This also finds a link inside docs/ that a linked folder there leads to.
+  if (!is.null(root)) {
+    prefixes <- file.path(root, vapply(seq_along(kept), function(i) paste(kept[seq_len(i)], collapse = "/"),
+                                       character(1)))
+    present <- file.exists(prefixes)
+    if (!all(in_docs(prefixes[present], root))) {
+      return(FALSE)
+    }
   }
   # GitHub Pages matches letter case, so each part must match the name on
   # disk, also on a disk that ignores case.
