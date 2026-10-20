@@ -114,3 +114,17 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - ripple #2: `inst/template/_README.md:146` said "quoted relative links" — fix now, fixed d7d5b5b
 - ripple #3: `README.md:103`, the same — fix now, fixed d7d5b5b
 - ripple #4: `NEWS.md:26` said "quoted relative links" — fix now, fixed d7d5b5b
+- diff-bug #14 (addendum to pass 1): on a page with a non-ASCII character, whole-page `gregexpr()` time grew with the square of the tag count (20,000 tags: 26 s) — fix now via review return 1, fixed d6e3480
+
+Pass 2 evidence, 2026-10-20 at `7709925` (`main` still `99abded`). `NOT_CRAN=true testthat::test_file("tests/testthat/test-check-supplement.R")`: 23 tests, 0 failed, 0 errors, 0 skipped.
+
+- AC1 (pass 2): the AC1 test passed again; the new test "large skipped text and unclosed markup give the stated rows" passed: a 6 MB JSON script body with link text gives no row and no warning, the link after it gives a row, and comment, script, and title bodies that run to the end of the page give no row.
+- AC2 (pass 2): the AC2 test passed again.
+- AC3 (pass 2): the AC3 test passed again, its bare-attribute shapes (`<a href>`, `<script src>`, `<a HREF >`) giving no row.
+- AC4 (pass 2): the AC4 test passed again, with `decode_refs()` on a vector (`é&amp;`, `""`, `&amp;amp;` decoded once).
+- AC5 (pass 2): `git diff a01b723 HEAD -- tests/testthat/test-check-supplement.R` removes 0 lines and the broken-link test passed; the rendered-site test ran and passed; `scratchpad/compare_links.R` again gave the same link sets (19 and 21) on both template pages and 0 rows.
+- AC6 (pass 2): the help page now also states the bare-attribute rule, the cut-off tag rule, the PCRE-limit rule, and the `<!-->`, script double-escape, unclosed-quote, and invalid-byte limits; the T5 claim audit (29 claims, 4 corrected, re-read true) read them against the code. NEWS.md line 113 has the entry.
+
+Consistency gate, pass 2: `devtools::test()` 259 tests, 0 failed, 5 skipped and `devtools::check()` 0 errors, 0 warnings, 0 notes, both on `cd36256` (later commits change only `cairn/`). `cairn_validate` all checks passed; `devtools::document()` no diff; no new top-level files; NEWS.md entry present with no milestone numbers.
+
+spawned: diff-bug, blame-history, prior-review, ripple
