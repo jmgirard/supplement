@@ -1,6 +1,6 @@
 # M027: check_supplement() finds stored output older than its report
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -64,6 +64,8 @@
 - 2026-10-20: T3: `check_stale_output()` with helpers `analysis_reports()` (shared with `check_stored_output()`), `report_hash()` (MD5 via a temp file, since DESCRIPTION sets no R floor for `md5sum(bytes =)`), and `stored_hash()`. Chose `jsonlite::parse_json()` on the read bytes over `fromJSON(path)`, which can read a short invalid text as a file name. Planted defects: no CR LF step fails the AC1 test; a reader that takes the first item of a list hash and accepts any top level fails 3 AC2 expectations. `devtools::test()`: 283 results, 0 failed, 7 skipped (Windows-only and invalid-name cases).
 - 2026-10-20: T4: added the `"stale-output"` help item (rules of AC1 and AC2, the Quarto 1.10 limit from the T1 probe, nested reports not read) and ran `devtools::document()`; edited the existing `check_supplement()` NEWS bullet; added one line to the `inst/template/_README.md` check list.
 - 2026-10-20: T5: the first `devtools::test()` and `devtools::check()` run (one command) each gave 1 failure and 1 error, with no output kept; the test that failed is not known. Six later `devtools::test()` runs gave 283 results, 0 failed, 0 errors, and a second `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Open concern for review: a possible intermittent test.
+- 2026-10-20: claim audit: 33 claims read, 1 corrected — tests/testthat/test-check-supplement.R (fixture comment said every expected hash came from the LF text; the re-read of the new wording holds).
+- 2026-10-20: status → review.
 
 ## Decisions
 

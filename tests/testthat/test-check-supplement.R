@@ -415,8 +415,9 @@ test_that("stored output made from other report text gives a stale-output row", 
   file.symlink(file.path(site, "no-such.qmd"), file.path(site, "analyses", "dangling.qmd"))
   stored_file(site, "dangling", "html.json", hash_json(md5_of(stale_lf, "x")))
   # Quarto hashes CR LF text as LF and keeps a byte order mark and a lone
-  # CR. The expected hashes are written here from the LF text, not taken
-  # from the check.
+  # CR. The expected hashes are written here from the text that Quarto
+  # hashes (the LF text for CR LF, the bytes as they are otherwise), not
+  # taken from the check.
   stored("crlf", gsub("\n", "\r\n", stale_lf, fixed = TRUE), hash = md5_of(stale_lf))
   bom <- as.raw(c(0xef, 0xbb, 0xbf))
   stored("bom", bom, stale_lf, hash = md5_of(bom, stale_lf))

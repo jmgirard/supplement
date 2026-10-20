@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-20 (M026 done and archived; "Find inline code in mo
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M027 | check_supplement() finds stored output older than its report | in-progress | — | normal | milestones/M027-stale-output.md |
+| M027 | check_supplement() finds stored output older than its report | review | — | normal | milestones/M027-stale-output.md |
 | M026 | check_supplement() finds code of any engine and more inline shapes | done | — | normal | milestones/archive/M026-inline-shapes.md |
 | M025 | Package functions read YAML without running R code | done | — | normal | milestones/archive/M025-yaml-no-expr.md |
 | M024 | check_supplement() finds code chunks in more shapes | done | — | normal | milestones/archive/M024-chunk-shapes.md |
