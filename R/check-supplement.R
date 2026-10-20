@@ -61,9 +61,13 @@
 #'   only at the first `-->`, so `<!-->` and `<!--->` also run to the next
 #'   `-->`. A script ends at its first `</script>`, also when its text holds
 #'   `<!--` and `<script>`, where a browser reads on to a later
-#'   `</script>`. A byte that is not valid UTF-8, which the check shows as
-#'   `<e9>` and so on, ends an unquoted value. A second attribute of the
-#'   same name is also read.
+#'   `</script>`. A `"` or `'` with no closing quote starts an unquoted
+#'   value, so the next `>` ends that tag and it is read, where a browser
+#'   reads on to the end of the page and drops the tag. A byte that is not
+#'   valid UTF-8 is read as text such as `<e9>`; outside a quoted value,
+#'   its `>` ends the tag, so an unquoted value keeps the `<e9` part and
+#'   the later attributes of that tag are not read. A second attribute of
+#'   the same name is also read.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
@@ -357,9 +361,12 @@ page_links <- function(file) {
 # Parts of the patterns that read start tags, after the HTML standard's
 # tokenizer: an attribute name runs to a space, `/`, `>`, or `=`, and an
 # unquoted value runs to a space or `>`.
-# Every repeat below is possessive (`*+`, `++`), so PCRE never backtracks
-# into it: the time stays linear, and a long comment or script body does
-# not reach PCRE's match limit.
+# Every repeat in the html_* parts and in the `skipped` pattern of
+# tag_links() is possessive (`*+`, `++`), so PCRE never backtracks into it
+# and the time stays linear. A comment or script body of a few megabytes
+# stays under PCRE's match limit. A run of millions of `-` in a comment,
+# or millions of attributes in one tag, can still reach it; page_links()
+# then counts the page as unreadable.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
   "[^\t\n\f\r />][^\t\n\f\r />=]*+",
@@ -377,7 +384,8 @@ html_start_tag <- paste0("<[A-Za-z][^\t\n\f\r />]*+", html_tag_rest)
 # script, style, textarea, and title elements are not read, as a browser
 # reads no tags there. Each start tag is kept, so `<script src>` is read.
 # A start tag that the end of the page cuts off is not read, as a browser
-# drops it.
+# drops it. A quote that never closes is read as the start of an unquoted
+# value instead, so that tag ends at the next `>` and is read.
 tag_links <- function(html) {
   skipped <- paste0(
     "(?i)<!--[^-]*+(?:-(?!->)[^-]*+)*+(?:-->|\\z)|<[!?][^>]*+(?:>|\\z)",

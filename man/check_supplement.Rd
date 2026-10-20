@@ -79,9 +79,13 @@ elements are also skipped inside \verb{<svg>} and \verb{<math>}. A comment ends
 only at the first \verb{-->}, so \verb{<!-->} and \verb{<!--->} also run to the next
 \verb{-->}. A script ends at its first \verb{</script>}, also when its text holds
 \verb{<!--} and \verb{<script>}, where a browser reads on to a later
-\verb{</script>}. A byte that is not valid UTF-8, which the check shows as
-\verb{<e9>} and so on, ends an unquoted value. A second attribute of the
-same name is also read.
+\verb{</script>}. A \verb{"} or \verb{'} with no closing quote starts an unquoted
+value, so the next \code{>} ends that tag and it is read, where a browser
+reads on to the end of the page and drops the tag. A byte that is not
+valid UTF-8 is read as text such as \verb{<e9>}; outside a quoted value,
+its \code{>} ends the tag, so an unquoted value keeps the \verb{<e9} part and
+the later attributes of that tag are not read. A second attribute of
+the same name is also read.
 \item \code{"doi-mismatch"}: the DOI in \code{CITATION.cff} differs from the one that
 \code{\link[=write_citation]{write_citation()}} writes from \verb{_supplement.yml}, or the DOI badge on
 \code{docs/index.html} differs from \code{zenodo.version-doi} (or
