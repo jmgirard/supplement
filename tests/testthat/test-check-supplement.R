@@ -336,6 +336,103 @@ test_that("links to files missing from the site give a broken-link row", {
   )
 })
 
+# The broken-link rows of a site as "file `link`" strings.
+broken_pairs <- function(site) {
+  rows <- rows_of(check_quiet(site), "broken-link")
+  paste(rows$file, regmatches(rows$problem, regexpr("`[^`]*`$", rows$problem)))
+}
+
+test_that("link-shaped text outside start tags gives no broken-link row", {
+  site <- new_site()
+  tags <- '<a href="gone-a.csv">a</a><img src="gone-b.png">'
+  text <- 'href="gone-a.csv" src="gone-b.png"'
+  write_page(site, "text.html", c(
+    sprintf("<!-- %s %s -->", tags, text),
+    '<a href="after-comment.csv">x</a>',
+    "<!--", tags, text, "-->",
+    '<a href="after-long-comment.csv">x</a>',
+    sprintf("<script>document.write('%s'); var x = '%s';</SCRIPT>", tags, text),
+    '<a href="after-script.csv">x</a>',
+    sprintf("<style>/* %s %s */</Style>", tags, text),
+    '<a href="after-style.csv">x</a>',
+    sprintf("<textarea>%s %s</textarea>", tags, text),
+    '<a href="after-textarea.csv">x</a>',
+    sprintf("<title>%s %s</TITLE>", tags, text),
+    '<a href="after-title.csv">x</a>',
+    sprintf("<code>%s</code>", text),
+    '<a href="after-code.csv">x</a>',
+    sprintf("<p>%s</p>", text),
+    '<a href="after-p.csv">x</a>',
+    '<script src="gone.js"></script>'
+  ))
+  expect_setequal(
+    broken_pairs(site),
+    paste("docs/text.html", c(
+      "`after-comment.csv`", "`after-long-comment.csv`", "`after-script.csv`",
+      "`after-style.csv`", "`after-textarea.csv`", "`after-title.csv`",
+      "`after-code.csv`", "`after-p.csv`", "`gone.js`"
+    ))
+  )
+})
+
+test_that("only href, src, and xlink:href attributes are read, in any letter case", {
+  site <- new_site()
+  write_page(site, "names.html", c(
+    '<a HREF="gone-upper.csv">x</a>',
+    '<img Src="gone-mixed.png">',
+    '<svg><use XLINK:HREF="gone-xlink.svg"/></svg>',
+    '<a href = "gone-spaced.csv">x</a>',
+    '<a title="a > b" href="gone-after-gt.csv">x</a>',
+    '<div data-href="gone-data.csv" data-src="gone-data.png"></div>',
+    '<img ng-src="gone-ng.png">'
+  ))
+  expect_setequal(
+    broken_pairs(site),
+    paste("docs/names.html", c(
+      "`gone-upper.csv`", "`gone-mixed.png`", "`gone-xlink.svg`",
+      "`gone-spaced.csv`", "`gone-after-gt.csv`"
+    ))
+  )
+})
+
+test_that("quoted and unquoted values are read and trimmed", {
+  site <- new_site()
+  touch(file.path(site, "docs", "data", "ok.csv"))
+  write_page(site, "values.html", c(
+    '<a href=" data/ok.csv ">spaces</a>',
+    '<a href="\f\tdata/ok.csv\n">form feed</a>',
+    "<a href=data/ok.csv>unquoted</a>",
+    "<a href=gone-c.csv>unquoted</a>",
+    "<a href='gone-d.csv'>single</a>",
+    "<a href=data/ok.csv/>slash</a>",
+    '<a href="&#109;ailto&#58;a@example.org">mail</a>'
+  ))
+  expect_setequal(
+    broken_pairs(site),
+    paste("docs/values.html", c("`gone-c.csv`", "`gone-d.csv`", "`data/ok.csv/`"))
+  )
+})
+
+test_that("character references in a link are decoded by the stated rules", {
+  site <- new_site()
+  touch(file.path(site, "docs", "R&D.csv"))
+  touch(file.path(site, "docs", "it's.csv"))
+  touch(file.path(site, "docs", "data", "a b.csv"))
+  kept <- c("R&eacute;.csv", "R&AMP;D.csv", "R&ampD.csv", "R&#38D.csv",
+            "R&#0;.csv", "R&#xD800;.csv", "R&#x110000;.csv", "R&#x80;.csv")
+  write_page(site, "refs.html", c(
+    '<a href="R&amp;D.csv">x</a>',
+    '<a href="R&#38;D.csv">x</a>',
+    '<a href="R&#x26;D.csv">x</a>',
+    '<a href="R&#X26;D.csv">x</a>',
+    '<a href="it&apos;s.csv">x</a>',
+    '<a href="data/a&#37;20b.csv">x</a>',
+    sprintf('<a href="%s">x</a>', kept)
+  ))
+  expect_setequal(broken_pairs(site), paste0("docs/refs.html `", kept, "`"))
+  expect_identical(decode_refs("&lt;&gt;&quot;&apos;&amp;&#233;&#x1F600;"), "<>\"'&é\U0001F600")
+})
+
 test_that("DOIs that differ between files give a doi-mismatch row", {
   site_with <- function(version = "", concept = "", cff = NULL, badges = NULL, shortcode = TRUE) {
     site <- new_site(parent.frame())

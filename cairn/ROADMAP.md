@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-19 (triage: re-rated template test flake normal →
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M021 | The link check reads links only from tags | planned | — | normal | milestones/M021-link-reader.md |
+| M021 | The link check reads links only from tags | in-progress | — | normal | milestones/M021-link-reader.md |
 | M022 | The link check reads every page once and refuses links out of docs | planned | M021 | normal | milestones/M022-link-pages.md |
 | M020 | A failed project script shows its exit code in the test log | done | — | high | milestones/archive/M020-script-exit-code.md |
 | M019 | A failing template test prints the cause of the failure | done | — | high | milestones/archive/M019-template-test-flake.md |

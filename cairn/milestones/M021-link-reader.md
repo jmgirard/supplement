@@ -1,13 +1,13 @@
 # M021: The link check reads links only from tags
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — `check_supplement()` is exported, and its `broken-link` rows decide whether a release goes ahead
-- **Branch/PR:** —
+- **Branch/PR:** m021-link-reader
 
 ## Goal
 
@@ -39,7 +39,7 @@
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-check-supplement.R`, add one test per criterion AC1 to AC4 with the listed shapes, built with `write_page()` and `touch()`. Each test asserts the exact set of (file, link) pairs, as the existing broken-link test does at line 318. Run them before T2 and see each fail for the shape it targets (for example the comment link giving a row), not only fail.
+- [x] T1: In `tests/testthat/test-check-supplement.R`, add one test per criterion AC1 to AC4 with the listed shapes, built with `write_page()` and `touch()`. Each test asserts the exact set of (file, link) pairs, as the existing broken-link test does at line 318. Run them before T2 and see each fail for the shape it targets (for example the comment link giving a row), not only fail.
 - [ ] T2: In `R/check-supplement.R`, replace the `regmatches()` pattern in `page_links()` with a reader that walks the page text: it skips `<!--` to the first `-->`, other `<!…>` and `<?…>` to `>`, and the text of the four elements to their end tag; it reads attributes from each start tag and keeps the values of the three names; it decodes and trims each value in the AC3 order (a helper beside `percent_decode()`). Keep `link_ok()` as it is. Run `devtools::test()`; the existing broken-link test and the rendered-site test must pass unchanged.
 - [ ] T3: Update the `broken-link` bullet in the roxygen block at the top of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `R/check-supplement.R` text in the `cairn/DESIGN.md` Architecture section.
 - [ ] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings).
@@ -55,6 +55,8 @@
 - 2026-10-19: criteria audit (full, one fresh Opus reader over M021 and M022, run after the question set because the work was chosen there): 8 findings on M021, all taken. AC1 narrowed from all text outside tags to the listed places, with the browser-only elements, CDATA, SVG and MathML content, and comment ends moved to stated limits, and a `<script src>` shape added; AC3 now states the order of decoding, trimming, the scheme skip, and percent decoding, what a row shows, and the unquoted trailing `/` and encoded `mailto:` shapes; AC4 no longer claims browser behavior for references with no `;` or out-of-range numbers (now stated limits with listed shapes), and its `&#37;20` shape names a file; AC5 now names input shapes and the rendered template site rather than binding the test file; AC6 now also binds the limits. The title dropped "as a browser does".
 - 2026-10-19: plan gate chose a tag reader in base R over xml2 in Imports, because it adds no compiled dependency and its rules can be stated and tested one by one; falsified by a Quarto page whose links the reader reads differently from a browser in a way the stated rules cannot fix.
 - 2026-10-19: plan decided to read unquoted values, which the pattern skipped, because the reader must parse them to find the next attribute and a browser follows them.
+- 2026-10-19: started on branch `m021-link-reader`, cut from `main` at `99abded`.
+- 2026-10-19: T1: four tests added after the broken-link test; before T2 each failed on its target shape (comment and raw-text links gave rows; `HREF`, `Src`, `XLINK:HREF` gave none and `data-*`/`ng-src` gave rows; trimmed and unquoted values misread; references not decoded; `decode_refs()` missing).
 
 ## Decisions
 
