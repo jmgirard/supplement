@@ -33,3 +33,43 @@ test_that("a site with an added report and data file renders and lists both", {
   expect_identical(links, c('href="./analyses/example.html"', 'href="./analyses/models.html"'))
   expect_true(file.exists(file.path(site, "docs", "analyses", "models.html")))
 })
+
+test_that("a render by name clears the stale-output row that a changed report gives", {
+  skip_if_no_quarto()
+  site <- new_site()
+  stale <- function() {
+    result <- suppressMessages(check_supplement(site))
+    result$file[result$check == "stale-output"]
+  }
+  render <- function(...) {
+    rendered <- run_in(site, "quarto", c("render", ...))
+    expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  }
+  render()
+  expect_identical(stale(), character())
+
+  report <- file.path(site, "analyses", "example.qmd")
+  bytes <- readBin(report, "raw", file.size(report))
+  writeBin(c(bytes, charToRaw("\nOne more line.\n")), report)
+  expect_identical(stale(), "analyses/example.qmd")
+  render("analyses/example.qmd")
+  expect_identical(stale(), character())
+
+  # Quarto hashes a CR LF report as its LF text.
+  bytes <- readBin(report, "raw", file.size(report))
+  bytes <- bytes[bytes != as.raw(13)]
+  at_lf <- bytes == as.raw(10)
+  crlf <- unlist(lapply(seq_along(bytes), function(i) if (at_lf[i]) as.raw(c(13, 10)) else bytes[i]))
+  writeBin(crlf, report)
+  expect_true(any(crlf == as.raw(13)))
+  render("analyses/example.qmd")
+  expect_identical(stale(), character())
+
+  # Quarto hashes only the report, not the files it includes.
+  writeBin(charToRaw("Included text.\n"), file.path(site, "analyses", "_part.qmd"))
+  writeBin(charToRaw("---\ntitle: Include\n---\n\n```{r}\n1 + 1\n```\n\n{{< include _part.qmd >}}\n"),
+           file.path(site, "analyses", "with-include.qmd"))
+  render("analyses/with-include.qmd")
+  expect_true(dir.exists(file.path(site, "_freeze", "analyses", "with-include", "execute-results")))
+  expect_identical(stale(), character())
+})

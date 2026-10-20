@@ -208,6 +208,31 @@ test_that("one problem of any other check stops the release", {
   }
 })
 
+test_that("a stale-output row from the real check stops the release", {
+  skip_if_no_git()
+  # A site in a git repository with a docs/ folder and stored output for
+  # its one report, so that the stored hash is its only problem.
+  site <- git_site()
+  dir.create(file.path(site, "docs"))
+  report <- file.path(site, "analyses", "example.qmd")
+  stored <- file.path(site, "_freeze", "analyses", "example", "execute-results", "html.json")
+  dir.create(dirname(stored), recursive = TRUE)
+  writeBin(charToRaw('{"hash": "0", "result": {}}'), stored)
+  result <- suppressMessages(check_supplement(site))
+  expect_identical(paste(result$check, result$file), "stale-output analyses/example.qmd")
+  expect_identical(attr(result, "skipped"), character())
+
+  before <- folder_state(site)
+  err <- expect_error(release("1.0.0", path = site), class = "supplement_error_release_check")
+  expect_match(conditionMessage(err), "1 problem", fixed = TRUE)
+  expect_identical(folder_state(site), before)
+
+  # With the report's own hash, the same site releases.
+  writeBin(charToRaw(sprintf('{"hash": "%s", "result": {}}', unname(tools::md5sum(report)))), stored)
+  release("1.0.0", path = site)
+  expect_identical(site_version(site), "1.0.0")
+})
+
 test_that("skipped git checks stop the release", {
   mock_check(skipped = c("large-file", "saved-object"))
   dir <- release_site('  version: "1.2.3"')
