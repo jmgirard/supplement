@@ -1,13 +1,13 @@
 # M022: The link check reads every page once and refuses links out of docs
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** M021
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — `check_supplement()` is exported, and its `broken-link` rows decide whether a release goes ahead
-- **Branch/PR:** —
+- **Branch/PR:** m022-link-pages
 
 ## Goal
 
@@ -39,7 +39,7 @@
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-check-supplement.R`, add one test per criterion AC1 to AC5 with the listed shapes. Symbolic-link tests skip with a stated reason where `file.symlink()` returns FALSE (Windows without developer mode); the AC5 test makes junctions with `Sys.junction()` and skips off Windows. Each test asserts the exact set of (file, problem) rows. Run them before T2 and see each fail for the shape it targets.
+- [x] T1: In `tests/testthat/test-check-supplement.R`, add one test per criterion AC1 to AC5 with the listed shapes. Symbolic-link tests skip with a stated reason where `file.symlink()` returns FALSE (Windows without developer mode); the AC5 test makes junctions with `Sys.junction()` and skips off Windows. Each test asserts the exact set of (file, problem) rows. Run them before T2 and see each fail for the shape it targets.
 - [ ] T2: In `R/check-supplement.R`, list pages with a walk over `list.files(all.files = TRUE, no.. = TRUE)` that enters a folder only when `is_link()` is FALSE for it; collect each link it meets; compare each link's normalized target with `normalizePath(docs)` (a path equal to it, or one that starts with it plus `/`, is inside); give one row per link outside, and do not read an outside `.html` link as a page. In `link_ok()`, check each path part against those links, so a target that passes through or ends at an outside link is broken. Run `devtools::test()`.
 - [ ] T3: Update the `broken-link` bullet in the roxygen block of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `cairn/DESIGN.md` Architecture text, and add the linked-`docs/` case to the "Release check edge cases" Known issues entry.
 - [ ] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings). The AC5 evidence is the AC5 test run (not skipped) in the Windows job of the `R-CMD-check` workflow on the milestone's pull request; at review, read that job's test output.
@@ -54,6 +54,9 @@
 - 2026-10-19: criteria audit (full, the same fresh Opus reader as M021): 5 findings on M022, all taken. AC1 says `<a href>`, since "link" also means a symbolic link here; AC2's `docs/loop` to `docs/` counted as outside under T2's "starts with it plus `/`" test, so a target equal to `docs/` is now inside (AC3, T2); AC3 adds an `.html` file link to an outside page and states that the page is not read; AC4 now covers a page link that ends at an outside file link; AC5's CI run moved from the criterion to T4.
 - 2026-10-19: plan decided that a link whose target is inside `docs/` gives no row, because the user's question-set answer named only targets outside `docs/`; whether GitHub Pages serves a linked file inside the site was not checked.
 - 2026-10-19: plan decided not to enter linked folders when listing pages, over following them with a visited set, because a linked folder inside `docs/` holds pages already read at their real path and one outside gets its own row; falsified by a site whose published pages exist only behind a linked folder inside `docs/`.
+- 2026-10-20: implement started; branch m022-link-pages cut from origin/main at fe04e4d.
+- 2026-10-20: T1: five tests added to test-check-supplement.R; run before T2 on the Mac, the AC1 to AC4 tests failed for their shapes (hidden pages unread, the loop repeated pages to many levels, out.html read as a page with no outside rows, no rows through outside links); the AC5 test skips off Windows, so its first run is the Windows CI job.
+- 2026-10-20: chose the AC3 row text "It is a link to a place outside docs/, so the published site does not have its target." and kept the existing page-link row text for AC4 rows.
 
 ## Decisions
 

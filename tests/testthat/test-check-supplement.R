@@ -497,6 +497,110 @@ test_that("a page whose markup the reader cannot finish gives the PCRE-limit row
   expect_match(rows$problem, "cannot read this page: its markup goes past the limits", fixed = TRUE)
 })
 
+# The broken-link rows of a site as "file: problem" strings, sorted, so
+# that a row given twice shows.
+link_rows <- function(site) {
+  rows <- rows_of(check_quiet(site), "broken-link")
+  sort(sprintf("%s: %s", rows$file, rows$problem))
+}
+
+page_row <- function(page, link) {
+  sprintf("docs/%s: The page links to a file that is not in the site: `%s`", page, link)
+}
+
+outside_row <- function(link) {
+  sprintf("docs/%s: It is a link to a place outside docs/, so the published site does not have its target.", link)
+}
+
+# A symbolic link at `link` to `target`, or a skip where none can be made.
+symlink_or_skip <- function(target, link) {
+  made <- suppressWarnings(file.symlink(target, link))
+  skip_if_not(made, "cannot make a symbolic link here (Windows without developer mode)")
+}
+
+test_that("pages in hidden folders and hidden pages are read", {
+  site <- new_site()
+  write_page(site, ".hidden/page.html", '<a href="gone-1.csv">x</a>')
+  write_page(site, ".page.html", '<a href="gone-2.csv">x</a>')
+  write_page(site, "sub/.deep/page.html", '<a href="gone-3.csv">x</a>')
+  expect_identical(link_rows(site), sort(c(
+    page_row(".hidden/page.html", "gone-1.csv"),
+    page_row(".page.html", "gone-2.csv"),
+    page_row("sub/.deep/page.html", "gone-3.csv")
+  )))
+})
+
+test_that("the page listing does not enter a linked folder", {
+  site <- new_site()
+  docs <- file.path(site, "docs")
+  write_page(site, "index.html", '<a href="gone-1.csv">x</a>')
+  write_page(site, "sub/page.html", '<a href="gone-2.csv">x</a>')
+  symlink_or_skip(docs, file.path(docs, "loop"))
+  symlink_or_skip(file.path(docs, "sub"), file.path(docs, "inner"))
+  expect_identical(link_rows(site), sort(c(
+    page_row("index.html", "gone-1.csv"),
+    page_row("sub/page.html", "gone-2.csv")
+  )))
+})
+
+test_that("a link in docs to a place outside docs gives one row", {
+  site <- new_site()
+  docs <- file.path(site, "docs")
+  outside <- withr::local_tempdir("outside-")
+  writeLines("secret", file.path(outside, "secret.txt"))
+  # The page that docs/out.html points to is not read.
+  writeLines('<a href="gone-out.csv">x</a>', file.path(outside, "out.html"))
+  dir.create(file.path(outside, "folder"))
+  touch(file.path(docs, "data", "ok.csv"))
+  symlink_or_skip(file.path(site, "_supplement.yml"), file.path(docs, "meta.yml"))
+  symlink_or_skip(file.path(outside, "secret.txt"), file.path(docs, "secret.txt"))
+  symlink_or_skip(file.path(outside, "out.html"), file.path(docs, "out.html"))
+  symlink_or_skip(file.path(outside, "folder"), file.path(docs, "ext"))
+  # Links whose targets are inside docs/ give no row.
+  symlink_or_skip(file.path(docs, "data", "ok.csv"), file.path(docs, "alias.csv"))
+  symlink_or_skip(file.path(docs, "data"), file.path(docs, "inner"))
+  expect_identical(link_rows(site), sort(outside_row(c("meta.yml", "secret.txt", "out.html", "ext"))))
+})
+
+test_that("a page link through a link to a place outside docs gives a row", {
+  site <- new_site()
+  docs <- file.path(site, "docs")
+  outside <- withr::local_tempdir("outside-")
+  touch(file.path(outside, "private", "x.csv"))
+  touch(file.path(outside, "data.csv"))
+  touch(file.path(docs, "sub", "y.csv"))
+  symlink_or_skip(file.path(outside, "private"), file.path(docs, "private"))
+  symlink_or_skip(file.path(outside, "data.csv"), file.path(docs, "data.csv"))
+  symlink_or_skip(file.path(docs, "sub"), file.path(docs, "inner"))
+  symlink_or_skip(file.path(docs, "sub", "y.csv"), file.path(docs, "alias.csv"))
+  write_page(site, "index.html", c(
+    '<a href="private/x.csv">x</a>',
+    '<a href="data.csv">x</a>',
+    '<a href="inner/y.csv">x</a>',
+    '<a href="alias.csv">x</a>'
+  ))
+  expect_identical(link_rows(site), sort(c(
+    outside_row(c("private", "data.csv")),
+    page_row("index.html", c("private/x.csv", "data.csv"))
+  )))
+})
+
+test_that("on Windows, a junction in docs to a folder outside docs gives the rows of a link", {
+  skip_on_os(c("mac", "linux", "solaris"))
+  site <- new_site()
+  docs <- file.path(site, "docs")
+  outside <- withr::local_tempdir("outside-")
+  touch(file.path(outside, "x.csv"))
+  touch(file.path(docs, "sub", "y.csv"))
+  stopifnot(Sys.junction(outside, file.path(docs, "private")))
+  stopifnot(Sys.junction(file.path(docs, "sub"), file.path(docs, "inner")))
+  write_page(site, "index.html", c('<a href="private/x.csv">x</a>', '<a href="inner/y.csv">x</a>'))
+  expect_identical(link_rows(site), sort(c(
+    outside_row("private"),
+    page_row("index.html", "private/x.csv")
+  )))
+})
+
 test_that("DOIs that differ between files give a doi-mismatch row", {
   site_with <- function(version = "", concept = "", cff = NULL, badges = NULL, shortcode = TRUE) {
     site <- new_site(parent.frame())
