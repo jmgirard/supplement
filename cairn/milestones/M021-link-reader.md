@@ -146,3 +146,4 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - diff-bug #4 (pass 2): the 30 s bound with 20,000 unclosed `<a ` did not catch the old pattern (11.2 s) — fix now (60,000 tags, 10 s bound)
 - diff-bug #5 (pass 2): tags with no link were parsed further, 2.05 s for 1.2M tags — fix now (prefilter on `href`/`src` text; 200,000 table rows read in 0.26 s)
 - diff-bug #6 (pass 2): `(?i)` on bytes and `tolower()` follow the locale's case tables (Turkish `i`) — fix now (explicit ASCII letter classes from `ascii_any_case()`, and `ascii_lower()` with `chartr()`)
+- diff-bug re-check (pass 2, same reader, of `7c516f6`): no regression in group numbers, the trailing space, the prefilter, or the case classes (also in tr_TR.UTF-8 and tr_TR.ISO8859-9); one test name still said "counts as unreadable" — fix now (renamed)

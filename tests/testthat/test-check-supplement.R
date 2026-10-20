@@ -485,7 +485,7 @@ test_that("a long page with non-ASCII text is read in linear time", {
   expect_lt(time, 10)
 })
 
-test_that("a page whose markup the reader cannot finish counts as unreadable", {
+test_that("a page whose markup the reader cannot finish gives the PCRE-limit row", {
   site <- new_site()
   write_page(site, "index.html", '<a href="gone.csv">x</a>')
   local_mocked_bindings(tag_links = function(html) {
