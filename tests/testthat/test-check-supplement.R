@@ -232,6 +232,94 @@ test_that("reports with code but no stored output give a no-stored-output row", 
                                                       "hidden-only.qmd", "example.qmd")))
 })
 
+# Write a report from its lines, with no front matter added.
+report_lines <- function(site, name, lines) {
+  writeLines(lines, file.path(site, "analyses", paste0(name, ".qmd")))
+}
+
+test_that("chunk starts in more shapes give a no-stored-output row", {
+  site <- new_site()
+  chunk <- function(name, start, end = "```") {
+    report_lines(site, name, c("---", "title: Fixture", "---", "", start, "1 + 1", end))
+  }
+  chunk("space-r", "``` {r}")
+  chunk("upper-r", "```{R}")
+  chunk("mixed-python", "```{Python}")
+  chunk("upper-julia", "```{JULIA}")
+  chunk("four-backticks", "````{r}", "````")
+  chunk("space-python", "``` {python}")
+  chunk("julia-label", "```{julia label}")
+  chunk("quote", "> ```{r}", "> ```")
+  chunk("quote-nested", "> > ```{r}", "> > ```")
+  chunk("quote-tight", ">```{python}", ">```")
+  chunk("tab-quote", "\t> ```{r}", "\t> ```")
+  chunk("tab-indent", "\t```{r}", "\t```")
+  chunk("tab-brace", "```\t{r}")
+  # knitr runs a chunk that a four-backtick block shows as text, and a
+  # chunk inside an HTML comment.
+  report_lines(site, "shown-chunk", c("````markdown", "```{r}", "1 + 1", "```", "````"))
+  report_lines(site, "html-comment", c("<!--", "```{r}", "1 + 1", "```", "-->"))
+
+  rows <- rows_of(check_quiet(site), "no-stored-output")
+  expected <- c("space-r", "upper-r", "mixed-python", "upper-julia", "four-backticks", "space-python",
+                "julia-label", "quote", "quote-nested", "quote-tight", "tab-quote", "tab-indent",
+                "tab-brace", "shown-chunk", "html-comment", "example")
+  expect_setequal(rows$file, file.path("analyses", paste0(expected, ".qmd")))
+})
+
+test_that("inline R code gives a row only under engine: knitr in the front matter", {
+  site <- new_site()
+  inline <- "Two is `r 1 + 1`."
+  report_lines(site, "inline-knitr", c("---", "engine: knitr", "---", "", inline))
+  # Blank lines may come before the front matter, spaces may follow its
+  # first line, and `...` may end it.
+  report_lines(site, "inline-knitr-blank", c("", "  ", "--- ", "engine: knitr", "...", "", inline))
+  report_lines(site, "inline-no-engine", c("---", "title: Fixture", "---", "", inline))
+  report_lines(site, "inline-markdown", c("---", "engine: markdown", "---", "", inline))
+  report_lines(site, "inline-no-front", c("engine: knitr", "", inline))
+  # A blank line after the first `---` means no front matter.
+  report_lines(site, "inline-blank-second", c("---", "", "engine: knitr", "---", "", inline))
+  report_lines(site, "inline-bad-yaml", c("---", "engine: knitr", "title: [open", "---", "", inline))
+  report_lines(site, "inline-scalar", c("---", "knitr", "---", "", inline))
+  report_lines(site, "inline-list", c("---", "engine: [knitr]", "---", "", inline))
+  # Inline code counts only on one line, and only as `r` and a space.
+  report_lines(site, "inline-split", c("---", "engine: knitr", "---", "", "Two is `r 1 +", "1`."))
+  report_lines(site, "inline-hash", c("---", "engine: knitr", "---", "", "Two is `r# 1 + 1`."))
+  report_lines(site, "knitr-no-code", c("---", "engine: knitr", "---", "", "Plain text."))
+
+  expect_no_error(rows <- rows_of(check_quiet(site), "no-stored-output"))
+  expect_setequal(rows$file, file.path("analyses", c("inline-knitr.qmd", "inline-knitr-blank.qmd",
+                                                     "example.qmd")))
+})
+
+test_that("reading front matter runs no !expr code", {
+  site <- new_site()
+  withr::local_options(yaml.eval.expr = TRUE)
+  marker <- file.path(withr::local_tempdir(), "ran")
+  # Run as code, this value would make the file and give the text "knitr".
+  engine <- sprintf("engine: !expr \"c(file.create('%s'), 'knitr')[2]\"", marker)
+  report_lines(site, "inline-expr", c("---", engine, "---", "", "Two is `r 1 + 1`."))
+
+  rows <- rows_of(check_quiet(site), "no-stored-output")
+  expect_identical(rows$file, "analyses/example.qmd")
+  expect_false(file.exists(marker))
+})
+
+test_that("code blocks that are not chunks give no no-stored-output row", {
+  site <- new_site()
+  block <- function(name, start) {
+    report_lines(site, name, c("---", "title: Fixture", "---", "", start, "1 + 1", "```"))
+  }
+  block("dot-class", "```{.r}")
+  block("escaped", "```{{r}}")
+  block("rust", "```{rust}")
+  block("rcpp", "```{Rcpp}")
+  block("text-after-brace", "```{r} x")
+
+  rows <- rows_of(check_quiet(site), "no-stored-output")
+  expect_identical(rows$file, "analyses/example.qmd")
+})
+
 test_that("glob characters in the site path do not hide reports", {
   # Windows does not allow * or ? in a file name.
   name <- if (.Platform$OS.type == "windows") "site [draft]" else "site [draft]*?"

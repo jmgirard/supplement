@@ -13,9 +13,21 @@
 #'   or `.qs2`, in any letter case). A fitted model saved this way can hold
 #'   the data it was fitted to.
 #' * `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
-#'   a folder inside it, with an R, Python, or Julia code chunk and no
-#'   stored output in `_freeze/`. A full render then runs its code, which
-#'   needs the data.
+#'   a folder inside it, with code and no stored output in `_freeze/`. A
+#'   full render then runs its code, which needs the data. A report has
+#'   code when a line starts an R, Python, or Julia code chunk: any mix of
+#'   spaces, tabs, and `>` characters, three or more backticks, optional
+#'   spaces or tabs, then `{r`, `{python`, or `{julia` in any letter case.
+#'   A space, a comma, or `}` follows the name, and the line ends with `}`
+#'   and optional spaces or tabs.
+#'   A report with no chunk also has code when it has inline R code on
+#'   one line (a backtick, `r`, a space, text, and a backtick) and the
+#'   top-level `engine` in its own front matter is `knitr`. Inline code
+#'   that spans lines is not found. Nor is knitr that a `knitr` key,
+#'   `execute: engine`, an included file, or `_metadata.yml` turns on.
+#'   A report has no stored output when
+#'   `_freeze/analyses/<name>/execute-results/` holds no file other than
+#'   hidden files and the files in hidden folders.
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no
@@ -296,6 +308,39 @@ check_git_files <- function(path, files) {
 
 # Stored output ---------------------------------------------------------------
 
+# The start of an R, Python, or Julia code chunk, as knitr's chunk pattern
+# and Quarto's chunk scan read it: any mix of spaces, tabs, and `>`, three
+# or more backticks, then the engine name in braces. The letter case is
+# spelled out, because `(?i)` with useBytes follows the locale.
+chunk_start <- paste0(
+  "^[ \\t>]*`{3,}[ \\t]*\\{",
+  "([Rr]|[Pp][Yy][Tt][Hh][Oo][Nn]|[Jj][Uu][Ll][Ii][Aa])",
+  "([ ,].*)?\\}[ \\t]*\\z"
+)
+
+# TRUE when the report's front matter is a YAML map whose top-level
+# `engine` is the text "knitr". The front matter starts at a first `---`
+# line that only blank lines come before and that a line that is not blank
+# follows, and it ends at the next `---` or `...` line. Quarto also accepts
+# an indented first `---`; this check needs `---` at the start of its line.
+engine_is_knitr <- function(lines) {
+  blank <- grepl("^[ \\t]*\\z", lines, perl = TRUE, useBytes = TRUE)
+  first <- which(!blank)[1]
+  if (is.na(first) || !grepl("^---[ \\t]*\\z", lines[first], perl = TRUE, useBytes = TRUE) ||
+      first == length(lines) || blank[first + 1]) {
+    return(FALSE)
+  }
+  ends <- which(grepl("^(---|\\.\\.\\.)[ \\t]*\\z", lines, perl = TRUE, useBytes = TRUE))
+  last <- ends[ends > first][1]
+  if (is.na(last) || last == first + 1) {
+    return(FALSE)
+  }
+  # yaml_read_lines() keeps sequences as lists, so `engine: [knitr]` is not
+  # the text, and gives NULL for front matter that does not parse.
+  front <- suppressWarnings(yaml_read_lines(lines[seq.int(first + 1, last - 1)]))
+  is.list(front) && !is.null(names(front)) && identical(front[["engine"]], "knitr")
+}
+
 check_stored_output <- function(path) {
   # The files that the glob analyses/*.qmd matches in the site. A glob over
   # the whole path would read `[`, `*`, or `?` in the site's own path as a
@@ -310,7 +355,8 @@ check_stored_output <- function(path) {
     # has no code that a render could run.
     lines <- tryCatch(readLines(report, warn = FALSE, encoding = "UTF-8"),
                       error = function(e) character(), warning = function(w) character())
-    has_code <- any(grepl("^\\s*`{3,}\\{(r|python|julia)[\\s,}]", lines, perl = TRUE, useBytes = TRUE))
+    has_code <- any(grepl(chunk_start, lines, perl = TRUE, useBytes = TRUE)) ||
+      (any(grepl("`r [^`]+`", lines, perl = TRUE, useBytes = TRUE)) && engine_is_knitr(lines))
     name <- sub("\\.qmd$", "", basename(report))
     # Hidden files such as .DS_Store are not stored output.
     stored <- list.files(file.path(path, "_freeze", "analyses", name, "execute-results"),
