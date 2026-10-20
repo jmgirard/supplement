@@ -1,6 +1,6 @@
 # M021: The link check reads links only from tags
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -65,6 +65,7 @@
 - 2026-10-19: claim audit: 41 claims read, 5 corrected — NEWS.md, R/check-supplement.R, man/check_supplement.Rd (the same reader re-read the 5 corrections once and found them true).
 - 2026-10-19: implement complete; status set to review.
 - 2026-10-20: review fix-now: an `href`, `src`, or `xlink:href` with no `=` (`<a href>`) gave the link "href"; it now has an empty value and gives no row (shape added to the AC3 test, which fails without the fix; help sentence added). README.md, the template `_README.md`, and the first NEWS bullet no longer say "quoted" links. Full suite: 256 tests, 0 failed, 5 skipped.
+- 2026-10-20: review return 1: AC1 fails for script text: a `<script>`, `<style>`, or comment body over about 5 MB makes the skip `gsub()` in `tag_links()` hit PCRE's match limit, so the text is read as links and gives false rows (diff-bug #1); with it, diff-bug #3, #4, #5, #6, #7, #8, #10, and the #11 test gaps (see the Review section).
 
 ## Decisions
 
@@ -78,3 +79,30 @@ Evidence gathered 2026-10-19 at branch head `c2d924a`; `main` had not moved sinc
 - AC4: test "character references in a link are decoded by the stated rules" passed: no row for `R&amp;D.csv`, `R&#38;D.csv`, `R&#x26;D.csv`, `R&#X26;D.csv`, `it&apos;s.csv`, `data/a&#37;20b.csv`; rows exactly for the 8 kept shapes (`R&eacute;.csv`, `R&AMP;D.csv`, `R&ampD.csv`, `R&#38D.csv`, `R&#0;.csv`, `R&#xD800;.csv`, `R&#x110000;.csv`, `R&#x80;.csv`), shown as written; `decode_refs()` gives `<>"'&é😀` for the five names plus `&#233;` and `&#x1F600;`.
 - AC5: `git diff a01b723 HEAD -- tests/testthat/test-check-supplement.R` removes no line, so the broken-link test's shapes and expected set are those of `a01b723`, and it passed (14 rows expected, plus the `dangling.html` row). The test "a rendered site in a git repository has no problems" ran (not skipped) and passed: 0 rows, then exactly the 5 planted rows. A scratch run (`scratchpad/compare_links.R`) rendered a fresh template site and compared the `a01b723` `page_links()` with the branch's: `analyses/example.html` 19 links and `index.html` 21 links, same sets, 0 `broken-link` rows.
 - AC6: `man/check_supplement.Rd` (from the roxygen bullet) states the skipped elements (`<script>`, `<style>`, `<textarea>`, `<title>`, comments, `<!...>`/`<?...>`), the three attribute names and the whole-name rule (`data-href`), the three value forms, the order of steps, the five named and the number references with their range, and the Out limits (other references, other control characters, the six elements, CDATA after its first `>`, `<svg>`/`<math>`, comment end at the first `-->`, a second attribute of the same name). NEWS.md line 113 has the entry. The claim audit (41 claims, 5 corrected, corrections re-read true) read these texts against the code.
+
+Consistency gate, pass 1 (2026-10-19, `c2d924a`/`d397acf`): `cairn_validate` all checks passed; `devtools::document()` no diff; NEWS.md entry present, no milestone numbers; no new top-level files; no pkgdown site, no README.Rmd; no principle changed (impact check skipped); `devtools::check()` 0 errors, 0 warnings, 0 notes.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: a comment, script, or style body over about 5 MB makes the skip `gsub()` hit PCRE's match limit (warning, page returned unchanged), so script text is read as links and gives false rows (a 7 MB JSON script) — fix now via review return 1 (fails AC1 for script text)
+- diff-bug #2: an attribute with no `=` (`<a href>`) is read as the link "href" — fix now, fixed d7d5b5b
+- diff-bug #3: time grows with the square of the count of `<` + letter with no later `>` (1e5 `<a ` took 229 s) — fix now via review return 1
+- diff-bug #4: a `gregexpr()` PCRE limit warning drops a page's links in silence (one tag with 3e6 attributes) — fix now via review return 1 (a limit warning gives the page-cannot-be-read row)
+- diff-bug #5: `<!-->` and `<!--->` run to the next `-->`, while a browser ends them at once — fix now via review return 1
+- diff-bug #6: an unclosed tag at the end of a page can still give a link from its quoted text — fix now via review return 1 (stated as a limit on the help page)
+- diff-bug #7: script "double-escaped" text (`<!--` then `<script>` inside a script) is not handled and not listed — fix now via review return 1 (stated as a limit)
+- diff-bug #8: an invalid UTF-8 byte, shown as `<e9>` by `read_page_text()`, ends an unquoted value — fix now via review return 1 (stated as a limit)
+- diff-bug #9: `<base href>` is read as a link and other links are not resolved against it; the `a01b723` pattern did the same — follow-up, new candidate row "Resolve page links against a base tag"
+- diff-bug #10: `decode_refs()` runs before `unique()` — fix now via review return 1
+- diff-bug #11: test gaps (value-less attribute, unclosed comment or raw-text element at the end of a page, a large page, `<!-->`, `decode_refs()` on a vector); `broken_pairs()` misparses a link with a backtick — fix now via review return 1 for the gaps; the backtick item rejected (style: a test helper, and no test link holds a backtick)
+- diff-bug #12: no Windows or locale defect seen; PCRE JIT on Windows may move the limit of #1 — noted; the return's large-page test runs in the Windows CI job
+- diff-bug #13: the help page did not state the value-less attribute rule — fix now, fixed d7d5b5b
+- blame-history #1: same as diff-bug #2 — fix now, fixed d7d5b5b
+- blame-history #2: a start tag cut off by the end of the page is no longer read; a browser emits no tag there — reject (false as a defect: matches the HTML tokenizer)
+- blame-history #3: unquoted values, `xlink:href` case, and skipped text widen M008's "quoted href/src" — reject (planned change, AC1 to AC3)
+- prior-review #1: named references other than the five (`&eacute;`, `&AMP;`) still give rows for files that exist — follow-up, a `cairn/DESIGN.md` Known issues entry at post-merge hygiene (the user chose the base R reader knowing this, question set 2026-10-19)
+- prior-review #2: same as blame-history #3 — reject (planned change)
+- ripple #1: the "Fix false positives in the link check" row still lists the defects M021 fixes — reject (planned: post-merge hygiene narrows the row to the M022 part)
+- ripple #2: `inst/template/_README.md:146` said "quoted relative links" — fix now, fixed d7d5b5b
+- ripple #3: `README.md:103`, the same — fix now, fixed d7d5b5b
+- ripple #4: `NEWS.md:26` said "quoted relative links" — fix now, fixed d7d5b5b
