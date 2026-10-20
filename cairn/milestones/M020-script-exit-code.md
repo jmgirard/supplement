@@ -1,13 +1,13 @@
 # M020: A failed project script shows its exit code in the test log
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — a change to the test helpers only, which no package user runs
-- **Branch/PR:** —
+- **Branch/PR:** m020-script-exit-code
 
 ## Goal
 
@@ -33,8 +33,8 @@ When a project script fails during a template test's render, the test log shows 
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-template.R`, add a test (skips with `skip_if_no_quarto()`) that makes a site with `use_template()`, writes `Deno.exit(3);` as the whole of `_scripts/setup.ts`, runs `run_in(dir, "quarto", "render")`, and checks `expect_command_fails()` and a fixed-string match of the code line. Run it before T2 and see it fail on the missing line (failure identity: the match, not the status).
-- [ ] T2: In `run_in()` (`helper-template.R:32`), when `command` is `"quarto"`, run the command inside `withr::with_envvar(c(QUARTO_LOG_LEVEL = "DEBUG"), …)`; not through `system2(env =)`, which Windows does not pass to commands such as quarto. Leave `run_split()` and `git_in()` as they are. Update the helper's comment and the `cairn/DESIGN.md` test paragraph (around line 155) from a same-session read of the code. Run `devtools::test()`.
+- [x] T1: In `tests/testthat/test-template.R`, add a test (skips with `skip_if_no_quarto()`) that makes a site with `use_template()`, writes `Deno.exit(3);` as the whole of `_scripts/setup.ts`, runs `run_in(dir, "quarto", "render")`, and checks `expect_command_fails()` and a fixed-string match of the code line. Run it before T2 and see it fail on the missing line (failure identity: the match, not the status).
+- [x] T2: In `run_in()` (`helper-template.R:32`), when `command` is `"quarto"`, run the command inside `withr::with_envvar(c(QUARTO_LOG_LEVEL = "DEBUG"), …)`; not through `system2(env =)`, which Windows does not pass to commands such as quarto. Leave `run_split()` and `git_in()` as they are. Update the helper's comment and the `cairn/DESIGN.md` test paragraph (around line 155) from a same-session read of the code. Run `devtools::test()`.
 - [ ] T3: Run the full suite 20 times on the Mac in the background, counting failures from `as.data.frame(devtools::test(reporter = "silent"))`. For each failure, record in the work log the test name and the `code:` line or its absence. If a failure shows a cause in this repo, stop and amend this milestone for the fix. If it shows a cause in Quarto or Deno, write a draft issue for quarto-dev/quarto-cli (Quarto version, exit code, steps) to `cairn/references/quarto-script-exit.md` with its `INDEX.md` line.
 - [ ] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings) and confirm the T1 test is not in the Windows job's skip list in CI.
 
@@ -50,6 +50,9 @@ When a project script fails during a template test's render, the test log shows 
 - 2026-10-19: plan gate kept `run_split()` without debug logging, because the shortcode and agreement tests match text in its stderr; falsified by a flake failure seen in a `run_split()` render.
 - 2026-10-19: a dry run in a scratch site: a `setup.ts` holding `Deno.exit(3)` printed `[execProcess] Success: false, code: 3` under debug logging; a good render printed 317 debug lines on stderr and nothing on stdout, and `quarto inspect` stdout stayed valid JSON.
 - 2026-10-19: no NEWS.md entry, because the change is in tests only.
+- 2026-10-19: started on branch m020-script-exit-code.
+- 2026-10-19: T1: the new test failed before T2 on the match only (status check passed; output held only "Running script '_scripts/setup.ts'"); it uses `skip_if_no_quarto(needs_r = FALSE)` because the script fails before any R code runs.
+- 2026-10-19: T2: `run_in()` wraps the call in `withr::with_envvar()` with `QUARTO_LOG_LEVEL=DEBUG` when `command` is "quarto"; the T1 test passes; DESIGN.md test paragraph updated; `devtools::test()` 252 tests, 0 failed, 0 errors, 5 skipped (4 min 23 s).
 
 ## Decisions
 
