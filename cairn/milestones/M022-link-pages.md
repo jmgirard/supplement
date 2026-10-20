@@ -67,6 +67,7 @@
 - 2026-10-20: review return 1: AC4 fails for a page link to a folder (`sub/`, `sub`, `.`, `./`) whose `index.html` is a link to a place outside docs/: `link_ok()` tests the path's parts for outside links before it adds `index.html`, and skips the test when the path is empty, so no row comes (diff-bug #1, reproduced). Fix-now findings landed in 08aae7c.
 - 2026-10-20: implement resumed for review return 1; T5 added (minor amendment, Coverage AC4 → T1, T2, T5).
 - 2026-10-20: T5: test "a page link to a folder whose index.html is a link outside docs gives a row" failed before the fix for `sub/`, `sub`, `./`, `.`; `link_ok()` now tests the path's parts after adding `index.html`, and the path is never empty there; help bullet adds that a folder's `index.html` is part of the path; `devtools::test()` clean.
+- 2026-10-20: claim audit: 65 claims read, 2 corrected — README.md, inst/template/_README.md (the outside-link bullet now says the target must exist and names Windows junctions).
 
 ## Decisions
 

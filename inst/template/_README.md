@@ -145,7 +145,8 @@ data frame. It finds:
 - a missing `docs/` folder
 - relative `href`, `src`, and `xlink:href` links in `docs/` to files that
   are not in `docs/`, or to folders there with no `index.html`
-- symbolic links in `docs/` to files or folders outside `docs/`
+- symbolic links in `docs/` to existing files or folders outside `docs/`,
+  and on Windows junctions to folders outside `docs/`
 - pages in `docs/` that cannot be read
 - a DOI in `CITATION.cff` or on the home page's badge that differs from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
