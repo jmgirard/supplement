@@ -762,7 +762,7 @@ check_cff_doi <- function(cff, expected) {
   text <- read_page_text(cff)
   doc <- if (!is.null(text)) {
     tryCatch(
-      suppressWarnings(yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)))),
+      suppressWarnings(yaml_load_list(text)),
       error = function(e) NULL
     )
   }

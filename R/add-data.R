@@ -201,7 +201,7 @@ add_data <- function(file, description, path = ".") {
     hand = hand
   )
   text <- paste(sub("\r$", "", edit$read$lines), collapse = "\n")
-  doc <- yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)))
+  doc <- yaml_load_list(text)
   files <- vapply(yaml_get(doc, data_path), function(x) {
     f <- if (is_map(x)) x[["file"]]
     if (is.character(f) && length(f) == 1) sub("^(\\./)+", "", f) else NA_character_

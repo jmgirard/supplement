@@ -424,6 +424,6 @@ yaml_items <- function(lines, from, to) {
 # The value of a one-line YAML scalar when it is a string, or NULL
 # otherwise.
 yaml_scalar <- function(text) {
-  value <- tryCatch(yaml::yaml.load(text), error = function(e) NULL)
+  value <- tryCatch(yaml::yaml.load(text, eval.expr = FALSE), error = function(e) NULL)
   if (is.character(value) && length(value) == 1) value
 }
