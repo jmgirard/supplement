@@ -296,6 +296,41 @@ check_git_files <- function(path, files) {
 
 # Stored output ---------------------------------------------------------------
 
+# The start of an R, Python, or Julia code chunk, as knitr's chunk pattern
+# and Quarto's chunk scan read it: any mix of spaces, tabs, and `>`, three
+# or more backticks, then the engine name in braces. The letter case is
+# spelled out, because `(?i)` with useBytes follows the locale.
+chunk_start <- paste0(
+  "^[ \\t>]*`{3,}[ \\t]*\\{",
+  "([Rr]|[Pp][Yy][Tt][Hh][Oo][Nn]|[Jj][Uu][Ll][Ii][Aa])",
+  "([ ,].*)?\\}[ \\t]*\\z"
+)
+
+# TRUE when the report's front matter is a YAML map whose top-level
+# `engine` is the text "knitr". Quarto finds front matter at a first `---`
+# line that only blank lines come before and that a line that is not blank
+# follows. It ends at the next `---` or `...` line.
+engine_is_knitr <- function(lines) {
+  blank <- grepl("^[ \\t]*\\z", lines, perl = TRUE, useBytes = TRUE)
+  first <- which(!blank)[1]
+  if (is.na(first) || !grepl("^---[ \\t]*\\z", lines[first], perl = TRUE, useBytes = TRUE) ||
+      first == length(lines) || blank[first + 1]) {
+    return(FALSE)
+  }
+  ends <- which(grepl("^(---|\\.\\.\\.)[ \\t]*\\z", lines, perl = TRUE, useBytes = TRUE))
+  last <- ends[ends > first][1]
+  if (is.na(last) || last == first + 1) {
+    return(FALSE)
+  }
+  front <- tryCatch(
+    # Keep sequences as lists, so `engine: [knitr]` is not the text.
+    suppressWarnings(yaml::yaml.load(paste(lines[seq.int(first + 1, last - 1)], collapse = "\n"),
+                                     handlers = list(seq = function(x) as.list(x)))),
+    error = function(e) NULL
+  )
+  is.list(front) && !is.null(names(front)) && identical(front[["engine"]], "knitr")
+}
+
 check_stored_output <- function(path) {
   # The files that the glob analyses/*.qmd matches in the site. A glob over
   # the whole path would read `[`, `*`, or `?` in the site's own path as a
@@ -310,7 +345,8 @@ check_stored_output <- function(path) {
     # has no code that a render could run.
     lines <- tryCatch(readLines(report, warn = FALSE, encoding = "UTF-8"),
                       error = function(e) character(), warning = function(w) character())
-    has_code <- any(grepl("^\\s*`{3,}\\{(r|python|julia)[\\s,}]", lines, perl = TRUE, useBytes = TRUE))
+    has_code <- any(grepl(chunk_start, lines, perl = TRUE, useBytes = TRUE)) ||
+      (any(grepl("`r [^`]+`", lines, perl = TRUE, useBytes = TRUE)) && engine_is_knitr(lines))
     name <- sub("\\.qmd$", "", basename(report))
     # Hidden files such as .DS_Store are not stored output.
     stored <- list.files(file.path(path, "_freeze", "analyses", name, "execute-results"),

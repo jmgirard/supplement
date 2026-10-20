@@ -281,6 +281,7 @@ test_that("inline R code gives a row only under engine: knitr in the front matte
   report_lines(site, "inline-blank-second", c("---", "", "engine: knitr", "---", "", inline))
   report_lines(site, "inline-bad-yaml", c("---", "engine: knitr", "title: [open", "---", "", inline))
   report_lines(site, "inline-scalar", c("---", "knitr", "---", "", inline))
+  report_lines(site, "inline-list", c("---", "engine: [knitr]", "---", "", inline))
   # Inline code counts only on one line, and only as `r` and a space.
   report_lines(site, "inline-split", c("---", "engine: knitr", "---", "", "Two is `r 1 +", "1`."))
   report_lines(site, "inline-hash", c("---", "engine: knitr", "---", "", "Two is `r# 1 + 1`."))
