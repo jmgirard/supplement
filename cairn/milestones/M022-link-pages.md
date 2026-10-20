@@ -70,6 +70,7 @@
 - 2026-10-20: claim audit: 65 claims read, 2 corrected — README.md, inst/template/_README.md (the outside-link bullet now says the target must exist and names Windows junctions).
 - 2026-10-20: claim audit re-read (once, same reader): both README bullets hold. No second pass.
 - 2026-10-20: `devtools::check()` at 3a6fe94: 0 errors, 0 warnings, 0 notes; status review; handed to /milestone-review.
+- 2026-10-20: step-7 approval: m022-link-pages approved for merge (AC5 to be read from the Windows CI job before the merge).
 
 ## Decisions
 
