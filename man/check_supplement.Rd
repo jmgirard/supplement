@@ -38,7 +38,16 @@ needs the data.
 \item \code{"broken-link"}: an \code{href}, \code{src}, or \code{xlink:href} link on a page in
 \verb{docs/} to a file that is not in \verb{docs/}, or to a folder there with no
 \code{index.html}, or a link that ends with \code{/} to a file. A page that
-cannot be read, such as a link to a missing file, also counts. Links
+cannot be read, such as a link to a missing file, also counts. Pages
+in every folder of \verb{docs/} are read, hidden files and folders (names
+that start with \code{.}) included. A symbolic link to a folder, or on
+Windows a junction, is not entered, so each page is read once, at its
+own path. A symbolic link or junction in \verb{docs/} whose target exists
+outside \verb{docs/} gives a row of its own, because the published site does
+not have its target. A page that it points to is not read. A link
+on a page whose path passes through or ends at such a link also counts.
+A symbolic link or junction whose target is \verb{docs/} or a place in it
+gives no row of its own. Links
 that start with \code{/}, \verb{#}, or a scheme such as
 \verb{https:} are not checked, and no web address is requested. GitHub
 Pages matches letter case, so a link whose case differs from the file

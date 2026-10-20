@@ -20,7 +20,16 @@
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no
 #'   `index.html`, or a link that ends with `/` to a file. A page that
-#'   cannot be read, such as a link to a missing file, also counts. Links
+#'   cannot be read, such as a link to a missing file, also counts. Pages
+#'   in every folder of `docs/` are read, hidden files and folders (names
+#'   that start with `.`) included. A symbolic link to a folder, or on
+#'   Windows a junction, is not entered, so each page is read once, at its
+#'   own path. A symbolic link or junction in `docs/` whose target exists
+#'   outside `docs/` gives a row of its own, because the published site does
+#'   not have its target. A page that it points to is not read. A link
+#'   on a page whose path passes through or ends at such a link also counts.
+#'   A symbolic link or junction whose target is `docs/` or a place in it
+#'   gives no row of its own. Links
 #'   that start with `/`, `#`, or a scheme such as
 #'   `https:` are not checked, and no web address is requested. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
