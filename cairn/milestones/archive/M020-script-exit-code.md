@@ -1,0 +1,11 @@
+# M020: A failed project script shows its exit code in the test log
+
+**Status:** done (2026-10-19, PR #21 https://github.com/jmgirard/supplement/pull/21)
+
+**Goal:** When a project script fails during a template test's render, the test log shows the script's exit code.
+
+**Outcome:** `run_in()` in `tests/testthat/helper-template.R` runs a command whose base name, without `.exe`, is `quarto` inside `withr::with_envvar(c(QUARTO_LOG_LEVEL = "DEBUG"))`, unless the caller already set the variable; `system2(env =)` is not used, because Windows passes it only to commands such as R. A failed project script now prints Quarto's `[execProcess] Success: false, code: <n>` line in `output`, which `expect_status()` shows on failure. `run_split()` and `git_in()` set no log level. A new test in `test-template.R` writes `Deno.exit(3);` as the whole of `_scripts/setup.ts` and checks the exit status and the exact line with `expect_contains()`. DESIGN.md's test paragraph says so. No NEWS entry (tests only). 20 full-suite runs on the Mac had no failure, so the flake's cause is still unknown and no upstream issue draft was written.
+
+**Decisions:** plan gate: diagnostics only, no retry; an upstream Quarto issue would be a draft for the user to post; debug logging inside `run_in()` rather than a new helper at each call site; `run_split()` left without it.
+
+**Review:** criteria audit (reduced) reworded AC1 to the helper's behavior and split the draft AC2 into the Windows criterion and the no-change criterion. AC1 by the new test (it fails with main's helper and with a caller's own log level); AC2 by both Windows CI jobs on PR head 7034ecf (FAIL 0, no `test-template.R` skip); AC3 by a per-test comparison with main (identical apart from the new test). Four-lens fan-out: 17 findings, 4 fixed (exact-line match, helper comment, keep a caller's log level, match quarto by base name), 2 to rows ("run_in env argument", new; "template test flake", narrowed), 11 rejected. 0 amendments. `devtools::check()` 0/0/0; CI green on all six checks. The merge took the CI-verified head, so the branch's last tracking-only commits (the AC2 evidence and the CI-wait lines) stay out of main's history; this summary carries them.

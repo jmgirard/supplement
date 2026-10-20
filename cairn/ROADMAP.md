@@ -1,20 +1,19 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-19 (M019 review: narrowed template test flake, added status check output, pruned M016 row; validate green)_
+_Last hygiene check: 2026-10-19 (M020 review: narrowed template test flake, added run_in env argument, pruned M017 row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M020 | A failed project script shows its exit code in the test log | review | — | high | milestones/M020-script-exit-code.md |
+| M020 | A failed project script shows its exit code in the test log | done | — | high | milestones/archive/M020-script-exit-code.md |
 | M019 | A failing template test prints the cause of the failure | done | — | high | milestones/archive/M019-template-test-flake.md |
 | M018 | The package checks and template renders pass on Windows in CI | done | — | high | milestones/archive/M018-windows-check.md |
-| M017 | The template publishes paper figures from a figures folder | done | — | normal | milestones/archive/M017-paper-figures.md |
 
 ## Candidates
 
-- [high] template test flake: in M019, run 5 of 10 `devtools::test()` runs on the Mac failed in "the example report saves a figure that the next full render publishes": the full `quarto render` exited 1 and printed only "Running script '_scripts/setup.ts'". Quarto 1.10.19 turns a failed project script into an error with no message (`throw new Error()` in `runScripts()`) and logs the script's exit code only under `QUARTO_LOG_LEVEL=DEBUG`; an error thrown in `setup.ts` does print, so the script's Deno process ended with no output, a cause outside this repo as far as the runs show. 30 runs of the template tests alone, 1,000 full renders of one site, and 400 runs of the failed test's render sequence passed; 3 CI runs on main (9 jobs, main's tests without the new output checks) also passed. The M017 failure ("setup keeps both files when README.md and SUPPLEMENT.md exist", `quarto render` exited 1) has the same shape. The M009 failure (in all three calls of `expect_site_not_ignored()`, `git check-ignore` exited 1, which means nothing ignored, and still printed lines, most likely on stderr) is not explained; those checks now print the output. Next step: run the full suite with `QUARTO_LOG_LEVEL=DEBUG` to read the exit code. — added 2026-10-18; narrowed 2026-10-19 by M019 — started M020
+- [high] template test flake: in M019, run 5 of 10 `devtools::test()` runs on the Mac failed in "the example report saves a figure that the next full render publishes": the full `quarto render` exited 1 and printed only "Running script '_scripts/setup.ts'". Quarto 1.10.19 turns a failed project script into an error with no message (`throw new Error()` in `runScripts()`) and logs the script's exit code only under `QUARTO_LOG_LEVEL=DEBUG`; an error thrown in `setup.ts` does print, so the script's Deno process ended with no output, a cause outside this repo as far as the runs show. 30 runs of the template tests alone, 1,000 full renders of one site, and 400 runs of the failed test's render sequence passed; 3 CI runs on main (9 jobs, main's tests without the new output checks) also passed. The M017 failure ("setup keeps both files when README.md and SUPPLEMENT.md exist", `quarto render` exited 1) has the same shape. The M009 failure (in all three calls of `expect_site_not_ignored()`, `git check-ignore` exited 1, which means nothing ignored, and still printed lines, most likely on stderr) is not explained; those checks now print the output. Since M020, `run_in()` runs quarto with `QUARTO_LOG_LEVEL=DEBUG`, so the next such failure in a `run_in()` render prints the script's `[execProcess] Success: false, code: <n>` line; `run_split()` renders still do not. 20 full-suite runs on the Mac in M020 had no failure. Next step: read the exit code when a failure comes, in local runs or CI. — added 2026-10-18; narrowed 2026-10-19 by M019; narrowed 2026-10-19 by M020
 - docs site and walkthrough: a package site built with the toolkit itself, plus a first-time guide to GitHub Pages and Zenodo. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review). — added 2026-10-18
 - Windows-safe names: from the M007 review. add_report() accepts names that Windows reserves, such as `con`, and add_data() accepts base names that end in `.`, which Windows strips. Narrowed 2026-10-19 by M018, which made `is_link()` find junctions. — added 2026-10-18
 - web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
