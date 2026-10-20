@@ -29,11 +29,12 @@
 #'   a line after U+2028 or U+2029. Such chunk starts are not found.
 #'   A nul byte in a report counts as
 #'   a character that is none of those this rule names.
-#'   A report with no chunk also has code when it has inline R code on
+#'   A report with no chunk that counts also has code when it has inline R code on
 #'   one line and the top-level `engine` in its own front matter is
 #'   `knitr`. Inline R code is a backtick, then `r` and a space or `#`, or
 #'   `{r}` and a space, then text with no backtick, then a backtick. Inline
-#'   code that spans lines is not found. Nor is knitr that a `knitr` key,
+#'   code that spans lines is not found, nor is inline code with a tab
+#'   after `{r}`, which knitr also runs. Nor is knitr that a `knitr` key,
 #'   `execute: engine`, an included file, or `_metadata.yml` turns on.
 #'   A report has no stored output when
 #'   `_freeze/analyses/<name>/execute-results/` holds no file other than
@@ -320,8 +321,9 @@ check_git_files <- function(path, files) {
 
 # The start of a code chunk, as Quarto's chunk scan (quarto.js 1.10.19,
 # languagesWithClasses()) reads it: any mix of spaces, tabs, and `>`, three
-# or more backticks, then a name in braces. Quarto starts an engine for every
-# name but ojs, mermaid, and dot, in any letter case. The letter case is
+# or more backticks, then a name in braces. When the front matter names no
+# engine, Quarto starts one for every name but ojs, mermaid, and dot, in any
+# letter case. The letter case is
 # spelled out, because `(?i)` with useBytes follows the locale.
 not_engine <- "([Oo][Jj][Ss]|[Mm][Ee][Rr][Mm][Aa][Ii][Dd]|[Dd][Oo][Tt])(?![A-Za-z0-9_.])"
 chunk_start <- paste0(
@@ -337,14 +339,16 @@ inline_r <- "`(r[ #]|\\{r\\} )[^`]+`"
 # that the chunk and inline patterns name, so a nul inside the braces of a
 # chunk start keeps the match and one before or after it ends the match.
 # readLines() would cut each line at its nul. A report that cannot be read,
-# such as a link whose target is missing, has no lines.
+# such as a link whose target is missing, or one too large for rawToChar()
+# (2 GiB or more), has no lines.
 read_report_lines <- function(report) {
-  bytes <- tryCatch(readBin(report, "raw", n = file.size(report)),
-                    error = function(e) raw(), warning = function(w) raw())
-  bytes[bytes == as.raw(0)] <- as.raw(1)
-  lines <- strsplit(rawToChar(bytes), "\r\n|\r|\n", perl = TRUE, useBytes = TRUE)[[1]]
-  Encoding(lines) <- "UTF-8"
-  lines
+  tryCatch({
+    bytes <- readBin(report, "raw", n = file.size(report))
+    bytes[bytes == as.raw(0)] <- as.raw(1)
+    lines <- strsplit(rawToChar(bytes), "\r\n|\r|\n", perl = TRUE, useBytes = TRUE)[[1]]
+    Encoding(lines) <- "UTF-8"
+    lines
+  }, error = function(e) character(), warning = function(w) character())
 }
 
 # TRUE when the report's front matter is a YAML map whose top-level

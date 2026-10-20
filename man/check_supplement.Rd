@@ -47,11 +47,12 @@ space, line breaks included, between the backticks and \verb{\{} and after
 a line after U+2028 or U+2029. Such chunk starts are not found.
 A nul byte in a report counts as
 a character that is none of those this rule names.
-A report with no chunk also has code when it has inline R code on
+A report with no chunk that counts also has code when it has inline R code on
 one line and the top-level \code{engine} in its own front matter is
 \code{knitr}. Inline R code is a backtick, then \code{r} and a space or \verb{#}, or
 \code{{r}} and a space, then text with no backtick, then a backtick. Inline
-code that spans lines is not found. Nor is knitr that a \code{knitr} key,
+code that spans lines is not found, nor is inline code with a tab
+after \code{{r}}, which knitr also runs. Nor is knitr that a \code{knitr} key,
 \code{execute: engine}, an included file, or \verb{_metadata.yml} turns on.
 A report has no stored output when
 \verb{_freeze/analyses/<name>/execute-results/} holds no file other than
