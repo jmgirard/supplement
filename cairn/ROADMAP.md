@@ -1,18 +1,17 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-20 (M024 done and archived; "Find missing output in more chunk shapes" graduated; M021 row pruned; two rows and two lessons added; validate green)_
+_Last hygiene check: 2026-10-20 (M025 done and archived; "Read YAML without running R code" graduated; M022 row pruned; one lesson added; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M025 | Package functions read YAML without running R code | review | — | normal | milestones/M025-yaml-no-expr.md |
 | M026 | check_supplement() finds code of any engine and more inline shapes | planned | — | normal | milestones/M026-inline-shapes.md |
 | M027 | check_supplement() finds stored output older than its report | planned | — | normal | milestones/M027-stale-output.md |
+| M025 | Package functions read YAML without running R code | done | — | normal | milestones/archive/M025-yaml-no-expr.md |
 | M024 | check_supplement() finds code chunks in more shapes | done | — | normal | milestones/archive/M024-chunk-shapes.md |
 | M023 | add_report() and add_data() refuse names that Windows cannot use | done | — | normal | milestones/archive/M023-windows-names.md |
-| M022 | The link check reads every page once and refuses links out of docs | done | M021 | normal | milestones/archive/M022-link-pages.md |
 
 ## Candidates
 
@@ -34,7 +33,6 @@ _Last hygiene check: 2026-10-20 (M024 done and archived; "Find missing output in
 - Check how Pages publishes links in docs: from the M022 review. `check_supplement()` gives no row for a symbolic link whose target is inside `docs/`, but git stores an absolute target (`/Users/me/site/docs/x.csv`) as written, so it points nowhere on GitHub. It gives a row for a relative link to a repository file outside `docs/`, which a Pages build may still publish (`actions/upload-pages-artifact` runs `tar --dereference`; the template's branch deploy was not checked). Whether git on Windows commits a junction's contents was not checked. Pages in `docs/.git/` or `docs/.github/` are now read, though Pages does not publish them. — added 2026-10-20
 - Speed up the path test of page links: from the M022 review. Once `docs/` holds any link, `link_ok()` runs `file.exists()` and `normalizePath()` on each part of each page link. 200 pages with 100 links each took 2.49 s with no link in `docs/` and 3.28 s with one (macOS, measured by the review on 2026-10-20); Windows was not measured. — added 2026-10-20
 - Find inline code in more shapes: from the M024 review. Under `engine: knitr`, `check_supplement()` gives no `no-stored-output` row for a report whose only code is inline `` `r# x` `` code, which knitr 1.52 runs, or Quarto's inline `` `{r} x` `` syntax. A report whose only chunks use another knitr engine, such as `{bash}` or `{sql}`, gives no row either. A report on which `readLines()` warns, such as one with an embedded nul, is read as empty and gives no row. — added 2026-10-20 — started M026
-- Read YAML without running R code: from the M024 review. Under `options(yaml.eval.expr = TRUE)`, `yaml::yaml.load()` runs `!expr` values. `yaml_load_list()` now passes `eval.expr = FALSE`, but the direct calls in `add_data()`, `check_cff_doi()`, and `yaml_scalar()` do not. — added 2026-10-20 — started M025
 - Match menu items only on plain text: from the M025 review. `yaml_scalar()` in `R/yaml-insert.R` reads a one-item flow sequence as its item, so `text: [Analyses]` in `_quarto.yml` matches the Analyses step of `add_report()`. Reading it with `yaml_load_list()` would make it a list and no match, and would keep the `eval.expr = FALSE` setting in one place. — added 2026-10-20
 - [low] Keep tests within the Suggests floors: Suggests floor guard: nothing stops a new test from calling a testthat function newer than the DESCRIPTION floor, and the withr, knitr, and rmarkdown entries in Suggests have no floor. A CI job on the floor versions, or a test that compares the functions the tests call with the floor's exports, would catch it. From the M013 plan. From the M025 review: yaml in Imports has no floor either, and the code needs its `eval.expr` argument. — added 2026-10-18
 - [parked] template test flake: a full `quarto render` in the template tests sometimes exits 1 and prints only "Running script '_scripts/setup.ts'" (1 of 10 full-suite runs on the Mac in M019; the M017 failure had the same shape). Quarto 1.10.19 throws an empty `Error` on a failed project script, and no cause in this repo was found (the repeat runs are in the M019 and M020 archives). The M009 failure (`git check-ignore` exited 1 and still printed lines) is not explained; those checks now print the output. Since M020, `run_in()` renders print the script's `[execProcess] Success: false, code: <n>` line; `run_split()` renders do not. Next step: read the exit code when a failure comes, in local runs or CI. — added 2026-10-18; narrowed 2026-10-19 by M019; narrowed 2026-10-19 by M020

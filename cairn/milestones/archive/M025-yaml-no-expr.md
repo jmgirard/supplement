@@ -1,0 +1,11 @@
+# M025: Package functions read YAML without running R code
+
+**Status:** done (2026-10-20, PR #26 https://github.com/jmgirard/supplement/pull/26)
+
+**Goal:** No YAML read in the package's R code runs `!expr` code, also when a user sets `options(yaml.eval.expr = TRUE)`.
+
+**Outcome:** `add_data()` (`R/add-data.R`) and `check_cff_doi()` (`R/check-supplement.R`) now parse through `yaml_load_list()`, and `yaml_scalar()` (`R/yaml-insert.R`), which the Analyses-menu lookup of `add_report()` uses, passes `eval.expr = FALSE`. `grep -nE 'yaml\.load|read_yaml' R/*.R` now lists only those two parser calls and a comment. An `!expr` value is read as the text of its R code. `add_data()`'s second parse now uses `yaml_lines_text()`, so its text ends with a line break as the other reads do. Three marker-file tests (in `test-add-data.R`, `test-add-report.R`, and `test-check-supplement.R`) each failed on main. The new helpers `expr_marker()` and `expr_value()` in `helper-files.R` write the marker path with `/` and refuse a path with a quote. The M024 front matter test now uses them. NEWS.md has a new bullet. DESIGN.md states the `eval.expr = FALSE` rule, and the M005 lesson was corrected to point at `yaml_load_list()`.
+
+**Decisions:** none. No D-entry.
+
+**Review:** full criteria audit at plan: 1 finding, taken (AC1 bound the grep, not the code). Claim audit: 9 claims, 1 corrected (NEWS wording). One review pass with the four-lens fan-out: 17 findings. 7 fixed in 6117ed2: test guards and message patterns, a quote check on the marker path, the CITATION test asserting its row, the DESIGN.md rule, `yaml_lines_text()` in `add_data()`, and the M005 lesson. 3 follow-up: a new row "Match menu items only on plain text" (`yaml_scalar()` reads `[Analyses]` as `Analyses`), and the missing yaml floor, absorbed into "Keep tests within the Suggests floors". 7 rejected (planned change or false). `devtools::check()` 0/0/0; CI green on all six jobs at head ba17b2d. 0 criterion amendments. The run stopped twice for CI and asked the merge question twice. The tracking-only commits after ba17b2d (CI stops, AC4 evidence, second approval) were not pushed, so they are not in main's history; this summary carries them. The row "Read YAML without running R code" graduated.
