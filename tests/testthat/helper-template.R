@@ -38,6 +38,50 @@ run_in <- function(dir, command, args, env = character()) {
   list(status = attr(out, "status") %||% 0L, output = out)
 }
 
+# Check the exit status of a result from run_in() or git_in(), and with
+# `output`, also the lines it printed. A failure shows everything the
+# command printed, so the cause of a failed command reaches the test log.
+expect_status <- function(result, status = 0L, output = NULL) {
+  printed <- as.character(result$output)
+  actual <- exit_status(result)
+  ok <- !is.na(actual) && identical(actual, as.integer(status)) &&
+    (is.null(output) || identical(printed, as.character(output)))
+  expected <- paste("exit status", status)
+  if (!is.null(output)) {
+    expected <- paste(expected, if (length(output)) {
+      paste0("and this output:\n", paste(output, collapse = "\n"), "\n")
+    } else {
+      "and no output"
+    })
+  }
+  expect(ok, command_failure(result, expected))
+  invisible(result)
+}
+
+# Check that a result from run_in() has an exit status other than 0.
+expect_command_fails <- function(result) {
+  actual <- exit_status(result)
+  expect(!is.na(actual) && actual != 0L, command_failure(result, "an exit status other than 0"))
+  invisible(result)
+}
+
+# The exit status as one integer, or NA when the result holds none.
+exit_status <- function(result) {
+  s <- result$status
+  if (length(s) == 1L && is.numeric(s) && !is.na(s) && s == round(s) && abs(s) <= .Machine$integer.max) {
+    as.integer(s)
+  } else {
+    NA_integer_
+  }
+}
+
+command_failure <- function(result, expected) {
+  printed <- as.character(result$output)
+  shown <- if (length(printed)) paste(printed, collapse = "\n") else "(nothing)"
+  status <- paste(deparse(result$status), collapse = "")
+  sprintf("The command exited with status %s; expected %s. It printed:\n%s", status, expected, shown)
+}
+
 # Run git without the user's global or system configuration and without a
 # global excludes file, so that only the repository's own .gitignore
 # decides what is ignored. GIT_DIR, GIT_WORK_TREE, and GIT_INDEX_FILE are
