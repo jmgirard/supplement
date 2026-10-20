@@ -1,13 +1,13 @@
 # M027: check_supplement() finds stored output older than its report
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — an exported check whose rows stop `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m027-stale-output
 
 ## Goal
 
@@ -39,7 +39,7 @@
 
 ## Tasks
 
-- [ ] T1: Probe Quarto 1.10.19 in a scratch site: change only an included file, then only `_quarto.yml`, and record in the work log whether the stored `hash` changes on a render by name. The Out limit and the help text follow what the probe shows (the derived-claims rule). If the hash covers the included text, AC1 and AC3 go to the amendment protocol.
+- [x] T1: Probe Quarto 1.10.19 in a scratch site: change only an included file, then only `_quarto.yml`, and record in the work log whether the stored `hash` changes on a render by name. The Out limit and the help text follow what the probe shows (the derived-claims rule). If the hash covers the included text, AC1 and AC3 go to the amendment protocol.
 - [ ] T2: Add the AC1, AC2, and AC4 tests, with JSON fixtures that the tests write with `writeBin()` (LESSONS M011). Add the AC3 test beside the full-render tests in `tests/testthat/test-add-render.R`, with `skip_if_no_quarto()` (`helper-template.R:3`). Run the row cases against the code on main and record that each fails there (LESSONS M010). Recheck the tests that match whole row sets (`test-check-supplement.R:88`) and the empty `html.json` at line 221, which now gives a `stale-output` row.
 - [ ] T3: Write `check_stale_output()`. Read the report with `readBin()`, drop each CR before an LF, and hash the bytes with `tools::md5sum()` on a temporary file or with an MD5 of the raw bytes. Read each JSON file with `jsonlite::fromJSON(simplifyVector = FALSE)` inside `tryCatch()`. List the folder, not a glob over the path (LESSONS M008). Add the call to `check_supplement()` (line 149).
 - [ ] T4: Add the roxygen item and run `devtools::document()`. Edit the existing `NEWS.md` bullet for `check_supplement()`. Add a line to the check list in `inst/template/_README.md`.
@@ -59,6 +59,7 @@
 - 2026-10-20: plan gate chose the hash Quarto writes over comparing file times, because git does not keep file times, so a fresh clone has no order to read; falsified by a Quarto version that writes no `hash` or hashes other text than the report file.
 - 2026-10-20: changelog: the existing 0.0.0.9000 bullet for `check_supplement()` gets the change, with no new bullet.
 - 2026-10-20: criteria audit (full mode, fresh Opus reader): 7 findings, all taken. AC1 adds BOM, lone CR, and no-final-LF fixtures and says an unreadable report gives no row. AC2 counts a non-object top level as unreadable and says the unreadable text wins over the stale text. AC3 adds an include case, and T1 sends AC1 and AC3 to the amendment protocol if the hash covers included text. AC4 needs the real `check_supplement()`, not a mock. AC5 covers both row texts. T2 rechecks whole-row-set tests. AC6 had no finding.
+- 2026-10-20: T1 probe (Quarto 1.10.19, scratch website with `freeze: true`): after a change to only an included file, then only `_quarto.yml`, then a new `analyses/_metadata.yml`, each render by name left `hash` equal to the MD5 of the report (3557edfa…), while the stored `result` held the new included text. The hash covers the report file alone, so the Out limit stands and no amendment is needed.
 
 ## Decisions
 
