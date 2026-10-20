@@ -134,3 +134,6 @@
   site does not have its target. On Windows, a junction in `docs/` to a
   folder outside `docs/` also gives that row. A link on a page that goes
   through such a link also gives a row.
+* Package functions read YAML files without running `!expr` code, also
+  when `options(yaml.eval.expr = TRUE)` is set. Such a value is read as
+  its text.
