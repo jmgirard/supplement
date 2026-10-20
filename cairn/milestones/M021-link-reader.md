@@ -74,6 +74,7 @@
 - 2026-10-20: checkpoint: the claim audit of the T5 prose corrected 4 of 29 claims (the possessive and match-limit comment; a quote that never closes is read, not dropped; an invalid byte's `>` ends the whole tag; the tag_links() header). The re-read of the corrections is pending.
 - 2026-10-20: claim audit: 29 claims read, 4 corrected — R/check-supplement.R, man/check_supplement.Rd (the same reader re-read the 4 corrections and the new useBytes comment once and found them true). The first suite run after T5 (before the useBytes fix) gave 258 tests, 0 failed, 5 skipped; the stale `devtools::check()` run was stopped, and both rerun on `3f6389d`.
 - 2026-10-20: T5 done on `cd36256`: `devtools::test()` 259 tests, 0 failed, 0 errors, 5 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes. Implement complete; status set to review.
+- 2026-10-20: step-7 approval: m021-link-reader approved for merge
 
 ## Decisions
 
