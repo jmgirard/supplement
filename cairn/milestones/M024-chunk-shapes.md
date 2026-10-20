@@ -84,8 +84,8 @@ Pass 1, 2026-10-20, at 308463a. Main had not moved since the cut (ca5edb7).
 - diff-bug #2: Quarto's inline syntax `` `{r} x` `` is not found — follow-up, row "Find inline code in more shapes".
 - diff-bug #3: front matter with a byte that is not valid UTF-8 gives no row — reject, planned change: AC2 says front matter that does not parse gives no row.
 - diff-bug #4: a duplicate key in the front matter gives no row — reject, planned change, as for #3.
-- diff-bug #5: `engine_is_knitr()` repeats the parse that `yaml_read_lines()` in `R/yaml-insert.R` does — fix now: it calls `yaml_read_lines()`.
-- diff-bug #6: under `options(yaml.eval.expr = TRUE)`, `yaml.load()` runs `!expr` values, so a read-only check could run a report's R code (a probe made a file) — fix now: `yaml_load_list()` passes `eval.expr = FALSE`, with a test that failed without it. The other direct `yaml.load()` calls go to the row "Read YAML without running R code".
+- diff-bug #5: `engine_is_knitr()` repeats the parse that `yaml_read_lines()` in `R/yaml-insert.R` does — fix now: it calls `yaml_read_lines()`, fixed eb01a14.
+- diff-bug #6: under `options(yaml.eval.expr = TRUE)`, `yaml.load()` runs `!expr` values, so a read-only check could run a report's R code (a probe made a file) — fix now: `yaml_load_list()` passes `eval.expr = FALSE`, with a test that failed without it, fixed eb01a14. The other direct `yaml.load()` calls go to the row "Read YAML without running R code".
 - diff-bug #7: a tab after the engine name does not match — reject, false: knitr's pattern also rejects it, and the help says "a space, a comma, or `}`".
 - diff-bug #8: inline code inside a fenced block counts under knitr — reject, false: the probe showed knitr runs it.
 - diff-bug #9: CRLF, BOM, empty and large files, and front matter edge cases were clean — noted.
@@ -106,3 +106,4 @@ Pass 1, 2026-10-20, at 308463a. Main had not moved since the cut (ca5edb7).
 - ripple #4: the row message also covers inline-only reports — reject, false: the message stays accurate.
 - ripple #5: the M024 ROADMAP rows agree — noted.
 - Suite runs after the fixes: one run gave 2 failures and 1 warning whose tests were not captured; the next three runs gave 0 failures and 0 warnings (4268 expectations). No cause found; the parked row "template test flake" records render failures of this kind.
+- After the fixes, `devtools::check()` at eb01a14: 0 errors, 0 warnings, 0 notes. AC6 waits for the R-CMD-check workflow on the PR (step 8).
