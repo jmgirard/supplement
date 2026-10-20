@@ -33,15 +33,23 @@ the data it was fitted to.
 \item \code{"no-stored-output"}: a \code{.qmd} report directly in \verb{analyses/}, not in
 a folder inside it, with code and no stored output in \verb{_freeze/}. A
 full render then runs its code, which needs the data. A report has
-code when a line starts an R, Python, or Julia code chunk: any mix of
-spaces, tabs, and \code{>} characters, three or more backticks, optional
-spaces or tabs, then \verb{\{r}, \verb{\{python}, or \verb{\{julia} in any letter case.
-A space, a comma, or \verb{\}} follows the name, and the line ends with \verb{\}}
-and optional spaces or tabs.
+code when a line starts a code chunk: any mix of spaces, tabs, and \code{>}
+characters, three or more backticks, optional spaces or tabs, then \verb{\{}
+and a name. The name is the longest run of an ASCII letter followed by
+ASCII letters, digits, \verb{_}, or \code{.}. Any text without \verb{\}} can follow
+the name, then \verb{\}}, and the line ends with optional spaces or tabs.
+A chunk named \code{ojs}, \code{mermaid}, or \code{dot}, in any letter case, does not
+count, because Quarto starts no engine for it. Every other name counts,
+such as \code{{bash}} or \code{{sql}}, and so does a chunk in a report whose
+front matter sets \code{engine: markdown}. Quarto also reads other white
+space, line breaks included, where this rule reads spaces and tabs,
+and such chunk starts are not found. A nul byte in a report counts as
+a character that is none of those this rule names.
 A report with no chunk also has code when it has inline R code on
-one line (a backtick, \code{r}, a space, text, and a backtick) and the
-top-level \code{engine} in its own front matter is \code{knitr}. Inline code
-that spans lines is not found. Nor is knitr that a \code{knitr} key,
+one line and the top-level \code{engine} in its own front matter is
+\code{knitr}. Inline R code is a backtick, then \code{r} and a space or \verb{#}, or
+\code{{r}} and a space, then text with no backtick, then a backtick. Inline
+code that spans lines is not found. Nor is knitr that a \code{knitr} key,
 \code{execute: engine}, an included file, or \verb{_metadata.yml} turns on.
 A report has no stored output when
 \verb{_freeze/analyses/<name>/execute-results/} holds no file other than

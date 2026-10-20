@@ -15,15 +15,23 @@
 #' * `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
 #'   a folder inside it, with code and no stored output in `_freeze/`. A
 #'   full render then runs its code, which needs the data. A report has
-#'   code when a line starts an R, Python, or Julia code chunk: any mix of
-#'   spaces, tabs, and `>` characters, three or more backticks, optional
-#'   spaces or tabs, then `{r`, `{python`, or `{julia` in any letter case.
-#'   A space, a comma, or `}` follows the name, and the line ends with `}`
-#'   and optional spaces or tabs.
+#'   code when a line starts a code chunk: any mix of spaces, tabs, and `>`
+#'   characters, three or more backticks, optional spaces or tabs, then `{`
+#'   and a name. The name is the longest run of an ASCII letter followed by
+#'   ASCII letters, digits, `_`, or `.`. Any text without `}` can follow
+#'   the name, then `}`, and the line ends with optional spaces or tabs.
+#'   A chunk named `ojs`, `mermaid`, or `dot`, in any letter case, does not
+#'   count, because Quarto starts no engine for it. Every other name counts,
+#'   such as `{bash}` or `{sql}`, and so does a chunk in a report whose
+#'   front matter sets `engine: markdown`. Quarto also reads other white
+#'   space, line breaks included, where this rule reads spaces and tabs,
+#'   and such chunk starts are not found. A nul byte in a report counts as
+#'   a character that is none of those this rule names.
 #'   A report with no chunk also has code when it has inline R code on
-#'   one line (a backtick, `r`, a space, text, and a backtick) and the
-#'   top-level `engine` in its own front matter is `knitr`. Inline code
-#'   that spans lines is not found. Nor is knitr that a `knitr` key,
+#'   one line and the top-level `engine` in its own front matter is
+#'   `knitr`. Inline R code is a backtick, then `r` and a space or `#`, or
+#'   `{r}` and a space, then text with no backtick, then a backtick. Inline
+#'   code that spans lines is not found. Nor is knitr that a `knitr` key,
 #'   `execute: engine`, an included file, or `_metadata.yml` turns on.
 #'   A report has no stored output when
 #'   `_freeze/analyses/<name>/execute-results/` holds no file other than
