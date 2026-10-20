@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-20 (M021 done and archived; "Fix false positives in
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M022 | The link check reads every page once and refuses links out of docs | review | M021 | normal | milestones/M022-link-pages.md |
+| M022 | The link check reads every page once and refuses links out of docs | in-progress | M021 | normal | milestones/M022-link-pages.md |
 | M021 | The link check reads links only from tags | done | — | normal | milestones/archive/M021-link-reader.md |
 | M020 | A failed project script shows its exit code in the test log | done | — | high | milestones/archive/M020-script-exit-code.md |
 | M019 | A failing template test prints the cause of the failure | done | — | high | milestones/archive/M019-template-test-flake.md |
