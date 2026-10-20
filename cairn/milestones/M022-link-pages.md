@@ -1,6 +1,6 @@
 # M022: The link check reads every page once and refuses links out of docs
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** M021
 - **Driving RR:** —
@@ -42,7 +42,7 @@
 - [x] T1: In `tests/testthat/test-check-supplement.R`, add one test per criterion AC1 to AC5 with the listed shapes. Symbolic-link tests skip with a stated reason where `file.symlink()` returns FALSE (Windows without developer mode); the AC5 test makes junctions with `Sys.junction()` and skips off Windows. Each test asserts the exact set of (file, problem) rows. Run them before T2 and see each fail for the shape it targets.
 - [x] T2: In `R/check-supplement.R`, list pages with a walk over `list.files(all.files = TRUE, no.. = TRUE)` that enters a folder only when `is_link()` is FALSE for it; collect each link it meets; compare each link's normalized target with `normalizePath(docs)` (a path equal to it, or one that starts with it plus `/`, is inside); give one row per link outside, and do not read an outside `.html` link as a page. In `link_ok()`, check each path part against those links, so a target that passes through or ends at an outside link is broken. Run `devtools::test()`.
 - [x] T3: Update the `broken-link` bullet in the roxygen block of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `cairn/DESIGN.md` Architecture text, and add the linked-`docs/` case to the "Release check edge cases" Known issues entry.
-- [ ] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings). The AC5 evidence is the AC5 test run (not skipped) in the Windows job of the `R-CMD-check` workflow on the milestone's pull request; at review, read that job's test output.
+- [x] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings). The AC5 evidence is the AC5 test run (not skipped) in the Windows job of the `R-CMD-check` workflow on the milestone's pull request; at review, read that job's test output.
 
 ## Work log
 
@@ -61,6 +61,8 @@
 - 2026-10-20: T3: `broken-link` help bullet extended from a same-session read of `check_links()`, `docs_entries()`, `outside_links()`, and `link_ok()`; `devtools::document()` run; NEWS.md bullet added (sentences split to pass the simple-english hook); DESIGN.md Architecture text names the walk and `in_docs()`, and the "Release check edge cases" entry names the linked-`docs/` case.
 - 2026-10-20: claim audit: 48 claims read, 3 corrected — NEWS.md, R/check-supplement.R, man/check_supplement.Rd ("each page is read once" did not hold for a symbolic link to a page file, which is read as its own page; the NEWS outside-link sentence now says the target must exist).
 - 2026-10-20: claim audit re-read (once, same reader): the NEWS bullet and the page-file sentence hold; the linked-folder sentence of the help bullet was narrowed to folders that a link inside `docs/` points to, and the outside-link sentence now also says a page in an outside linked folder is not read, as the reader proposed. No second pass.
+- 2026-10-20: T4: `devtools::check()` on the Mac at 60458f6: 0 errors, 0 warnings, 0 notes. The AC5 test has not run yet: it skips on the Mac, and its evidence is the Windows job of `R-CMD-check` on the PR, read at review.
+- 2026-10-20: status review; handed to /milestone-review.
 
 ## Decisions
 
