@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — `check_supplement()` is exported, and its `broken-link` rows decide whether a release goes ahead
-- **Branch/PR:** m022-link-pages
+- **Branch/PR:** m022-link-pages · https://github.com/jmgirard/supplement/pull/23
 
 ## Goal
 
