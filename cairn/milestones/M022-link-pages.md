@@ -1,6 +1,6 @@
 # M022: The link check reads every page once and refuses links out of docs
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** M021
 - **Driving RR:** —
@@ -68,6 +68,8 @@
 - 2026-10-20: implement resumed for review return 1; T5 added (minor amendment, Coverage AC4 → T1, T2, T5).
 - 2026-10-20: T5: test "a page link to a folder whose index.html is a link outside docs gives a row" failed before the fix for `sub/`, `sub`, `./`, `.`; `link_ok()` now tests the path's parts after adding `index.html`, and the path is never empty there; help bullet adds that a folder's `index.html` is part of the path; `devtools::test()` clean.
 - 2026-10-20: claim audit: 65 claims read, 2 corrected — README.md, inst/template/_README.md (the outside-link bullet now says the target must exist and names Windows junctions).
+- 2026-10-20: claim audit re-read (once, same reader): both README bullets hold. No second pass.
+- 2026-10-20: `devtools::check()` at 3a6fe94: 0 errors, 0 warnings, 0 notes; status review; handed to /milestone-review.
 
 ## Decisions
 
