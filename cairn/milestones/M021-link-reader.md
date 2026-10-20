@@ -40,8 +40,8 @@
 ## Tasks
 
 - [x] T1: In `tests/testthat/test-check-supplement.R`, add one test per criterion AC1 to AC4 with the listed shapes, built with `write_page()` and `touch()`. Each test asserts the exact set of (file, link) pairs, as the existing broken-link test does at line 318. Run them before T2 and see each fail for the shape it targets (for example the comment link giving a row), not only fail.
-- [ ] T2: In `R/check-supplement.R`, replace the `regmatches()` pattern in `page_links()` with a reader that walks the page text: it skips `<!--` to the first `-->`, other `<!…>` and `<?…>` to `>`, and the text of the four elements to their end tag; it reads attributes from each start tag and keeps the values of the three names; it decodes and trims each value in the AC3 order (a helper beside `percent_decode()`). Keep `link_ok()` as it is. Run `devtools::test()`; the existing broken-link test and the rendered-site test must pass unchanged.
-- [ ] T3: Update the `broken-link` bullet in the roxygen block at the top of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `R/check-supplement.R` text in the `cairn/DESIGN.md` Architecture section.
+- [x] T2: In `R/check-supplement.R`, replace the `regmatches()` pattern in `page_links()` with a reader that walks the page text: it skips `<!--` to the first `-->`, other `<!…>` and `<?…>` to `>`, and the text of the four elements to their end tag; it reads attributes from each start tag and keeps the values of the three names; it decodes and trims each value in the AC3 order (a helper beside `percent_decode()`). Keep `link_ok()` as it is. Run `devtools::test()`; the existing broken-link test and the rendered-site test must pass unchanged.
+- [x] T3: Update the `broken-link` bullet in the roxygen block at the top of `R/check-supplement.R`, from a same-session read of the code; run `devtools::document()`. Add a NEWS.md bullet. Update the `R/check-supplement.R` text in the `cairn/DESIGN.md` Architecture section.
 - [ ] T4: Run `devtools::check()` on the Mac (0 errors, 0 warnings).
 
 ## Work log
@@ -58,6 +58,8 @@
 - 2026-10-19: started on branch `m021-link-reader`, cut from `main` at `99abded`.
 - 2026-10-19: T1: four tests added after the broken-link test; before T2 each failed on its target shape (comment and raw-text links gave rows; `HREF`, `Src`, `XLINK:HREF` gave none and `data-*`/`ng-src` gave rows; trimmed and unquoted values misread; references not decoded; `decode_refs()` missing).
 - 2026-10-19: checkpoint (T2 and T3 written, not ticked): `tag_links()` and `decode_refs()` replace the pattern in `page_links()`; the check test file passes; a scratch comparison on a rendered template site gave the same link set on both pages under the a01b723 reader and the new one, and 0 broken-link rows; a 3.7 MB page reads in 0.4 s. Help page, NEWS, and DESIGN text written. Full suite and `devtools::check()` running.
+- 2026-10-19: T2, T3 done: `devtools::test()` 256 tests, 0 failed, 0 errors, 5 skipped; `test-check-supplement.R` with `NOT_CRAN=true` ran all 20 tests with none skipped, the rendered-site test included.
+- 2026-10-19: implement choice: `tag_links()` removes skipped text with one `gsub()` whose alternatives keep each start tag (raw-text start tags too), then reads tags from what is left, so a `<!--` inside a quoted attribute value does not start a comment.
 
 ## Decisions
 
