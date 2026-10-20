@@ -71,6 +71,7 @@
 - 2026-10-20: claim audit re-read (once, same reader): both README bullets hold. No second pass.
 - 2026-10-20: `devtools::check()` at 3a6fe94: 0 errors, 0 warnings, 0 notes; status review; handed to /milestone-review.
 - 2026-10-20: step-7 approval: m022-link-pages approved for merge (AC5 to be read from the Windows CI job before the merge).
+- 2026-10-20: CI wait on PR #23 timed out at 590 s with all 6 checks pending (macOS, Ubuntu, Windows, two runs each); watcher stopped; no merge yet.
 
 ## Decisions
 
