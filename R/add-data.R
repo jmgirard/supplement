@@ -110,6 +110,23 @@ add_data <- function(file, description, path = ".") {
       class = c("supplement_error_file_name", "supplement_error")
     )
   }
+  # Windows drops a final "." from a file name, and reads con.csv and
+  # con.tar.gz as the device con.
+  if (grepl("\\.\\z", base, perl = TRUE)) {
+    cli::cli_abort(
+      c("The file name {.file {base}} ends in {.code .}, which Windows drops, so the site's link to it would break in a clone there.",
+        "i" = "Rename the file, then add it."),
+      class = c("supplement_error_file_name", "supplement_error")
+    )
+  }
+  stem <- sub("\\..*", "", base)
+  if (windows_reserved(stem)) {
+    cli::cli_abort(
+      c("The file name {.file {base}} starts with {.val {stem}}, which Windows reserves for a device, so Windows cannot make the file.",
+        "i" = "Rename the file, then add it."),
+      class = c("supplement_error_file_name", "supplement_error")
+    )
+  }
   # The template's .gitignore rules block these file types, so the site's
   # link to such a file would break in a clone. Names that start with "."
   # are refused above.
