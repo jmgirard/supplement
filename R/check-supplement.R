@@ -59,7 +59,7 @@
 #'   `<![CDATA[...]]>` section after its first `>`. The four skipped
 #'   elements are also skipped inside `<svg>` and `<math>`. A comment ends
 #'   only at the first `-->`, so `<!-->` and `<!--->` also run to the next
-#'   `-->`. A script ends at its first `</script>`, also when its text holds
+#'   `-->`, and `--!>` does not end it. A script ends at its first `</script>`, also when its text holds
 #'   `<!--` and `<script>`, where a browser reads on to a later
 #'   `</script>`. A `"` or `'` with no closing quote starts an unquoted
 #'   value, so the next `>` ends that tag and it is read, where a browser

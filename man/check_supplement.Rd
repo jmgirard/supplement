@@ -77,7 +77,7 @@ and \verb{<plaintext>} elements is read as markup, and so is the text of a
 \verb{<![CDATA[...]]>} section after its first \code{>}. The four skipped
 elements are also skipped inside \verb{<svg>} and \verb{<math>}. A comment ends
 only at the first \verb{-->}, so \verb{<!-->} and \verb{<!--->} also run to the next
-\verb{-->}. A script ends at its first \verb{</script>}, also when its text holds
+\verb{-->}, and \verb{--!>} does not end it. A script ends at its first \verb{</script>}, also when its text holds
 \verb{<!--} and \verb{<script>}, where a browser reads on to a later
 \verb{</script>}. A \verb{"} or \verb{'} with no closing quote starts an unquoted
 value, so the next \code{>} ends that tag and it is read, where a browser
