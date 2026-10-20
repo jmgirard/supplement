@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-20 (M023 done and archived; "Refuse names that Windows cannot use" graduated; M020 row pruned; one lesson; validate green)_
+_Last hygiene check: 2026-10-20 (M024 done and archived; "Find missing output in more chunk shapes" graduated; M021 row pruned; two rows and two lessons added; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M024 | check_supplement() finds code chunks in more shapes | review | — | normal | milestones/M024-chunk-shapes.md |
+| M024 | check_supplement() finds code chunks in more shapes | done | — | normal | milestones/archive/M024-chunk-shapes.md |
 | M023 | add_report() and add_data() refuse names that Windows cannot use | done | — | normal | milestones/archive/M023-windows-names.md |
 | M022 | The link check reads every page once and refuses links out of docs | done | M021 | normal | milestones/archive/M022-link-pages.md |
-| M021 | The link check reads links only from tags | done | — | normal | milestones/archive/M021-link-reader.md |
 
 ## Candidates
 
@@ -18,7 +17,6 @@ _Last hygiene check: 2026-10-20 (M023 done and archived; "Refuse names that Wind
 - Write a first-time publishing guide: a first-time guide to GitHub Pages and Zenodo. — added 2026-10-18, split 2026-10-19
 - Check web links on the rendered site: web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
 - Find stale stored output for reports: stale stored output: `check_supplement()` finds reports with code but no stored output in `_freeze/`. Also find stored output that is older than its report source, from the source hash in each `execute-results/html.json`. From the M008 plan. — added 2026-10-18
-- Find missing output in more chunk shapes: stored output chunk shapes: from the M008 review. The `no-stored-output` check misses chunks written ```` ``` {r} ````, chunks inside a `>` blockquote, `{R}`, and reports with only inline `r` code, and a four-backtick block that shows ```` ```{r} ```` as text gives a false row. See also "Find stale stored output for reports". — added 2026-10-18 — started M024
 - Fix edge cases of the figures folder: figures folder edge cases: from the M017 review. Under freeze, a clone where `figures/` was never committed renders with no `docs/figures/`, and `check_supplement()` finds no problem, because no page links a figure. The `create_supplement()` message says to render once before the first commit, but that render writes `figures/bootstrap-means.png` and no `docs/figures/`. Setup ends `.gitignore` with `!docs/` and `!_freeze/` only, so an existing `figures/` or `*.png` rule keeps `figures/` out of git. The `analyses/*.png` and `analyses/*.pdf` rules match lower case only on Linux (the README says so; bracket patterns as for `.rds` would fix it). The example's `png()` has no `on.exit(dev.off())`, so a failed chunk can leave a partial file in `figures/`. With `execute-dir: project`, `file.path("..", "figures")` writes outside the site. `dir.create(showWarnings = FALSE)` hides a file named `figures`. — added 2026-10-19
 - Detect broken file links on Windows: Windows file links: from the M018 implement. On Windows a file symbolic link to a missing file reads as a file that exists, with `file.access()` 0 and `normalizePath()` giving the link's own path, so `is_link()` misses it and `release_supplement()` stops with "Could not read" (`supplement_error_write`) in place of the link refusal; that stop comes in `read_outputs()`, before the writes, and no Windows test checks that nothing is written. The test "a link to a missing output file is refused before any write" skips on Windows for it. A fix needs a check outside base R's file functions, such as `dir /AL`. Making such a link needs admin rights or developer mode. From the M018 review: the same rule counts as a link any name that the folder lists but `file.exists()` cannot read, such as a name that ends in a space or `.` or a path over 260 characters. — added 2026-10-19
 - Handle short folder names on Windows: Windows short folder names: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
