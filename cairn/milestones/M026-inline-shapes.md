@@ -41,7 +41,7 @@
 
 - [x] T1: Probe Quarto 1.10.19 for the AC1, AC2, and AC4 shapes not probed at plan: render each report by name in a scratch site with `freeze: true` and record in the work log which ones start an engine (LESSONS M024). Read the engine choice in `/Applications/quarto/bin/quarto.js` (`languagesWithClasses()` at line 31721 and its callers) to confirm that only `ojs`, `mermaid`, and `dot` start no engine. A probe that refutes a criterion goes to the amendment protocol.
 - [x] T2: In `tests/testthat/test-check-supplement.R`, next to the test "chunk starts in more shapes give a no-stored-output row" (line 240), add the AC1 to AC4 reports. Change the M024 cases that this milestone turns: `{rust}` and `{Rcpp}` now give a row (`rust-block` at line 219, and lines 315–316), and so does `r#` inline code (line 287). Write the nul byte with `writeBin()`. Run the new row cases against the code on main and record that each fails there (LESSONS M010).
-- [ ] T3: In `R/check-supplement.R`, replace `chunk_start` (line 315) with the code rule, with the three names spelled as `[Oo][Jj][Ss]` and so on (LESSONS M021), and widen the inline pattern at line 359. Replace the `readLines()` call at line 356, which reads a file with a nul byte as empty, with a read that keeps the other lines.
+- [x] T3: In `R/check-supplement.R`, replace `chunk_start` (line 315) with the code rule, with the three names spelled as `[Oo][Jj][Ss]` and so on (LESSONS M021), and widen the inline pattern at line 359. Replace the `readLines()` call at line 356, which reads a file with a nul byte as empty, with a read that keeps the other lines.
 - [ ] T4: Edit the roxygen item for `"no-stored-output"` and run `devtools::document()`. Edit the existing `NEWS.md` bullet for `check_supplement()`. Read `inst/template/_README.md` line 145 and edit it where it no longer holds.
 - [ ] T5: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
@@ -66,6 +66,7 @@
 - 2026-10-20: re-audit: AC4 (full) — 3 findings on the redraft (see the Decisions section): "and the inline rule" is untested, "Quarto's chunk scan reads a nul the same way" binds Quarto rather than the check, and the character list leaves out `#`, which the inline rule names. Second re-audit on AC4, so the wording goes to the user.
 - 2026-10-20: T2 tests added: one report per AC1 and AC2 shape, the AC3 inline shapes, and seven nul and line-end reports (`report_bytes()` writes them with `writeBin()`). Against main's code each new row case fails except "a nul on another line", which main already reports: `readLines(warn = FALSE)` gives no warning on a nul and cuts the line at it, so the planned premise "read as empty" did not hold.
 - 2026-10-20: T3: `chunk_start` is Quarto's scan with a lookahead that leaves out a whole `ojs`, `mermaid`, or `dot` name; `inline_r` adds `r#` and `{r} `; `read_report_lines()` reads bytes, maps each nul to 0x01, and splits at LF, CR LF, or CR (named so to avoid `report_lines()` in `R/add-report.R`). Planted defects each turn a test red: dropping the nul, a nul read as a letter, an LF/CRLF-only split, no exclusion, an exclusion of prefixes, the old inline pattern, and `{r}` with no space.
+- 2026-10-20: verify: `devtools::test()` 279 tests, 0 failed, 0 errors, 7 skipped. Stop: AC4 wording goes to the user after its second re-audit.
 
 ## Decisions
 
