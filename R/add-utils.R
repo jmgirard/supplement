@@ -38,6 +38,9 @@ check_text <- function(x, arg, required = FALSE, call = parent.frame()) {
 # `.`. The list is the ASCII part of the one on Microsoft's page "Naming
 # Files, Paths, and Namespaces"
 # (https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file).
+# The page also lists COM and LPT with the superscript digits ¹, ², and ³.
+# Both name rules allow only ASCII, so those names never reach this check;
+# a rule that allows other characters must add them here.
 windows_reserved <- function(x) {
   devices <- c("con", "prn", "aux", "nul", paste0("com", 1:9), paste0("lpt", 1:9))
   tolower(x) %in% devices

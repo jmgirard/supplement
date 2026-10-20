@@ -57,10 +57,9 @@ string.
 \item \code{supplement_error_file_name}: the base name of \code{file} does not follow
 the file-name rule above. It holds a character or a run of symbols
 that the rule refuses, starts with \code{.}, starts and ends with \verb{_}, ends
-in \code{.}, or its part before the first
-\code{.} is a name that Windows reserves for a device, in any letter case
-and with any extension: \code{CON}, \code{PRN}, \code{AUX}, \code{NUL}, \code{COM1} to \code{COM9},
-or \code{LPT1} to \code{LPT9}.
+in \code{.}, or its part before the first \code{.} is a name that Windows
+reserves for a device, in any letter case and with any extension:
+\code{CON}, \code{PRN}, \code{AUX}, \code{NUL}, \code{COM1} to \code{COM9}, or \code{LPT1} to \code{LPT9}.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
 \item \code{supplement_error_parse}: the yaml package cannot read
 \verb{_supplement.yml}, as for \code{\link[=write_citation]{write_citation()}}.

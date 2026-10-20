@@ -44,10 +44,9 @@
 #' * `supplement_error_file_name`: the base name of `file` does not follow
 #'   the file-name rule above. It holds a character or a run of symbols
 #'   that the rule refuses, starts with `.`, starts and ends with `_`, ends
-#'   in `.`, or its part before the first
-#'   `.` is a name that Windows reserves for a device, in any letter case
-#'   and with any extension: `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`,
-#'   or `LPT1` to `LPT9`.
+#'   in `.`, or its part before the first `.` is a name that Windows
+#'   reserves for a device, in any letter case and with any extension:
+#'   `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`, or `LPT1` to `LPT9`.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 #' * `supplement_error_parse`: the yaml package cannot read
 #'   `_supplement.yml`, as for [write_citation()].
@@ -132,7 +131,7 @@ add_data <- function(file, description, path = ".") {
   stem <- sub("\\..*", "", base)
   if (windows_reserved(stem)) {
     cli::cli_abort(
-      c("The file name {.file {base}} starts with {.val {stem}}, which Windows reserves for a device, so Windows cannot make the file.",
+      c("The part of the file name {.file {base}} before its first {.code .} is {.val {stem}}, which Windows reserves for a device, so Windows cannot make the file.",
         "i" = "Rename the file, then add it."),
       class = c("supplement_error_file_name", "supplement_error")
     )

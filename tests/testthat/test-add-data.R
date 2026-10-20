@@ -173,24 +173,6 @@ test_that("a file name that Quarto reads as Markdown stops", {
 
 test_that("a file name that Windows cannot use stops", {
   site <- new_site()
-  before <- folder_state(site)
-  # Windows cannot make these files, so they run on other systems only.
-  # Each source file is in its own folder, because macOS ignores letter
-  # case.
-  if (.Platform$OS.type != "windows") {
-    spellings <- windows_device_spellings()
-    expect_length(unique(spellings), 176)
-    names <- c(spellings, paste0(spellings, ".csv"), "nul.tar.gz", "CoN.TXT")
-    dots <- c("data.", "a.b.", "scores.csv.")
-    for (name in c(names, dots)) {
-      file <- source_file(name)
-      expect_identical(basename(file), name)
-      err <- expect_error(add_data(file, "D", path = site), class = "supplement_error_file_name")
-      expect_match(conditionMessage(err), "Windows", info = name)
-    }
-    expect_identical(folder_state(site), before)
-  }
-
   # A device name after the first `.`, or only at the start of the stem,
   # is copied and listed.
   controls <- c("console.csv", "com10.csv", "x.con", "nul_x.csv")
@@ -200,6 +182,22 @@ test_that("a file name that Windows cannot use stops", {
   }
   items <- yaml_list(lines_utf8(file.path(site, "_supplement.yml")), data_list)
   expect_identical(vapply(items, `[[`, "", "file"), paste0("data/", c("example.csv", controls)))
+
+  # Each source file is in its own folder, because macOS ignores letter
+  # case.
+  skip_on_os("windows", "Windows cannot make files with these names")
+  before <- folder_state(site)
+  spellings <- windows_device_spellings()
+  expect_length(unique(spellings), 176)
+  names <- c(spellings, paste0(spellings, ".csv"), "nul.tar.gz", "CoN.TXT")
+  dots <- c("data.", "a.b.", "scores.csv.")
+  for (name in c(names, dots)) {
+    file <- source_file(name)
+    expect_identical(basename(file), name)
+    err <- expect_error(add_data(file, "D", path = site), class = "supplement_error_file_name")
+    expect_match(conditionMessage(err), "Windows", info = name)
+  }
+  expect_identical(folder_state(site), before)
 })
 
 test_that("a different file at data/<base name> stops and is kept", {
