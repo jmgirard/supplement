@@ -157,8 +157,8 @@ test_that("a name that Windows reserves for a device stops and writes nothing", 
   }
   expect_identical(folder_state(site), before)
 
-  # Names that only start like a device name, or a number Windows does not
-  # reserve, are written and listed.
+  # Names that start with a device name, a part of one, and com0, which
+  # Microsoft's list does not hold, are written and listed.
   for (name in c("console", "com10", "com0", "lpt", "nul_x")) {
     suppressMessages(add_report(name, "X", path = site))
     expect_true(file.exists(file.path(site, "analyses", paste0(name, ".qmd"))), info = name)

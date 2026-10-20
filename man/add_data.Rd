@@ -56,7 +56,8 @@ string.
 \item \code{supplement_error_line_break}: \code{description} holds a line break.
 \item \code{supplement_error_file_name}: the base name of \code{file} does not follow
 the file-name rule above. It holds a character or a run of symbols
-that the rule refuses, it ends in \code{.}, or its part before the first
+that the rule refuses, starts with \code{.}, starts and ends with \verb{_}, ends
+in \code{.}, or its part before the first
 \code{.} is a name that Windows reserves for a device, in any letter case
 and with any extension: \code{CON}, \code{PRN}, \code{AUX}, \code{NUL}, \code{COM1} to \code{COM9},
 or \code{LPT1} to \code{LPT9}.
