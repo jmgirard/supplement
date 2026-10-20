@@ -1,6 +1,6 @@
 # M025: Package functions read YAML without running R code
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -38,7 +38,7 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 - [x] T1: Add the three AC2 tests, in `tests/testthat/test-add-data.R`, `test-check-supplement.R`, and `test-add-report.R`, in the shape of the test "reading front matter runs no !expr code" (`test-check-supplement.R:295`). Put each `!expr` value where the call reaches the parse site under change: for `add_data()`, a key that `read_supplement()` accepts and the `data` list read at `R/add-data.R:204` holds; for `add_report()`, a navbar item that `yaml_find_list()` passes to `yaml_scalar()` before it finds Analyses. Run each test against the code on main and record in the work log that it makes the marker file there (LESSONS M010).
 - [x] T2: Add `eval.expr = FALSE` at the three calls, or route the two calls with the sequence handler through `yaml_load_list()` (`R/yaml-insert.R:175`). Run the AC1 grep and record its lines in the work log.
 - [x] T3: Add a bullet to `NEWS.md` under 0.0.0.9000, which is not released.
-- [ ] T4: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
+- [x] T4: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
 
@@ -58,6 +58,9 @@ No YAML read in the package's R code runs `!expr` code, also when a user sets `o
 - 2026-10-20: correction to the line above: the Windows claim is reasoned from YAML's escape rules (`\U` needs eight hex digits), not seen on a Windows run.
 - 2026-10-20: T2: `add_data()` and `check_cff_doi()` now call `yaml_load_list()`, which has the same sequence handler, and `yaml_scalar()` passes `eval.expr = FALSE`. The AC1 grep lists `R/supplement-yml.R:34` (a comment), `R/yaml-insert.R:176` (`yaml_load_list()`), and `R/yaml-insert.R:427` (`yaml_scalar()`), each a one-line call with `eval.expr = FALSE`. `devtools::test()`: 277 tests, 0 failed, 0 errors, 7 skipped.
 - 2026-10-20: T3: added the last bullet under 0.0.0.9000 in NEWS.md. "Read as its text" rests on the plan probe (yaml 2.3.12 returned the `!expr` text as a string).
+- 2026-10-20: T4: `devtools::document()` gives no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR.
+- 2026-10-20: claim audit: 9 claims read, 1 corrected — NEWS.md ("read as its text" became "read as the text of its R code"; the reader found the old words could mean the value the code gives). The reader also ran the four `!expr` tests against in-memory copies of `yaml_load_list()` and `yaml_scalar()` without `eval.expr = FALSE`, and each failed.
+- 2026-10-20: implement done; status set to review.
 
 ## Decisions
 

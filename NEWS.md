@@ -136,4 +136,4 @@
   through such a link also gives a row.
 * Package functions read YAML files without running `!expr` code, also
   when `options(yaml.eval.expr = TRUE)` is set. Such a value is read as
-  its text.
+  the text of its R code.
