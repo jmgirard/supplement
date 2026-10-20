@@ -143,8 +143,8 @@ data frame. It finds:
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
 - a missing `docs/` folder
-- quoted relative links in `docs/` to files that are not in `docs/`, or to
-  folders there with no `index.html`
+- relative `href`, `src`, and `xlink:href` links in `docs/` to files that
+  are not in `docs/`, or to folders there with no `index.html`
 - pages in `docs/` that cannot be read
 - a DOI in `CITATION.cff` or on the home page's badge that differs from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read

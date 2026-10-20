@@ -88,9 +88,13 @@ or `_quarto.yml` gives that class for a file that does not parse.
 its problems as a data frame (`check`, `file`, `problem`), with a
 `skipped` attribute. Its file size and saved-object checks read `git
 ls-files -z --cached --others --exclude-standard` through `git_run()`, the
-package's one place that starts a process. Its link check reads quoted
-`href` and `src` values in `docs/**/*.html` with a regular expression and
-resolves each link by path segments inside `docs/`, matching each name's
+package's one place that starts a process. Its link check reads the
+`href`, `src`, and `xlink:href` values of start tags in `docs/**/*.html`
+with `tag_links()`, which first removes comments and the text of script,
+style, textarea, and title elements with one PCRE pattern (no HTML parser
+package, M021). `decode_refs()` decodes five named and the number
+character references, and the check resolves each link by path segments
+inside `docs/`, matching each name's
 letter case as GitHub Pages does. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
 `R/release-supplement.R`: `release_supplement()` checks `bump`, reads

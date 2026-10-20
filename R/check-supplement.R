@@ -17,8 +17,8 @@
 #'   stored output in `_freeze/`. A full render then runs its code, which
 #'   needs the data.
 #' * `"not-rendered"`: the site has no `docs/` folder.
-#' * `"broken-link"`: a quoted `href` or `src` link on a page in `docs/` to
-#'   a file that is not in `docs/`, or to a folder there with no
+#' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
+#'   `docs/` to a file that is not in `docs/`, or to a folder there with no
 #'   `index.html`, or a link that ends with `/` to a file. A page that
 #'   cannot be read, such as a link to a missing file, also counts. Links
 #'   that start with `/`, `#`, or a scheme such as
@@ -27,6 +27,50 @@
 #'   name counts as broken, also on a disk that ignores case. A link that
 #'   also differs from the name in Unicode form (for example `é` written
 #'   as `e` plus an accent) is not caught.
+#'
+#'   Links are read from start tags only, as a browser reads them. Comments,
+#'   `<!...>` and `<?...>` markup, and the text of `<script>`, `<style>`,
+#'   `<textarea>`, and `<title>` elements are skipped, and so is page text
+#'   such as `<code>` text. Attribute names match in any letter case, and
+#'   only whole names count, so `data-href` and `data-src` are not read. A
+#'   value can be in double quotes, in single quotes, or unquoted, where it
+#'   runs to the next space or `>`. An attribute with no `=`, such as
+#'   `<a href>`, has an empty value and is not checked. A start tag that the
+#'   end of the page cuts off is not read, as a browser drops it. A page
+#'   whose markup goes past the limits of the PCRE pattern engine gives one
+#'   row that says so, in place of its link rows. Such a page holds
+#'   millions of `-` in one comment, millions of `<` in the text of one
+#'   script, style, textarea, or title element (about 5 million did, in a
+#'   page of 20 MB), or millions of attributes in one tag. Each value is
+#'   handled in this order:
+#'   character references are decoded; spaces, tabs, line breaks, and form
+#'   feeds at its ends are removed and tabs and line breaks inside it are
+#'   dropped; links with a scheme, `/`, or `#` at the start are skipped;
+#'   then `%` escapes are decoded. The decoded references are `&amp;`,
+#'   `&lt;`, `&gt;`, `&quot;`, and `&apos;` (in lower case, with the `;`),
+#'   and number references such as `&#38;` or `&#x26;` with the `;` that
+#'   name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
+#'   159. A row shows the link after the references are decoded, the ends
+#'   removed, and the tabs and line breaks inside it dropped.
+#'
+#'   These are the main cases where the check reads a page differently
+#'   from a browser. Every other reference (such as `&eacute;`, `&AMP;`, or
+#'   `&#38` with no `;`) stays as written. Other control characters at the
+#'   ends of a link, such as `&#1;`, stay, while a browser removes them. The
+#'   text of `<noscript>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`,
+#'   and `<plaintext>` elements is read as markup, and so is the text of a
+#'   `<![CDATA[...]]>` section after its first `>`. The four skipped
+#'   elements are also skipped inside `<svg>` and `<math>`. A comment ends
+#'   only at the first `-->`, so `<!-->` and `<!--->` also run to the next
+#'   `-->`, and `--!>` does not end it. A script ends at its first `</script>`, also when its text holds
+#'   `<!--` and `<script>`, where a browser reads on to a later
+#'   `</script>`. A `"` or `'` with no closing quote starts an unquoted
+#'   value, so the next `>` ends that tag and it is read, where a browser
+#'   reads on to the end of the page and drops the tag. A byte that is not
+#'   valid UTF-8 is read as text such as `<e9>`; outside a quoted value,
+#'   its `>` ends the tag, so an unquoted value keeps the `<e9` part and
+#'   the later attributes of that tag are not read. A second attribute of
+#'   the same name is also read.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
@@ -283,6 +327,12 @@ check_links <- function(path) {
         "The page cannot be read, or it is a link to a missing file."
       ))
     }
+    if (isFALSE(links)) {
+      return(problem_rows(
+        "broken-link", file.path("docs", page),
+        "The link check cannot read this page: its markup goes past the limits of the PCRE pattern engine."
+      ))
+    }
     broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page)]
     problem_rows(
       "broken-link", rep_len(file.path("docs", page), length(broken)),
@@ -292,22 +342,146 @@ check_links <- function(path) {
   do.call(rbind, c(list(problem_rows()), rows))
 }
 
-# The quoted href and src values on a page that point to a place inside
-# the site, each once, or NULL when the page cannot be read, such as a
-# link whose target is missing.
+# The href, src, and xlink:href values on a page that point to a place
+# inside the site, each once, or NULL when the page cannot be read, such
+# as a link whose target is missing. It is FALSE after a warning from
+# tag_links(), such as a PCRE match limit, which makes gsub() return its
+# input unchanged.
 page_links <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
     return(NULL)
   }
-  attrs <- regmatches(html, gregexpr("\\b(href|src)\\s*=\\s*(\"[^\"]*\"|'[^']*')", html, perl = TRUE))[[1]]
-  # (?s) lets `.` match a line break inside the quotes. A browser drops
-  # tabs and line breaks from a link (the URL standard's parser does), so
-  # they are dropped here too.
-  values <- sub("(?s)^[^=]*=\\s*.(.*).$", "\\1", attrs, perl = TRUE)
+  links <- tryCatch(tag_links(html), warning = function(w) FALSE)
+  if (isFALSE(links)) {
+    return(FALSE)
+  }
+  values <- decode_refs(unique(links))
+  # A browser trims spaces and control characters from the ends of a
+  # link; here only spaces, tabs, line breaks, and form feeds are trimmed.
+  # Tabs and line breaks inside a link are dropped, as the URL standard's
+  # parser does.
+  values <- gsub("^[\t\n\f\r ]+|[\t\n\f\r ]+$", "", values, perl = TRUE)
   values <- gsub("[\t\n\r]", "", values)
   skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
   unique(values[!skip])
+}
+
+# Parts of the patterns that read start tags, after the HTML standard's
+# tokenizer: an attribute name runs to a space, `/`, `>`, or `=`, and an
+# unquoted value runs to a space or `>`.
+# Every repeat in the html_* parts and in the `skipped` pattern of
+# tag_links() is possessive (`*+`, `++`), so PCRE never backtracks into it
+# and the time stays linear. PCRE's match limit counts the steps of one
+# match, so a comment that holds millions of `-`, a script, style,
+# textarea, or title body that holds millions of `<`, or one tag with
+# millions of attributes can still reach it (about 5 million `<` in one
+# script body did); page_links() then returns FALSE.
+html_space <- "[\t\n\f\r ]"
+html_attr <- paste0(
+  "[^\t\n\f\r />][^\t\n\f\r />=]*+",
+  "(?:", html_space, "*+=", html_space, "*+(?:\"[^\"]*+\"|'[^']*+'|[^\t\n\f\r >]*+))?+"
+)
+# The rest of a start tag after its name: attributes and the spaces or `/`
+# between them, then `>`. A `>` inside a quoted value does not end the tag.
+# A tag can also run to the end of the page, so a `<` that no `>` follows
+# is matched once, not again from each later `<`; tag_links() drops it.
+html_tag_rest <- paste0("(?:[\t\n\f\r /]++|", html_attr, ")*+(?:>|\\z)")
+html_start_tag <- paste0("<[A-Za-z][^\t\n\f\r />]*+", html_tag_rest)
+
+# A pattern that matches `word` in any ASCII letter case, such as
+# `[Tt][Ii][Tt][Ll][Ee]`. PCRE's `(?i)` on bytes, and toupper() and
+# tolower(), follow the locale, where `i` and `I` need not pair (Turkish).
+ascii_any_case <- function(word) {
+  chars <- strsplit(word, "", fixed = TRUE)[[1]]
+  upper <- chartr("abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", chars)
+  paste0("[", upper, chars, "]", collapse = "")
+}
+
+ascii_lower <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", x)
+
+# One script, style, textarea, or title element: its start tag (kept, in a
+# capture group), then its text up to its end tag or the end of the page.
+html_raw_text <- function(name) {
+  name <- ascii_any_case(name)
+  end <- paste0("/", name, "(?=[\t\n\f\r />])")
+  paste0(
+    "(<", name, "(?=[\t\n\f\r />])", html_tag_rest, ")",
+    "[^<]*+(?:<(?!", end, ")[^<]*+)*+",
+    "(?:<", end, "[^>]*+(?:>|\\z))?+"
+  )
+}
+
+# Comments, `<!...>` and `<?...>` markup, the four raw-text elements (groups
+# 1 to 4 keep their start tags), and other start tags (group 5).
+html_skipped <- paste0(
+  "<!--[^-]*+(?:-(?!->)[^-]*+)*+(?:-->|\\z)|<[!?][^>]*+(?:>|\\z)|",
+  paste(vapply(c("script", "style", "textarea", "title"), html_raw_text, character(1)), collapse = "|"),
+  "|(", html_start_tag, ")"
+)
+
+# The raw values of the href, src, and xlink:href attributes in the start
+# tags of `html`. Comments, `<!...>` and `<?...>` markup, and the text of
+# script, style, textarea, and title elements are not read, as a browser
+# reads no tags there. Each start tag is kept, so `<script src>` is read.
+# A start tag that the end of the page cuts off is not read, as a browser
+# drops it. A quote that never closes is read as the start of an unquoted
+# value instead, so that tag ends at the next `>` and is read.
+tag_links <- function(html) {
+  # The page is matched as bytes. Without useBytes, R turns the byte
+  # offset of each match into a character offset when the text holds a
+  # non-ASCII character, at a cost that grows with the offset, so a page
+  # with many tags took time that grew with the square of their count.
+  # Bytes are safe here because read_page_text() returns valid UTF-8 and
+  # every delimiter in these patterns is ASCII. The results are marked
+  # UTF-8 again, since strings marked "bytes" make file.path() and
+  # sprintf() stop.
+  # Each kept start tag, and each removed part, is followed by a space, so
+  # a `<` in the text before a removed comment cannot join the text after
+  # it into a new tag.
+  html <- gsub(html_skipped, "\\1\\2\\3\\4\\5 ", html, perl = TRUE, useBytes = TRUE)
+  Encoding(html) <- "UTF-8"
+  tags <- regmatches(html, gregexpr(html_start_tag, html, perl = TRUE, useBytes = TRUE))[[1]]
+  Encoding(tags) <- "UTF-8"
+  # No unquoted value or name holds `>`, so a tag that ends with `>`
+  # closed before the end of the page. Tags with no href or src are not
+  # parsed further.
+  tags <- tags[endsWith(tags, ">") & grepl("[Hh][Rr][Ee][Ff]|[Ss][Rr][Cc]", tags)]
+  rests <- sub("^<[^\t\n\f\r />]*", "", tags)
+  attrs <- unlist(regmatches(rests, gregexpr(html_attr, rests, perl = TRUE)))
+  attr_names <- ascii_lower(sub("(?s)^([^=\t\n\f\r ]*).*", "\\1", attrs, perl = TRUE))
+  links <- attrs[attr_names %in% c("href", "src", "xlink:href")]
+  # An attribute with no `=`, such as `<a href>`, has an empty value.
+  links <- links[grepl("=", links, fixed = TRUE)]
+  values <- sub(paste0("(?s)^[^=]*=", html_space, "*"), "", links, perl = TRUE)
+  sub("(?s)^([\"'])(.*)\\1$", "\\2", values, perl = TRUE)
+}
+
+# Decode the character references `&amp;`, `&lt;`, `&gt;`, `&quot;`, and
+# `&apos;`, and number references (`&#38;`, `&#x26;`) with a `;` that name
+# a code point from 1 to 0x10FFFF, other than a surrogate or 128 to 159.
+# Every other reference stays as written.
+decode_refs <- function(x) {
+  pattern <- "&(?:amp|lt|gt|quot|apos);|&#[0-9]+;|&#[xX][0-9A-Fa-f]+;"
+  refs <- regmatches(x, gregexpr(pattern, x, perl = TRUE))
+  regmatches(x, gregexpr(pattern, x, perl = TRUE)) <- lapply(refs, function(ref) {
+    named <- c("&amp;" = "&", "&lt;" = "<", "&gt;" = ">", "&quot;" = "\"", "&apos;" = "'")
+    vapply(ref, function(r) {
+      if (r %in% names(named)) {
+        return(named[[r]])
+      }
+      hex <- grepl("^&#[xX]", r)
+      digits <- sub("^&#[xX]?0*([0-9A-Fa-f]*);$", "\\1", r)
+      # More than 7 digits is above 0x10FFFF in either base.
+      code <- if (nchar(digits) > 7) NA else strtoi(if (nzchar(digits)) digits else "0", if (hex) 16L else 10L)
+      if (is.na(code) || code < 1 || code > 0x10FFFF || (code >= 0xD800 && code <= 0xDFFF) ||
+          (code >= 128 && code <= 159)) {
+        return(r)
+      }
+      intToUtf8(code)
+    }, character(1), USE.NAMES = FALSE)
+  })
+  x
 }
 
 # TRUE when a relative link on `page` (a path inside `docs`) reaches a file

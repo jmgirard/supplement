@@ -336,6 +336,167 @@ test_that("links to files missing from the site give a broken-link row", {
   )
 })
 
+# The broken-link rows of a site as "file `link`" strings.
+broken_pairs <- function(site) {
+  rows <- rows_of(check_quiet(site), "broken-link")
+  paste(rows$file, regmatches(rows$problem, regexpr("`[^`]*`$", rows$problem)))
+}
+
+test_that("link-shaped text outside start tags gives no broken-link row", {
+  site <- new_site()
+  tags <- '<a href="gone-a.csv">a</a><img src="gone-b.png">'
+  text <- 'href="gone-a.csv" src="gone-b.png"'
+  write_page(site, "text.html", c(
+    sprintf("<!-- %s %s -->", tags, text),
+    '<a href="after-comment.csv">x</a>',
+    "<!--", tags, text, "-->",
+    '<a href="after-long-comment.csv">x</a>',
+    sprintf("<script>document.write('%s'); var x = '%s';</SCRIPT>", tags, text),
+    '<a href="after-script.csv">x</a>',
+    sprintf("<style>/* %s %s */</Style>", tags, text),
+    '<a href="after-style.csv">x</a>',
+    sprintf("<textarea>%s %s</textarea>", tags, text),
+    '<a href="after-textarea.csv">x</a>',
+    sprintf("<title>%s %s</TITLE>", tags, text),
+    '<a href="after-title.csv">x</a>',
+    sprintf("<code>%s</code>", text),
+    '<a href="after-code.csv">x</a>',
+    sprintf("<p>%s</p>", text),
+    '<a href="after-p.csv">x</a>',
+    # A text `<` before a comment does not join the text after it.
+    '<p>a <<!-- c -->a href="gone-joined.csv">x</p>',
+    '<script src="gone.js"></script>'
+  ))
+  expect_setequal(
+    broken_pairs(site),
+    paste("docs/text.html", c(
+      "`after-comment.csv`", "`after-long-comment.csv`", "`after-script.csv`",
+      "`after-style.csv`", "`after-textarea.csv`", "`after-title.csv`",
+      "`after-code.csv`", "`after-p.csv`", "`gone.js`"
+    ))
+  )
+})
+
+test_that("only href, src, and xlink:href attributes are read, in any letter case", {
+  site <- new_site()
+  write_page(site, "names.html", c(
+    '<a HREF="gone-upper.csv">x</a>',
+    '<img Src="gone-mixed.png">',
+    '<svg><use XLINK:HREF="gone-xlink.svg"/></svg>',
+    '<a href = "gone-spaced.csv">x</a>',
+    '<a title="a > b" href="gone-after-gt.csv">x</a>',
+    '<div data-href="gone-data.csv" data-src="gone-data.png"></div>',
+    '<img ng-src="gone-ng.png">'
+  ))
+  expect_setequal(
+    broken_pairs(site),
+    paste("docs/names.html", c(
+      "`gone-upper.csv`", "`gone-mixed.png`", "`gone-xlink.svg`",
+      "`gone-spaced.csv`", "`gone-after-gt.csv`"
+    ))
+  )
+})
+
+test_that("quoted and unquoted values are read and trimmed", {
+  site <- new_site()
+  touch(file.path(site, "docs", "data", "ok.csv"))
+  write_page(site, "values.html", c(
+    '<a href=" data/ok.csv ">spaces</a>',
+    '<a href="\f\tdata/ok.csv\n">form feed</a>',
+    "<a href=data/ok.csv>unquoted</a>",
+    "<a href=gone-c.csv>unquoted</a>",
+    "<a href='gone-d.csv'>single</a>",
+    "<a href=data/ok.csv/>slash</a>",
+    '<a href="&#109;ailto&#58;a@example.org">mail</a>',
+    # An attribute with no `=` has an empty value, so it is no link.
+    "<a href>bare</a><script src></script><a HREF >bare</a>"
+  ))
+  expect_setequal(
+    broken_pairs(site),
+    paste("docs/values.html", c("`gone-c.csv`", "`gone-d.csv`", "`data/ok.csv/`"))
+  )
+})
+
+test_that("character references in a link are decoded by the stated rules", {
+  site <- new_site()
+  touch(file.path(site, "docs", "R&D.csv"))
+  touch(file.path(site, "docs", "it's.csv"))
+  touch(file.path(site, "docs", "data", "a b.csv"))
+  kept <- c("R&eacute;.csv", "R&AMP;D.csv", "R&ampD.csv", "R&#38D.csv",
+            "R&#0;.csv", "R&#xD800;.csv", "R&#x110000;.csv", "R&#x80;.csv")
+  write_page(site, "refs.html", c(
+    '<a href="R&amp;D.csv">x</a>',
+    '<a href="R&#38;D.csv">x</a>',
+    '<a href="R&#x26;D.csv">x</a>',
+    '<a href="R&#X26;D.csv">x</a>',
+    '<a href="it&apos;s.csv">x</a>',
+    '<a href="data/a&#37;20b.csv">x</a>',
+    sprintf('<a href="%s">x</a>', kept)
+  ))
+  expect_setequal(broken_pairs(site), paste0("docs/refs.html `", kept, "`"))
+  expect_identical(decode_refs("&lt;&gt;&quot;&apos;&amp;&#233;&#x1F600;"), "<>\"'&é\U0001F600")
+  expect_identical(decode_refs(c("é&amp;", "", "&amp;amp;", "none")), c("é&", "", "&amp;", "none"))
+})
+
+test_that("large skipped text and unclosed markup give the stated rows", {
+  site <- new_site()
+  # Over 5 MB of script text, as a large htmlwidget writes, is still
+  # skipped, and the reader then goes on.
+  rows <- strrep('{"cell": "<a href=\\"gone-big.csv\\">x</a>"}, ', 120000)
+  write_page(site, "big.html", c(
+    sprintf('<script type="application/json">[%s]</script>', rows),
+    '<a href="after-big.csv">x</a>'
+  ))
+  # Each page ends inside markup that never closes.
+  write_page(site, "end-comment.html", c('<a href="before-1.csv">x</a>', '<!-- <a href="gone-1.csv">'))
+  write_page(site, "end-script.html", c('<a href="before-2.csv">x</a>', '<script> <a href="gone-2.csv">'))
+  write_page(site, "end-title.html", c('<a href="before-3.csv">x</a>', '<TITLE> <a href="gone-3.csv">'))
+  # writeLines() ends the file with a line break, so these tags run to the
+  # end of the page with no `>`.
+  writeLines(c('<a href="before-4.csv">x</a>', "<div title=\"<a href='gone-4.csv'>\""),
+             file.path(site, "docs", "end-tag.html"))
+  # Many tags that never close, which took time that grew with the square
+  # of their count.
+  writeLines(c('<a href="before-5.csv">x</a>', strrep("<a ", 60000)),
+             file.path(site, "docs", "many-open.html"))
+  time <- system.time(expect_warning(pairs <- broken_pairs(site), NA))[["elapsed"]]
+  expect_setequal(pairs, c(
+    "docs/big.html `after-big.csv`",
+    "docs/end-comment.html `before-1.csv`", "docs/end-script.html `before-2.csv`",
+    "docs/end-title.html `before-3.csv`", "docs/end-tag.html `before-4.csv`",
+    "docs/many-open.html `before-5.csv`"
+  ))
+  # 20,000 such tags took 11 s with the earlier pattern, so 60,000 would
+  # take about 100 s.
+  expect_lt(time, 10)
+})
+
+test_that("a long page with non-ASCII text is read in linear time", {
+  site <- new_site()
+  touch(file.path(site, "docs", "données.csv"))
+  write_page(site, "index.html", c(
+    "<p>café</p>",
+    strrep('<p>text — more</p><a href="données.csv">x</a>', 20000),
+    '<a href="gone-é.csv">x</a>'
+  ))
+  time <- system.time(pairs <- broken_pairs(site))[["elapsed"]]
+  expect_identical(pairs, "docs/index.html `gone-é.csv`")
+  expect_true(validUTF8(pairs))
+  expect_lt(time, 10)
+})
+
+test_that("a page whose markup the reader cannot finish gives the PCRE-limit row", {
+  site <- new_site()
+  write_page(site, "index.html", '<a href="gone.csv">x</a>')
+  local_mocked_bindings(tag_links = function(html) {
+    warning("PCRE error 'match limit exceeded'")
+    "gone.csv"
+  })
+  rows <- rows_of(check_quiet(site), "broken-link")
+  expect_identical(rows$file, "docs/index.html")
+  expect_match(rows$problem, "cannot read this page: its markup goes past the limits", fixed = TRUE)
+})
+
 test_that("DOIs that differ between files give a doi-mismatch row", {
   site_with <- function(version = "", concept = "", cff = NULL, badges = NULL, shortcode = TRUE) {
     site <- new_site(parent.frame())

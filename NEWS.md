@@ -23,7 +23,7 @@
   changes no file. It finds files larger than 100 MiB, and saved R
   objects that git tracks or does not ignore. It finds reports with code
   and no stored output, and a missing `docs/` folder. It also finds
-  quoted relative links in `docs/` to files that are not in `docs/`, and
+  relative links in `docs/` to files that are not in `docs/`, and
   pages there that cannot be read. It finds DOIs that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It returns
   the problems as a data frame.
@@ -110,3 +110,12 @@
   shows the size of a data file of 2 GiB or more. Before, it showed
   "-1 B". When git lists a file name that is not valid UTF-8,
   `check_supplement()` no longer stops with an error.
+* `check_supplement()` now reads links from start tags only. Before, it
+  also read link-shaped text in comments, in `<script>` and `<style>`
+  text, and in page text such as `<code>`. It also read attributes such
+  as `data-href`, and it reported those as broken links. It now decodes
+  character references such as `&amp;`, so a link to `R&D.csv` written as
+  `R&amp;D.csv` is no longer reported. It reads `HREF` and other letter
+  cases (also in `xlink:href`) and unquoted values, and it removes the
+  spaces at the ends of a link. The help page lists the main cases that
+  it still reads differently from a browser.
