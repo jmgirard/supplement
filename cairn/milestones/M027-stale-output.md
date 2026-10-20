@@ -43,7 +43,7 @@
 - [x] T2: Add the AC1, AC2, and AC4 tests, with JSON fixtures that the tests write with `writeBin()` (LESSONS M011). Add the AC3 test beside the full-render tests in `tests/testthat/test-add-render.R`, with `skip_if_no_quarto()` (`helper-template.R:3`). Run the row cases against the code on main and record that each fails there (LESSONS M010). Recheck the tests that match whole row sets (`test-check-supplement.R:88`) and the empty `html.json` at line 221, which now gives a `stale-output` row.
 - [x] T3: Write `check_stale_output()`. Read the report with `readBin()`, drop each CR before an LF, and hash the bytes with `tools::md5sum()` on a temporary file or with an MD5 of the raw bytes. Read each JSON file with `jsonlite::fromJSON(simplifyVector = FALSE)` inside `tryCatch()`. List the folder, not a glob over the path (LESSONS M008). Add the call to `check_supplement()` (line 149).
 - [x] T4: Add the roxygen item and run `devtools::document()`. Edit the existing `NEWS.md` bullet for `check_supplement()`. Add a line to the check list in `inst/template/_README.md`.
-- [ ] T5: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
+- [x] T5: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
 
@@ -63,6 +63,7 @@
 - 2026-10-20: T2: added the AC1 and AC2 tests to `test-check-supplement.R` (expected hashes from `tools::md5sum()` on LF text written in the test), the AC3 test to `test-add-render.R`, and the AC4 test to `test-release-supplement.R` with a matching-hash control that releases. Moved `local_plain_git()` and `git_site()` to `helper-template.R` so the release test can use them. Against main code: 2 failures in each AC1/AC2 test (no rows) and the AC4 test fails because the release does not stop. Rechecked the whole-row-set test (line 88: passes, the rendered report's hash matches) and the empty `html.json` fixture (now also gives an unreadable `stale-output` row; that test reads only `no-stored-output` rows).
 - 2026-10-20: T3: `check_stale_output()` with helpers `analysis_reports()` (shared with `check_stored_output()`), `report_hash()` (MD5 via a temp file, since DESCRIPTION sets no R floor for `md5sum(bytes =)`), and `stored_hash()`. Chose `jsonlite::parse_json()` on the read bytes over `fromJSON(path)`, which can read a short invalid text as a file name. Planted defects: no CR LF step fails the AC1 test; a reader that takes the first item of a list hash and accepts any top level fails 3 AC2 expectations. `devtools::test()`: 283 results, 0 failed, 7 skipped (Windows-only and invalid-name cases).
 - 2026-10-20: T4: added the `"stale-output"` help item (rules of AC1 and AC2, the Quarto 1.10 limit from the T1 probe, nested reports not read) and ran `devtools::document()`; edited the existing `check_supplement()` NEWS bullet; added one line to the `inst/template/_README.md` check list.
+- 2026-10-20: T5: the first `devtools::test()` and `devtools::check()` run (one command) each gave 1 failure and 1 error, with no output kept; the test that failed is not known. Six later `devtools::test()` runs gave 283 results, 0 failed, 0 errors, and a second `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Open concern for review: a possible intermittent test.
 
 ## Decisions
 
