@@ -1,17 +1,16 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-20 (M025 done and archived; "Read YAML without running R code" graduated; M022 row pruned; one lesson added; validate green)_
+_Last hygiene check: 2026-10-20 (M026 done and archived; "Find inline code in more shapes" graduated; M023 row pruned; one lesson added; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M026 | check_supplement() finds code of any engine and more inline shapes | review | — | normal | milestones/M026-inline-shapes.md |
 | M027 | check_supplement() finds stored output older than its report | planned | — | normal | milestones/M027-stale-output.md |
+| M026 | check_supplement() finds code of any engine and more inline shapes | done | — | normal | milestones/archive/M026-inline-shapes.md |
 | M025 | Package functions read YAML without running R code | done | — | normal | milestones/archive/M025-yaml-no-expr.md |
 | M024 | check_supplement() finds code chunks in more shapes | done | — | normal | milestones/archive/M024-chunk-shapes.md |
-| M023 | add_report() and add_data() refuse names that Windows cannot use | done | — | normal | milestones/archive/M023-windows-names.md |
 
 ## Candidates
 
@@ -32,7 +31,6 @@ _Last hygiene check: 2026-10-20 (M025 done and archived; "Read YAML without runn
 - Read odd-named folders on Windows: from the M022 review. On Windows, `check_supplement()` does not enter a folder in `docs/` that `is_link()` counts as a link though it is not one (a name that ends in a space or `.`, or a path over 260 characters), so the pages in it are not read and give no row. A page link to a file link whose target is missing passes there, because `file.exists()` is TRUE for it. See also "Detect broken file links on Windows". — added 2026-10-20
 - Check how Pages publishes links in docs: from the M022 review. `check_supplement()` gives no row for a symbolic link whose target is inside `docs/`, but git stores an absolute target (`/Users/me/site/docs/x.csv`) as written, so it points nowhere on GitHub. It gives a row for a relative link to a repository file outside `docs/`, which a Pages build may still publish (`actions/upload-pages-artifact` runs `tar --dereference`; the template's branch deploy was not checked). Whether git on Windows commits a junction's contents was not checked. Pages in `docs/.git/` or `docs/.github/` are now read, though Pages does not publish them. — added 2026-10-20
 - Speed up the path test of page links: from the M022 review. Once `docs/` holds any link, `link_ok()` runs `file.exists()` and `normalizePath()` on each part of each page link. 200 pages with 100 links each took 2.49 s with no link in `docs/` and 3.28 s with one (macOS, measured by the review on 2026-10-20); Windows was not measured. — added 2026-10-20
-- Find inline code in more shapes: from the M024 review. Under `engine: knitr`, `check_supplement()` gives no `no-stored-output` row for a report whose only code is inline `` `r# x` `` code, which knitr 1.52 runs, or Quarto's inline `` `{r} x` `` syntax. A report whose only chunks use another knitr engine, such as `{bash}` or `{sql}`, gives no row either. A report on which `readLines()` warns, such as one with an embedded nul, is read as empty and gives no row. — added 2026-10-20 — started M026
 - Match menu items only on plain text: from the M025 review. `yaml_scalar()` in `R/yaml-insert.R` reads a one-item flow sequence as its item, so `text: [Analyses]` in `_quarto.yml` matches the Analyses step of `add_report()`. Reading it with `yaml_load_list()` would make it a list and no match, and would keep the `eval.expr = FALSE` setting in one place. — added 2026-10-20
 - Read reports as Quarto does at edges: from the M026 review. `check_supplement()` reads a report differently from Quarto 1.10 in four cases. A UTF-8 BOM keeps the first line from being `---`, so `engine: knitr` is not read and a report with only inline code gives no row; bytes that are not UTF-8 in the front matter, such as a Latin-1 `é`, fail the front matter read the same way, though Quarto renders both and runs knitr (both also on main before M026; `read_text_lines()` in `R/yaml-insert.R` drops a BOM). Inline code with a tab after `{r}` runs and is not counted (the help page says so). Quarto skips `` `{r} x` `` when a backtick comes just before it, and the check counts it. — added 2026-10-20
 - [low] Keep tests within the Suggests floors: Suggests floor guard: nothing stops a new test from calling a testthat function newer than the DESCRIPTION floor, and the withr, knitr, and rmarkdown entries in Suggests have no floor. A CI job on the floor versions, or a test that compares the functions the tests call with the floor's exports, would catch it. From the M013 plan. From the M025 review: yaml in Imports has no floor either, and the code needs its `eval.expr` argument. — added 2026-10-18
