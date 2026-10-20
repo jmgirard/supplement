@@ -72,6 +72,7 @@
 - 2026-10-20: `devtools::check()` at 3a6fe94: 0 errors, 0 warnings, 0 notes; status review; handed to /milestone-review.
 - 2026-10-20: step-7 approval: m022-link-pages approved for merge (AC5 to be read from the Windows CI job before the merge).
 - 2026-10-20: CI wait on PR #23 timed out at 590 s with all 6 checks pending (macOS, Ubuntu, Windows, two runs each); watcher stopped; no merge yet.
+- 2026-10-20: resume: PR #23 open, AC5 box unticked by plan (its evidence comes from the PR's Windows job), approval recorded, no code change since; re-entering at step 8's CI wait. CI was red on Ubuntu and Windows, from three new tests only: the `is_reparse_point()` test expected FALSE for a case-variant missing name on a case-sensitive disk and TRUE for a dangling file link on Windows (both differ from the rules, which match main's), `file.create()` errors (not warns) on a non-UTF-8 name on Windows, and unlink() warned on folder symbolic links in cleanup on Windows (7 warnings). Fixed in the tests only: OS-dependent expectations, a tryCatch, and junctions for folder links on Windows. The Windows job ran the AC5 junction test and it passed; only the relative-target test skipped there (by design).
 
 ## Decisions
 

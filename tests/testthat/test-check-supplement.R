@@ -513,8 +513,11 @@ outside_row <- function(link) {
 }
 
 # A symbolic link at `link` to `target`, or a skip where none can be made.
+# On Windows a link to a folder is a junction, because unlink() cannot
+# remove a folder symbolic link there and the cleanup warns.
 symlink_or_skip <- function(target, link) {
-  made <- suppressWarnings(file.symlink(target, link))
+  make <- if (.Platform$OS.type == "windows" && dir.exists(target)) Sys.junction else file.symlink
+  made <- suppressWarnings(make(target, link))
   skip_if_not(made, "cannot make a symbolic link here (Windows without developer mode)")
 }
 
@@ -610,7 +613,8 @@ test_that("a page name that is not valid UTF-8 does not stop the link check", {
   write_page(site, "index.html", '<a href="gone.csv">x</a>')
   # "caf<e9>.html" sorts before "index.html" in byte order.
   bad <- rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9, 0x2e, 0x68, 0x74, 0x6d, 0x6c)))
-  made <- suppressWarnings(file.create(file.path(site, "docs", bad)))
+  # Windows stops with an error on such a name, and macOS refuses it.
+  made <- tryCatch(suppressWarnings(file.create(file.path(site, "docs", bad))), error = function(e) FALSE)
   skip_if_not(made && length(list.files(file.path(site, "docs"))) == 2,
               "this file system cannot hold a name that is not valid UTF-8")
   expect_identical(link_rows(site), page_row("index.html", "gone.csv"))
@@ -643,12 +647,17 @@ test_that("the Windows link test gives the rules' answer for each path of a fold
   symlink_or_skip(file.path(outside, "missing.txt"), file.path(dir, "dangling"))
   names <- c("file.txt", "folder", "file-link", "folder-link", "dangling", "not-there", "sub/deep.txt", "folder/",
              "FILE.TXT", "FILE-LINK")
-  # On a disk that ignores letter case, the folder lists "FILE-LINK" only
-  # in another case, and it still counts as a link.
+  # The folder lists "FILE.TXT" and "FILE-LINK" only in another letter
+  # case. On a disk that ignores case, "FILE.TXT" is the plain file. On a
+  # disk that does not, it does not exist, so the rules count it as a link,
+  # as they count "FILE-LINK" on both.
   ignores_case <- file.exists(file.path(dir, "FILE.TXT"))
+  # On Windows, a file link to a missing file reads as a plain file
+  # (candidate row "Detect broken file links on Windows").
+  dangling <- .Platform$OS.type != "windows"
   expect_identical(
     is_reparse_point(file.path(dir, names)),
-    c(FALSE, FALSE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE, ignores_case)
+    c(FALSE, FALSE, TRUE, TRUE, dangling, FALSE, FALSE, FALSE, !ignores_case, TRUE)
   )
   expect_identical(is_reparse_point(character()), logical())
 })
