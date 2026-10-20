@@ -1,6 +1,6 @@
 # M021: The link check reads links only from tags
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -62,6 +62,8 @@
 - 2026-10-19: implement choice: `tag_links()` removes skipped text with one `gsub()` whose alternatives keep each start tag (raw-text start tags too), then reads tags from what is left, so a `<!--` inside a quoted attribute value does not start a comment.
 - 2026-10-19: T4 done: `devtools::check()` on the Mac, 0 errors, 0 warnings, 0 notes.
 - 2026-10-19: checkpoint: the claim audit corrected 5 of 41 claims (NEWS said `xlink:href` reading was new; the help page's limit list read as complete and its CDATA and row-shape wording was off; a code comment said control characters are trimmed). The re-read of the corrections is pending.
+- 2026-10-19: claim audit: 41 claims read, 5 corrected — NEWS.md, R/check-supplement.R, man/check_supplement.Rd (the same reader re-read the 5 corrections once and found them true).
+- 2026-10-19: implement complete; status set to review.
 
 ## Decisions
 
