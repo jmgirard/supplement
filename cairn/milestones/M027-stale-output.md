@@ -80,29 +80,30 @@
 - AC6 (local part): `devtools::test()` 283 results, 0 failed, 0 errors, 7 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR (step 8); the box is ticked when it is green.
 - Gate: `cairn_validate.py` exit 0, all checks passed; no DESIGN principle changed, so no impact report. `devtools::document()` gives no diff; no README.Rmd and no `_pkgdown.yml`, so no knit or pkgdown check; NEWS.md has the entry, with no milestone numbers; no new top-level files; `devtools::check()` 0/0/0.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: a report with bytes that are not valid UTF-8 gets a row after each render, because Quarto hashes each bad byte as U+FFFD (confirmed by a probe: stored hash 4221d00b… equals the U+FFFD form, raw MD5 752d7a73…) — follow-up "Hash stored output as Quarto does"; the limit is stated in the help page (fix now).
-- diff-bug #2: Quarto keeps `docx.json` with its old hash after docx is dropped, so no render clears the row (confirmed by a probe) — follow-up "Name leftover format files in _freeze"; the help page says to delete the file (fix now).
+- diff-bug #1: a report with bytes that are not valid UTF-8 gets a row after each render, because Quarto hashes each bad byte as U+FFFD (confirmed by a probe: stored hash 4221d00b… equals the U+FFFD form, raw MD5 752d7a73…) — follow-up "Hash stored output as Quarto does"; the limit is stated in the help page (fix now), fixed b014410.
+- diff-bug #2: Quarto keeps `docx.json` with its old hash after docx is dropped, so no render clears the row (confirmed by a probe) — follow-up "Name leftover format files in _freeze"; the help page says to delete the file (fix now), fixed b014410.
 - diff-bug #3: `json[["hash"]]` takes the first duplicate `hash` key, `JSON.parse` the last — follow-up "Hash stored output as Quarto does".
 - diff-bug #4: invalid UTF-8 in a JSON file gives the "cannot be read" text where Quarto reads it — follow-up "Hash stored output as Quarto does".
 - diff-bug #5: a warning from the temp-file write gives no row — follow-up "Hash stored output as Quarto does".
 - diff-bug #6: each JSON file is parsed whole; 2 GiB or more fails `rawToChar()` — follow-up "Hash stored output as Quarto does".
-- diff-bug #7: the `!dir.exists(files)` exclusion has no test — fix now: a folder `old.json` fixture; with the exclusion removed the AC1 test fails 3 expectations.
-- diff-bug #8: the include case never edits the included file — fix now: the AC3 test edits `_part.qmd` after the render and expects no row.
-- diff-bug #9: the header comment of `test-release-supplement.R` says every test mocks the check — fix now.
+- diff-bug #7: the `!dir.exists(files)` exclusion has no test — fix now: a folder `old.json` fixture; with the exclusion removed the AC1 test fails 3 expectations, fixed b014410.
+- diff-bug #8: the include case never edits the included file — fix now: the AC3 test edits `_part.qmd` after the render and expects no row, fixed b014410.
+- diff-bug #9: the header comment of `test-release-supplement.R` says every test mocks the check — fix now, fixed b014410.
 - diff-bug #10: NEWS.md line 37 is 90 characters — reject: style.
 - blame-history #1: `tools::md5sum()` with no `tools` in Imports would warn in R CMD check — reject: false; `devtools::check()` gives 0 warnings and `tools:::.check_packages_used()` reports nothing.
-- blame-history #2: the check depends on one Quarto version's hashing — reject: planned change (the plan gate chose the stored hash and recorded its falsifier); the help page now names 1.10.19, the version probed (fix now).
+- blame-history #2: the check depends on one Quarto version's hashing — reject: planned change (the plan gate chose the stored hash and recorded its falsifier); the help page now names 1.10.19, the version probed (fix now), fixed b014410.
 - blame-history #3: the candidate row says "older than its report", the check compares hashes — reject: planned change (plan gate).
-- blame-history #4: the "one problem of any other check stops the release" list lacks `stale-output` — fix now.
+- blame-history #4: the "one problem of any other check stops the release" list lacks `stale-output` — fix now, fixed b014410.
 - blame-history #5: NEWS.md line 37 is 90 characters — reject: style.
 - blame-history #6: "changes no file" while `report_hash()` writes a temp file — reject: false; no site file changes, and `git_run()` already uses a temp file the same way.
 - prior-review #1: on Windows a link to a missing report may read as an empty file and give a false row — reject: false; `file.size()` on such a link warns (LESSONS M018), and `report_hash()` treats a warning as unreadable; the Windows CI job runs the fixture.
 - prior-review #2: a stored JSON of 2 GiB or more fails `rawToChar()` — follow-up "Hash stored output as Quarto does".
 - prior-review #3: very large reports are read whole and scanned with logical vectors — follow-up "Hash stored output as Quarto does".
 - prior-review #4: NEWS.md line 37 is 90 characters — reject: style.
-- ripple #1: README.md's check list omits the new check — fix now.
+- ripple #1: README.md's check list omits the new check — fix now, fixed b014410.
 - ripple #2: the ROADMAP title says "older than its report" — reject: planned change (plan-owned title).
 - ripple #3: the candidate row names the age method — reject: planned change; the row graduates at hygiene.
-- ripple #4: the template README omits the unreadable case — fix now, in both READMEs.
+- ripple #4: the template README omits the unreadable case — fix now, in both READMEs, fixed b014410.
 - ripple #5: `tools` is not in Imports — reject: false, as blame-history #1.
 - Note: the T5 run with 1 failure has the shape of the parked "template test flake" row, but its output was not kept, so it is not counted there.
+- After the fixes: `devtools::test()` 283 results, 0 failed, 0 errors; `devtools::check()` 0 errors, 0 warnings, 0 notes; `cairn_validate.py` all checks passed.
