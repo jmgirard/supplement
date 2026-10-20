@@ -8,7 +8,10 @@ add_report(name, title, description = "", path = ".")
 }
 \arguments{
 \item{name}{The file name of the report, without \code{.qmd}. It is ASCII
-letters, digits, \code{-}, and \verb{_}, and starts with a letter or a digit.}
+letters, digits, \code{-}, and \verb{_}, and starts with a letter or a digit.
+It cannot be a name that Windows reserves for a device, in any letter
+case: \code{CON}, \code{PRN}, \code{AUX}, \code{NUL}, \code{COM1} to \code{COM9}, or \code{LPT1} to
+\code{LPT9}.}
 
 \item{title}{The title of the report. It shows in the Analyses menu and
 on the home page.}
@@ -50,7 +53,9 @@ The function writes nothing when it stops. Its own errors have the class
 \code{title} is not a single string with a character other than white
 space, or \code{description} is not a single string.
 \item \code{supplement_error_report_name}: \code{name} is not a single string of ASCII
-letters, digits, \code{-}, and \verb{_} that starts with a letter or a digit.
+letters, digits, \code{-}, and \verb{_} that starts with a letter or a digit, or
+it is a name that Windows reserves for a device, in any letter case:
+\code{CON}, \code{PRN}, \code{AUX}, \code{NUL}, \code{COM1} to \code{COM9}, or \code{LPT1} to \code{LPT9}.
 \item \code{supplement_error_line_break}: \code{title} or \code{description} holds a line
 break.
 \item \code{supplement_error_no_config}: \code{path} holds no \verb{_quarto.yml}.

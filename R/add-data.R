@@ -22,6 +22,11 @@
 #'   row, no `.` at the start, and not `_` at both the start and the end.
 #'   Quarto reads each value in
 #'   `_supplement.yml` as Markdown, and these names stay as they are.
+#'   The base name also cannot end in `.`, which Windows drops. Its part
+#'   before the first `.` cannot be a name that Windows reserves for a
+#'   device, in any letter case and with any extension: `CON`, `PRN`,
+#'   `AUX`, `NUL`, `COM1` to `COM9`, or `LPT1` to `LPT9`. For example,
+#'   `con.csv` and `NUL.tar.gz` are refused.
 #' @param description A short description of the file for the data table.
 #' @param path The folder of the site.
 #'
@@ -37,7 +42,11 @@
 #' * `supplement_error_no_file`: `file` does not exist or is a folder.
 #' * `supplement_error_line_break`: `description` holds a line break.
 #' * `supplement_error_file_name`: the base name of `file` does not follow
-#'   the file-name rule above.
+#'   the file-name rule above. It holds a character or a run of symbols
+#'   that the rule refuses, it ends in `.`, or its part before the first
+#'   `.` is a name that Windows reserves for a device, in any letter case
+#'   and with any extension: `CON`, `PRN`, `AUX`, `NUL`, `COM1` to `COM9`,
+#'   or `LPT1` to `LPT9`.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 #' * `supplement_error_parse`: the yaml package cannot read
 #'   `_supplement.yml`, as for [write_citation()].

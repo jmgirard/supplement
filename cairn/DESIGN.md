@@ -74,7 +74,9 @@ before it writes, removes what it made when a write fails, and with
 in `analyses/` and adds it to the Analyses menu in `_quarto.yml`;
 `add_data()` copies a file into `data/` and adds it to the `data` list in
 `_supplement.yml`. Both check every argument and the target file before
-the first write, and refuse a linked `analyses/` or `data/` folder.
+the first write, and refuse a linked `analyses/` or `data/` folder. Both
+refuse names that Windows reserves for a device (`windows_reserved()` in
+`R/add-utils.R`), and `add_data()` refuses a base name that ends in `.`.
 `R/yaml-insert.R` adds a list item as lines of text, so comments stay
 (D-010), and replaces a one-line map value on its line (D-011); it
 re-reads the result with the yaml package before any write.

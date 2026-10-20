@@ -11,7 +11,12 @@ add_data(file, description, path = ".")
 letters, digits, \code{.}, \code{-}, and \verb{_}, with no two of the symbols in a
 row, no \code{.} at the start, and not \verb{_} at both the start and the end.
 Quarto reads each value in
-\verb{_supplement.yml} as Markdown, and these names stay as they are.}
+\verb{_supplement.yml} as Markdown, and these names stay as they are.
+The base name also cannot end in \code{.}, which Windows drops. Its part
+before the first \code{.} cannot be a name that Windows reserves for a
+device, in any letter case and with any extension: \code{CON}, \code{PRN},
+\code{AUX}, \code{NUL}, \code{COM1} to \code{COM9}, or \code{LPT1} to \code{LPT9}. For example,
+\code{con.csv} and \code{NUL.tar.gz} are refused.}
 
 \item{description}{A short description of the file for the data table.}
 
@@ -50,7 +55,11 @@ string.
 \item \code{supplement_error_no_file}: \code{file} does not exist or is a folder.
 \item \code{supplement_error_line_break}: \code{description} holds a line break.
 \item \code{supplement_error_file_name}: the base name of \code{file} does not follow
-the file-name rule above.
+the file-name rule above. It holds a character or a run of symbols
+that the rule refuses, it ends in \code{.}, or its part before the first
+\code{.} is a name that Windows reserves for a device, in any letter case
+and with any extension: \code{CON}, \code{PRN}, \code{AUX}, \code{NUL}, \code{COM1} to \code{COM9},
+or \code{LPT1} to \code{LPT9}.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
 \item \code{supplement_error_parse}: the yaml package cannot read
 \verb{_supplement.yml}, as for \code{\link[=write_citation]{write_citation()}}.

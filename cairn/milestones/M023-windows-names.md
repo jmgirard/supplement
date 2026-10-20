@@ -37,7 +37,7 @@
 
 - [x] T1: In `R/add-utils.R`, add a helper `windows_reserved(x)`. If `tolower(x)` is one of the 22 device names, it returns TRUE. A code comment cites Microsoft's page "Naming Files, Paths, and Namespaces". In `R/add-report.R`, right after the name check (line 82), stop with `supplement_error_report_name` and a message that names Windows. Add the AC1 tests to `test-add-report.R`.
 - [x] T2: In `R/add-data.R`, right after the Markdown name check (line 112), stop with `supplement_error_file_name` and a message that names Windows. The check fires for a base name that ends in `.` or whose stem gives TRUE from `windows_reserved()`. Add the AC2 tests to `test-add-data.R`. Make each source file in its own folder (`source_file()` does), because macOS ignores letter case.
-- [ ] T3: Edit the roxygen text of both functions and run `devtools::document()`. Edit the NEWS.md bullet for `add_report()` and `add_data()`, because version 0.0.0.9000 is not released.
+- [x] T3: Edit the roxygen text of both functions and run `devtools::document()`. Edit the NEWS.md bullet for `add_report()` and `add_data()`, because version 0.0.0.9000 is not released.
 - [ ] T4: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
@@ -57,6 +57,7 @@
 - 2026-10-20: implement started on branch m023-windows-names.
 - 2026-10-20: T1 done. `windows_reserved()` in `R/add-utils.R`; `add_report()` stops after its name check with a message that names Windows. The test failed before the fix (`con` was written). The tests hold their own copy of the 22 names (`helper-files.R`), not the package's. `devtools::test()`: 3184 expectations, 0 failed, 7 skipped.
 - 2026-10-20: T2 done. `add_data()` stops after the Markdown name check with two messages, one for a final `.` and one for a device stem; the stem is `sub("\\..*", "", base)`. The test failed before the fix (`con` was copied). The 7 skips of `devtools::test()` are the existing OS-specific tests; 4262 expectations, 0 failed.
+- 2026-10-20: T3 done. Roxygen `@param` and Errors entries of both functions list the 22 names; `devtools::document()` rewrote `man/add_report.Rd` and `man/add_data.Rd`. The NEWS.md bullet gained two sentences. README.md and the template `_README.md` state no name rules, so they are unchanged. DESIGN.md Architecture names `windows_reserved()`.
 
 ## Decisions
 
