@@ -57,6 +57,23 @@ after \code{{r}}, which knitr also runs. Nor is knitr that a \code{knitr} key,
 A report has no stored output when
 \verb{_freeze/analyses/<name>/execute-results/} holds no file other than
 hidden files and the files in hidden folders.
+\item \code{"stale-output"}: a \code{.qmd} report directly in \verb{analyses/}, from the
+same list of reports, whose stored output was made from other text than
+the report holds now. The check reads as JSON each file whose name ends
+in \code{.json} and does not start with \code{.}, directly in
+\verb{_freeze/analyses/<name>/execute-results/}. Quarto writes the MD5 of
+the report's text there as the top-level \code{hash}. The report gets one
+row when such a \code{hash} is one text value that differs from the MD5 of
+the report's bytes with each CR LF pair read as LF. It also gets one
+row, which says that the source hash of its stored output cannot be
+read, when such a file does not parse, its top level is not an object,
+or its top-level \code{hash} is missing or is not one text value. When one
+file cannot be read and another differs, the one row has this text. A
+report that cannot be read, such as a link to a missing file, gives no
+row. Quarto 1.10 hashes only the report file, so a change in a file
+that the report includes, in \verb{_quarto.yml} or \verb{_metadata.yml}, or in
+the data gives no row. Reports in folders inside \verb{analyses/} are not
+read.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
 \item \code{"broken-link"}: an \code{href}, \code{src}, or \code{xlink:href} link on a page in
 \verb{docs/} to a file that is not in \verb{docs/}, or to a folder there with no
