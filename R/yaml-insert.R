@@ -170,8 +170,10 @@ yaml_lines_text <- function(lines) {
   paste0(paste(sub("\r$", "", lines), collapse = "\n"), "\n")
 }
 
+# `eval.expr = FALSE` keeps an `!expr` value as text even when the option
+# `yaml.eval.expr` is TRUE, so reading a file never runs its R code.
 yaml_load_list <- function(text) {
-  yaml::yaml.load(text, handlers = list(seq = function(x) as.list(x)))
+  yaml::yaml.load(text, eval.expr = FALSE, handlers = list(seq = function(x) as.list(x)))
 }
 
 # `text`, the text of `file`, read as yaml_load_list() reads it. Text that

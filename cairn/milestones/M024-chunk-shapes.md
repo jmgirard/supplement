@@ -78,3 +78,31 @@ Pass 1, 2026-10-20, at 308463a. Main had not moved since the cut (ca5edb7).
 - AC3: test "code blocks that are not chunks give no no-stored-output row" passes. Its rows are only `analyses/example.qmd`, with reports for `{.r}`, `{{r}}`, `{rust}`, `{Rcpp}`, and `{r} x` (the last gave a row on main at 2541ffa). The stored-output case is `stored` in the existing test (a four-backtick `{r label}` chunk, which matches the code rule, with `execute-results/html.json`), and it gives no row. The `engine: knitr` report with no code is `knitr-no-code` in the AC2 test, with no row.
 - AC4: the AC1 test holds `shown-chunk` (a four-backtick `markdown` block with a `{r}` chunk) and `html-comment`, and both are in its expected rows. The claim audit ran `knitr::knit()` (knitr 1.52) on both shapes and saw the chunk output, and the plan probe on Quarto 1.10.19 wrote stored output for both.
 - AC5: `man/check_supplement.Rd` lines 36 to 48 state the code rule (prefix, backticks, optional spaces or tabs, the three names in any letter case, the separator, the line end), the inline rule, the limits (inline code on one line; only a top-level `engine: knitr` in the report's own front matter, with a `knitr` key, `execute: engine`, includes, and `_metadata.yml` not read), and the stored-output rule. The `NEWS.md` `check_supplement()` bullet adds that a chunk counts in any letter case, with a space or tab before `{`, and inside a `>` block quote, and that inline R code counts under `engine: knitr`.
+- Consistency gate: `cairn_validate` all checks passed. `devtools::document()` gives no diff. No README.Rmd and no pkgdown site. NEWS has the entry. No new top-level files. `devtools::check()` at 7282d52: 0 errors, 0 warnings, 0 notes.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: inline `` `r# x` `` code gives no row, but knitr 1.52 runs it — follow-up, row "Find inline code in more shapes". AC2 lists this case as no row, so it is a planned limit, not a failed criterion.
+- diff-bug #2: Quarto's inline syntax `` `{r} x` `` is not found — follow-up, row "Find inline code in more shapes".
+- diff-bug #3: front matter with a byte that is not valid UTF-8 gives no row — reject, planned change: AC2 says front matter that does not parse gives no row.
+- diff-bug #4: a duplicate key in the front matter gives no row — reject, planned change, as for #3.
+- diff-bug #5: `engine_is_knitr()` repeats the parse that `yaml_read_lines()` in `R/yaml-insert.R` does — fix now: it calls `yaml_read_lines()`.
+- diff-bug #6: under `options(yaml.eval.expr = TRUE)`, `yaml.load()` runs `!expr` values, so a read-only check could run a report's R code (a probe made a file) — fix now: `yaml_load_list()` passes `eval.expr = FALSE`, with a test that failed without it. The other direct `yaml.load()` calls go to the row "Read YAML without running R code".
+- diff-bug #7: a tab after the engine name does not match — reject, false: knitr's pattern also rejects it, and the help says "a space, a comma, or `}`".
+- diff-bug #8: inline code inside a fenced block counts under knitr — reject, false: the probe showed knitr runs it.
+- diff-bug #9: CRLF, BOM, empty and large files, and front matter edge cases were clean — noted.
+- diff-bug #10: the tests pass for the stated reasons, except #1 — noted.
+- diff-bug #11: knitr also runs `{bash}` and `{sql}` chunks, which give no row — follow-up, row "Find inline code in more shapes".
+- blame-history #1: same as diff-bug #1 — follow-up, row "Find inline code in more shapes".
+- blame-history #2: a tab after the name and `{r} x` no longer match, though the old regex matched them — reject, planned change: AC3 lists `{r} x`, and knitr rejects both.
+- blame-history #3: the candidate row's false-row claim is reversed — reject, planned change: AC4 and the work log record the probe, and the row graduates at merge.
+- blame-history #4: the NEWS bullet does not state the one-line limit for inline code — reject, style: NEWS summarizes, and the help states the limit (AC5).
+- blame-history #5: a report on which `readLines()` warns is read as empty and gives no row (unchanged since M008) — follow-up, row "Find inline code in more shapes".
+- prior-review #1: the four-backtick test may assert an unchecked knitr claim — reject, false: the claim audit's `knitr::knit()` run and the plan probe both saw the chunk run.
+- prior-review #2: an indented first `---` and a project-level engine are not read — reject, planned change: the user's answer at the question set and the help item.
+- prior-review #3: the new regexes may hit PCRE limits on huge lines — reject, false: a 6 MB line took 0.06 s for each pattern, with no warning.
+- prior-review #4: the inline rule can match example text in a knitr report — reject, false: knitr runs such code too (diff-bug #8).
+- ripple #1: `cairn/ROADMAP.md` row "Find missing output in more chunk shapes" is now stale — reject, planned change: hygiene graduates the row at merge.
+- ripple #2: NEWS lists only the added shapes, not that `{r} x` no longer counts — reject, false: nothing in the bullet is wrong, and version 0.0.0.9000 is unreleased.
+- ripple #3: `README.md:100` and `inst/template/_README.md:145` say only "with code" — reject, false: the text still holds.
+- ripple #4: the row message also covers inline-only reports — reject, false: the message stays accurate.
+- ripple #5: the M024 ROADMAP rows agree — noted.
+- Suite runs after the fixes: one run gave 2 failures and 1 warning whose tests were not captured; the next three runs gave 0 failures and 0 warnings (4268 expectations). No cause found; the parked row "template test flake" records render failures of this kind.

@@ -335,12 +335,9 @@ engine_is_knitr <- function(lines) {
   if (is.na(last) || last == first + 1) {
     return(FALSE)
   }
-  front <- tryCatch(
-    # Keep sequences as lists, so `engine: [knitr]` is not the text.
-    suppressWarnings(yaml::yaml.load(paste(lines[seq.int(first + 1, last - 1)], collapse = "\n"),
-                                     handlers = list(seq = function(x) as.list(x)))),
-    error = function(e) NULL
-  )
+  # yaml_read_lines() keeps sequences as lists, so `engine: [knitr]` is not
+  # the text, and gives NULL for front matter that does not parse.
+  front <- suppressWarnings(yaml_read_lines(lines[seq.int(first + 1, last - 1)]))
   is.list(front) && !is.null(names(front)) && identical(front[["engine"]], "knitr")
 }
 
