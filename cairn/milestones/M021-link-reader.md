@@ -128,3 +128,15 @@ Pass 2 evidence, 2026-10-20 at `7709925` (`main` still `99abded`). `NOT_CRAN=tru
 Consistency gate, pass 2: `devtools::test()` 259 tests, 0 failed, 5 skipped and `devtools::check()` 0 errors, 0 warnings, 0 notes, both on `cd36256` (later commits change only `cairn/`). `cairn_validate` all checks passed; `devtools::document()` no diff; no new top-level files; NEWS.md entry present with no milestone numbers.
 
 spawned: diff-bug, blame-history, prior-review, ripple
+
+- ripple #1 (pass 2): `cairn/LESSONS.md:21` (M008) said to match without `useBytes`, which `tag_links()` now does on purpose for whole-page matches — fix now, fixed facb1dd (lesson corrected in place, marked "corrected M021")
+- prior-review #1 (pass 2): `useBytes = TRUE` departs from the M008 lesson and rests on the two `Encoding()` lines — fix now, fixed facb1dd (the same lesson correction); the non-ASCII test builds its row text with `sprintf()`, which stops on a string marked "bytes", so the `Encoding()` lines are tested
+- prior-review #2 (pass 2): the link contract widened from M008's "quoted href/src" — reject (planned change, AC1 to AC3)
+- prior-review #3 (pass 2): `--!>` is not in the help page's limits — fix now, fixed facb1dd (help sentence added; a probe gives `y` only for `<!-- a --!><a href=x> --><a href=y>`)
+- prior-review #4 (pass 2): the `expect_lt(time, 30)` and `expect_lt(time, 10)` assertions could flake on a slow runner — reject (false as a risk: the tests take 0.17 s and 0.13 s on the Mac, about 60 times under the bound; the Windows job on the PR shows its own time)
+- prior-review #5 (pass 2): `&#37;2F` decodes to `%2F` and then to `/` inside one path part — reject (false as a defect: the same row as a raw `%2F`, which the a01b723 test already expects as broken)
+- blame-history #1 (pass 2): the M008 lesson conflicts with the `useBytes` code — fix now, fixed facb1dd (same as ripple #1)
+- blame-history #2 (pass 2): a comment does not end at `--!>`, so a link after it that main read is now missed — follow-up, new candidate row "Close the link reader's browser gaps" (the Scope Out list and the help page state the `-->` rule)
+- blame-history #3 (pass 2): `<<!-- c -->a href="gone.csv">` joins into a tag after the comment is removed; main did the same — follow-up, the same new row
+- blame-history #4 (pass 2): `</ foo <a href="gone.csv">` is not read as a bogus comment; main did the same — follow-up, the same new row
+- blame-history #5 (pass 2): the choice of a base R reader over an HTML parser package has no D-entry — fix now (D-017 added)
