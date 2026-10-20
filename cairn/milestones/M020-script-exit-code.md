@@ -56,6 +56,7 @@ When a project script fails during a template test's render, the test log shows 
 - 2026-10-19: T3: 20 full-suite runs on the Mac (testthat 3.3.2, run in the background with no other job): each 252 tests, 0 failed, 0 errors, 5 skipped (the same 5 each run: four Windows-only tests and one case-sensitive-disk test). No failure, so no exit code was read, no cause was found, and no issue draft was written. M019 saw 1 failure in 10 runs.
 - 2026-10-19: T4: `devtools::check()` 0 errors, 0 warnings, 0 notes. Minor amendment: the CI skip-list part of T4 moved to review, because CI runs only after review pushes the branch.
 - 2026-10-19: claim audit: not owed — internal tier.
+- 2026-10-19: step-7 approval: m020-script-exit-code approved for merge
 
 ## Decisions
 
