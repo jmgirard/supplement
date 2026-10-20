@@ -1,13 +1,13 @@
 # M023: add_report() and add_data() refuse names that Windows cannot use
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — two exported functions refuse more names
-- **Branch/PR:** —
+- **Branch/PR:** m023-windows-names
 
 ## Goal
 
@@ -35,7 +35,7 @@
 
 ## Tasks
 
-- [ ] T1: In `R/add-utils.R`, add a helper `windows_reserved(x)`. If `tolower(x)` is one of the 22 device names, it returns TRUE. A code comment cites Microsoft's page "Naming Files, Paths, and Namespaces". In `R/add-report.R`, right after the name check (line 82), stop with `supplement_error_report_name` and a message that names Windows. Add the AC1 tests to `test-add-report.R`.
+- [x] T1: In `R/add-utils.R`, add a helper `windows_reserved(x)`. If `tolower(x)` is one of the 22 device names, it returns TRUE. A code comment cites Microsoft's page "Naming Files, Paths, and Namespaces". In `R/add-report.R`, right after the name check (line 82), stop with `supplement_error_report_name` and a message that names Windows. Add the AC1 tests to `test-add-report.R`.
 - [ ] T2: In `R/add-data.R`, right after the Markdown name check (line 112), stop with `supplement_error_file_name` and a message that names Windows. The check fires for a base name that ends in `.` or whose stem gives TRUE from `windows_reserved()`. Add the AC2 tests to `test-add-data.R`. Make each source file in its own folder (`source_file()` does), because macOS ignores letter case.
 - [ ] T3: Edit the roxygen text of both functions and run `devtools::document()`. Edit the NEWS.md bullet for `add_report()` and `add_data()`, because version 0.0.0.9000 is not released.
 - [ ] T4: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
@@ -54,6 +54,8 @@
 - 2026-10-20: plan gate chose the existing error classes over a new class such as `supplement_error_windows_name`, because callers that catch the documented classes keep working and the message names Windows; falsified by a caller that must tell the Windows refusal apart from the other name refusals.
 - 2026-10-20: plan gate chose Microsoft's list (COM1 to COM9, LPT1 to LPT9) over also refusing COM0 and LPT0, because the page lists neither; falsified by a Windows version that refuses a file named `com0`.
 - 2026-10-20: changelog: the existing 0.0.0.9000 bullet for `add_report()` and `add_data()` gets the change, with no new bullet.
+- 2026-10-20: implement started on branch m023-windows-names.
+- 2026-10-20: T1 done. `windows_reserved()` in `R/add-utils.R`; `add_report()` stops after its name check with a message that names Windows. The test failed before the fix (`con` was written). The tests hold their own copy of the 22 names (`helper-files.R`), not the package's. `devtools::test()`: 3184 expectations, 0 failed, 7 skipped.
 
 ## Decisions
 

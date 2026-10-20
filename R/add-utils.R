@@ -32,6 +32,17 @@ check_text <- function(x, arg, required = FALSE, call = parent.frame()) {
   utf8_text(x)
 }
 
+# TRUE for each element of `x` that is a name Windows reserves for a
+# device, in any letter case. Windows cannot make a file of that name, and
+# reads `con.csv` as `con` too, so callers pass the part before the first
+# `.`. The list is the ASCII part of the one on Microsoft's page "Naming
+# Files, Paths, and Namespaces"
+# (https://learn.microsoft.com/en-us/windows/win32/fileio/naming-a-file).
+windows_reserved <- function(x) {
+  devices <- c("con", "prn", "aux", "nul", paste0("com", 1:9), paste0("lpt", 1:9))
+  tolower(x) %in% devices
+}
+
 # `x` as a string marked as UTF-8. A string marked "bytes" that holds valid
 # UTF-8 is marked as UTF-8, so that it compares equal to the same text read
 # from a file.

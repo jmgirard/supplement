@@ -85,6 +85,13 @@ add_report <- function(name, title, description = "", path = ".") {
       class = c("supplement_error_report_name", "supplement_error")
     )
   }
+  if (windows_reserved(name)) {
+    cli::cli_abort(
+      c("{.arg name} cannot be {.val {name}}, because Windows reserves that name for a device and cannot make the file.",
+        "i" = "Choose another {.arg name}. Nothing was written."),
+      class = c("supplement_error_report_name", "supplement_error")
+    )
+  }
   title <- check_text(title, "title", required = TRUE)
   description <- check_text(description, "description")
 
