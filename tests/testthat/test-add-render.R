@@ -72,4 +72,6 @@ test_that("a render by name clears the stale-output row that a changed report gi
   render("analyses/with-include.qmd")
   expect_true(dir.exists(file.path(site, "_freeze", "analyses", "with-include", "execute-results")))
   expect_identical(stale(), character())
+  writeBin(charToRaw("Other included text.\n"), file.path(site, "analyses", "_part.qmd"))
+  expect_identical(stale(), character())
 })

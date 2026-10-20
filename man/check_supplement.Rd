@@ -70,10 +70,13 @@ read, when such a file does not parse, its top level is not an object,
 or its top-level \code{hash} is missing or is not one text value. When one
 file cannot be read and another differs, the one row has this text. A
 report that cannot be read, such as a link to a missing file, gives no
-row. Quarto 1.10 hashes only the report file, so a change in a file
+row. Quarto 1.10.19 hashes only the report file, so a change in a file
 that the report includes, in \verb{_quarto.yml} or \verb{_metadata.yml}, or in
 the data gives no row. Reports in folders inside \verb{analyses/} are not
-read.
+read. Quarto reads a report as UTF-8 and hashes each byte that is not
+valid UTF-8 as U+FFFD, so such a report gets a row after each render.
+Quarto keeps the file of a format that the report no longer renders,
+such as \code{docx.json}, with its old hash, so delete that file.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
 \item \code{"broken-link"}: an \code{href}, \code{src}, or \code{xlink:href} link on a page in
 \verb{docs/} to a file that is not in \verb{docs/}, or to a folder there with no

@@ -429,6 +429,8 @@ test_that("stored output made from other report text gives a stale-output row", 
   # inside analyses/ are not read.
   stored("hidden-json", stale_lf, file = ".html.json", hash = md5_of(stale_lf, "x"))
   stored_file(site, "hidden-json", "notes.txt", "not JSON")
+  stored("json-folder", stale_lf, hash = md5_of(stale_lf))
+  dir.create(file.path(site, "_freeze", "analyses", "json-folder", "execute-results", "old.json"))
   dir.create(file.path(site, "analyses", "sub"))
   writeBin(charToRaw(stale_lf), file.path(site, "analyses", "sub", "inner.qmd"))
   stored_file(site, file.path("sub", "inner"), "html.json", hash_json(md5_of(stale_lf, "x")))

@@ -1,6 +1,7 @@
-# check_supplement() is mocked in these tests, so they need no render and
-# no git, except the tests that run the printed commands in a git
-# repository. Its own tests are in test-check-supplement.R.
+# check_supplement() is mocked in most of these tests, so they need no
+# render and no git. The tests that run the printed commands in a git
+# repository, and the test of a stale-output row, use git, and that test
+# runs the real check. Its own tests are in test-check-supplement.R.
 
 # Make check_supplement() return `rows` with the `skipped` attribute, and
 # count its calls in the returned environment.
@@ -197,7 +198,7 @@ test_that("a problem from check_supplement() stops the release with the number o
 })
 
 test_that("one problem of any other check stops the release", {
-  checks <- c("large-file", "saved-object", "no-stored-output", "not-rendered", "broken-link")
+  checks <- c("large-file", "saved-object", "no-stored-output", "stale-output", "not-rendered", "broken-link")
   for (check in checks) {
     mock_check(problem_rows(check, "x", "A problem."))
     dir <- release_site('  version: "1.2.3"')
