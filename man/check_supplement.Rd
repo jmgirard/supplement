@@ -13,8 +13,8 @@ check_supplement(path = ".")
 A data frame with one row per problem and the character columns
 \code{check}, \code{file} (the path in the site), and \code{problem}, invisibly. It has
 zero rows when the function finds no problem. Its \code{skipped} attribute
-names the git checks (\code{"large-file"} and \code{"saved-object"}) that did not
-run, and is empty when they ran.
+names the git checks (\code{"large-file"}, \code{"saved-object"}, and
+\code{"ignored-output"}) that did not run, and is empty when they ran.
 }
 \description{
 \code{check_supplement()} looks for problems that can break a release of a
@@ -30,6 +30,16 @@ counted, because git stores only the link.
 \item \code{"saved-object"}: a saved R object (\code{.rds}, \code{.rda}, \code{.rdata}, \code{.qs},
 or \code{.qs2}, in any letter case). A fitted model saved this way can hold
 the data it was fitted to.
+\item \code{"ignored-output"}: a file that git ignores in \verb{figures/}, \verb{docs/}, or
+\verb{_freeze/}, so that a release leaves it out of the published site. The
+check takes each regular file in these folders, and in the folders in
+them, that is reached without passing through a symbolic link or, on
+Windows, a junction, and whose path holds no name that starts with
+\code{.}. The file gets a row when git neither tracks it nor lists it as
+untracked, because its ignore rules exclude it, such as a rule in
+\code{.gitignore} or \code{.git/info/exclude}. A file that git tracks gives no
+row, also when a rule matches it. A data file that \code{.gitignore} blocks
+also gets a row for its copy in \verb{docs/data/}.
 \item \code{"no-stored-output"}: a \code{.qmd} report directly in \verb{analyses/}, not in
 a folder inside it, with code and no stored output in \verb{_freeze/}. A
 full render then runs its code, which needs the data. A report has
@@ -146,6 +156,17 @@ valid UTF-8 is read as text such as \verb{<e9>}; outside a quoted value,
 its \code{>} ends the tag, so an unquoted value keeps the \verb{<e9} part and
 the later attributes of that tag are not read. A second attribute of
 the same name is also read.
+\item \code{"unpublished-figure"}: a paper figure that the last render did not
+copy into \verb{docs/}. The check takes each regular file in \verb{figures/}, and
+in the folders in it, that is reached without passing through a
+symbolic link or junction, and whose path holds no name that starts
+with \code{.}. The file gets a row when the same path under \verb{docs/figures/}
+is not a regular file, or when the MD5 of its bytes differs. A render
+copies into \verb{docs/figures/} the files that \verb{figures/} holds when the
+render starts, so a figure saved under a new name or changed after the
+last render gets a row, and a full render or a render of a report by
+name clears it. Hidden files are not compared, though Quarto copies
+them too.
 \item \code{"doi-mismatch"}: the DOI in \code{CITATION.cff} differs from the one that
 \code{\link[=write_citation]{write_citation()}} writes from \verb{_supplement.yml}, or the DOI badge on
 \code{docs/index.html} differs from \code{zenodo.version-doi} (or
@@ -157,12 +178,15 @@ included), and a DOI in \code{CITATION.cff} or on the badge that is not a
 DOI.
 }
 
-The first two checks look at the files that git tracks or does not
-ignore, which \verb{git ls-files --cached --others --exclude-standard} lists,
-so files that \code{.gitignore} blocks are left out. For these two checks the
+The \code{"large-file"} and \code{"saved-object"} checks look at the files that git
+tracks or does not ignore, which
+\verb{git ls-files --cached --others --exclude-standard} lists, so files that
+\code{.gitignore} blocks are left out. The \code{"ignored-output"} check reads the
+files that \verb{git ls-files --others --ignored --exclude-standard} lists in
+\verb{figures/}, \verb{docs/}, and \verb{_freeze/}. For these three git checks the
 function runs git only to read: \code{git --version}, \verb{git rev-parse --is-inside-work-tree}, and \verb{git ls-files}. When git is not on the PATH,
 one of these commands fails, or the folder is not in a git work tree,
-it skips these two checks and says so.
+it skips these three checks and says so.
 }
 \section{Errors}{
 

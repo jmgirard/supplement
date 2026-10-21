@@ -142,6 +142,8 @@ data frame. It finds:
 - files larger than 100 MiB, which GitHub refuses
 - `.rds`, `.rda`, `.RData`, `.qs`, and `.qs2` files that git tracks or
   does not ignore
+- files in `figures/`, `docs/`, and `_freeze/` that git ignores, which a
+  release leaves out (change the ignore rule that matches them)
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
 - reports directly in `analyses/` whose stored output in `_freeze/` was
@@ -153,10 +155,12 @@ data frame. It finds:
 - symbolic links in `docs/` to existing files or folders outside `docs/`,
   and on Windows junctions to folders outside `docs/`
 - pages in `docs/` that cannot be read
+- figures in `figures/` whose copy in `docs/figures/` is missing or
+  differs (render the site again)
 - a DOI in `CITATION.cff` or on the home page's badge that differs from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
 
-The first two checks read the file list from git. When git cannot run or
+The first three checks read the file list from git. When git cannot run or
 this folder is not in a git work tree, the function skips them and says
 so.
 

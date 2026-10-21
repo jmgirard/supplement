@@ -12,6 +12,16 @@
 #' * `"saved-object"`: a saved R object (`.rds`, `.rda`, `.rdata`, `.qs`,
 #'   or `.qs2`, in any letter case). A fitted model saved this way can hold
 #'   the data it was fitted to.
+#' * `"ignored-output"`: a file that git ignores in `figures/`, `docs/`, or
+#'   `_freeze/`, so that a release leaves it out of the published site. The
+#'   check takes each regular file in these folders, and in the folders in
+#'   them, that is reached without passing through a symbolic link or, on
+#'   Windows, a junction, and whose path holds no name that starts with
+#'   `.`. The file gets a row when git neither tracks it nor lists it as
+#'   untracked, because its ignore rules exclude it, such as a rule in
+#'   `.gitignore` or `.git/info/exclude`. A file that git tracks gives no
+#'   row, also when a rule matches it. A data file that `.gitignore` blocks
+#'   also gets a row for its copy in `docs/data/`.
 #' * `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
 #'   a folder inside it, with code and no stored output in `_freeze/`. A
 #'   full render then runs its code, which needs the data. A report has
@@ -128,6 +138,17 @@
 #'   its `>` ends the tag, so an unquoted value keeps the `<e9` part and
 #'   the later attributes of that tag are not read. A second attribute of
 #'   the same name is also read.
+#' * `"unpublished-figure"`: a paper figure that the last render did not
+#'   copy into `docs/`. The check takes each regular file in `figures/`, and
+#'   in the folders in it, that is reached without passing through a
+#'   symbolic link or junction, and whose path holds no name that starts
+#'   with `.`. The file gets a row when the same path under `docs/figures/`
+#'   is not a regular file, or when the MD5 of its bytes differs. A render
+#'   copies into `docs/figures/` the files that `figures/` holds when the
+#'   render starts, so a figure saved under a new name or changed after the
+#'   last render gets a row, and a full render or a render of a report by
+#'   name clears it. Hidden files are not compared, though Quarto copies
+#'   them too.
 #' * `"doi-mismatch"`: the DOI in `CITATION.cff` differs from the one that
 #'   [write_citation()] writes from `_supplement.yml`, or the DOI badge on
 #'   `docs/index.html` differs from `zenodo.version-doi` (or
@@ -138,21 +159,24 @@
 #'   included), and a DOI in `CITATION.cff` or on the badge that is not a
 #'   DOI.
 #'
-#' The first two checks look at the files that git tracks or does not
-#' ignore, which `git ls-files --cached --others --exclude-standard` lists,
-#' so files that `.gitignore` blocks are left out. For these two checks the
+#' The `"large-file"` and `"saved-object"` checks look at the files that git
+#' tracks or does not ignore, which
+#' `git ls-files --cached --others --exclude-standard` lists, so files that
+#' `.gitignore` blocks are left out. The `"ignored-output"` check reads the
+#' files that `git ls-files --others --ignored --exclude-standard` lists in
+#' `figures/`, `docs/`, and `_freeze/`. For these three git checks the
 #' function runs git only to read: `git --version`, `git rev-parse
 #' --is-inside-work-tree`, and `git ls-files`. When git is not on the PATH,
 #' one of these commands fails, or the folder is not in a git work tree,
-#' it skips these two checks and says so.
+#' it skips these three checks and says so.
 #'
 #' @param path The folder of the site.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
 #'   zero rows when the function finds no problem. Its `skipped` attribute
-#'   names the git checks (`"large-file"` and `"saved-object"`) that did not
-#'   run, and is empty when they ran.
+#'   names the git checks (`"large-file"`, `"saved-object"`, and
+#'   `"ignored-output"`) that did not run, and is empty when they ran.
 #'
 #' @section Errors:
 #' The function stops with an error of class `supplement_error` and one of
@@ -185,15 +209,17 @@ check_supplement <- function(path = ".") {
   git <- git_files(path)
   rows <- list(
     if (!is.null(git$files)) check_git_files(path, git$files),
+    if (!is.null(git$files)) check_ignored_output(path, git$ignored),
     check_stored_output(path),
     check_stale_output(path),
     check_links(path),
+    check_unpublished_figures(path),
     check_dois(path, meta, call = environment())
   )
   rows <- Filter(Negate(is.null), rows)
   result <- if (length(rows) > 0) do.call(rbind, rows) else problem_rows()
   rownames(result) <- NULL
-  attr(result, "skipped") <- if (is.null(git$files)) c("large-file", "saved-object") else character()
+  attr(result, "skipped") <- if (is.null(git$files)) git_checks else character()
 
   report_problems(result, path, git$reason)
   invisible(result)
@@ -211,7 +237,7 @@ problem_rows <- function(check = character(), file = character(), problem = char
 report_problems <- function(result, path, skip_reason) {
   if (!is.null(skip_reason)) {
     cli::cli_alert_info(
-      "Skipped the {.val large-file} and {.val saved-object} checks: {skip_reason}."
+      "Skipped the {.val {git_checks}} checks: {skip_reason}."
     )
   }
   if (nrow(result) == 0) {
@@ -271,8 +297,24 @@ git_files <- function(path) {
   if (!identical(listed$status, 0L)) {
     return(list(reason = "`git ls-files` failed"))
   }
-  list(files = unique(split_nul(listed$stdout)))
+  # The files that git neither tracks nor lists as untracked, because its
+  # ignore rules exclude them. git lists each file in an ignored folder, and
+  # lists a link as one entry without entering it. Read from git, and not
+  # from a walk of the disk, because git on macOS lists a name stored in
+  # decomposed Unicode form in its composed form.
+  ignored <- git_run(c("ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--",
+                       published_folders), path)
+  if (!identical(ignored$status, 0L)) {
+    return(list(reason = "`git ls-files` failed"))
+  }
+  list(files = unique(split_nul(listed$stdout)), ignored = unique(split_nul(ignored$stdout)))
 }
+
+# The folders of the site that a release publishes as they are.
+published_folders <- c("figures", "docs", "_freeze")
+
+# The checks that need git's file list.
+git_checks <- c("large-file", "saved-object", "ignored-output")
 
 # Split raw bytes at each NUL byte into UTF-8 strings.
 split_nul <- function(bytes) {
@@ -336,6 +378,46 @@ check_git_files <- function(path, files) {
       rep_len("A saved R object can hold the data. Remove it from git or add it to .gitignore.", sum(saved))
     )
   )
+}
+
+# The regular files in figures/, docs/, and _freeze/ that git ignores,
+# from git_files(). A file whose path holds a name that starts with `.`,
+# or that is or passes through a symbolic link or junction, gives no row.
+check_ignored_output <- function(path, ignored) {
+  # useBytes keeps a name that is not valid UTF-8 in the match.
+  files <- ignored[grepl(paste0("^(", paste(published_folders, collapse = "|"), ")/"), ignored, useBytes = TRUE) &
+                     !grepl("(^|/)\\.", ignored, useBytes = TRUE)]
+  files <- files[plain_paths(path, files)]
+  files <- files[!dir.exists(file.path(path, files))]
+  shown <- show_text(sort_bytes(files))
+  problem_rows(
+    "ignored-output", shown,
+    rep_len("git ignores this file, so a release leaves it out of the published site. Change the ignore rule that matches it.",
+            length(shown))
+  )
+}
+
+# TRUE for each of `files` (paths relative to `path`) when neither the file
+# nor a folder on its path is a symbolic link or junction.
+plain_paths <- function(path, files) {
+  if (length(files) == 0) {
+    return(logical())
+  }
+  parts <- strsplit(files, "/", fixed = TRUE)
+  prefixes <- lapply(parts, function(p) vapply(seq_along(p), function(i) paste(p[seq_len(i)], collapse = "/"),
+                                                character(1)))
+  all_prefixes <- unique(unlist(prefixes))
+  linked <- all_prefixes[is_link(file.path(path, all_prefixes))]
+  !vapply(prefixes, function(p) any(p %in% linked), logical(1))
+}
+
+# Strings in byte order, which does not depend on the locale. The radix
+# sort stops on a string with no encoding mark that is not valid UTF-8, so
+# the sort keys are marked as bytes.
+sort_bytes <- function(x) {
+  keys <- x
+  Encoding(keys) <- "bytes"
+  x[order(keys, method = "radix")]
 }
 
 # Stored output ---------------------------------------------------------------
@@ -854,6 +936,52 @@ percent_decode <- function(x) {
   x <- rawToChar(out)
   Encoding(x) <- "UTF-8"
   if (!validUTF8(x)) NA_character_ else x
+}
+
+# Figures ---------------------------------------------------------------------
+
+# Each regular file in figures/ whose copy at the same path under
+# docs/figures/ is missing, is not a regular file, or has other bytes.
+# Quarto copies figures/** into docs/ at each render, so a figure saved or
+# changed after the last render gives a row.
+check_unpublished_figures <- function(path) {
+  figures <- file.path(path, "figures")
+  if (!dir.exists(figures) || is_link(figures)) {
+    return(problem_rows())
+  }
+  files <- plain_files(figures)
+  copies <- file.path(path, "docs", "figures", files)
+  same <- file.exists(copies) & !dir.exists(copies) & !is_link(copies)
+  same[same] <- unname(tools::md5sum(file.path(figures, files[same]))) ==
+    unname(tools::md5sum(copies[same]))
+  same[is.na(same)] <- FALSE
+  shown <- show_text(sort_bytes(file.path("figures", files[!same])))
+  problem_rows(
+    "unpublished-figure", shown,
+    rep_len("The copy in docs/figures/ is missing or differs. Render the site again, then commit docs/.",
+            length(shown))
+  )
+}
+
+# The regular files in `dir` and in the folders in it, as paths relative
+# to `dir`. A name that starts with `.` is skipped, and a symbolic link or
+# junction is neither listed nor entered.
+plain_files <- function(dir) {
+  files <- character()
+  queue <- ""
+  while (length(queue) > 0) {
+    rel <- queue[1]
+    queue <- queue[-1]
+    # Without all.files, list.files() skips names that start with `.`.
+    names <- list.files(if (nzchar(rel)) file.path(dir, rel) else dir)
+    paths <- if (nzchar(rel)) file.path(rel, names) else names
+    full <- file.path(dir, paths)
+    plain <- !is_link(full)
+    folder <- dir.exists(full)
+    files <- c(files, paths[plain & !folder])
+    queue <- c(queue, paths[plain & folder])
+  }
+  files
 }
 
 # DOIs ------------------------------------------------------------------------
