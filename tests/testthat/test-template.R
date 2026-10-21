@@ -195,7 +195,8 @@ test_that("the example report saves a figure that the next full render publishes
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
   expect_status(use_template(dir))
-  expect_false(dir.exists(file.path(dir, "figures")))
+  # Without the shipped figure, the report saves it under a new name.
+  expect_true(file.remove(file.path(dir, "figures", "bootstrap-means.png")))
 
   by_name <- run_in(dir, "quarto", c("render", "analyses/example.qmd"))
   expect_status(by_name)
@@ -209,6 +210,103 @@ test_that("the example report saves a figure that the next full render publishes
     start <- if (file.exists(full_path)) readBin(full_path, "raw", 8L) else raw(0)
     expect_identical(start, png_signature, info = path)
   }
+})
+
+test_that("the first full render of a new site publishes the example figure", {
+  skip_if_no_quarto()
+  site <- new_site()
+
+  expect_status(run_in(site, "quarto", "render"))
+  figure <- file.path(site, "figures", "bootstrap-means.png")
+  published <- file.path(site, "docs", "figures", "bootstrap-means.png")
+  expect_true(file.exists(published))
+  expect_identical(unname(tools::md5sum(published)), unname(tools::md5sum(figure)))
+})
+
+# A new site in its own parent folder, without the shipped figure, so that
+# only the example report can write figures/bootstrap-means.png.
+figure_site <- function(env = parent.frame()) {
+  parent <- withr::local_tempdir("parent-", .local_envir = env)
+  site <- file.path(parent, "site")
+  suppressMessages(create_supplement(site))
+  file.remove(file.path(site, "figures", "bootstrap-means.png"))
+  list(parent = parent, site = site)
+}
+
+test_that("the example report saves its figure in the site with either execute-dir", {
+  skip_if_no_quarto()
+  for (execute_dir in c("file", "project")) {
+    dirs <- figure_site()
+    if (execute_dir == "project") {
+      config <- file.path(dirs$site, "_quarto.yml")
+      lines <- readLines(config)
+      at <- which(lines == "  output-dir: docs")
+      writeLines(append(lines, "  execute-dir: project", after = at), config)
+    }
+
+    expect_status(run_in(dirs$site, "quarto", "render"))
+    expect_true(file.exists(file.path(dirs$site, "figures", "bootstrap-means.png")), info = execute_dir)
+    expect_false(file.exists(file.path(dirs$parent, "figures")), info = execute_dir)
+  }
+})
+
+test_that("the example code run by hand from analyses/ saves into the site's figures/", {
+  skip_if_not(capabilities("png"), "R has no png device")
+  dirs <- figure_site()
+  qmd <- file.path(dirs$site, "analyses", "example.qmd")
+  code <- unlist(lapply(c("data", "bootstrap", "save-figure"), chunk_code, path = qmd))
+
+  # The bootstrap chunk draws on the current device.
+  grDevices::pdf(NULL)
+  device <- grDevices::dev.cur()
+  on.exit(grDevices::dev.off(device), add = TRUE)
+  withr::with_envvar(c(QUARTO_PROJECT_DIR = NA), withr::with_dir(
+    file.path(dirs$site, "analyses"),
+    eval(parse(text = code), envir = new.env())
+  ))
+  expect_true(file.exists(file.path(dirs$site, "figures", "bootstrap-means.png")))
+  expect_false(file.exists(file.path(dirs$parent, "figures")))
+})
+
+test_that("a failed plot in the example closes its device and leaves figures/ as it was", {
+  skip_if_not(capabilities("png"), "R has no png device")
+  site <- new_site()
+  code <- chunk_code(file.path(site, "analyses", "example.qmd"), "save-figure")
+  figures <- file.path(site, "figures")
+
+  expect_failed_plot_changes_nothing <- function() {
+    env <- new.env()
+    env$site <- site
+    env$boot_means <- c(1, 2, 3)
+    env$hist <- function(...) stop("the plot failed")
+    devices <- grDevices::dev.list()
+    before <- folder_md5(figures)
+    expect_error(
+      withr::with_dir(file.path(site, "analyses"), eval(parse(text = code), envir = env)),
+      "the plot failed"
+    )
+    after <- grDevices::dev.list()
+    for (d in setdiff(after, devices)) grDevices::dev.off(d)
+    expect_identical(after, devices)
+    expect_identical(folder_md5(figures), before)
+  }
+
+  # With the shipped figure in place, and then with no figure.
+  expect_failed_plot_changes_nothing()
+  expect_true(file.remove(file.path(figures, "bootstrap-means.png")))
+  expect_failed_plot_changes_nothing()
+})
+
+test_that("a file named figures stops the example report with a message", {
+  skip_if_no_quarto()
+  site <- new_site()
+  unlink(file.path(site, "figures"), recursive = TRUE)
+  writeLines("not a folder", file.path(site, "figures"))
+
+  rendered <- run_in(site, "quarto", c("render", "analyses/example.qmd"))
+  expect_command_fails(rendered)
+  expect_true(any(grepl("`figures` is a file, not a folder", rendered$output, fixed = TRUE)),
+              info = command_failure(rendered, "the figures message"))
 })
 
 test_that("setup adds the template rules to an existing .gitignore", {

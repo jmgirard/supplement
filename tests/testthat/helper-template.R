@@ -172,6 +172,23 @@ site_copy <- function(env = parent.frame()) {
 
 read_text <- function(path) paste(readLines(path, warn = FALSE), collapse = "\n")
 
+# The code lines of the chunk with `#| label: <label>` in a .qmd file.
+chunk_code <- function(path, label) {
+  lines <- readLines(path, warn = FALSE)
+  at <- which(lines == paste0("#| label: ", label))
+  stopifnot(length(at) == 1L)
+  start <- max(grep("^```\\{", lines[seq_len(at)]))
+  ends <- which(lines == "```")
+  end <- min(ends[ends > at])
+  lines[(start + 1L):(end - 1L)]
+}
+
+# The MD5 of each file in a folder, named by its path in the folder.
+folder_md5 <- function(dir) {
+  files <- sort(list.files(dir, recursive = TRUE, all.files = TRUE))
+  stats::setNames(unname(tools::md5sum(file.path(dir, files))), files)
+}
+
 # Run a command in `dir` and keep its standard output and standard error
 # apart.
 run_split <- function(dir, command, args) {
