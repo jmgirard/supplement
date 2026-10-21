@@ -260,6 +260,8 @@ test_that("the example code run by hand from analyses/ saves into the site's fig
     file.path(dirs$site, "analyses"),
     eval(parse(text = code), envir = new.env())
   ))
+  # save_png() makes the earlier device current again.
+  expect_identical(grDevices::dev.cur(), device)
   expect_true(file.exists(file.path(dirs$site, "figures", "bootstrap-means.png")))
   expect_false(file.exists(file.path(dirs$parent, "figures")))
 })
@@ -297,6 +299,30 @@ test_that("a failed plot in the example closes its device and leaves figures/ as
   expect_failed_plot_changes_nothing()
   expect_true(file.remove(file.path(figures, "bootstrap-means.png")))
   expect_failed_plot_changes_nothing()
+})
+
+test_that("save_png() refuses a folder at its target and a plot that is not a function", {
+  skip_on_cran()
+  skip_if_not(capabilities("png"), "R has no png device")
+  site <- new_site()
+  code <- chunk_code(file.path(site, "analyses", "example.qmd"), "save-figure")
+  figures <- file.path(site, "figures")
+  env <- new.env()
+  env$boot_means <- c(1, 2, 3)
+  # Define save_png() and save the example figure once.
+  withr::with_envvar(c(QUARTO_PROJECT_DIR = NA), withr::with_dir(
+    file.path(site, "analyses"),
+    eval(parse(text = code), envir = env)
+  ))
+
+  dir.create(file.path(figures, "taken.png"))
+  before <- folder_md5(figures)
+  withr::with_dir(file.path(site, "analyses"), {
+    expect_error(env$save_png("taken.png", function() plot(1)), "taken.png is a folder.", fixed = TRUE)
+    expect_error(env$save_png("p.png", 42), "Pass the plot as a function", fixed = TRUE)
+  })
+  expect_identical(folder_md5(figures), before)
+  expect_true(dir.exists(file.path(figures, "taken.png")))
 })
 
 test_that("the figure rules hold in sites made by create_supplement()", {

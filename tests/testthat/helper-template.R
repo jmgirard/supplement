@@ -126,6 +126,12 @@ expect_figure_rules <- function(dir) {
   in_figures <- c("figures/e.PNG", "figures/f.PDF", "figures/plot.pdf", "figures/plot.png")
   kept <- git_in(dir, c("-c", "core.ignorecase=false", "check-ignore", in_figures))
   expect_status(kept, 1L, output = character())
+
+  # A temporary file that save_png() leaves in figures/, and its copy in docs/.
+  leftovers <- c("figures/.save-1a2b.png", "docs/figures/.save-1a2b.png")
+  left <- git_in(dir, c("check-ignore", leftovers))
+  expect_status(left)
+  expect_setequal(left$output, leftovers)
 }
 
 # Turn off git's global and system configuration and the user's ignore

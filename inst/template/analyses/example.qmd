@@ -49,6 +49,7 @@ dir.create(figures, showWarnings = FALSE)
 
 # For a ggplot `p`, pass function() print(p) as `draw`.
 save_png <- function(file, draw, dir = figures) {
+  if (!is.function(draw)) stop("Pass the plot as a function, such as function() print(p).")
   target <- file.path(dir, file)
   if (dir.exists(target)) stop(target, " is a folder.")
   tmp <- tempfile(".save-", tmpdir = dir, fileext = ".png")

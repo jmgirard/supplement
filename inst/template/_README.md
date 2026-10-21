@@ -9,7 +9,7 @@ Website: https://OWNER.github.io/REPO/
 
 - `analyses/`: Quarto source files (`.qmd`), one per report
 - `data/`: shared data files
-- `figures/`: figures for the paper, saved by the reports and published on the site
+- `figures/`: figures for the paper, saved by the reports and published on the site (the template ships the example's figure)
 - `_freeze/`: stored output of each report, so the site rebuilds without running report code
 - `_supplement.yml`: facts about the paper, such as its title, citation, DOIs, and data files
 - `index.qmd`, `_quarto.yml`: website source
@@ -279,19 +279,26 @@ report finds `figures/` as:
 ```r
 site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
 figures <- file.path(site, "figures")
+dir.create(figures, showWarnings = FALSE)
 ```
 
-If `_quarto.yml` sets `execute-dir: project`, this path also works. The
-example report saves `figures/bootstrap-means.png` with its `save_png()`
-function, which takes a function that draws the plot. For a ggplot `p`,
-pass `function() print(p)`. It draws into a temporary file in `figures/`.
-It gives that file its name only after the plot succeeds, so a failed plot
-leaves no partial file there. If `figures` is a file and not a folder, the example report
-stops with a message that says so when its code runs. A full render that
-reuses `_freeze/` does not run it. The template ships
-`figures/bootstrap-means.png`, so the first render of a new site publishes
-it. Quarto copies `figures/` into
-`docs/`, so each figure has a web address such as
+The `dir.create()` line makes the folder in a clone where it is empty,
+because git does not keep empty folders. If `_quarto.yml` sets
+`execute-dir: project`, this path also works.
+
+The example report saves `figures/bootstrap-means.png` with its
+`save_png()` function. Copy that function into your own reports. It takes a
+function that draws the plot. For a ggplot `p`, pass
+`function() print(p)`. It draws into a temporary file in `figures/`. It
+gives that file its name only after the plot succeeds, so a failed plot
+leaves no partial file there. `.gitignore` blocks the temporary files, in
+case R stops before it removes one. If `figures` is a file and not a
+folder, the example report stops with a message that says so when its code
+runs. A full render that reuses `_freeze/` does not run the report's code.
+
+The template ships `figures/bootstrap-means.png`, so the first render of a
+new site publishes it. Quarto copies `figures/` into `docs/`, so each
+figure has a web address such as
 `https://OWNER.github.io/REPO/figures/model-fit.png`. Every file in
 `figures/` is published on the site, so keep drafts and private files out
 of it.

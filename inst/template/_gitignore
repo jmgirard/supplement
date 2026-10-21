@@ -32,6 +32,10 @@ analyses/*_files/
 analyses/*.[Pp][Dd][Ff]
 analyses/*.[Pp][Nn][Gg]
 
+# Temporary files that save_png() in the example report leaves if R stops
+# while it draws.
+.save-*.png
+
 # Private data. Keep it outside this folder, or put it here.
 private/
 

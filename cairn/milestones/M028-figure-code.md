@@ -129,3 +129,23 @@ A new site's first render publishes the example figure, and the example's figure
 - AC5 (pass 2): `test-template.R` "the figure rules hold in sites made by create_supplement()" passed (10 expectations): one `create_supplement()` site with `git init` after the first render and one before it, each through `expect_figure_rules()` with `core.ignorecase=false`. With main's `_gitignore` it failed (2 failures).
 - AC7 (local part, pass 2): on the T7 tree, `NOT_CRAN=true devtools::test()` ran 289 tests, 4365 expectations, 0 failed, 7 skipped; `devtools::check()` gave 0 errors, 0 warnings, 0 notes. CI waits for the PR.
 - gate (pass 2): `cairn_validate.py` all checks passed; `devtools::document()` gave no diff; NEWS.md entry present; no new top-level file.
+- spawned: diff-bug, blame-history, prior-review, ripple (pass 2)
+- diff-bug #1 (pass 2): a hidden `.save-*.png` left by a hard kill is copied to `docs/figures/` and committed — fix now (`_gitignore` rule `.save-*.png`, checked in `expect_figure_rules()` for `figures/` and `docs/figures/`; README says so).
+- diff-bug #2 (pass 2): no test for the device restore or the folder-at-target stop — fix now (a `dev.cur()` check in the by-hand test; new test "save_png() refuses a folder at its target and a plot that is not a function").
+- diff-bug #3 (pass 2): a ggplot object passed as `draw` gives "could not find function" or calls another package's `draw()` — fix now (`is.function()` check with a message).
+- diff-bug #4 (pass 2): the README snippet lost `dir.create()` and does not say where `save_png()` lives — fix now.
+- diff-bug #5 (pass 2): a README paragraph is not reflowed — fix now.
+- diff-bug #6 (pass 2): "does not run it" is unclear — fix now ("does not run the report's code").
+- diff-bug #7 (pass 2): a `draw` with two pages keeps only the last — reject (false as a change: main's code did the same).
+- diff-bug #8 (pass 2): the temporary file may make `quarto preview` reload once more — reject (false: not shown; the reviewer did not probe it, and one reload changes no output).
+- blame-history #1 (pass 2): shipping the figure reverses M017 with no D-entry — fix now (D-018; this replaces the pass-1 reject of blame-history #2, since two lenses raised it).
+- blame-history #2 (pass 2): D-016 names four skip reasons and the CI list has grown — reject (planned change: D-016 decides where CI runs; the list follows the M018 rule that a missing tool fails CI).
+- blame-history #3 (pass 2): `file.rename()` onto an existing file on Windows is not shown — no change needed (R's help says it replaces the target; the Windows CI job runs the first-render test).
+- blame-history #4 (pass 2): DESIGN.md omits the stop for a file named `figures` — fix now.
+- blame-history #5 (pass 2): a hard kill leaves a hidden temporary file — fix now (same as diff-bug #1 pass 2).
+- prior-review #1 (pass 2): no check that the device wrote a whole file before the rename — follow-up, row "Stop the example at a linked figures" (extended).
+- prior-review #2 (pass 2): a hard kill leaves the temporary file to be published — fix now (same as diff-bug #1 pass 2).
+- prior-review #3 (pass 2): a linked `figures/` — no change needed (already the row "Stop the example at a linked figures").
+- ripple #1 (pass 2): the candidate row "Fix edge cases of the figures folder" still describes the fixed defects — reject (planned change: post-merge hygiene narrows the row to M029's part).
+- ripple #2 (pass 2): `_README.md:12` says figures are saved by the reports, though the template ships one — fix now.
+- ripple #3 (pass 2): DESIGN.md's test-skip sentence names only CRAN and quarto — fix now.
