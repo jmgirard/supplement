@@ -110,3 +110,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** M017 shipped no `figures/` folder, so the example report made it. Quarto 1.10 lists `project.resources` files at the start of a render, so the first render of a new site wrote `figures/bootstrap-means.png` and left it out of `docs/`, though the setup message says to render once before the first commit.
 **Decision:** The template ships `figures/bootstrap-means.png`. The first render then copies the bytes that the example writes in that render. The user chose this at the M028 plan over a setup message that says to render twice, and over a message change alone.
 **Consequences:** `create_supplement()` refuses a folder that already holds `figures/bootstrap-means.png`, as for every template file. Each render that runs the example's code rewrites the tracked figure, so a render on another machine can change its bytes. A figure saved under a new name still reaches `docs/` only on the next render; M029 plans a `check_supplement()` row for it.
+
+### D-019 (2026-10-21): sessioninfo is a suggested dependency (extends D-007)
+
+**Context:** The template's Computing environment section prints `sessioninfo::session_info()` when sessioninfo is installed and `utils::sessionInfo()` otherwise. Two tests use sessioninfo and skip without it. D-007 says that packages the tests use belong in DESCRIPTION. CI runs `R CMD check --as-cran`, which hides packages outside Suggests, so without this entry CI tests only the `sessionInfo()` form.
+**Decision:** DESCRIPTION lists sessioninfo under Suggests, and the CI skip list counts a skip for missing sessioninfo as a missing tool. The user granted this at an M030 implement stop.
+**Consequences:** Installing supplement installs nothing new. CI renders and tests both forms of the section. The template's report code still runs without sessioninfo.
