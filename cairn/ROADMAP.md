@@ -1,23 +1,21 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-21 (M028 done and archived; "Fix edge cases of the figures folder" narrowed to M029's part; M025 row pruned; one lesson added, two merged; validate green)_
+_Last hygiene check: 2026-10-21 (M029 done and archived; "Fix edge cases of the figures folder" graduated; "Close edge cases of the figure checks" added; M026 row pruned; one lesson added, two merged; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M029 | check_supplement() finds site files that git ignores or a render missed | review | M028 | normal | milestones/M029-unpublished-files.md |
+| M029 | check_supplement() finds site files that git ignores or a render missed | done | M028 | normal | milestones/archive/M029-unpublished-files.md |
 | M028 | The template saves paper figures safely in more setups | done | — | normal | milestones/archive/M028-figure-code.md |
 | M027 | check_supplement() finds stored output older than its report | done | — | normal | milestones/archive/M027-stale-output.md |
-| M026 | check_supplement() finds code of any engine and more inline shapes | done | — | normal | milestones/archive/M026-inline-shapes.md |
 
 ## Candidates
 
 - Build a package site with pkgdown: a package site built with the toolkit itself. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review). — added 2026-10-18, split 2026-10-19
 - Write a first-time publishing guide: a first-time guide to GitHub Pages and Zenodo. — added 2026-10-18, split 2026-10-19
 - Check web links on the rendered site: web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
-- Fix edge cases of the figures folder: figures folder edge cases: from the M017 review. Under freeze, a clone where `figures/` was never committed renders with no `docs/figures/`, and `check_supplement()` finds no problem, because no page links a figure. Setup ends `.gitignore` with `!docs/` and `!_freeze/` only, so an existing `figures/` or `*.png` rule keeps `figures/` out of git. A figure saved under a new name reaches `docs/figures/` only on the next render, and `check_supplement()` does not report it. — added 2026-10-19; narrowed 2026-10-21 by M028 — started M029
 - Detect broken file links on Windows: Windows file links: from the M018 implement. On Windows a file symbolic link to a missing file reads as a file that exists, with `file.access()` 0 and `normalizePath()` giving the link's own path, so `is_link()` misses it and `release_supplement()` stops with "Could not read" (`supplement_error_write`) in place of the link refusal; that stop comes in `read_outputs()`, before the writes, and no Windows test checks that nothing is written. The test "a link to a missing output file is refused before any write" skips on Windows for it. A fix needs a check outside base R's file functions, such as `dir /AL`. Making such a link needs admin rights or developer mode. From the M018 review: the same rule counts as a link any name that the folder lists but `file.exists()` cannot read, such as a name that ends in a space or `.` or a path over 260 characters. — added 2026-10-19
 - Handle short folder names on Windows: Windows short folder names: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
 - Measure the cost of large data files: Windows large data files: from the M018 review. Quarto copies each file the data table links into `docs/`, the size fixtures included (seen on macOS, where the 2 GiB copy stays sparse at 4 KB); the disk cost of the 1 GB, 2 GiB, and 4 GiB fixtures on Linux and Windows was not measured. On Windows the data table counts the bytes of each file of 2 GiB or more on every render, and the time for a 4 GiB file was not measured. — added 2026-10-19

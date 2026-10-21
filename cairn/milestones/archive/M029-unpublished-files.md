@@ -1,0 +1,11 @@
+# M029: check_supplement() finds site files that git ignores or a render missed
+
+**Status:** done (2026-10-21, PR #30 https://github.com/jmgirard/supplement/pull/30)
+
+**Goal:** `check_supplement()` gives a row for each published site file that git ignores, and for each paper figure that the last render did not copy into `docs/`.
+
+**Outcome:** Two checks in `R/check-supplement.R`, and each row stops `release_supplement()`. `ignored-output`: `git_files()` runs a second `git ls-files -z --others --ignored --exclude-standard -- figures docs _freeze`, and `check_ignored_output()` keeps regular files with no hidden name and no link or junction on their path (`plain_paths()`). The text says to change the rule for a file the site must publish, and to remove the source of a private file and render again. `unpublished-figure`: `check_unpublished_figures()` walks `figures/` with `plain_files()` (no hidden names, no links) and compares `tools::md5sum()` with `docs/figures/`. `git_checks` names the three git checks for `skipped` and the skip message. `sort_bytes()` now serves the link check too. Help, NEWS.md, both READMEs (the template's data paragraph names the private-file case), and DESIGN.md describe them. Tests in `test-check-supplement.R` (real git sites and mocked git listings), `test-release-supplement.R` (`checked_site()`, the real check stopping a release), and `test-add-render.R` (a render by name and a full render clear the row).
+
+**Decisions:** The ignored check reads git's own ignored list, not a disk walk compared with git's list, because git on macOS lists decomposed Unicode names in composed form (T1 probe).
+
+**Review:** Claim audit: 38 claims, 2 corrected. One four-lens pass, 42 findings: 26 fixed (cb2a1ad), 9 to the new row "Close edge cases of the figure checks", 7 rejected (5 false, 2 style). The first PR head failed on Windows in one review-added test fed a name that is not valid UTF-8; it now skips there (98752a3), then CI was green on all six jobs. `devtools::check()` 0/0/0. The tracking commits after 98752a3 were not pushed; this summary carries them, with AC6 ticked on CI evidence. The row "Fix edge cases of the figures folder" graduated. LESSONS: one M029 line added; the two M019 lines merged into one to stay under the cap.
