@@ -1,6 +1,7 @@
-# check_supplement() is mocked in these tests, so they need no render and
-# no git, except the tests that run the printed commands in a git
-# repository. Its own tests are in test-check-supplement.R.
+# check_supplement() is mocked in most of these tests, so they need no
+# render and no git. The tests that run the printed commands in a git
+# repository, and the test of a stale-output row, use git, and that test
+# runs the real check. Its own tests are in test-check-supplement.R.
 
 # Make check_supplement() return `rows` with the `skipped` attribute, and
 # count its calls in the returned environment.
@@ -197,7 +198,7 @@ test_that("a problem from check_supplement() stops the release with the number o
 })
 
 test_that("one problem of any other check stops the release", {
-  checks <- c("large-file", "saved-object", "no-stored-output", "not-rendered", "broken-link")
+  checks <- c("large-file", "saved-object", "no-stored-output", "stale-output", "not-rendered", "broken-link")
   for (check in checks) {
     mock_check(problem_rows(check, "x", "A problem."))
     dir <- release_site('  version: "1.2.3"')
@@ -206,6 +207,31 @@ test_that("one problem of any other check stops the release", {
     expect_match(conditionMessage(err), "1 problem", fixed = TRUE)
     expect_identical(folder_state(dir), before)
   }
+})
+
+test_that("a stale-output row from the real check stops the release", {
+  skip_if_no_git()
+  # A site in a git repository with a docs/ folder and stored output for
+  # its one report, so that the stored hash is its only problem.
+  site <- git_site()
+  dir.create(file.path(site, "docs"))
+  report <- file.path(site, "analyses", "example.qmd")
+  stored <- file.path(site, "_freeze", "analyses", "example", "execute-results", "html.json")
+  dir.create(dirname(stored), recursive = TRUE)
+  writeBin(charToRaw('{"hash": "0", "result": {}}'), stored)
+  result <- suppressMessages(check_supplement(site))
+  expect_identical(paste(result$check, result$file), "stale-output analyses/example.qmd")
+  expect_identical(attr(result, "skipped"), character())
+
+  before <- folder_state(site)
+  err <- expect_error(release("1.0.0", path = site), class = "supplement_error_release_check")
+  expect_match(conditionMessage(err), "1 problem", fixed = TRUE)
+  expect_identical(folder_state(site), before)
+
+  # With the report's own hash, the same site releases.
+  writeBin(charToRaw(sprintf('{"hash": "%s", "result": {}}', unname(tools::md5sum(report)))), stored)
+  release("1.0.0", path = site)
+  expect_identical(site_version(site), "1.0.0")
 })
 
 test_that("skipped git checks stop the release", {

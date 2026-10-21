@@ -113,6 +113,30 @@ git_in <- function(dir, args) {
   )
 }
 
+# Turn off git's global and system configuration and the user's ignore
+# file in $XDG_CONFIG_HOME/git/ignore, so that only a repository's own
+# rules decide what git ignores.
+local_plain_git <- function(env = parent.frame()) {
+  empty <- withr::local_tempfile(.local_envir = env)
+  file.create(empty)
+  config <- withr::local_tempdir(.local_envir = env)
+  withr::local_envvar(
+    c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1", XDG_CONFIG_HOME = config),
+    .local_envir = env
+  )
+}
+
+# A site made by create_supplement() in a git repository, with the
+# template's .gitignore, under local_plain_git().
+git_site <- function(env = parent.frame()) {
+  site <- new_site(env)
+  file.copy(file.path(site, "_gitignore"), file.path(site, ".gitignore"))
+  local_plain_git(env)
+  inited <- git_in(site, c("init", "-q"))
+  stopifnot(inited$status == 0L)
+  site
+}
+
 # Make a new folder from the template without rendering it.
 use_template <- function(dir) {
   run_in(dir, "quarto", c("use", "template", shQuote(template_dir()), "--no-prompt"))

@@ -4,30 +4,6 @@ check_quiet <- function(path) suppressMessages(check_supplement(path))
 
 rows_of <- function(result, check) result[result$check == check, , drop = FALSE]
 
-# Turn off git's global and system configuration and the user's ignore
-# file in $XDG_CONFIG_HOME/git/ignore, so that only a repository's own
-# rules decide what git ignores.
-local_plain_git <- function(env = parent.frame()) {
-  empty <- withr::local_tempfile(.local_envir = env)
-  file.create(empty)
-  config <- withr::local_tempdir(.local_envir = env)
-  withr::local_envvar(
-    c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1", XDG_CONFIG_HOME = config),
-    .local_envir = env
-  )
-}
-
-# A site made by create_supplement() in a git repository, with the
-# template's .gitignore, under local_plain_git().
-git_site <- function(env = parent.frame()) {
-  site <- new_site(env)
-  file.copy(file.path(site, "_gitignore"), file.path(site, ".gitignore"))
-  local_plain_git(env)
-  inited <- git_in(site, c("init", "-q"))
-  stopifnot(inited$status == 0L)
-  site
-}
-
 # A file of `size` bytes that takes almost no disk space.
 sparse_file <- function(path, size) {
   dir.create(dirname(path), showWarnings = FALSE, recursive = TRUE)
@@ -401,6 +377,101 @@ test_that("the rendered example report has stored output", {
   skip_if_no_quarto()
   site <- site_copy()$dir
   expect_identical(nrow(rows_of(check_quiet(site), "no-stored-output")), 0L)
+})
+
+# Write a file of stored output for report `name` from text or raw bytes.
+stored_file <- function(site, name, file, content) {
+  dir <- file.path(site, "_freeze", "analyses", name, "execute-results")
+  dir.create(dir, showWarnings = FALSE, recursive = TRUE)
+  writeBin(if (is.character(content)) charToRaw(content) else content, file.path(dir, file))
+}
+
+# The JSON of a stored output file whose top-level hash is `hash`.
+hash_json <- function(hash) sprintf('{"hash": "%s", "result": {"markdown": "x"}}', hash)
+
+# The MD5 of text or raw bytes, from tools::md5sum() on a file that holds
+# them.
+md5_of <- function(...) {
+  parts <- lapply(list(...), function(x) if (is.character(x)) charToRaw(x) else x)
+  file <- withr::local_tempfile()
+  writeBin(unlist(parts), file)
+  unname(tools::md5sum(file))
+}
+
+stale_lf <- "---\ntitle: Fixture\n---\n\n```{r}\n1 + 1\n```\n"
+
+test_that("stored output made from other report text gives a stale-output row", {
+  site <- new_site()
+  stored <- function(name, ..., file = "html.json", hash) {
+    report_bytes(site, name, ...)
+    stored_file(site, name, file, hash_json(hash))
+  }
+  stored("differs", stale_lf, hash = md5_of(stale_lf, "x"))
+  stored("matches", stale_lf, hash = md5_of(stale_lf))
+  stored("two-files", stale_lf, hash = md5_of(stale_lf))
+  stored_file(site, "two-files", "docx.json", hash_json(md5_of(stale_lf, "x")))
+  report_bytes(site, "no-stored", stale_lf)
+  # A report that cannot be read gives no row.
+  file.symlink(file.path(site, "no-such.qmd"), file.path(site, "analyses", "dangling.qmd"))
+  stored_file(site, "dangling", "html.json", hash_json(md5_of(stale_lf, "x")))
+  # Quarto hashes CR LF text as LF and keeps a byte order mark and a lone
+  # CR. The expected hashes are written here from the text that Quarto
+  # hashes (the LF text for CR LF, the bytes as they are otherwise), not
+  # taken from the check.
+  stored("crlf", gsub("\n", "\r\n", stale_lf, fixed = TRUE), hash = md5_of(stale_lf))
+  bom <- as.raw(c(0xef, 0xbb, 0xbf))
+  stored("bom", bom, stale_lf, hash = md5_of(bom, stale_lf))
+  lone_cr <- gsub("\n", "\r", stale_lf, fixed = TRUE)
+  stored("lone-cr", lone_cr, hash = md5_of(lone_cr))
+  no_final <- sub("\n$", "", stale_lf)
+  stored("no-final-lf", no_final, hash = md5_of(no_final))
+  # Hidden files, files that do not end in .json, and reports in folders
+  # inside analyses/ are not read.
+  stored("hidden-json", stale_lf, file = ".html.json", hash = md5_of(stale_lf, "x"))
+  stored_file(site, "hidden-json", "notes.txt", "not JSON")
+  stored("json-folder", stale_lf, hash = md5_of(stale_lf))
+  dir.create(file.path(site, "_freeze", "analyses", "json-folder", "execute-results", "old.json"))
+  dir.create(file.path(site, "analyses", "sub"))
+  writeBin(charToRaw(stale_lf), file.path(site, "analyses", "sub", "inner.qmd"))
+  stored_file(site, file.path("sub", "inner"), "html.json", hash_json(md5_of(stale_lf, "x")))
+
+  expect_no_error(rows <- rows_of(check_quiet(site), "stale-output"))
+  expect_setequal(rows$file, c("analyses/differs.qmd", "analyses/two-files.qmd"))
+  expect_identical(nrow(rows), 2L)
+  for (problem in rows$problem) {
+    expect_match(problem, "made from other text than the report holds now", fixed = TRUE)
+    expect_match(problem, "Render the report by name, then commit _freeze/.", fixed = TRUE)
+  }
+})
+
+test_that("a source hash that cannot be read gives a stale-output row that says so", {
+  site <- new_site()
+  cases <- c(
+    "not-json" = '{"hash": ',
+    "string-top" = '"abc"',
+    "array-top" = "[1]",
+    "no-hash" = '{"result": {}}',
+    "number-hash" = '{"hash": 1}',
+    # A list that holds the right hash is still not one text value.
+    "list-hash" = sprintf('{"hash": ["%s"]}', md5_of(stale_lf))
+  )
+  for (name in names(cases)) {
+    report_bytes(site, name, stale_lf)
+    stored_file(site, name, "html.json", cases[[name]])
+  }
+  # One file that cannot be read and one that differs give one row, with
+  # the text for a hash that cannot be read.
+  report_bytes(site, "both", stale_lf)
+  stored_file(site, "both", "docx.json", "{")
+  stored_file(site, "both", "html.json", hash_json(md5_of(stale_lf, "x")))
+
+  expect_no_error(rows <- rows_of(check_quiet(site), "stale-output"))
+  expect_setequal(rows$file, file.path("analyses", paste0(c(names(cases), "both"), ".qmd")))
+  expect_identical(nrow(rows), length(cases) + 1L)
+  for (problem in rows$problem) {
+    expect_match(problem, "The source hash of its stored output cannot be read", fixed = TRUE)
+    expect_match(problem, "Render the report by name, then commit _freeze/.", fixed = TRUE)
+  }
 })
 
 test_that("a site with no docs folder gives one not-rendered row", {

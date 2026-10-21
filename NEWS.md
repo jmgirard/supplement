@@ -30,8 +30,11 @@
   `{mermaid}`, or `{dot}`. It counts in any letter case, with a space or
   tab before `{`, and inside a `>` block quote. If the report's front
   matter sets `engine: knitr`, inline R code also counts: `r` and a space,
-  `r#`, or `{r}` and a space after the first backtick. It also finds
-  relative links in `docs/` to files that are not in `docs/`, and
+  `r#`, or `{r}` and a space after the first backtick. From the source
+  hash that Quarto stores, it finds reports whose stored output was made
+  from other text than the report holds now. It also finds stored output
+  whose hash cannot be read. A change in a file that the report includes does
+  not count. It also finds relative links in `docs/` to files that are not in `docs/`, and
   pages there that cannot be read. It finds DOIs that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It returns
   the problems as a data frame.

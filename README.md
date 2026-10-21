@@ -99,6 +99,9 @@ finds:
 - saved R objects, such as `.rds` files, that git tracks or does not ignore
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
+- reports directly in `analyses/` whose stored output in `_freeze/` was
+  made from other text than the report holds now, or whose source hash
+  cannot be read
 - a site with no `docs/` folder
 - relative `href`, `src`, and `xlink:href` links in `docs/` to files that
   are not in `docs/`, or to folders there with no `index.html`

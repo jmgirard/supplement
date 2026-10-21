@@ -39,6 +39,26 @@
 #'   A report has no stored output when
 #'   `_freeze/analyses/<name>/execute-results/` holds no file other than
 #'   hidden files and the files in hidden folders.
+#' * `"stale-output"`: a `.qmd` report directly in `analyses/`, from the
+#'   same list of reports, whose stored output was made from other text than
+#'   the report holds now. The check reads as JSON each file whose name ends
+#'   in `.json` and does not start with `.`, directly in
+#'   `_freeze/analyses/<name>/execute-results/`. Quarto writes the MD5 of
+#'   the report's text there as the top-level `hash`. The report gets one
+#'   row when such a `hash` is one text value that differs from the MD5 of
+#'   the report's bytes with each CR LF pair read as LF. It also gets one
+#'   row, which says that the source hash of its stored output cannot be
+#'   read, when such a file does not parse, its top level is not an object,
+#'   or its top-level `hash` is missing or is not one text value. When one
+#'   file cannot be read and another differs, the one row has this text. A
+#'   report that cannot be read, such as a link to a missing file, gives no
+#'   row. Quarto 1.10.19 hashes only the report file, so a change in a file
+#'   that the report includes, in `_quarto.yml` or `_metadata.yml`, or in
+#'   the data gives no row. Reports in folders inside `analyses/` are not
+#'   read. Quarto reads a report as UTF-8 and hashes each byte that is not
+#'   valid UTF-8 as U+FFFD, so such a report gets a row after each render.
+#'   Quarto keeps the file of a format that the report no longer renders,
+#'   such as `docx.json`, with its old hash, so delete that file.
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no
@@ -166,6 +186,7 @@ check_supplement <- function(path = ".") {
   rows <- list(
     if (!is.null(git$files)) check_git_files(path, git$files),
     check_stored_output(path),
+    check_stale_output(path),
     check_links(path),
     check_dois(path, meta, call = environment())
   )
@@ -374,15 +395,19 @@ engine_is_knitr <- function(lines) {
   is.list(front) && !is.null(names(front)) && identical(front[["engine"]], "knitr")
 }
 
-check_stored_output <- function(path) {
-  # The files that the glob analyses/*.qmd matches in the site. A glob over
-  # the whole path would read `[`, `*`, or `?` in the site's own path as a
-  # pattern, so list the folder instead. Like a glob, `*` skips names that
-  # start with a dot.
+# The files that the glob analyses/*.qmd matches in the site. A glob over
+# the whole path would read `[`, `*`, or `?` in the site's own path as a
+# pattern, so list the folder instead. Like a glob, `*` skips names that
+# start with a dot.
+analysis_reports <- function(path) {
   dir <- file.path(path, "analyses")
   names <- list.files(dir, pattern = "\\.qmd$")
   reports <- file.path(dir, names[!startsWith(names, ".")])
-  reports <- reports[!dir.exists(reports)]
+  reports[!dir.exists(reports)]
+}
+
+check_stored_output <- function(path) {
+  reports <- analysis_reports(path)
   missing <- vapply(reports, function(report) {
     lines <- read_report_lines(report)
     has_code <- any(grepl(chunk_start, lines, perl = TRUE, useBytes = TRUE)) ||
@@ -399,6 +424,77 @@ check_stored_output <- function(path) {
     rep_len("The report has code and no stored output in _freeze/. Render it by name, then commit _freeze/.",
             length(files))
   )
+}
+
+# Quarto 1.10.19 writes the MD5 of the report's text, with each CR LF read
+# as LF, as the top-level `hash` of each execute-results/*.json file. The
+# hash covers the report file alone, not the files it includes or the
+# project's YAML files.
+check_stale_output <- function(path) {
+  reports <- analysis_reports(path)
+  state <- vapply(reports, function(report) {
+    name <- sub("\\.qmd$", "", basename(report))
+    dir <- file.path(path, "_freeze", "analyses", name, "execute-results")
+    files <- list.files(dir, pattern = "\\.json$", full.names = TRUE)
+    files <- files[!startsWith(basename(files), ".") & !dir.exists(files)]
+    if (length(files) == 0) {
+      return("ok")
+    }
+    hash <- report_hash(report)
+    if (is.null(hash)) {
+      return("ok")
+    }
+    stored <- lapply(files, stored_hash)
+    if (any(vapply(stored, is.null, logical(1)))) {
+      "unreadable"
+    } else if (any(unlist(stored) != hash)) {
+      "stale"
+    } else {
+      "ok"
+    }
+  }, character(1), USE.NAMES = FALSE)
+  rerender <- "Render the report by name, then commit _freeze/."
+  problem <- c(
+    stale = paste("Its stored output in _freeze/ was made from other text than the report holds now.", rerender),
+    unreadable = paste("The source hash of its stored output cannot be read from _freeze/.", rerender)
+  )
+  hit <- state != "ok"
+  problem_rows("stale-output", file.path("analyses", basename(reports[hit])), problem[state[hit]])
+}
+
+# The MD5 of a report's bytes with each CR LF read as LF, or NULL when the
+# report cannot be read, such as a link to a missing file.
+report_hash <- function(report) {
+  tryCatch({
+    bytes <- readBin(report, "raw", n = file.size(report))
+    n <- length(bytes)
+    if (n > 1) {
+      cr <- which(bytes[-n] == as.raw(13) & bytes[-1] == as.raw(10))
+      if (length(cr) > 0) bytes <- bytes[-cr]
+    }
+    file <- tempfile("report-")
+    on.exit(unlink(file, expand = FALSE))
+    writeBin(bytes, file)
+    unname(tools::md5sum(file))
+  }, error = function(e) NULL, warning = function(w) NULL)
+}
+
+# The top-level `hash` of a stored output file, or NULL when the file does
+# not parse as JSON, its top level is not an object, or its `hash` is not
+# one text value.
+stored_hash <- function(file) {
+  json <- tryCatch({
+    bytes <- readBin(file, "raw", n = file.size(file))
+    jsonlite::parse_json(rawToChar(bytes), simplifyVector = FALSE)
+  }, error = function(e) NULL, warning = function(w) NULL)
+  if (!is.list(json) || is.null(names(json))) {
+    return(NULL)
+  }
+  hash <- json[["hash"]]
+  if (!is.character(hash) || length(hash) != 1 || is.na(hash)) {
+    return(NULL)
+  }
+  hash
 }
 
 # Links -----------------------------------------------------------------------
