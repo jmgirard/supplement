@@ -111,9 +111,15 @@
   back as planned. For a key line indented with a tab, `add_data()` gave
   `supplement_error_no_data_list`.
 * The template publishes paper figures from a `figures/` folder, which git
-  tracks. The example report saves `figures/bootstrap-means.png` there, and
-  the site's README says how a report writes a figure to `figures/`. Git
-  still ignores `.png` and `.pdf` files saved directly in `analyses/`.
+  tracks. The template ships `figures/bootstrap-means.png`, so the first
+  render of a new site publishes it. The example report saves it again on
+  each render that runs its code. The example finds the site folder from
+  `QUARTO_PROJECT_DIR`. If that is not set, it uses `..`. So the example
+  also works with `execute-dir: project`. A failed plot leaves no partial file in
+  `figures/`, and a file named `figures` stops the report with a message.
+  The site's README says how a report writes a figure to `figures/`. Git
+  still ignores `.png` and `.pdf` files saved directly in `analyses/`, now
+  in any letter case.
 * Fixes on Windows. `create_supplement()`, `add_report()`, and `add_data()`
   now stop with `supplement_error_file_exists` for a junction where the
   site needs a folder, as they already did on other systems for a link.

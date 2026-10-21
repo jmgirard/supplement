@@ -271,19 +271,24 @@ figures change.
 
 ## Paper figures
 
-Save each figure for the paper in `figures/`. A report runs from its own
-folder, so its code writes there as `file.path("..", "figures", ...)`, for
-example:
+Save each figure for the paper in `figures/`. During a render, Quarto sets
+`QUARTO_PROJECT_DIR` to the site folder. When you run a report's code by
+hand from `analyses/`, it is not set, and the site folder is `..`. So a
+report finds `figures/` as:
 
 ```r
-dir.create(file.path("..", "figures"), showWarnings = FALSE)
-png(file.path("..", "figures", "model-fit.png"), width = 6, height = 4,
-    units = "in", res = 300)
+site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
+figures <- file.path(site, "figures")
 ```
 
-The `dir.create()` line makes the folder, because the template has no
-`figures/` folder until a report makes it. The example report saves
-`figures/bootstrap-means.png` this way. Quarto copies `figures/` into
+If `_quarto.yml` sets `execute-dir: project`, this path also works. The
+example report saves `figures/bootstrap-means.png` with its `save_png()`
+function. It draws the plot into a temporary file. It copies that file into
+`figures/` only after the plot succeeds, so a failed plot leaves no partial
+file there. If `figures` is a file and not a folder, the example report
+stops with a message that says so. The template ships
+`figures/bootstrap-means.png`, so the first render of a new site publishes
+it. Quarto copies `figures/` into
 `docs/`, so each figure has a web address such as
 `https://OWNER.github.io/REPO/figures/model-fit.png`. Every file in
 `figures/` is published on the site, so keep drafts and private files out
@@ -296,9 +301,8 @@ take a figure off the site, delete it from `figures/` and run a full
 render.
 
 PNG and PDF files saved directly in `analyses/` are not committed, because
-`.gitignore` blocks `analyses/*.png` and `analyses/*.pdf`. Git on Linux
-reads these two rules in lower case only, so there it commits a file such
-as `analyses/plot.PNG`. Save paper figures in `figures/` instead.
+`.gitignore` blocks them there in any letter case, such as
+`analyses/plot.PNG`. Save paper figures in `figures/` instead.
 
 ## Publishing from one machine
 
