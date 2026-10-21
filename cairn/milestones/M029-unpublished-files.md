@@ -1,6 +1,6 @@
 # M029: check_supplement() finds site files that git ignores or a render missed
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** M028
 - **Driving RR:** —
@@ -44,7 +44,7 @@
 - [x] T3: Write the `ignored-output` check from git's list of ignored files (`git ls-files --others --ignored --exclude-standard`), read in `git_files()` (`R/check-supplement.R:256`), with paths relative to the site. Keep the files in the three folders whose path holds no hidden name and no link, tested with `is_link()`. Add the check to the `skipped` attribute and to the skip message in `report_problems()` (line 205).
 - [x] T4: Write the `unpublished-figure` check with `tools::md5sum()` (LESSONS M027) and the same link-free walk. Add both calls to `check_supplement()` (line 186).
 - [x] T5: Add the roxygen items and run `devtools::document()`. Edit the existing NEWS.md bullet for `check_supplement()`. Add two lines to the check list in `inst/template/_README.md`.
-- [ ] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
+- [x] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
 
@@ -74,6 +74,7 @@
 - 2026-10-20: checkpoint: T3 to T5 code, help, NEWS, and README written; the three changed test files pass (97 tests); the full suite is running, so T3 to T5 stay unticked.
 - 2026-10-20: full `devtools::test()` at b3e757f's code: 299 tests, 0 failing, 7 skipped; T3 to T5 ticked.
 - 2026-10-20: claim audit: 38 claims read, 2 corrected — R/check-supplement.R, man/check_supplement.Rd (the `docs/data/` copy holds only for a rule with no `/`; the Unicode comment now names core.precomposeUnicode). The same reader re-read both corrections and found they hold.
+- 2026-10-20: T6: `devtools::check()` at b3e757f's code (before the claim-audit wording fix, which changed only help text and a comment): 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR. Status set to review.
 
 ## Decisions
 
