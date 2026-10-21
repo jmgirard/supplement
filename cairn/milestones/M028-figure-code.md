@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template that `create_supplement()` copies into each author's site
-- **Branch/PR:** m028-figure-code
+- **Branch/PR:** m028-figure-code, https://github.com/jmgirard/supplement/pull/29
 
 ## Goal
 
