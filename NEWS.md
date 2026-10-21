@@ -128,9 +128,8 @@
   end with a "Computing environment" section. It prints the R and package
   versions of the render. If the sessioninfo package is installed, it uses
   `sessioninfo::session_info()`. Otherwise it uses `utils::sessionInfo()`.
-  It shows the home folder as `~`, so the page does not publish the name of
-  the author's account. The stored output keeps the versions of each
-  report's last render.
+  It shows the home folder as `~`, and folders outside it in full. The
+  stored output keeps the versions of each report's last render.
 * Fixes on Windows. `create_supplement()`, `add_report()`, and `add_data()`
   now stop with `supplement_error_file_exists` for a junction where the
   site needs a folder, as they already did on other systems for a link.

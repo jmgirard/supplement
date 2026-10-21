@@ -115,3 +115,31 @@ The template's example report and each report that `add_report()` writes end wit
 - ripple #2: README.md and the guide's `add_report()` sentences do not mention the section — fix now.
 - ripple #3: DESIGN.md calls the output a "report stub" — fix now with diff-bug #15.
 - ripple #4: DESIGN.md's list of what the example holds leaves out the section — fix now with diff-bug #15.
+- Pass 2 (2026-10-21, after review return 1, head 2be8587): the five criterion tests ran fresh with 0 failures (AC1 test 19 expectations, the two branch tests 3 each, the home-folder test 3, the AC3 test 4). `cairn_validate.py` passed and `devtools::document()` made no diff.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: replacing the shortest home spelling first mangles a linked home whose real path ends with the linked path (`/private~/lib`, confirmed) — fix now: longest spelling first.
+- diff-bug #2: no folder-boundary check, so HOME `…/al` turned `…/alice` into `~ice` (confirmed) — fix now: the match must start after white space or at the line start and end at a separator, white space, or the line end.
+- diff-bug #3: Windows 8.3 short names of the home folder are not replaced — fix now: `utils::shortPathName()` spellings on Windows.
+- diff-bug #4: the match is case-sensitive, and Windows paths can differ in case — fix now: `ignore.case` on Windows.
+- diff-bug #5: `nchar(homes) > 3` drops a real home such as `/al` — fix now: drop only a drive root or `/`.
+- diff-bug #6: NEWS.md states the privacy result as absolute — fix now: NEWS, the guide, and the example's prose say that folders outside the home folder show in full.
+- diff-bug #7: the chunk leaves `info`, `homes`, `lines`, and `home` in the report's environment — fix now: the chunk runs in `local()`.
+- diff-bug #8: the AC1 test's home spellings leave out `normalizePath()` forms and check case — fix now.
+- diff-bug #9: the home-folder test covers neither a prefix home, a linked home, nor the `sessionInfo()` form — fix now: three tests. With the pass-1 chunk restored, the prefix test failed 2 expectations and the linked-home test failed 3.
+- diff-bug #10: the AC3 byte test cannot catch drift, because the stub reads the section from the example — reject, planned change: AC3 as written, and drift is now impossible by construction.
+- diff-bug #11: a missing or edited installed example gives an unclassed error from `environment_section()` — reject, edge: a broken package install, outside documented and common use, and the effect is an error.
+- diff-bug #12: no finding (encoding and final newline checked).
+- diff-bug #13: session_info() runs `quarto -V` on each render — reject, planned change: session_info() reports the Quarto version.
+- diff-bug #14: on Windows `~` stands for USERPROFILE as well as HOME — reject, style.
+- blame-history #1: D-019 says `--as-cran` hides packages outside Suggests, but check only prepends its library — reject, false: R 4.6.1 `tools:::.check_packages` sets `R_check_suggests_only` under `--as-cran`, and `setRlibs()` then gives the tests `R_LIBS` with links to declared packages only and `R_LIBS_USER` and `R_LIBS_SITE` as `NULL`.
+- blame-history #2: NEWS.md's privacy claim has no caveat — fix now with diff-bug #6.
+- prior-review #1: `stopifnot()` in `environment_section()` gives an unclassed error — reject, edge, as diff-bug #11.
+- prior-review #2: `environment_section()` uses `readLines()`, not `read_text_lines()` — reject, edge: the input is the package's own UTF-8 template, which the AC3 test reads.
+- prior-review #3: some expectations have no `info =` — reject, style.
+- prior-review #4: the AC1 render test has no `skip_on_cran()` — reject, false: `skip_if_no_quarto()` calls `skip_on_cran()` (`helper-template.R:4`).
+- ripple #1: the candidate row "Compare renv.lock with report records" says each report has the section — fix now.
+- ripple #2: the row "Keep tests within the Suggests floors" lists the Suggests entries with no floor and leaves out sessioninfo — fix now.
+- ripple #3: the guide's "Publishing from one machine" part does not say a render elsewhere changes the section — fix now.
+- ripple #4: README.md's render requirements do not name sessioninfo — reject, false as a conflict: sessioninfo is optional.
+- ripple #5: DESIGN.md's list of missing tools — reject, false: "such as" covers it.
+- ripple #6: the example's "shows the parts of an analysis page" — reject, false: the section is one more part.

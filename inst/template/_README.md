@@ -51,8 +51,9 @@ If the sessioninfo package is installed, the section prints
 which comes with R. The output also shows your operating system, your time
 zone, and some folders on your computer: the R library folders, Pandoc,
 and Quarto with sessioninfo, and the BLAS and LAPACK files without it. The
-section shows your home folder as `~`, so the page does not publish the
-name of your account. Folders outside your home folder show in full.
+section shows your home folder as `~`, in each spelling that R gives for
+it. Folders outside your home folder show in full, so read the output
+before you publish it.
 
 To add the section to an older report, copy the lines from the
 `## Computing environment` heading to the end of `analyses/example.qmd`.
@@ -353,7 +354,8 @@ PNG and PDF files saved directly in `analyses/` are not committed, because
 Render and push the site from one machine. The theme file name in
 `docs/site_libs/` is a hash of the compiled theme, which can differ between
 machines, for example with another Quarto version. A render on a second
-machine can then change every page.
+machine can then change every page. A report rendered there also shows that
+machine's versions in its Computing environment section.
 
 ## Site search
 

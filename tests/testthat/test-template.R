@@ -466,10 +466,14 @@ test_that("the example page shows the R and knitr versions of its render", {
   expect_status(found)
   has_sessioninfo <- identical(trimws(utils::tail(found$output, 1)), "TRUE")
 
-  # The home folder in each spelling, which the page must not show.
+  # The home folder in each spelling, which the page must not show in any
+  # letter case.
   homes <- Sys.getenv(c("USERPROFILE", "HOME"))
-  homes <- homes[nchar(homes) > 3]
-  homes <- unique(c(homes, chartr("\\", "/", homes), chartr("/", "\\", homes)))
+  homes <- homes[nzchar(homes)]
+  homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
+  homes <- c(chartr("\\", "/", homes), chartr("/", "\\", homes))
+  homes <- unique(sub("[/\\\\]+$", "", homes))
+  homes <- homes[!grepl("^([A-Za-z]:)?$", homes)]
 
   # One render as the machine is, and one with sessioninfo hidden through
   # a profile that R reads at the start of the render.
@@ -497,7 +501,7 @@ test_that("the example page shows the R and knitr versions of its render", {
       expect_no_match(text, "attached base packages", fixed = TRUE)
     }
     for (home in homes) {
-      expect_no_match(page, home, fixed = TRUE, info = paste(hidden, home))
+      expect_false(grepl(tolower(home), tolower(page), fixed = TRUE), info = paste(hidden, home))
     }
   }
 })
@@ -528,16 +532,66 @@ test_that("the environment section prints session_info() when sessioninfo is ins
   expect_no_match(text, "attached base packages", fixed = TRUE)
 })
 
+# Lines that set the home folder to `home`, and put `lib` first among the
+# library folders that session_info() lists.
+home_lines <- function(home, lib = NULL) {
+  c(
+    sprintf("Sys.setenv(HOME = %s)", deparse(home)),
+    'Sys.unsetenv("USERPROFILE")',
+    if (!is.null(lib)) sprintf(".libPaths(c(%s, .libPaths()))", deparse(lib))
+  )
+}
+
 test_that("the environment section shows the home folder as ~", {
   skip_on_cran()
   skip_if_not_installed("sessioninfo")
   # With R's own folder as the home folder, the library folder that
   # session_info() lists, R_HOME/library, is inside the home folder.
   home <- normalizePath(R.home(), winslash = "/")
-  text <- run_session_code(c(
-    sprintf("Sys.setenv(HOME = %s)", deparse(home)),
-    'Sys.unsetenv("USERPROFILE")'
-  ))
+  text <- run_session_code(home_lines(home))
   expect_match(text, "~/library", fixed = TRUE)
+  expect_no_match(text, home, fixed = TRUE)
+})
+
+test_that("the environment section leaves a folder that only starts like the home folder", {
+  skip_on_cran()
+  skip_if_not_installed("sessioninfo")
+  base <- normalizePath(withr::local_tempdir("homes-"), winslash = "/")
+  dir.create(file.path(base, "al"))
+  lib <- file.path(base, "alice", "lib")
+  dir.create(lib, recursive = TRUE)
+  text <- run_session_code(home_lines(file.path(base, "al"), lib))
+  expect_match(text, lib, fixed = TRUE)
+  expect_no_match(text, "~ice", fixed = TRUE)
+})
+
+test_that("the environment section shows a linked home folder as ~ by its real path", {
+  skip_on_cran()
+  skip_on_os("windows")
+  skip_if_not_installed("sessioninfo")
+  # The home folder is reached through a link, and its real path ends with
+  # the linked path, as /tmp/h and /private/tmp/h do on macOS. A match of
+  # the shorter spelling inside the real path would print /private~/lib.
+  root <- normalizePath(withr::local_tempdir("homes-"), winslash = "/")
+  real <- file.path(root, "real")
+  lib <- file.path(real, root, "h", "lib")
+  dir.create(lib, recursive = TRUE)
+  skip_if_not(file.symlink(file.path(real, root, "h"), file.path(root, "h")), "cannot make a symbolic link here")
+  text <- run_session_code(home_lines(file.path(root, "h"), lib))
+  expect_match(text, "[1] ~/lib", fixed = TRUE)
+  expect_no_match(text, real, fixed = TRUE)
+  expect_no_match(text, "real~", fixed = TRUE)
+})
+
+test_that("the sessionInfo() output shows the home folder as ~", {
+  skip_on_cran()
+  # sessionInfo() prints the path of the LAPACK library, so a home folder
+  # two levels above it shows there.
+  lapack <- La_library()
+  skip_if(!nzchar(lapack), "R gives no LAPACK path here")
+  home <- dirname(dirname(normalizePath(lapack, winslash = "/")))
+  text <- run_session_code(c(hide_sessioninfo, home_lines(home)))
+  expect_match(text, "attached base packages", fixed = TRUE)
+  expect_match(text, "LAPACK: ~/", fixed = TRUE)
   expect_no_match(text, home, fixed = TRUE)
 })

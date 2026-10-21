@@ -73,25 +73,36 @@ save_png("bootstrap-means.png", function() {
 This section shows the versions of R and of each package that the last
 render of this report used. The site stores this output with the rest, so
 the page keeps the versions that made its results. Your home folder shows
-as `~`, so the page does not publish the name of your account.
+as `~`. Read the output before you publish it, because a folder outside
+your home folder shows in full.
 
 ::: {.callout-note collapse="true" title="R and package versions"}
 ```{r}
 #| label: session-info
 #| cache: false
-info <- if (requireNamespace("sessioninfo", quietly = TRUE)) {
-  sessioninfo::session_info()
-} else {
-  utils::sessionInfo()
-}
-homes <- Sys.getenv(c("USERPROFILE", "HOME"))
-homes <- homes[nchar(homes) > 3]
-homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
-homes <- unique(c(homes, chartr("\\", "/", homes), chartr("/", "\\", homes)))
-lines <- utils::capture.output(print(info))
-for (home in homes[order(nchar(homes))]) {
-  lines <- gsub(home, "~", lines, fixed = TRUE)
-}
-writeLines(lines)
+local({
+  info <- if (requireNamespace("sessioninfo", quietly = TRUE)) {
+    sessioninfo::session_info()
+  } else {
+    utils::sessionInfo()
+  }
+  # Each spelling of the home folder, longest first.
+  windows <- .Platform$OS.type == "windows"
+  homes <- Sys.getenv(c("USERPROFILE", "HOME"))
+  homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
+  if (windows) homes <- c(homes, utils::shortPathName(homes))
+  homes <- c(chartr("\\", "/", homes), chartr("/", "\\", homes))
+  homes <- unique(sub("[/\\\\]+$", "", homes))
+  homes <- homes[!grepl("^([A-Za-z]:)?$", homes)]
+  homes <- homes[order(-nchar(homes))]
+  # Show the home folder as ~ where a path starts with the whole folder.
+  lines <- utils::capture.output(print(info))
+  for (home in homes) {
+    literal <- gsub("([][{}()|^$.*+?\\\\])", "\\\\\\1", home)
+    pattern <- paste0("(?<!\\S)", literal, "(?=[/\\\\]|\\s|$)")
+    lines <- gsub(pattern, "~", lines, perl = TRUE, ignore.case = windows)
+  }
+  writeLines(lines)
+})
 ```
 :::
