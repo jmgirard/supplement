@@ -114,7 +114,8 @@ git_in <- function(dir, args) {
 }
 
 # The template's rules for figures next to reports match any letter case,
-# and figures/ stays in git. git on macOS and Windows ignores letter case by
+# and figures/ stays in git. On macOS and Windows, `git init` sets
+# core.ignorecase=true, because their file systems ignore letter case by
 # default, so every check runs with core.ignorecase=false, as on Linux.
 expect_figure_rules <- function(dir) {
   in_analyses <- c("analyses/a.PNG", "analyses/b.Pdf", "analyses/c.png", "analyses/d.pdf")

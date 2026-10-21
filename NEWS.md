@@ -116,7 +116,8 @@
   each render that runs its code. The example finds the site folder from
   `QUARTO_PROJECT_DIR`. If that is not set, it uses `..`. So the example
   also works with `execute-dir: project`. A failed plot leaves no partial file in
-  `figures/`, and a file named `figures` stops the report with a message.
+  `figures/`. If a file named `figures` is in place of the folder, the
+  report stops with a message when its code runs.
   The site's README says how a report writes a figure to `figures/`. Git
   still ignores `.png` and `.pdf` files saved directly in `analyses/`, now
   in any letter case.

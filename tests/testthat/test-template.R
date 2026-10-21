@@ -189,7 +189,8 @@ test_that("the example report saves a figure that the next full render publishes
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
   expect_status(use_template(dir))
-  # Without the shipped figure, the report saves it under a new name.
+  # Without the shipped figure, figures/bootstrap-means.png is new to this
+  # render, so only the next render publishes it.
   expect_true(file.remove(file.path(dir, "figures", "bootstrap-means.png")))
 
   by_name <- run_in(dir, "quarto", c("render", "analyses/example.qmd"))

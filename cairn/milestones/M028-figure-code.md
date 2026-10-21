@@ -1,6 +1,6 @@
 # M028: The template saves paper figures safely in more setups
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -68,6 +68,8 @@ A new site's first render publishes the example figure, and the example's figure
 - 2026-10-20: T4: `_gitignore` now has `analyses/*.[Pp][Dd][Ff]` and `analyses/*.[Pp][Nn][Gg]`, with a comment pointing to `figures/`. `expect_figure_rules()` in `helper-template.R` runs `check-ignore` with `core.ignorecase=false` in the rename-path test and the git-init-first test. 126 expectations pass; with main's `_gitignore` both tests fail.
 - 2026-10-20: T5: rewrote the "Paper figures" section of `_README.md` (the `QUARTO_PROJECT_DIR` path, `save_png()`, the `figures`-file stop, the shipped figure, the any-case rules) and the NEWS.md figures bullet; each statement rests on a T3 or T4 test. Left the `file.path("fits", ...)` advice at `_README.md:238`, which is outside this scope.
 - 2026-10-20: T6: added `figures/bootstrap-means.png` to `template_tracked` in `test-create-supplement.R`, whose four file-list checks failed on the new template file. With `NOT_CRAN=true`, `devtools::test()` ran 288 tests, 4355 expectations, 0 failed, 7 skipped. `devtools::document()` gave no diff. `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Moved the `_problems/` files that the failed runs wrote out of the tree.
+- 2026-10-20: claim audit: 38 claims read, 4 corrected — NEWS.md, inst/template/_README.md, tests/testthat/test-template.R, tests/testthat/helper-template.R. The `figures`-file stop happens only when the report's code runs, not in a full render that reuses `_freeze/`; two comments were made exact. The re-read found all four hold.
+- 2026-10-20: all tasks done; after the audit fixes `devtools::test()` (`NOT_CRAN=true`) ran 288 tests, 4355 expectations, 0 failed. Status set to review.
 
 ## Decisions
 

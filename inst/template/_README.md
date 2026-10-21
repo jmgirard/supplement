@@ -286,7 +286,8 @@ example report saves `figures/bootstrap-means.png` with its `save_png()`
 function. It draws the plot into a temporary file. It copies that file into
 `figures/` only after the plot succeeds, so a failed plot leaves no partial
 file there. If `figures` is a file and not a folder, the example report
-stops with a message that says so. The template ships
+stops with a message that says so when its code runs. A full render that
+reuses `_freeze/` does not run it. The template ships
 `figures/bootstrap-means.png`, so the first render of a new site publishes
 it. Quarto copies `figures/` into
 `docs/`, so each figure has a web address such as
