@@ -182,13 +182,7 @@ test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
   site <- site_copy()
 
   expect_status(git_in(site$dir, c("init", "-q")))
-  in_analyses <- c("analyses/plot.pdf", "analyses/plot.png")
-  ignored <- git_in(site$dir, c("check-ignore", in_analyses))
-  expect_status(ignored)
-  expect_setequal(ignored$output,in_analyses)
-
-  kept <- git_in(site$dir, c("check-ignore", "figures/plot.pdf", "figures/plot.png"))
-  expect_status(kept, 1L, output = character())
+  expect_figure_rules(site$dir)
 })
 
 test_that("the example report saves a figure that the next full render publishes", {
@@ -357,6 +351,7 @@ test_that("fit files stay ignored when git init comes before the first render", 
   ignored <- git_in(dir, c("check-ignore", "analyses/fits/m.rds", "x.rds"))
   expect_status(ignored)
   expect_setequal(ignored$output,c("analyses/fits/m.rds", "x.rds"))
+  expect_figure_rules(dir)
 })
 
 test_that("setup keeps an existing README.md and writes the guide beside it", {

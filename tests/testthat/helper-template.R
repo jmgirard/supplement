@@ -113,6 +113,20 @@ git_in <- function(dir, args) {
   )
 }
 
+# The template's rules for figures next to reports match any letter case,
+# and figures/ stays in git. git on macOS and Windows ignores letter case by
+# default, so every check runs with core.ignorecase=false, as on Linux.
+expect_figure_rules <- function(dir) {
+  in_analyses <- c("analyses/a.PNG", "analyses/b.Pdf", "analyses/c.png", "analyses/d.pdf")
+  ignored <- git_in(dir, c("-c", "core.ignorecase=false", "check-ignore", in_analyses))
+  expect_status(ignored)
+  expect_setequal(ignored$output, in_analyses)
+
+  in_figures <- c("figures/e.PNG", "figures/f.PDF", "figures/plot.pdf", "figures/plot.png")
+  kept <- git_in(dir, c("-c", "core.ignorecase=false", "check-ignore", in_figures))
+  expect_status(kept, 1L, output = character())
+}
+
 # Turn off git's global and system configuration and the user's ignore
 # file in $XDG_CONFIG_HOME/git/ignore, so that only a repository's own
 # rules decide what git ignores.
