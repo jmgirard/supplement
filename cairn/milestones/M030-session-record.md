@@ -21,7 +21,7 @@ The template's example report and each report that `add_report()` writes end wit
 
 ## Acceptance criteria
 
-- [ ] AC1: Make a site with `create_supplement()` and run a full `quarto render`. Then `docs/analyses/example.html` holds a section with the heading "Computing environment". Its text holds a match of `R version \d+\.\d+\.\d+`. It also holds, as a whole token, the knitr version that `Rscript -e 'cat(as.character(packageVersion("knitr")))'` prints from the same PATH.
+- [ ] AC1: Make a site with `create_supplement()`. Run a full `quarto render` with `QUARTO_R` unset, once as it is and once with sessioninfo hidden from the report's code. Then each time `docs/analyses/example.html` holds a section with the heading "Computing environment". Its text holds a match of `R version \d+\.\d+\.\d+`. It also holds the knitr version that `cat(as.character(packageVersion("knitr")))` prints when run by `file.path(Sys.getenv("R_HOME"), "bin", "Rscript")`, right after `knitr_` or after `knitr` and spaces, and followed by white space or the end of the text.
 - [ ] AC2: If `requireNamespace("sessioninfo", quietly = TRUE)` is TRUE, the section's code prints `sessioninfo::session_info()`. Otherwise it prints `utils::sessionInfo()`. A test runs the code in an `Rscript` where a global `requireNamespace()` returns FALSE for sessioninfo. That output holds "attached base packages" and not "Session info". A second test runs the code with sessioninfo installed, or skips without it. That output holds "Session info".
 - [ ] AC3: The report file that `add_report()` writes ends with the same section. Its code is byte-equal to the code of the example report's section. A test reads both files.
 - [ ] AC4: The Reports part of the template guide says three things. The section shows the R and package versions of the report's last render. A full render keeps them for a report that already has stored output in `_freeze/`, because it reuses that output. The guide also shows the section's code, for an author who adds it to an older report.
@@ -38,11 +38,11 @@ The template's example report and each report that `add_report()` writes end wit
 ## Tasks
 
 - [x] T1: Probe in a scratch site. Find what `sessioninfo::session_info()` and `sessionInfo()` print inside a knitr chunk, in a collapsed callout and out of one. Find whether the frozen page keeps the text after a second full render. Record each result in the work log, and write the help text from what the probes show (the derived-claims rule).
-- [ ] T2: Add the AC1 to AC3 tests in `tests/testthat/test-template.R` and `tests/testthat/test-add-report.R`. Use `expect_status()` for each command (`helper-template.R`). Run each new test against main and record that it fails there (LESSONS M010).
+- [x] T2: Add the AC1 to AC3 tests in `tests/testthat/test-template.R` and `tests/testthat/test-add-report.R`. Use `expect_status()` for each command (`helper-template.R`). Run each new test against main and record that it fails there (LESSONS M010).
 - [x] T3: Add the section to `inst/template/analyses/example.qmd`. Use a level-2 heading "Computing environment" and one chunk with `#| label: session-info`.
 - [x] T4: Add the same lines to the end of `report_lines()` in `R/add-report.R`. Recheck the tests that compare a whole stub in `tests/testthat/test-add-report.R` and the render tests in `tests/testthat/test-add-render.R`.
 - [x] T5: Add the paragraph and the code to the Reports part of `inst/template/_README.md` (line 19). Add a NEWS.md bullet. Run `devtools::document()` when the `add_report()` help changes.
-- [ ] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
+- [x] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
 
@@ -62,6 +62,10 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: `devtools::check()` first gave 1 error: R CMD check puts a stub `Rscript` first on the PATH, which exits 1 ("should not be used without a path"). Quarto with `QUARTO_R` unset uses `R_HOME/bin/Rscript` first, so the tests now run that one (`home_rscript()`). Then check gave 0 errors, 0 warnings, 0 notes.
 - 2026-10-21: re-audit: AC1 (full) — the proposed wording ("the Rscript that Quarto runs: QUARTO_R, else R_HOME, else PATH") misstated Quarto's lookup and bound the test helper. Narrower wording offered: render with `QUARTO_R` unset and compare with `file.path(Sys.getenv("R_HOME"), "bin", "Rscript")`.
 - 2026-10-21: re-audit: AC1 (full) — in the `sessionInfo()` branch knitr prints as `knitr_1.52`, which the whole-token match misses. CI renders that branch, because `--as-cran` hides packages outside Suggests. This is the second re-audit line for AC1, so the next wording goes to the user.
+- 2026-10-21: question set (stop at the second AC1 re-audit): AC1 wording — the user chose "Both renders": match knitr after `knitr_` or `knitr` and spaces, and render once as the machine is and once with sessioninfo hidden.
+- 2026-10-21: substantive amendment: AC1 now renders with `QUARTO_R` unset, twice (once with sessioninfo hidden), reads the knitr version from `R_HOME/bin/Rscript`, and accepts both `knitr_1.52` and `knitr  1.52`. Chosen by the user at the stop, so no further reader ran.
+- 2026-10-21: the AC1 test hides sessioninfo with `R_PROFILE_USER` naming a profile that defines `requireNamespace()`, and asserts that the hidden render printed "attached base packages" and not "Session info".
+- 2026-10-21: T6: `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Of four full `devtools::test()` runs, three passed (308 tests, 0 failed, 7 skipped) and one gave 2 failures and 1 error whose messages were not kept. This may be the parked "template test flake" row, but that was not confirmed.
 
 ## Decisions
 

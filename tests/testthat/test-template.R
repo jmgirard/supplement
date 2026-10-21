@@ -434,28 +434,52 @@ test_that("setup keeps both files when README.md and SUPPLEMENT.md exist", {
   expect_false(file.exists(file.path(dir, "_README.md")))
 })
 
+# Lines that hide sessioninfo from code that asks requireNamespace() for it.
+# On macOS, sessioninfo can sit in R's own library, so no library path
+# setting hides it.
+hide_sessioninfo <- c(
+  "requireNamespace <- function(package, ...) {",
+  "  if (identical(package, \"sessioninfo\")) FALSE else base::requireNamespace(package, ...)",
+  "}"
+)
+
 test_that("the example page shows the R and knitr versions of its render", {
   skip_if_no_quarto()
-  site <- new_site()
   withr::local_envvar(QUARTO_R = NA)
-  expect_status(run_in(site, "quarto", "render"))
-
-  page <- read_text(file.path(site, "docs", "analyses", "example.html"))
-  section <- section_html(page, "computing-environment")
-  expect_match(section, "<h2[^>]*>Computing environment</h2>")
-  text <- html_text(section)
-  expect_match(text, "R version [0-9]+\\.[0-9]+\\.[0-9]+")
 
   # The knitr version of the Rscript in R_HOME, which Quarto runs when
-  # QUARTO_R is unset, as a whole token, so that 1.5 does not match inside
-  # 1.52.
-  script <- file.path(site, "knitr-version.R")
-  writeLines('cat(as.character(packageVersion("knitr")), "\\n")', script)
-  knitr <- run_in(site, home_rscript(), basename(script))
+  # QUARTO_R is unset.
+  dir <- withr::local_tempdir("knitr-")
+  writeLines('cat(as.character(packageVersion("knitr")), "\\n")', file.path(dir, "v.R"))
+  knitr <- run_in(dir, home_rscript(), "v.R")
   expect_status(knitr)
   version <- trimws(utils::tail(knitr$output, 1))
   expect_match(version, "^[0-9]+(\\.[0-9]+)+$")
-  expect_match(text, paste0("(^|\\s)", rx_escape(version), "(\\s|$)"))
+  # sessionInfo() prints knitr_1.52, and session_info() prints knitr  1.52.
+  # The end of the match keeps 1.5 from matching inside 1.52.
+  knitr_rx <- paste0("knitr(_| +\\*? *)", rx_escape(version), "(\\s|$)")
+
+  # One render as the machine is, and one with sessioninfo hidden through
+  # a profile that R reads at the start of the render.
+  profile <- file.path(dir, "hide-sessioninfo.R")
+  writeLines(hide_sessioninfo, profile)
+  for (hidden in c(FALSE, TRUE)) {
+    site <- new_site()
+    env <- if (hidden) c(R_PROFILE_USER = profile) else c(R_PROFILE_USER = NA)
+    withr::with_envvar(env, expect_status(run_in(site, "quarto", "render")))
+
+    page <- read_text(file.path(site, "docs", "analyses", "example.html"))
+    section <- section_html(page, "computing-environment")
+    expect_match(section, "<h2[^>]*>Computing environment</h2>", info = hidden)
+    text <- html_text(section)
+    expect_match(text, "R version [0-9]+\\.[0-9]+\\.[0-9]+", info = hidden)
+    expect_match(text, knitr_rx, info = hidden)
+    if (hidden) {
+      # The render took the sessionInfo() branch.
+      expect_match(text, "attached base packages", fixed = TRUE)
+      expect_no_match(text, "Session info", fixed = TRUE)
+    }
+  }
 })
 
 # Run the code of the example report's session-info chunk with Rscript, after
@@ -470,13 +494,7 @@ run_session_code <- function(before = character(), env = parent.frame()) {
 }
 
 test_that("the environment section prints sessionInfo() when sessioninfo is not found", {
-  # On macOS, sessioninfo can sit in R's own library, so the test hides it
-  # with a requireNamespace() that the chunk finds first.
-  text <- run_session_code(c(
-    "requireNamespace <- function(package, ...) {",
-    "  if (identical(package, \"sessioninfo\")) FALSE else base::requireNamespace(package, ...)",
-    "}"
-  ))
+  text <- run_session_code(hide_sessioninfo)
   expect_match(text, "attached base packages", fixed = TRUE)
   expect_no_match(text, "Session info", fixed = TRUE)
 })
