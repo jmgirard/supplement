@@ -207,7 +207,7 @@ test_that("on Windows, a junction at a template folder path stops, so nothing is
   skip_on_os(c("mac", "linux", "solaris"))
   parents <- unique(dirname(template_tracked))
   folders <- setdiff(unique(c(parents, dirname(parents))), ".")
-  expect_setequal(folders, c("_extensions", "_extensions/supplement", "_scripts", "analyses", "data"))
+  expect_setequal(folders, c("_extensions", "_extensions/supplement", "_scripts", "analyses", "data", "figures"))
   for (folder in folders) {
     site <- withr::local_tempdir()
     outside <- withr::local_tempdir("outside-")

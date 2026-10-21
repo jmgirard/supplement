@@ -79,6 +79,7 @@ A new site's first render publishes the example figure, and the example's figure
 - 2026-10-20: all tasks done; status set to review.
 - 2026-10-20: step-7 approval: m028-figure-code approved for merge
 - 2026-10-20: CI wait timed out after 590 s with all six jobs of PR #29 still pending; watcher stopped. The merge marker for PR #29 is written; rerun `/milestone-review M028` to wait again and merge.
+- 2026-10-21: resume: PR #29 open; macOS and Ubuntu jobs passed, a Windows job failed: `test-create-supplement.R:210` ("on Windows, a junction at a template folder path stops") lists the template's folders by hand and lacked `figures` (Windows-only, so the Mac runs skipped it). Fixed by adding `figures` to the list, so the loop also checks a junction at `figures`. A test-list fix, so the step-7 approval stands; CI reruns on the push.
 
 ## Decisions
 
