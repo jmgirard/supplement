@@ -310,8 +310,8 @@ section_html <- function(html, id) {
   substring(rest, 1, regexpr("</section>", rest, fixed = TRUE) - 1L)
 }
 
-# The text of some HTML, with its tags removed and its five named character
-# references decoded.
+# The text of some HTML, with its tags removed and four named character
+# references and `&#39;` decoded.
 html_text <- function(html) {
   text <- gsub("<[^>]+>", "", html)
   refs <- c("&lt;" = "<", "&gt;" = ">", "&quot;" = "\"", "&#39;" = "'", "&amp;" = "&")

@@ -44,7 +44,8 @@ The example report and each report that `add_report()` writes end with a
 package that the report's last render used. A full render reuses the
 stored output in `_freeze/`. So when `_freeze/` holds output for a report,
 its page keeps the versions of the render that made its results.
-The output also shows the folders of your R libraries and your time zone.
+The output also shows your time zone. With the sessioninfo package, it
+also shows the folders of your R libraries.
 
 To add the section to an older report, put these lines at its end:
 

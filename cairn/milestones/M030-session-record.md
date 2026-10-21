@@ -1,6 +1,6 @@
 # M030: Each report shows the R setup that made its stored output
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -66,6 +66,7 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: substantive amendment: AC1 now renders with `QUARTO_R` unset, twice (once with sessioninfo hidden), reads the knitr version from `R_HOME/bin/Rscript`, and accepts both `knitr_1.52` and `knitr  1.52`. Chosen by the user at the stop, so no further reader ran.
 - 2026-10-21: the AC1 test hides sessioninfo with `R_PROFILE_USER` naming a profile that defines `requireNamespace()`, and asserts that the hidden render printed "attached base packages" and not "Session info".
 - 2026-10-21: T6: `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Of four full `devtools::test()` runs, three passed (308 tests, 0 failed, 7 skipped) and one gave 2 failures and 1 error whose messages were not kept. This may be the parked "template test flake" row, but that was not confirmed.
+- 2026-10-21: claim audit: 19 claims read, 2 corrected — inst/template/_README.md (library folders show only with sessioninfo), tests/testthat/helper-template.R (four named references and `&#39;`).
 
 ## Decisions
 

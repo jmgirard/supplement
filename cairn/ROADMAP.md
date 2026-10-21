@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-21 (M029 done and archived; "Fix edge cases of the 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M030 | Each report shows the R setup that made its stored output | in-progress | — | normal | milestones/M030-session-record.md |
+| M030 | Each report shows the R setup that made its stored output | review | — | normal | milestones/M030-session-record.md |
 | M031 | An author can record and restore a site's R packages with renv | planned | M030 | normal | milestones/M031-renv-guide.md |
 | M032 | write_dockerfile() writes a container recipe from renv.lock | planned | M031 | normal | milestones/M032-dockerfile.md |
 | M029 | check_supplement() finds site files that git ignores or a render missed | done | M028 | normal | milestones/archive/M029-unpublished-files.md |
