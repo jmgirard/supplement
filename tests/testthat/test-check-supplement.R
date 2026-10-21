@@ -1054,7 +1054,8 @@ test_that("a *.png rule gives an ignored-output row for each PNG in the publishe
   add_rule(file.path(site, ".gitignore"), "*.png")
   expect_identical(ignored_rows(site), expected)
   rows <- rows_of(check_quiet(site), "ignored-output")
-  expect_match(rows$problem, "ignore rule", fixed = TRUE)
+  expect_match(rows$problem, "change the ignore rule", fixed = TRUE)
+  expect_match(rows$problem, "remove its source", fixed = TRUE)
 
   # The same rule in .git/info/exclude.
   site <- git_site()
@@ -1099,9 +1100,7 @@ test_that("a folder link in figures gives no row for the files in its target", {
   outside <- withr::local_tempdir("outside-")
   put_files(outside, c("t.png", "sub/u.png"))
   symlink_or_skip(outside, file.path(site, "figures", "linked"))
-  if (.Platform$OS.type != "windows") {
-    expect_status(git_in(site, c("add", "figures/linked")))
-  }
+  expect_status(git_in(site, c("add", "figures/linked")))
   add_rule(file.path(site, ".gitignore"), "*.png")
   expect_identical(ignored_rows(site), "figures/bootstrap-means.png")
   # Nor is the target compared with docs/figures/.
@@ -1160,4 +1159,65 @@ test_that("a site with no figures folder, or a file named figures, gives no unpu
   writeBin(charToRaw("not a folder"), file.path(site, "figures"))
   expect_no_error(rows <- unpublished_rows(site))
   expect_identical(rows, character())
+})
+
+test_that("a link in docs/figures with the figure's bytes gives an unpublished-figure row", {
+  site <- new_site()
+  publish_figures(site)
+  put_files(site, "figures/x.png")
+  outside <- withr::local_tempdir("outside-")
+  file.copy(file.path(site, "figures", "x.png"), outside)
+  symlink_or_skip(file.path(outside, "x.png"), file.path(site, "docs", "figures", "x.png"))
+  expect_identical(unpublished_rows(site), "figures/x.png")
+})
+
+test_that("rows of the new checks come in byte order, not the locale's order", {
+  site <- new_site()
+  put_files(site, c("figures/a.png", "figures/B.png"))
+  set <- suppressWarnings(Sys.setlocale("LC_COLLATE", "en_US.UTF-8"))
+  skip_if(!nzchar(set), "the en_US.UTF-8 locale is not available")
+  withr::defer(Sys.setlocale("LC_COLLATE", "C"))
+  byte_order <- c("figures/B.png", "figures/a.png", "figures/bootstrap-means.png")
+  # The locale's order differs, so the test can tell the two apart.
+  expect_false(identical(sort(byte_order), byte_order))
+  expect_identical(rows_of(check_quiet(site), "unpublished-figure")$file, byte_order)
+})
+
+# The second git listing, of ignored files, mocked to give names that a
+# disk cannot hold everywhere.
+mock_ignored <- function(names, status = 0L, env = parent.frame()) {
+  local_mocked_bindings(git_run = function(args, dir) {
+    out <- switch(args[1],
+      "--version" = charToRaw("git version 2"),
+      "rev-parse" = charToRaw("true\n"),
+      "ls-files" = if ("--ignored" %in% args) unlist(lapply(names, function(n) c(n, as.raw(0)))) else raw()
+    )
+    list(status = if ("--ignored" %in% args) status else 0L, stdout = out)
+  }, .env = env)
+}
+
+test_that("an ignored name that is not valid UTF-8 gives a row and no warning", {
+  site <- new_site()
+  mock_ignored(list(c(charToRaw("docs/b"), as.raw(0xe9), charToRaw(".png")), charToRaw("docs/ok.png")))
+  expect_no_warning(rows <- ignored_rows(site))
+  expect_identical(rows, c("docs/b<e9>.png", "docs/ok.png"))
+})
+
+test_that("an ignored file under a linked folder gives no row", {
+  site <- new_site()
+  outside <- withr::local_tempdir("outside-")
+  put_files(outside, "t.png")
+  symlink_or_skip(outside, file.path(site, "figures", "linked"))
+  # Such a path comes from a git that enters a junction on Windows.
+  mock_ignored(list(charToRaw("figures/linked/t.png"), charToRaw("docs/ok.png")))
+  expect_identical(ignored_rows(site), "docs/ok.png")
+})
+
+test_that("a failed listing of ignored files skips the three git checks", {
+  site <- new_site()
+  mock_ignored(list(), status = 128L)
+  msgs <- testthat::capture_messages(result <- check_supplement(site))
+  expect_identical(attr(result, "skipped"), c("large-file", "saved-object", "ignored-output"))
+  expect_false(any(result$check %in% c("large-file", "saved-object", "ignored-output")))
+  expect_match(gsub("\\s+", " ", paste(msgs, collapse = " ")), "`git ls-files` failed", fixed = TRUE)
 })

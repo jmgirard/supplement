@@ -20,9 +20,11 @@
 #'   `.`. The file gets a row when git neither tracks it nor lists it as
 #'   untracked, because its ignore rules exclude it, such as a rule in
 #'   `.gitignore` or `.git/info/exclude`. A file that git tracks gives no
-#'   row, also when a rule matches it. A data file that a rule with no `/`
-#'   blocks, such as the template's rule for `.rds` files, also gets a row
-#'   for its copy in `docs/data/`.
+#'   row, also when a rule matches it. The copy of a data file in
+#'   `docs/data/` gets a row when a rule also matches the copy, as the
+#'   template's rule for `.rds` files does. The problem text says to change
+#'   the rule for a file that the site must publish, and to remove the
+#'   source of a private file and render again.
 #' * `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
 #'   a folder inside it, with code and no stored output in `_freeze/`. A
 #'   full render then runs its code, which needs the data. A report has
@@ -278,8 +280,9 @@ git_run <- function(args, dir) {
 # The temporary file that holds git's standard output.
 git_out_file <- function() tempfile("git-")
 
-# The files in `path` that git tracks or does not ignore, as paths relative to
-# `path`, or NULL with the reason when git cannot list them.
+# The files in `path` that git tracks or does not ignore (`files`), and the
+# files in figures/, docs/, and _freeze/ that it ignores (`ignored`), as
+# paths relative to `path`, or the reason when git cannot list them.
 git_files <- function(path) {
   version <- git_run("--version", path)
   if (is.null(version)) {
@@ -394,7 +397,9 @@ check_ignored_output <- function(path, ignored) {
   shown <- show_text(sort_bytes(files))
   problem_rows(
     "ignored-output", shown,
-    rep_len("git ignores this file, so a release leaves it out of the published site. Change the ignore rule that matches it.",
+    rep_len(paste("git ignores this file, so a release leaves it out of the published site.",
+                  "If the site must publish it, change the ignore rule that matches it.",
+                  "If it is private, such as a saved R object copied from data/, remove its source and render the site again."),
             length(shown))
   )
 }
@@ -405,7 +410,11 @@ plain_paths <- function(path, files) {
   if (length(files) == 0) {
     return(logical())
   }
-  parts <- strsplit(files, "/", fixed = TRUE)
+  # useBytes, because strsplit() warns on a name that is not valid UTF-8.
+  parts <- lapply(strsplit(files, "/", fixed = TRUE, useBytes = TRUE), function(p) {
+    Encoding(p) <- "UTF-8"
+    p
+  })
   prefixes <- lapply(parts, function(p) vapply(seq_along(p), function(i) paste(p[seq_len(i)], collapse = "/"),
                                                 character(1)))
   all_prefixes <- unique(unlist(prefixes))
@@ -596,13 +605,8 @@ check_links <- function(path) {
   # useBytes keeps a name that is not valid UTF-8 in the match.
   html <- grepl("\\.html$", entries$files, useBytes = TRUE)
   # The walk lists a folder's files before its subfolders, so sort the
-  # pages by path, in byte order, which does not depend on the locale.
-  # The radix sort stops on a name with no encoding mark that is not valid
-  # UTF-8, so the sort keys are marked as bytes.
-  pages <- entries$files[html & !(entries$files %in% outside)]
-  keys <- pages
-  Encoding(keys) <- "bytes"
-  pages <- pages[order(keys, method = "radix")]
+  # pages by path, in byte order.
+  pages <- sort_bytes(entries$files[html & !(entries$files %in% outside)])
   rows <- lapply(pages, function(page) {
     links <- page_links(file.path(docs, page))
     if (is.null(links)) {
@@ -626,9 +630,7 @@ check_links <- function(path) {
       sprintf("The page links to a file that is not in the site: `%s`", broken)
     )
   })
-  keys <- outside
-  Encoding(keys) <- "bytes"
-  outside <- outside[order(keys, method = "radix")]
+  outside <- sort_bytes(outside)
   outside_rows <- problem_rows(
     "broken-link", file.path("docs", outside),
     rep_len("It is a link to a place outside docs/, so the published site does not have its target.",

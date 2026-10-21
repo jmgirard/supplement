@@ -97,6 +97,8 @@ finds:
 
 - files larger than GitHub's limit of 100 MiB
 - saved R objects, such as `.rds` files, that git tracks or does not ignore
+- files in `figures/`, `docs/`, and `_freeze/` that git ignores, which a
+  release leaves out
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
 - reports directly in `analyses/` whose stored output in `_freeze/` was
@@ -108,14 +110,16 @@ finds:
 - symbolic links in `docs/` to existing files or folders outside `docs/`,
   and on Windows junctions to folders outside `docs/`
 - pages in `docs/` that cannot be read
+- figures in `figures/` whose copy in `docs/figures/` is missing or
+  differs
 - DOIs in `CITATION.cff` or on the home page that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
 
 On pages, it checks only relative links, which point inside the site. It
 does not check links that start with `/` and requests no web address. For the
-file size and saved object checks, it reads the file list from git. When
-git cannot run or the folder is not in a git work tree, it skips those two
-checks and says so.
+file size, saved object, and ignored file checks, it reads the file list
+from git. When git cannot run or the folder is not in a git work tree, it
+skips those three checks and says so.
 
 ## Make a release
 
@@ -163,7 +167,8 @@ gh release create v1.0.0 --generate-notes
 It runs none of them. Read them, then run them yourself in the site
 folder. With the `-- .`, `git status` shows only files under the site
 folder, and `git add` and `git commit` stage and commit only these files.
-These are the files that the git checks of `check_supplement()` read.
+These are the files that the file size and saved object checks of
+`check_supplement()` read.
 If the site is in a subfolder of its repository, changes outside the site
 stay out of the release commit. A file outside the site that was staged
 before the release stays staged, so a later `git commit` adds it. The last command needs the [GitHub command-line

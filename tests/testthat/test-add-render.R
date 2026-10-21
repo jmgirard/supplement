@@ -99,6 +99,9 @@ test_that("a render by name or a full render clears the unpublished-figure row o
 
   writeBin(as.raw(1:9), file.path(site, "figures", "later.png"))
   expect_identical(unpublished(), "figures/later.png")
+  # Quarto also copies a hidden figure, which the check does not compare.
+  writeBin(as.raw(1:7), file.path(site, "figures", ".hidden.png"))
   render()
   expect_identical(unpublished(), character())
+  expect_true(file.exists(file.path(site, "docs", "figures", ".hidden.png")))
 })

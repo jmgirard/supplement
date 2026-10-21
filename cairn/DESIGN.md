@@ -92,8 +92,13 @@ Every YAML parse in `R/` goes through `yaml_load_list()` or
 `R/check-supplement.R`: `check_supplement()` changes no file and returns
 its problems as a data frame (`check`, `file`, `problem`), with a
 `skipped` attribute. Its file size and saved-object checks read `git
-ls-files -z --cached --others --exclude-standard` through `git_run()`, the
-package's one place that starts a process. Its link check lists `docs/`
+ls-files -z --cached --others --exclude-standard`, and its ignored-output
+check reads `git ls-files -z --others --ignored --exclude-standard` over
+`figures/`, `docs/`, and `_freeze/`, both through `git_run()`, the
+package's one place that starts a process. Its unpublished-figure check
+compares the MD5 of each file in `figures/` with its copy in
+`docs/figures/`, walking with `plain_files()`, which skips hidden names
+and links. Its link check lists `docs/`
 with `docs_entries()`, a walk that includes hidden names and does not
 enter a linked folder (M022), and gives a row for each link in `docs/`
 whose existing target resolves outside it (`in_docs()` compares
@@ -124,7 +129,8 @@ texts. When a write stops, or on an interrupt, it puts back each file
 whose bytes changed and removes each file it made. After the writes it
 prints the git and `gh` release commands, outside that guard; `git status`,
 `git add -A`, and `git commit` end in `-- .`, so the release commit holds
-only files under the site folder, the files `check_supplement()` checked. It starts
+only files under the site folder, the files that the git checks of
+`check_supplement()` read. It starts
 no process itself.
 Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
 

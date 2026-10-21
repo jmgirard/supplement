@@ -38,9 +38,11 @@ Windows, a junction, and whose path holds no name that starts with
 \code{.}. The file gets a row when git neither tracks it nor lists it as
 untracked, because its ignore rules exclude it, such as a rule in
 \code{.gitignore} or \code{.git/info/exclude}. A file that git tracks gives no
-row, also when a rule matches it. A data file that a rule with no \code{/}
-blocks, such as the template's rule for \code{.rds} files, also gets a row
-for its copy in \verb{docs/data/}.
+row, also when a rule matches it. The copy of a data file in
+\verb{docs/data/} gets a row when a rule also matches the copy, as the
+template's rule for \code{.rds} files does. The problem text says to change
+the rule for a file that the site must publish, and to remove the
+source of a private file and render again.
 \item \code{"no-stored-output"}: a \code{.qmd} report directly in \verb{analyses/}, not in
 a folder inside it, with code and no stored output in \verb{_freeze/}. A
 full render then runs its code, which needs the data. A report has
