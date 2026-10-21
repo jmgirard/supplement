@@ -246,6 +246,7 @@ test_that("the example report saves its figure in the site with either execute-d
 })
 
 test_that("the example code run by hand from analyses/ saves into the site's figures/", {
+  skip_on_cran()
   skip_if_not(capabilities("png"), "R has no png device")
   dirs <- figure_site()
   qmd <- file.path(dirs$site, "analyses", "example.qmd")
@@ -264,20 +265,26 @@ test_that("the example code run by hand from analyses/ saves into the site's fig
 })
 
 test_that("a failed plot in the example closes its device and leaves figures/ as it was", {
+  skip_on_cran()
   skip_if_not(capabilities("png"), "R has no png device")
   site <- new_site()
   code <- chunk_code(file.path(site, "analyses", "example.qmd"), "save-figure")
   figures <- file.path(site, "figures")
 
+  # The chunk runs alone, as an author who copies it runs it, so it finds
+  # the site folder itself. folder_md5() also reads hidden files, so a
+  # temporary file left in figures/ fails the test.
   expect_failed_plot_changes_nothing <- function() {
     env <- new.env()
-    env$site <- site
     env$boot_means <- c(1, 2, 3)
     env$hist <- function(...) stop("the plot failed")
     devices <- grDevices::dev.list()
     before <- folder_md5(figures)
     expect_error(
-      withr::with_dir(file.path(site, "analyses"), eval(parse(text = code), envir = env)),
+      withr::with_envvar(c(QUARTO_PROJECT_DIR = NA), withr::with_dir(
+        file.path(site, "analyses"),
+        eval(parse(text = code), envir = env)
+      )),
       "the plot failed"
     )
     after <- grDevices::dev.list()
@@ -290,6 +297,24 @@ test_that("a failed plot in the example closes its device and leaves figures/ as
   expect_failed_plot_changes_nothing()
   expect_true(file.remove(file.path(figures, "bootstrap-means.png")))
   expect_failed_plot_changes_nothing()
+})
+
+test_that("the figure rules hold in sites made by create_supplement()", {
+  skip_if_no_quarto()
+  skip_if_no_git()
+  local_plain_git()
+
+  # git init after the first render: setup renames _gitignore.
+  after <- new_site()
+  expect_status(run_in(after, "quarto", "render"))
+  expect_status(git_in(after, c("init", "-q")))
+  expect_figure_rules(after)
+
+  # git init before it: Quarto writes a .gitignore, and setup merges into it.
+  before <- new_site()
+  expect_status(git_in(before, c("init", "-q")))
+  expect_status(run_in(before, "quarto", "render"))
+  expect_figure_rules(before)
 })
 
 test_that("a file named figures stops the example report with a message", {

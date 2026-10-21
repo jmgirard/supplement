@@ -34,27 +34,35 @@ hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
 ## Paper Figures
 
 Save each figure for the paper in `figures/`, which git tracks and the site
-publishes. `save_png()` draws the plot into a temporary file and copies it
-into `figures/` only when the plot succeeds, so a failed plot leaves no
-partial file there.
+publishes. `save_png()` runs a function that draws the plot. It draws into a
+temporary file in `figures/` and gives that file its name only when the
+plot succeeds, so a failed plot leaves no partial file there.
 
 ```{r}
 #| label: save-figure
+site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
 figures <- file.path(site, "figures")
 if (file.exists(figures) && !dir.exists(figures)) {
   stop("`figures` is a file, not a folder. Rename it, then render again.")
 }
 dir.create(figures, showWarnings = FALSE)
-save_png <- function(file, plot) {
-  tmp <- tempfile(fileext = ".png")
+
+# For a ggplot `p`, pass function() print(p) as `draw`.
+save_png <- function(file, draw, dir = figures) {
+  target <- file.path(dir, file)
+  if (dir.exists(target)) stop(target, " is a folder.")
+  tmp <- tempfile(".save-", tmpdir = dir, fileext = ".png")
   on.exit(unlink(tmp))
+  old <- dev.cur()
   png(tmp, width = 6, height = 4, units = "in", res = 300)
   device <- dev.cur()
-  tryCatch(plot, finally = dev.off(device))
-  if (!file.copy(tmp, file.path(figures, file), overwrite = TRUE)) {
-    stop("Could not write ", file, " in ", figures, ".")
-  }
+  tryCatch(draw(), finally = {
+    dev.off(device)
+    if (old != 1) dev.set(old)
+  })
+  if (!file.rename(tmp, target)) stop("Could not write ", target, ".")
 }
-save_png("bootstrap-means.png",
-         hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score"))
+save_png("bootstrap-means.png", function() {
+  hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
+})
 ```

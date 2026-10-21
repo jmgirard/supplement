@@ -73,6 +73,7 @@ A new site's first render publishes the example figure, and the example's figure
 - 2026-10-20: all tasks done; after the audit fixes `devtools::test()` (`NOT_CRAN=true`) ran 288 tests, 4355 expectations, 0 failed. Status set to review.
 - 2026-10-20: review return 1: AC5 — the tests at `test-template.R:179` and `:344` build their sites with `quarto use template`, not with `create_supplement()` as AC5 states (diff-bug #4). The same round carries the fix-now items listed in the Review section.
 - 2026-10-20: minor amendment: added T7 for review return 1 and mapped AC3 and AC5 to it; unticked AC5, whose evidence came from the wrong setup. Two follow-up rows added: "Make report paths work from any folder" and "Stop the example at a linked figures".
+- 2026-10-20: T7 checkpoint: `save_png(file, draw, dir = figures)` renames a hidden temporary file in `figures/` into place, stops on a folder at the target, and restores the earlier device; the `save-figure` chunk defines `site`; new test "the figure rules hold in sites made by create_supplement()"; `skip_on_cran()` on the two png tests and "R has no png device" in the CI list; DESIGN.md, README, and NEWS updated. A probe drew a ggplot through `function() print(p)`. All 24 tests in `test-template.R` pass; with main's `example.qmd` the execute-dir, failed-plot, and `figures`-file tests fail, and with main's `_gitignore` the new AC5 test fails. Full suite and `R CMD check` still running.
 
 ## Decisions
 

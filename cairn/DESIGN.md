@@ -160,9 +160,11 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
 - `index.qmd` reads its paper facts from `_supplement.yml` and lists the
   reports in `analyses/` through a Quarto table listing.
   `analyses/example.qmd`, `data/example.csv`, and license files are starter
-  content for the author to replace. The example report saves
-  `figures/bootstrap-means.png` and makes `figures/` when it is missing; the
-  template ships no `figures/` folder.
+  content for the author to replace. The template ships
+  `figures/bootstrap-means.png`, so the first render publishes it. The
+  example report finds the site with `QUARTO_PROJECT_DIR` (`..` when it is
+  not set), makes `figures/` when it is missing, and saves the figure
+  again with `save_png()`, which renames a temporary file into place.
 
 Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when quarto is missing.
