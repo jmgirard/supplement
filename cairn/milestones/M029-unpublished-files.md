@@ -83,46 +83,46 @@
 - 2026-10-20: route (d): no PR for the branch; main at fb80252 has not moved since the cut. Copilot round off (no header line in PROFILE.md).
 - Fresh evidence at d3e306b: `devtools::test()` 299 tests, 0 failing, 7 skipped. The `devtools::check()` run after it was stopped by the harness before it printed; it reruns after the fixes below.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: the `ignored-output` text says to change the ignore rule, which for a private copy in `docs/data/` (a `private/` folder or an `.rds`) leads to publishing it or to a `saved-object` row — fix now (text now names both cases; not a floor return: no criterion fails, AC5's instruction stays, and the rows were right)
-- diff-bug #2: `strsplit()` in `plain_paths()` warns on a name that is not valid UTF-8 and loses the link filter for it — fix now
+- diff-bug #1: the `ignored-output` text says to change the ignore rule, which for a private copy in `docs/data/` (a `private/` folder or an `.rds`) leads to publishing it or to a `saved-object` row — fix now, fixed cb2a1ad, (text now names both cases; not a floor return: no criterion fails, AC5's instruction stays, and the rows were right)
+- diff-bug #2: `strsplit()` in `plain_paths()` warns on a name that is not valid UTF-8 and loses the link filter for it — fix now, fixed cb2a1ad
 - diff-bug #3: files of an ignored nested git repository in `docs/` get no row — follow-up ("Close edge cases of the figure checks")
 - diff-bug #4: on macOS a figure whose name differs from its copy only in letter case gives no row — follow-up (same row)
 - diff-bug #5: an unreadable figure gets the "missing or differs" text, and an unreadable folder in `figures/` gives no row — follow-up (same row)
 - diff-bug #6: on Windows a file link to a missing file can get an `ignored-output` row — follow-up (same row)
-- diff-bug #7: `release_supplement()` help says its files are those "the git checks" read — fix now
-- diff-bug #8: the help names only rules with no `/` for the `docs/data/` copy — fix now (reworded as "a rule that also matches the copy")
-- diff-bug #9: no test of a failed second `git ls-files` — fix now
-- diff-bug #10: the folder-on-the-path part of `plain_paths()` is untested off Windows — fix now (mocked listing under a folder link)
-- diff-bug #11: the `!is_link(copies)` term is untested — fix now
+- diff-bug #7: `release_supplement()` help says its files are those "the git checks" read — fix now, fixed cb2a1ad
+- diff-bug #8: the help names only rules with no `/` for the `docs/data/` copy — fix now, fixed cb2a1ad, (reworded as "a rule that also matches the copy")
+- diff-bug #9: no test of a failed second `git ls-files` — fix now, fixed cb2a1ad
+- diff-bug #10: the folder-on-the-path part of `plain_paths()` is untested off Windows — fix now, fixed cb2a1ad, (mocked listing under a folder link)
+- diff-bug #11: the `!is_link(copies)` term is untested — fix now, fixed cb2a1ad
 - diff-bug #12: a `docs/figures` that links to a folder inside `docs/` gives no row — follow-up (same row)
-- diff-bug #13: `sort_bytes()` repeats two inline sorts, and `plain_files()` sits beside `docs_entries()` — fix now for the sorts; reject for the walk (false: `docs_entries()` lists hidden names and links, a different contract)
+- diff-bug #13: `sort_bytes()` repeats two inline sorts, and `plain_files()` sits beside `docs_entries()` — fix now, fixed cb2a1ad, for the sorts; reject for the walk (false: `docs_entries()` lists hidden names and links, a different contract)
 - diff-bug #14: a site that ignores all of `docs/` prints one row per file — follow-up (same row)
-- blame-history #1: an `.rds` data file goes from `ignored-output` to `saved-object` and back — fix now (same text fix as diff-bug #1, and the template README data paragraph now says to remove the file from `data/`)
-- blame-history #2: non-UTF-8 names unguarded and untested — fix now (same as diff-bug #2, with a mocked test)
-- blame-history #3: DESIGN.md names only the first git listing — fix now
+- blame-history #1: an `.rds` data file goes from `ignored-output` to `saved-object` and back — fix now, fixed cb2a1ad, (same text fix as diff-bug #1, and the template README data paragraph now says to remove the file from `data/`)
+- blame-history #2: non-UTF-8 names unguarded and untested — fix now, fixed cb2a1ad, (same as diff-bug #2, with a mocked test)
+- blame-history #3: DESIGN.md names only the first git listing — fix now, fixed cb2a1ad
 - blame-history #4: AC2 names only two checks — reject (false: AC2 says the skip names `ignored-output` "with" the two, as the code does)
-- blame-history #5: release test lists of check names lack the new ones — fix now
-- blame-history #6: release docs sentence on files the git checks read — fix now (same as diff-bug #7)
-- blame-history #7: duplicated byte-sort idiom — fix now (same as diff-bug #13)
+- blame-history #5: release test lists of check names lack the new ones — fix now, fixed cb2a1ad
+- blame-history #6: release docs sentence on files the git checks read — fix now, fixed cb2a1ad, (same as diff-bug #7)
+- blame-history #7: duplicated byte-sort idiom — fix now, fixed cb2a1ad, (same as diff-bug #13)
 - blame-history #8: a short line in the NEWS bullet — reject (style)
 - blame-history #9: a linked `docs/figures` is read through — follow-up (same row)
-- prior-review #1: a silent Windows `if` around `git add` in the folder-link test, a pattern M023 review fixed — fix now (the `if` is gone)
-- prior-review #2: non-UTF-8 names untested in the new checks — fix now
-- prior-review #3: byte order of rows never observed by a test — fix now (test under en_US.UTF-8 collation, skipped where that locale is missing)
-- prior-review #4: junction help backed only by the POSIX path — fix now (with #1, the Windows job runs the same test)
+- prior-review #1: a silent Windows `if` around `git add` in the folder-link test, a pattern M023 review fixed — fix now, fixed cb2a1ad, (the `if` is gone)
+- prior-review #2: non-UTF-8 names untested in the new checks — fix now, fixed cb2a1ad
+- prior-review #3: byte order of rows never observed by a test — fix now, fixed cb2a1ad, (test under en_US.UTF-8 collation, skipped where that locale is missing)
+- prior-review #4: junction help backed only by the POSIX path — fix now, fixed cb2a1ad, (with #1, the Windows job runs the same test)
 - prior-review #5: link handling differs between the two checks — follow-up (same row)
 - prior-review #6: AC2 wording stale — reject (false, as blame-history #4)
 - prior-review #7: test comment says the template ignores `analyses/*.png` — reject (false: `_gitignore` has `analyses/*.[Pp][Nn][Gg]`)
-- prior-review #8: "Quarto copies them too" rests on a work-log probe — fix now (the render test now checks `docs/figures/.hidden.png`)
+- prior-review #8: "Quarto copies them too" rests on a work-log probe — fix now, fixed cb2a1ad, (the render test now checks `docs/figures/.hidden.png`)
 - prior-review #9: NEWS line wrap — reject (style)
-- ripple #1: README.md says "those two checks" — fix now
-- ripple #2: README.md check list lacks the two rows — fix now
-- ripple #3: "These are the files that the git checks of check_supplement() read" in README.md, the template README, and the release help — fix now
+- ripple #1: README.md says "those two checks" — fix now, fixed cb2a1ad
+- ripple #2: README.md check list lacks the two rows — fix now, fixed cb2a1ad
+- ripple #3: "These are the files that the git checks of check_supplement() read" in README.md, the template README, and the release help — fix now, fixed cb2a1ad
 - ripple #4: the ROADMAP row "Fix edge cases of the figures folder" still says the cases go unreported — follow-up (hygiene narrows the row at merge)
-- ripple #5: DESIGN.md git listing — fix now (same as blame-history #3)
-- ripple #6: DESIGN.md "the files check_supplement() checked" — fix now
-- ripple #7: `git_files()` header comment omits `ignored` — fix now
-- ripple #8: release code comment "the files that check_supplement() checked" — fix now
+- ripple #5: DESIGN.md git listing — fix now, fixed cb2a1ad, (same as blame-history #3)
+- ripple #6: DESIGN.md "the files check_supplement() checked" — fix now, fixed cb2a1ad
+- ripple #7: `git_files()` header comment omits `ignored` — fix now, fixed cb2a1ad
+- ripple #8: release code comment "the files that check_supplement() checked" — fix now, fixed cb2a1ad
 - ripple #9: the Windows odd-named folders row — reject (false: the reviewer found no disagreement)
 - ripple #10: `example.qmd` figure comment — reject (false: no disagreement)
 - Planted defects for the fix-now tests: a split without `useBytes` that tests only the last part fails the non-UTF-8 and linked-folder tests; a locale sort fails the byte-order test; dropping `!is_link(copies)` fails the docs/figures link test.
