@@ -1,13 +1,13 @@
 # M030: Each report shows the R setup that made its stored output
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template's example report and the report stub that `add_report()` writes
-- **Branch/PR:** —
+- **Branch/PR:** m030-session-record
 
 ## Goal
 
@@ -37,11 +37,11 @@ The template's example report and each report that `add_report()` writes end wit
 
 ## Tasks
 
-- [ ] T1: Probe in a scratch site. Find what `sessioninfo::session_info()` and `sessionInfo()` print inside a knitr chunk, in a collapsed callout and out of one. Find whether the frozen page keeps the text after a second full render. Record each result in the work log, and write the help text from what the probes show (the derived-claims rule).
+- [x] T1: Probe in a scratch site. Find what `sessioninfo::session_info()` and `sessionInfo()` print inside a knitr chunk, in a collapsed callout and out of one. Find whether the frozen page keeps the text after a second full render. Record each result in the work log, and write the help text from what the probes show (the derived-claims rule).
 - [ ] T2: Add the AC1 to AC3 tests in `tests/testthat/test-template.R` and `tests/testthat/test-add-report.R`. Use `expect_status()` for each command (`helper-template.R`). Run each new test against main and record that it fails there (LESSONS M010).
-- [ ] T3: Add the section to `inst/template/analyses/example.qmd`. Use a level-2 heading "Computing environment" and one chunk with `#| label: session-info`.
-- [ ] T4: Add the same lines to the end of `report_lines()` in `R/add-report.R`. Recheck the tests that compare a whole stub in `tests/testthat/test-add-report.R` and the render tests in `tests/testthat/test-add-render.R`.
-- [ ] T5: Add the paragraph and the code to the Reports part of `inst/template/_README.md` (line 19). Add a NEWS.md bullet. Run `devtools::document()` when the `add_report()` help changes.
+- [x] T3: Add the section to `inst/template/analyses/example.qmd`. Use a level-2 heading "Computing environment" and one chunk with `#| label: session-info`.
+- [x] T4: Add the same lines to the end of `report_lines()` in `R/add-report.R`. Recheck the tests that compare a whole stub in `tests/testthat/test-add-report.R` and the render tests in `tests/testthat/test-add-render.R`.
+- [x] T5: Add the paragraph and the code to the Reports part of `inst/template/_README.md` (line 19). Add a NEWS.md bullet. Run `devtools::document()` when the `add_report()` help changes.
 - [ ] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
@@ -56,6 +56,12 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: lessons surfaced: M001 (a render by name runs the report again), M010 (prove a test fails on main), M011 (`writeBin()` fixtures), M028 (template folder lists in Windows-only tests).
 - 2026-10-21: criteria audit (full mode, fresh Opus reader): 4 findings for M030, all taken. AC1 now matches the R version by pattern and reads the knitr version from the PATH's Rscript. AC2 now hides sessioninfo with a global `requireNamespace()`, because on macOS sessioninfo can sit in `.Library`, and it probes both branches. AC4 now limits the "full render keeps them" claim to reports with stored output. AC3 and AC5 had no finding.
 - 2026-10-21: changelog: one new bullet in NEWS.md under 0.0.0.9000.
+- 2026-10-21: T1 probes (macOS, Quarto 1.10.19): inside a collapsed callout, `sessioninfo::session_info()` prints "Session info", the R version, the Quarto version, each loaded package with its version, and the library folders. `sessionInfo()` (with sessioninfo hidden) prints the R version, BLAS paths, locale, time zone, "attached base packages", and loaded packages as `name_version`. A second full render kept the section on the frozen page.
+- 2026-10-21: implement chose a collapsed callout titled "R and package versions" over a plain chunk, so the long output does not fill the page. The guide says that the output shows the R library folders and the time zone, because the page publishes them.
+- 2026-10-21: T2: the four new tests failed on the branch before T3 and T4 (the section and its chunk were missing). After T3 to T5, `devtools::test()` gave 308 tests, 0 failed, 7 skipped (existing Windows and case-sensitive-disk skips).
+- 2026-10-21: `devtools::check()` first gave 1 error: R CMD check puts a stub `Rscript` first on the PATH, which exits 1 ("should not be used without a path"). Quarto with `QUARTO_R` unset uses `R_HOME/bin/Rscript` first, so the tests now run that one (`home_rscript()`). Then check gave 0 errors, 0 warnings, 0 notes.
+- 2026-10-21: re-audit: AC1 (full) — the proposed wording ("the Rscript that Quarto runs: QUARTO_R, else R_HOME, else PATH") misstated Quarto's lookup and bound the test helper. Narrower wording offered: render with `QUARTO_R` unset and compare with `file.path(Sys.getenv("R_HOME"), "bin", "Rscript")`.
+- 2026-10-21: re-audit: AC1 (full) — in the `sessionInfo()` branch knitr prints as `knitr_1.52`, which the whole-token match misses. CI renders that branch, because `--as-cran` hides packages outside Suggests. This is the second re-audit line for AC1, so the next wording goes to the user.
 
 ## Decisions
 

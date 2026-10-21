@@ -67,3 +67,20 @@ save_png("bootstrap-means.png", function() {
   hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
 })
 ```
+
+## Computing environment
+
+The versions of R and of each package that the last render of this report
+used. The site stores this output with the rest, so the page keeps the
+versions that made its results.
+
+::: {.callout-note collapse="true" title="R and package versions"}
+```{r}
+#| label: session-info
+if (requireNamespace("sessioninfo", quietly = TRUE)) {
+  sessioninfo::session_info()
+} else {
+  sessionInfo()
+}
+```
+:::

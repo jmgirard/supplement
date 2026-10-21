@@ -433,3 +433,57 @@ test_that("setup keeps both files when README.md and SUPPLEMENT.md exist", {
   expect_equal(readLines(file.path(dir, "SUPPLEMENT.md")), "my supplement")
   expect_false(file.exists(file.path(dir, "_README.md")))
 })
+
+test_that("the example page shows the R and knitr versions of its render", {
+  skip_if_no_quarto()
+  site <- new_site()
+  withr::local_envvar(QUARTO_R = NA)
+  expect_status(run_in(site, "quarto", "render"))
+
+  page <- read_text(file.path(site, "docs", "analyses", "example.html"))
+  section <- section_html(page, "computing-environment")
+  expect_match(section, "<h2[^>]*>Computing environment</h2>")
+  text <- html_text(section)
+  expect_match(text, "R version [0-9]+\\.[0-9]+\\.[0-9]+")
+
+  # The knitr version of the Rscript in R_HOME, which Quarto runs when
+  # QUARTO_R is unset, as a whole token, so that 1.5 does not match inside
+  # 1.52.
+  script <- file.path(site, "knitr-version.R")
+  writeLines('cat(as.character(packageVersion("knitr")), "\\n")', script)
+  knitr <- run_in(site, home_rscript(), basename(script))
+  expect_status(knitr)
+  version <- trimws(utils::tail(knitr$output, 1))
+  expect_match(version, "^[0-9]+(\\.[0-9]+)+$")
+  expect_match(text, paste0("(^|\\s)", rx_escape(version), "(\\s|$)"))
+})
+
+# Run the code of the example report's session-info chunk with Rscript, after
+# the lines in `before`, and return all it printed as one string.
+run_session_code <- function(before = character(), env = parent.frame()) {
+  code <- chunk_code(file.path(template_dir(), "analyses", "example.qmd"), "session-info")
+  dir <- withr::local_tempdir("session-", .local_envir = env)
+  writeLines(c(before, code), file.path(dir, "session.R"))
+  out <- run_in(dir, home_rscript(), "session.R")
+  expect_status(out)
+  paste(out$output, collapse = "\n")
+}
+
+test_that("the environment section prints sessionInfo() when sessioninfo is not found", {
+  # On macOS, sessioninfo can sit in R's own library, so the test hides it
+  # with a requireNamespace() that the chunk finds first.
+  text <- run_session_code(c(
+    "requireNamespace <- function(package, ...) {",
+    "  if (identical(package, \"sessioninfo\")) FALSE else base::requireNamespace(package, ...)",
+    "}"
+  ))
+  expect_match(text, "attached base packages", fixed = TRUE)
+  expect_no_match(text, "Session info", fixed = TRUE)
+})
+
+test_that("the environment section prints session_info() when sessioninfo is installed", {
+  skip_if_not_installed("sessioninfo")
+  text <- run_session_code()
+  expect_match(text, "Session info", fixed = TRUE)
+  expect_no_match(text, "attached base packages", fixed = TRUE)
+})

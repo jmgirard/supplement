@@ -400,3 +400,19 @@ test_that("finding the Analyses menu runs no !expr code", {
   expect_message(add_report("models", "Models", path = site), "added it to the Analyses menu")
   expect_false(file.exists(marker))
 })
+
+test_that("a report stub ends with the example report's Computing environment section", {
+  site <- new_site()
+  stub <- suppressMessages(add_report("models", "Models", path = site))
+  example <- file.path(template_dir(), "analyses", "example.qmd")
+  expect_identical(chunk_code(stub, "session-info"), chunk_code(example, "session-info"))
+
+  # The bytes from the section's heading to the end of each file.
+  section <- function(path) {
+    text <- rawToChar(read_bytes(path))
+    at <- regexpr("\n## Computing environment\n", text, fixed = TRUE)
+    expect_gt(at, 0)
+    substring(text, at)
+  }
+  expect_identical(section(stub), section(example))
+})

@@ -6,6 +6,11 @@
 #' `analyses/` with its title and description, so the new report shows
 #' there too.
 #'
+#' The new report ends with a "Computing environment" section, the same as
+#' the template's example report. It prints the R and package versions of
+#' the render, with `sessioninfo::session_info()` when the sessioninfo
+#' package is installed and with `sessionInfo()` otherwise.
+#'
 #' The function adds lines to `_quarto.yml` as text, so the other lines of
 #' the file, its comments included, stay as they are. It finds the menu as
 #' the item with `text: Analyses` under `website: navbar: left:` (or
@@ -195,6 +200,23 @@ report_lines <- function(title, description) {
     "```{r}",
     "#| label: setup",
     "set.seed(2026)",
-    "```"
+    "```",
+    "",
+    "## Computing environment",
+    "",
+    "The versions of R and of each package that the last render of this report",
+    "used. The site stores this output with the rest, so the page keeps the",
+    "versions that made its results.",
+    "",
+    "::: {.callout-note collapse=\"true\" title=\"R and package versions\"}",
+    "```{r}",
+    "#| label: session-info",
+    "if (requireNamespace(\"sessioninfo\", quietly = TRUE)) {",
+    "  sessioninfo::session_info()",
+    "} else {",
+    "  sessionInfo()",
+    "}",
+    "```",
+    ":::"
   )
 }

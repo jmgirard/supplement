@@ -33,6 +33,11 @@ home page of a site made from the template lists every report in
 there too.
 }
 \details{
+The new report ends with a "Computing environment" section, the same as
+the template's example report. It prints the R and package versions of
+the render, with \code{sessioninfo::session_info()} when the sessioninfo
+package is installed and with \code{sessionInfo()} otherwise.
+
 The function adds lines to \verb{_quarto.yml} as text, so the other lines of
 the file, its comments included, stay as they are. It finds the menu as
 the item with \code{text: Analyses} under \verb{website: navbar: left:} (or

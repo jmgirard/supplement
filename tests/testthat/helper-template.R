@@ -292,6 +292,33 @@ front_matter <- function(path) {
   yaml::yaml.load(paste(lines[2:(ends[2] - 1)], collapse = "\n"))
 }
 
+# The Rscript in the bin folder of R_HOME. With QUARTO_R unset, Quarto 1.10
+# looks there before the PATH, and R sets R_HOME for the processes it
+# starts. R CMD check puts a stub Rscript first on the PATH, which exits 1
+# ("should not be used without a path").
+home_rscript <- function() {
+  file.path(Sys.getenv("R_HOME"), "bin", "Rscript")
+}
+
+# The HTML of the <section> with `id` on a rendered page, or "" when the
+# page has none. The section ends at its first </section>, so it must hold
+# no nested section.
+section_html <- function(html, id) {
+  start <- regexpr(sprintf('<section id="%s"', id), html, fixed = TRUE)
+  if (start < 0) return("")
+  rest <- substring(html, start)
+  substring(rest, 1, regexpr("</section>", rest, fixed = TRUE) - 1L)
+}
+
+# The text of some HTML, with its tags removed and its five named character
+# references decoded.
+html_text <- function(html) {
+  text <- gsub("<[^>]+>", "", html)
+  refs <- c("&lt;" = "<", "&gt;" = ">", "&quot;" = "\"", "&#39;" = "'", "&amp;" = "&")
+  for (ref in names(refs)) text <- gsub(ref, refs[[ref]], text, fixed = TRUE)
+  text
+}
+
 strip_tags <- function(x) {
   x <- gsub("<[^>]+>", "", x)
   trimws(gsub("\\s+", " ", x))

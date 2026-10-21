@@ -37,6 +37,36 @@ supplement::add_data("path/to/scores.csv", "Scores of each participant")
 menu. `add_data()` copies the file into `data/` and adds it to the `data`
 list in `_supplement.yml`.
 
+### Computing environment
+
+The example report and each report that `add_report()` writes end with a
+"Computing environment" section. It shows the version of R and of each
+package that the report's last render used. A full render reuses the
+stored output in `_freeze/`. So when `_freeze/` holds output for a report,
+its page keeps the versions of the render that made its results.
+The output also shows the folders of your R libraries and your time zone.
+
+To add the section to an older report, put these lines at its end:
+
+````markdown
+## Computing environment
+
+::: {.callout-note collapse="true" title="R and package versions"}
+```{r}
+#| label: session-info
+if (requireNamespace("sessioninfo", quietly = TRUE)) {
+  sessioninfo::session_info()
+} else {
+  sessionInfo()
+}
+```
+:::
+````
+
+With the sessioninfo package installed, the section prints
+`sessioninfo::session_info()`. Without it, the section prints
+`sessionInfo()`, which needs no package.
+
 ## Paper facts in `_supplement.yml`
 
 `_supplement.yml` holds the facts about the paper under one `supplement`
