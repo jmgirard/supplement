@@ -182,20 +182,16 @@ test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
   site <- site_copy()
 
   expect_status(git_in(site$dir, c("init", "-q")))
-  in_analyses <- c("analyses/plot.pdf", "analyses/plot.png")
-  ignored <- git_in(site$dir, c("check-ignore", in_analyses))
-  expect_status(ignored)
-  expect_setequal(ignored$output,in_analyses)
-
-  kept <- git_in(site$dir, c("check-ignore", "figures/plot.pdf", "figures/plot.png"))
-  expect_status(kept, 1L, output = character())
+  expect_figure_rules(site$dir)
 })
 
 test_that("the example report saves a figure that the next full render publishes", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
   expect_status(use_template(dir))
-  expect_false(dir.exists(file.path(dir, "figures")))
+  # Without the shipped figure, figures/bootstrap-means.png is new to this
+  # render, so only the next render publishes it.
+  expect_true(file.remove(file.path(dir, "figures", "bootstrap-means.png")))
 
   by_name <- run_in(dir, "quarto", c("render", "analyses/example.qmd"))
   expect_status(by_name)
@@ -209,6 +205,154 @@ test_that("the example report saves a figure that the next full render publishes
     start <- if (file.exists(full_path)) readBin(full_path, "raw", 8L) else raw(0)
     expect_identical(start, png_signature, info = path)
   }
+})
+
+test_that("the first full render of a new site publishes the example figure", {
+  skip_if_no_quarto()
+  site <- new_site()
+
+  expect_status(run_in(site, "quarto", "render"))
+  figure <- file.path(site, "figures", "bootstrap-means.png")
+  published <- file.path(site, "docs", "figures", "bootstrap-means.png")
+  expect_true(file.exists(published))
+  expect_identical(unname(tools::md5sum(published)), unname(tools::md5sum(figure)))
+})
+
+# A new site in its own parent folder, without the shipped figure, so that
+# only the example report can write figures/bootstrap-means.png.
+figure_site <- function(env = parent.frame()) {
+  parent <- withr::local_tempdir("parent-", .local_envir = env)
+  site <- file.path(parent, "site")
+  suppressMessages(create_supplement(site))
+  file.remove(file.path(site, "figures", "bootstrap-means.png"))
+  list(parent = parent, site = site)
+}
+
+test_that("the example report saves its figure in the site with either execute-dir", {
+  skip_if_no_quarto()
+  for (execute_dir in c("file", "project")) {
+    dirs <- figure_site()
+    if (execute_dir == "project") {
+      config <- file.path(dirs$site, "_quarto.yml")
+      lines <- readLines(config)
+      at <- which(lines == "  output-dir: docs")
+      writeLines(append(lines, "  execute-dir: project", after = at), config)
+    }
+
+    expect_status(run_in(dirs$site, "quarto", "render"))
+    expect_true(file.exists(file.path(dirs$site, "figures", "bootstrap-means.png")), info = execute_dir)
+    expect_false(file.exists(file.path(dirs$parent, "figures")), info = execute_dir)
+  }
+})
+
+test_that("the example code run by hand from analyses/ saves into the site's figures/", {
+  skip_on_cran()
+  skip_if_not(capabilities("png"), "R has no png device")
+  dirs <- figure_site()
+  qmd <- file.path(dirs$site, "analyses", "example.qmd")
+  code <- unlist(lapply(c("data", "bootstrap", "save-figure"), chunk_code, path = qmd))
+
+  # The bootstrap chunk draws on the current device.
+  grDevices::pdf(NULL)
+  device <- grDevices::dev.cur()
+  on.exit(grDevices::dev.off(device), add = TRUE)
+  withr::with_envvar(c(QUARTO_PROJECT_DIR = NA), withr::with_dir(
+    file.path(dirs$site, "analyses"),
+    eval(parse(text = code), envir = new.env())
+  ))
+  # save_png() makes the earlier device current again.
+  expect_identical(grDevices::dev.cur(), device)
+  expect_true(file.exists(file.path(dirs$site, "figures", "bootstrap-means.png")))
+  expect_false(file.exists(file.path(dirs$parent, "figures")))
+})
+
+test_that("a failed plot in the example closes its device and leaves figures/ as it was", {
+  skip_on_cran()
+  skip_if_not(capabilities("png"), "R has no png device")
+  site <- new_site()
+  code <- chunk_code(file.path(site, "analyses", "example.qmd"), "save-figure")
+  figures <- file.path(site, "figures")
+
+  # The chunk runs alone, as an author who copies it runs it, so it finds
+  # the site folder itself. folder_md5() also reads hidden files, so a
+  # temporary file left in figures/ fails the test.
+  expect_failed_plot_changes_nothing <- function() {
+    env <- new.env()
+    env$boot_means <- c(1, 2, 3)
+    env$hist <- function(...) stop("the plot failed")
+    devices <- grDevices::dev.list()
+    before <- folder_md5(figures)
+    expect_error(
+      withr::with_envvar(c(QUARTO_PROJECT_DIR = NA), withr::with_dir(
+        file.path(site, "analyses"),
+        eval(parse(text = code), envir = env)
+      )),
+      "the plot failed"
+    )
+    after <- grDevices::dev.list()
+    for (d in setdiff(after, devices)) grDevices::dev.off(d)
+    expect_identical(after, devices)
+    expect_identical(folder_md5(figures), before)
+  }
+
+  # With the shipped figure in place, and then with no figure.
+  expect_failed_plot_changes_nothing()
+  expect_true(file.remove(file.path(figures, "bootstrap-means.png")))
+  expect_failed_plot_changes_nothing()
+})
+
+test_that("save_png() refuses a folder at its target and a plot that is not a function", {
+  skip_on_cran()
+  skip_if_not(capabilities("png"), "R has no png device")
+  site <- new_site()
+  code <- chunk_code(file.path(site, "analyses", "example.qmd"), "save-figure")
+  figures <- file.path(site, "figures")
+  env <- new.env()
+  env$boot_means <- c(1, 2, 3)
+  # Define save_png() and save the example figure once.
+  withr::with_envvar(c(QUARTO_PROJECT_DIR = NA), withr::with_dir(
+    file.path(site, "analyses"),
+    eval(parse(text = code), envir = env)
+  ))
+
+  dir.create(file.path(figures, "taken.png"))
+  before <- folder_md5(figures)
+  withr::with_dir(file.path(site, "analyses"), {
+    expect_error(env$save_png("taken.png", function() plot(1)), "taken.png is a folder.", fixed = TRUE)
+    expect_error(env$save_png("p.png", 42), "Pass the plot as a function", fixed = TRUE)
+  })
+  expect_identical(folder_md5(figures), before)
+  expect_true(dir.exists(file.path(figures, "taken.png")))
+})
+
+test_that("the figure rules hold in sites made by create_supplement()", {
+  skip_if_no_quarto()
+  skip_if_no_git()
+  local_plain_git()
+
+  # git init after the first render: setup renames _gitignore.
+  after <- new_site()
+  expect_status(run_in(after, "quarto", "render"))
+  expect_status(git_in(after, c("init", "-q")))
+  expect_figure_rules(after)
+
+  # git init before it: Quarto writes a .gitignore, and setup merges into it.
+  before <- new_site()
+  expect_status(git_in(before, c("init", "-q")))
+  expect_status(run_in(before, "quarto", "render"))
+  expect_figure_rules(before)
+})
+
+test_that("a file named figures stops the example report with a message", {
+  skip_if_no_quarto()
+  site <- new_site()
+  unlink(file.path(site, "figures"), recursive = TRUE)
+  writeLines("not a folder", file.path(site, "figures"))
+
+  rendered <- run_in(site, "quarto", c("render", "analyses/example.qmd"))
+  expect_command_fails(rendered)
+  expect_true(any(grepl("`figures` is a file, not a folder", rendered$output, fixed = TRUE)),
+              info = command_failure(rendered, "the figures message"))
 })
 
 test_that("setup adds the template rules to an existing .gitignore", {
@@ -259,6 +403,7 @@ test_that("fit files stay ignored when git init comes before the first render", 
   ignored <- git_in(dir, c("check-ignore", "analyses/fits/m.rds", "x.rds"))
   expect_status(ignored)
   expect_setequal(ignored$output,c("analyses/fits/m.rds", "x.rds"))
+  expect_figure_rules(dir)
 })
 
 test_that("setup keeps an existing README.md and writes the guide beside it", {

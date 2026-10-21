@@ -25,11 +25,16 @@ rsconnect/
 *.[Qq][Ss]2
 analyses/fits/
 
-# Files that reports write next to their sources
+# Files that reports write next to their sources. Save paper figures in
+# figures/ instead.
 analyses/*.html
 analyses/*_files/
-analyses/*.pdf
-analyses/*.png
+analyses/*.[Pp][Dd][Ff]
+analyses/*.[Pp][Nn][Gg]
+
+# Temporary files that save_png() in the example report leaves if R stops
+# while it draws.
+.save-*.png
 
 # Private data. Keep it outside this folder, or put it here.
 private/

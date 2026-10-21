@@ -82,6 +82,7 @@ jobs:
             "On CRAN", "quarto is not on PATH", "git is not on PATH",
             "git is not on the PATH", "git --version fails", "knitr cannot be loaded",
             "rmarkdown cannot be loaded", "cannot make a symbolic link here",
+            "R has no png device",
             # skip_if_not_installed() names the package in braces.
             "{knitr}", "{rmarkdown}"
           )

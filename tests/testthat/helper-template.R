@@ -113,6 +113,27 @@ git_in <- function(dir, args) {
   )
 }
 
+# The template's rules for figures next to reports match any letter case,
+# and figures/ stays in git. On macOS and Windows, `git init` sets
+# core.ignorecase=true, because their file systems ignore letter case by
+# default, so every check runs with core.ignorecase=false, as on Linux.
+expect_figure_rules <- function(dir) {
+  in_analyses <- c("analyses/a.PNG", "analyses/b.Pdf", "analyses/c.png", "analyses/d.pdf")
+  ignored <- git_in(dir, c("-c", "core.ignorecase=false", "check-ignore", in_analyses))
+  expect_status(ignored)
+  expect_setequal(ignored$output, in_analyses)
+
+  in_figures <- c("figures/e.PNG", "figures/f.PDF", "figures/plot.pdf", "figures/plot.png")
+  kept <- git_in(dir, c("-c", "core.ignorecase=false", "check-ignore", in_figures))
+  expect_status(kept, 1L, output = character())
+
+  # A temporary file that save_png() leaves in figures/, and its copy in docs/.
+  leftovers <- c("figures/.save-1a2b.png", "docs/figures/.save-1a2b.png")
+  left <- git_in(dir, c("check-ignore", leftovers))
+  expect_status(left)
+  expect_setequal(left$output, leftovers)
+}
+
 # Turn off git's global and system configuration and the user's ignore
 # file in $XDG_CONFIG_HOME/git/ignore, so that only a repository's own
 # rules decide what git ignores.
@@ -171,6 +192,23 @@ site_copy <- function(env = parent.frame()) {
 }
 
 read_text <- function(path) paste(readLines(path, warn = FALSE), collapse = "\n")
+
+# The code lines of the chunk with `#| label: <label>` in a .qmd file.
+chunk_code <- function(path, label) {
+  lines <- readLines(path, warn = FALSE)
+  at <- which(lines == paste0("#| label: ", label))
+  stopifnot(length(at) == 1L)
+  start <- max(grep("^```\\{", lines[seq_len(at)]))
+  ends <- which(lines == "```")
+  end <- min(ends[ends > at])
+  lines[(start + 1L):(end - 1L)]
+}
+
+# The MD5 of each file in a folder, named by its path in the folder.
+folder_md5 <- function(dir) {
+  files <- sort(list.files(dir, recursive = TRUE, all.files = TRUE))
+  stats::setNames(unname(tools::md5sum(file.path(dir, files))), files)
+}
 
 # Run a command in `dir` and keep its standard output and standard error
 # apart.
