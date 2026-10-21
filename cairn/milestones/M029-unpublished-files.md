@@ -77,6 +77,7 @@
 - 2026-10-20: T6: `devtools::check()` at b3e757f's code (before the claim-audit wording fix, which changed only help text and a comment): 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR. Status set to review.
 - 2026-10-20: step-7 approval: m029-unpublished-files approved for merge
 - 2026-10-20: PR #30 opened; the CI wait reached the 590 s ceiling with all 6 R-CMD-check jobs pending, so the watcher was stopped and the run stops for a resume.
+- 2026-10-21: resume: PR #30 open, main unchanged at fb80252; the second CI wait reached the ceiling with macOS and Ubuntu passing (4 jobs) and the 2 Windows jobs pending, so the watcher was stopped again.
 
 ## Decisions
 
