@@ -75,3 +75,30 @@ test_that("a render by name clears the stale-output row that a changed report gi
   writeBin(charToRaw("Other included text.\n"), file.path(site, "analyses", "_part.qmd"))
   expect_identical(stale(), character())
 })
+
+test_that("a render by name or a full render clears the unpublished-figure row of a new figure", {
+  skip_if_no_quarto()
+  site <- new_site()
+  unpublished <- function() {
+    result <- suppressMessages(check_supplement(site))
+    result$file[result$check == "unpublished-figure"]
+  }
+  render <- function(...) {
+    rendered <- run_in(site, "quarto", c("render", ...))
+    expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  }
+  render()
+  expect_identical(unpublished(), character())
+
+  # A figure saved under a new name after a render, as from a chunk run in
+  # an IDE.
+  writeBin(as.raw(1:8), file.path(site, "figures", "new.png"))
+  expect_identical(unpublished(), "figures/new.png")
+  render("analyses/example.qmd")
+  expect_identical(unpublished(), character())
+
+  writeBin(as.raw(1:9), file.path(site, "figures", "later.png"))
+  expect_identical(unpublished(), "figures/later.png")
+  render()
+  expect_identical(unpublished(), character())
+})

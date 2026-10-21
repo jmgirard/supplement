@@ -40,7 +40,7 @@
 ## Tasks
 
 - [x] T1: Probe in a scratch site: how `list.files(recursive = TRUE)` and `git ls-files` list a folder link and a file link in `figures/`; a name with `é` in two Unicode forms on macOS (`core.precomposeunicode`); and whether a render by name copies a figure that is new at the start of the render. Record each result in the work log. The help text and Out follow what the probes show (the derived-claims rule).
-- [ ] T2: Add the AC1 to AC4 and AC6 tests. Write fixture bytes with `writeBin()` (LESSONS M011). Run each row case against main and record that each fails there (LESSONS M010). Recheck the tests that match whole row sets in `test-check-supplement.R` and the full-render tests in `test-add-render.R`, which may now give rows.
+- [x] T2: Add the AC1 to AC4 and AC6 tests. Write fixture bytes with `writeBin()` (LESSONS M011). Run each row case against main and record that each fails there (LESSONS M010). Recheck the tests that match whole row sets in `test-check-supplement.R` and the full-render tests in `test-add-render.R`, which may now give rows.
 - [ ] T3: Write the `ignored-output` check from git's list of ignored files (`git ls-files --others --ignored --exclude-standard`), read in `git_files()` (`R/check-supplement.R:256`), with paths relative to the site. Keep the files in the three folders whose path holds no hidden name and no link, tested with `is_link()`. Add the check to the `skipped` attribute and to the skip message in `report_problems()` (line 205).
 - [ ] T4: Write the `unpublished-figure` check with `tools::md5sum()` (LESSONS M027) and the same link-free walk. Add both calls to `check_supplement()` (line 186).
 - [ ] T5: Add the roxygen items and run `devtools::document()`. Edit the existing NEWS.md bullet for `check_supplement()`. Add two lines to the check list in `inst/template/_README.md`.
@@ -67,6 +67,7 @@
 - 2026-10-20: T1 probe: `git ls-files -z --others --ignored --exclude-standard -- figures docs _freeze` lists each file inside an ignored folder, lists links, hidden files, and folder links as entries, leaves out a tracked file that a rule matches, and prints paths relative to the folder it runs in.
 - 2026-10-20: T1 probe: with Quarto 1.10.19, a render by name of `analyses/example.qmd` or of `index.qmd` copies a figure that is new in `figures/` at the start of the render (`figures/sub/x.png` too); after a full render and after a render by name, `figures/bootstrap-means.png` and its copy in `docs/figures/` have the same MD5.
 - 2026-10-20: minor amendment: T3 reads git's list of ignored files in place of a set difference with a disk walk, because of the Unicode-form probe. With it a name stored as NFD gives no false row, so the help page needs no note on Unicode forms (Out's condition did not fire).
+- 2026-10-20: T2: tests added for AC1 to AC4 and AC6 in test-check-supplement.R, test-release-supplement.R (new helper `checked_site()`, used by the stale-output release test too), and test-add-render.R; the skip test now expects `ignored-output` in `skipped` and the message. Against main's R code, 10 tests fail: each row case, the skip test, the AC6 site test, the render test, and the release test; the no-figures-folder test passes there, as a no-row test does. Committed failing, before T3 and T4.
 
 ## Decisions
 
