@@ -149,3 +149,5 @@ A new site's first render publishes the example figure, and the example's figure
 - ripple #1 (pass 2): the candidate row "Fix edge cases of the figures folder" still describes the fixed defects — reject (planned change: post-merge hygiene narrows the row to M029's part).
 - ripple #2 (pass 2): `_README.md:12` says figures are saved by the reports, though the template ships one — fix now.
 - ripple #3 (pass 2): DESIGN.md's test-skip sentence names only CRAN and quarto — fix now.
+- pass 2 fix-now items diff-bug #1 to #6, blame-history #1, #4, #5, prior-review #2, ripple #2, #3 — fixed 8f249f3.
+- AC7 (local part, after 8f249f3): `test-template.R` 25 tests, 149 expectations, all pass; `NOT_CRAN=true devtools::test()` 290 tests, 4378 expectations, 0 failed, 7 skipped; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes; `cairn_validate.py` all checks passed. CI waits for the PR.
