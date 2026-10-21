@@ -70,17 +70,28 @@ save_png("bootstrap-means.png", function() {
 
 ## Computing environment
 
-The versions of R and of each package that the last render of this report
-used. The site stores this output with the rest, so the page keeps the
-versions that made its results.
+This section shows the versions of R and of each package that the last
+render of this report used. The site stores this output with the rest, so
+the page keeps the versions that made its results. Your home folder shows
+as `~`, so the page does not publish the name of your account.
 
 ::: {.callout-note collapse="true" title="R and package versions"}
 ```{r}
 #| label: session-info
-if (requireNamespace("sessioninfo", quietly = TRUE)) {
+#| cache: false
+info <- if (requireNamespace("sessioninfo", quietly = TRUE)) {
   sessioninfo::session_info()
 } else {
-  sessionInfo()
+  utils::sessionInfo()
 }
+homes <- Sys.getenv(c("USERPROFILE", "HOME"))
+homes <- homes[nchar(homes) > 3]
+homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
+homes <- unique(c(homes, chartr("\\", "/", homes), chartr("/", "\\", homes)))
+lines <- utils::capture.output(print(info))
+for (home in homes[order(nchar(homes))]) {
+  lines <- gsub(home, "~", lines, fixed = TRUE)
+}
+writeLines(lines)
 ```
 :::

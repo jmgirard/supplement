@@ -459,14 +459,29 @@ test_that("the example page shows the R and knitr versions of its render", {
   # The end of the match keeps 1.5 from matching inside 1.52.
   knitr_rx <- paste0("knitr(_| +\\*? *)", rx_escape(version), "(\\s|$)")
 
+  # Whether that R finds sessioninfo, which decides the branch of a render
+  # that hides nothing.
+  writeLines('cat(requireNamespace("sessioninfo", quietly = TRUE), "\\n")', file.path(dir, "s.R"))
+  found <- run_in(dir, home_rscript(), "s.R")
+  expect_status(found)
+  has_sessioninfo <- identical(trimws(utils::tail(found$output, 1)), "TRUE")
+
+  # The home folder in each spelling, which the page must not show.
+  homes <- Sys.getenv(c("USERPROFILE", "HOME"))
+  homes <- homes[nchar(homes) > 3]
+  homes <- unique(c(homes, chartr("\\", "/", homes), chartr("/", "\\", homes)))
+
   # One render as the machine is, and one with sessioninfo hidden through
   # a profile that R reads at the start of the render.
   profile <- file.path(dir, "hide-sessioninfo.R")
   writeLines(hide_sessioninfo, profile)
   for (hidden in c(FALSE, TRUE)) {
     site <- new_site()
-    env <- if (hidden) c(R_PROFILE_USER = profile) else c(R_PROFILE_USER = NA)
-    withr::with_envvar(env, expect_status(run_in(site, "quarto", "render")))
+    if (hidden) {
+      withr::with_envvar(c(R_PROFILE_USER = profile), expect_status(run_in(site, "quarto", "render")))
+    } else {
+      expect_status(run_in(site, "quarto", "render"))
+    }
 
     page <- read_text(file.path(site, "docs", "analyses", "example.html"))
     section <- section_html(page, "computing-environment")
@@ -474,10 +489,15 @@ test_that("the example page shows the R and knitr versions of its render", {
     text <- html_text(section)
     expect_match(text, "R version [0-9]+\\.[0-9]+\\.[0-9]+", info = hidden)
     expect_match(text, knitr_rx, info = hidden)
-    if (hidden) {
-      # The render took the sessionInfo() branch.
-      expect_match(text, "attached base packages", fixed = TRUE)
-      expect_no_match(text, "Session info", fixed = TRUE)
+    if (hidden || !has_sessioninfo) {
+      expect_match(text, "attached base packages", fixed = TRUE, info = hidden)
+      expect_no_match(text, "Session info", fixed = TRUE, info = hidden)
+    } else {
+      expect_match(text, "Session info", fixed = TRUE)
+      expect_no_match(text, "attached base packages", fixed = TRUE)
+    }
+    for (home in homes) {
+      expect_no_match(page, home, fixed = TRUE, info = paste(hidden, home))
     }
   }
 })
@@ -494,14 +514,30 @@ run_session_code <- function(before = character(), env = parent.frame()) {
 }
 
 test_that("the environment section prints sessionInfo() when sessioninfo is not found", {
+  skip_on_cran()
   text <- run_session_code(hide_sessioninfo)
   expect_match(text, "attached base packages", fixed = TRUE)
   expect_no_match(text, "Session info", fixed = TRUE)
 })
 
 test_that("the environment section prints session_info() when sessioninfo is installed", {
+  skip_on_cran()
   skip_if_not_installed("sessioninfo")
   text <- run_session_code()
   expect_match(text, "Session info", fixed = TRUE)
   expect_no_match(text, "attached base packages", fixed = TRUE)
+})
+
+test_that("the environment section shows the home folder as ~", {
+  skip_on_cran()
+  skip_if_not_installed("sessioninfo")
+  # With R's own folder as the home folder, the library folder that
+  # session_info() lists, R_HOME/library, is inside the home folder.
+  home <- normalizePath(R.home(), winslash = "/")
+  text <- run_session_code(c(
+    sprintf("Sys.setenv(HOME = %s)", deparse(home)),
+    'Sys.unsetenv("USERPROFILE")'
+  ))
+  expect_match(text, "~/library", fixed = TRUE)
+  expect_no_match(text, home, fixed = TRUE)
 })

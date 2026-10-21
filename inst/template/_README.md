@@ -34,8 +34,9 @@ supplement::add_data("path/to/scores.csv", "Scores of each participant")
 ```
 
 `add_report()` writes `analyses/models.qmd` and adds it to the Analyses
-menu. `add_data()` copies the file into `data/` and adds it to the `data`
-list in `_supplement.yml`.
+menu. The new report ends with the "Computing environment" section below.
+`add_data()` copies the file into `data/` and adds it to the `data` list in
+`_supplement.yml`.
 
 ### Computing environment
 
@@ -44,29 +45,26 @@ The example report and each report that `add_report()` writes end with a
 package that the report's last render used. A full render reuses the
 stored output in `_freeze/`. So when `_freeze/` holds output for a report,
 its page keeps the versions of the render that made its results.
-The output also shows your time zone. With the sessioninfo package, it
-also shows the folders of your R libraries.
 
-To add the section to an older report, put these lines at its end:
+If the sessioninfo package is installed, the section prints
+`sessioninfo::session_info()`. Otherwise it prints `utils::sessionInfo()`,
+which comes with R. The output also shows your operating system, your time
+zone, and some folders on your computer: the R library folders, Pandoc,
+and Quarto with sessioninfo, and the BLAS and LAPACK files without it. The
+section shows your home folder as `~`, so the page does not publish the
+name of your account. Folders outside your home folder show in full.
 
-````markdown
-## Computing environment
+To add the section to an older report, copy the lines from the
+`## Computing environment` heading to the end of `analyses/example.qmd`.
+If you removed the example, R prints the path of the template's copy:
 
-::: {.callout-note collapse="true" title="R and package versions"}
-```{r}
-#| label: session-info
-if (requireNamespace("sessioninfo", quietly = TRUE)) {
-  sessioninfo::session_info()
-} else {
-  sessionInfo()
-}
+```r
+system.file("template", "analyses", "example.qmd", package = "supplement")
 ```
-:::
-````
 
-With the sessioninfo package installed, the section prints
-`sessioninfo::session_info()`. Without it, the section prints
-`sessionInfo()`, which needs no package.
+Paste the lines at the end of the report. Then render the report by name,
+for example `quarto render analyses/models.qmd`. A full render reuses the
+old stored output, so it does not show the new section.
 
 ## Paper facts in `_supplement.yml`
 

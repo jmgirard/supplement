@@ -30,9 +30,9 @@ The template's example report and each report that `add_report()` writes end wit
 ## Coverage
 
 - AC1 → T1, T2, T3
-- AC2 → T1, T2, T3
+- AC2 → T1, T2, T3, T7
 - AC3 → T2, T4
-- AC4 → T5
+- AC4 → T5, T7
 - AC5 → T5, T6
 
 ## Tasks
@@ -43,6 +43,7 @@ The template's example report and each report that `add_report()` writes end wit
 - [x] T4: Add the same lines to the end of `report_lines()` in `R/add-report.R`. Recheck the tests that compare a whole stub in `tests/testthat/test-add-report.R` and the render tests in `tests/testthat/test-add-render.R`.
 - [x] T5: Add the paragraph and the code to the Reports part of `inst/template/_README.md` (line 19). Add a NEWS.md bullet. Run `devtools::document()` when the `add_report()` help changes.
 - [x] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
+- [ ] T7: Review return 1. Show the home folder as `~` in the section's output, so the page does not publish the account name, and add a test that a render's page holds no home folder path. Then make the fix-now findings in the Review section: `utils::sessionInfo()`, `#| cache: false`, the first sentence, `skip_on_cran()` in the session tests, the branch check and the untouched `R_PROFILE_USER` in the unhidden render, the guide's privacy text and render-by-name step and full snippet, and the section in README.md and DESIGN.md.
 
 ## Work log
 
@@ -68,6 +69,9 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: T6: `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Of four full `devtools::test()` runs, three passed (308 tests, 0 failed, 7 skipped) and one gave 2 failures and 1 error whose messages were not kept. This may be the parked "template test flake" row, but that was not confirmed.
 - 2026-10-21: claim audit: 19 claims read, 2 corrected — inst/template/_README.md (library folders show only with sessioninfo), tests/testthat/helper-template.R (four named references and `&#39;`).
 - 2026-10-21: review return 1: the Computing environment output publishes the author's account name in library, pandoc, and quarto paths under the home folder, which can unblind a double-blind review (diff-bug #1). The fix-now findings in the Review section ride with it.
+- 2026-10-21: minor amendment: added T7 for review return 1 and mapped it to AC2 and AC4.
+- 2026-10-21: T7: the chunk now prints its output with each spelling of `USERPROFILE` and `HOME` replaced by `~`, calls `utils::sessionInfo()`, and sets `cache: false`. `add_report()` reads the section from the installed template's example (`environment_section()`), so the two copies cannot differ. With the old chunk restored from HEAD, the AC1 test failed 1 expectation (a home path on the unhidden page) and the new home-folder test failed 2. Both pass with the new chunk.
+- 2026-10-21: T7: the guide now names the paths the output shows, tells authors to copy the section from `analyses/example.qmd` and render the report by name, and README.md and DESIGN.md mention the section.
 
 ## Decisions
 
