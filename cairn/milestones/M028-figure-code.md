@@ -77,6 +77,7 @@ A new site's first render publishes the example figure, and the example's figure
 - 2026-10-20: T7 done: `NOT_CRAN=true devtools::test()` ran 289 tests, 4365 expectations, 0 failed, 7 skipped; `devtools::document()` gave no diff; `devtools::check()` gave 0 errors, 0 warnings, 0 notes.
 - 2026-10-20: claim audit: 21 claims read, 0 corrected — inst/template/analyses/example.qmd, inst/template/_README.md, NEWS.md, cairn/DESIGN.md, tests/testthat/test-template.R, .github/workflows/R-CMD-check.yaml (the lines T7 added).
 - 2026-10-20: all tasks done; status set to review.
+- 2026-10-20: step-7 approval: m028-figure-code approved for merge
 
 ## Decisions
 
