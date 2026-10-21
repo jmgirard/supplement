@@ -41,9 +41,9 @@
 
 - [x] T1: Probe in a scratch site: how `list.files(recursive = TRUE)` and `git ls-files` list a folder link and a file link in `figures/`; a name with `é` in two Unicode forms on macOS (`core.precomposeunicode`); and whether a render by name copies a figure that is new at the start of the render. Record each result in the work log. The help text and Out follow what the probes show (the derived-claims rule).
 - [x] T2: Add the AC1 to AC4 and AC6 tests. Write fixture bytes with `writeBin()` (LESSONS M011). Run each row case against main and record that each fails there (LESSONS M010). Recheck the tests that match whole row sets in `test-check-supplement.R` and the full-render tests in `test-add-render.R`, which may now give rows.
-- [ ] T3: Write the `ignored-output` check from git's list of ignored files (`git ls-files --others --ignored --exclude-standard`), read in `git_files()` (`R/check-supplement.R:256`), with paths relative to the site. Keep the files in the three folders whose path holds no hidden name and no link, tested with `is_link()`. Add the check to the `skipped` attribute and to the skip message in `report_problems()` (line 205).
-- [ ] T4: Write the `unpublished-figure` check with `tools::md5sum()` (LESSONS M027) and the same link-free walk. Add both calls to `check_supplement()` (line 186).
-- [ ] T5: Add the roxygen items and run `devtools::document()`. Edit the existing NEWS.md bullet for `check_supplement()`. Add two lines to the check list in `inst/template/_README.md`.
+- [x] T3: Write the `ignored-output` check from git's list of ignored files (`git ls-files --others --ignored --exclude-standard`), read in `git_files()` (`R/check-supplement.R:256`), with paths relative to the site. Keep the files in the three folders whose path holds no hidden name and no link, tested with `is_link()`. Add the check to the `skipped` attribute and to the skip message in `report_problems()` (line 205).
+- [x] T4: Write the `unpublished-figure` check with `tools::md5sum()` (LESSONS M027) and the same link-free walk. Add both calls to `check_supplement()` (line 186).
+- [x] T5: Add the roxygen items and run `devtools::document()`. Edit the existing NEWS.md bullet for `check_supplement()`. Add two lines to the check list in `inst/template/_README.md`.
 - [ ] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
@@ -72,6 +72,7 @@
 - 2026-10-20: T4: `check_unpublished_figures()` walks `figures/` with `plain_files()` (no hidden names, no links) and compares `tools::md5sum()` with `docs/figures/`; a `figures` that is a link gives no row. Rows come after the link rows. Planted defects: dropping the link filter fails "an ignored file link in figures gives no ignored-output row", and a walk that enters links fails "a folder link in figures gives no row for the files in its target".
 - 2026-10-20: T5 probe: a render of `index.qmd` by name copied `figures/.hidden.png` to `docs/figures/` (Quarto 1.10.19), the help page's "Quarto copies them too".
 - 2026-10-20: checkpoint: T3 to T5 code, help, NEWS, and README written; the three changed test files pass (97 tests); the full suite is running, so T3 to T5 stay unticked.
+- 2026-10-20: full `devtools::test()` at b3e757f's code: 299 tests, 0 failing, 7 skipped; T3 to T5 ticked.
 
 ## Decisions
 
