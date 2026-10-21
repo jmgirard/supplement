@@ -1,6 +1,6 @@
 # M030: Each report shows the R setup that made its stored output
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -43,7 +43,7 @@ The template's example report and each report that `add_report()` writes end wit
 - [x] T4: Add the same lines to the end of `report_lines()` in `R/add-report.R`. Recheck the tests that compare a whole stub in `tests/testthat/test-add-report.R` and the render tests in `tests/testthat/test-add-render.R`.
 - [x] T5: Add the paragraph and the code to the Reports part of `inst/template/_README.md` (line 19). Add a NEWS.md bullet. Run `devtools::document()` when the `add_report()` help changes.
 - [x] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
-- [ ] T7: Review return 1. Show the home folder as `~` in the section's output, so the page does not publish the account name, and add a test that a render's page holds no home folder path. Then make the fix-now findings in the Review section: `utils::sessionInfo()`, `#| cache: false`, the first sentence, `skip_on_cran()` in the session tests, the branch check and the untouched `R_PROFILE_USER` in the unhidden render, the guide's privacy text and render-by-name step and full snippet, and the section in README.md and DESIGN.md.
+- [x] T7: Review return 1. Show the home folder as `~` in the section's output, so the page does not publish the account name, and add a test that a render's page holds no home folder path. Then make the fix-now findings in the Review section: `utils::sessionInfo()`, `#| cache: false`, the first sentence, `skip_on_cran()` in the session tests, the branch check and the untouched `R_PROFILE_USER` in the unhidden render, the guide's privacy text and render-by-name step and full snippet, and the section in README.md and DESIGN.md.
 
 ## Work log
 
@@ -74,6 +74,7 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: T7: the guide now names the paths the output shows, tells authors to copy the section from `analyses/example.qmd` and render the report by name, and README.md and DESIGN.md mention the section.
 - 2026-10-21: question set (implement stop, dependency change): sessioninfo in Suggests — the user chose to add it. DESCRIPTION lists it, the CI skip list counts `{sessioninfo}` as a missing tool, and D-019 records it. Checks after this change are still to run.
 - 2026-10-21: claim audit: 31 claims read, 1 corrected — cairn/DECISIONS.md D-019 Context (the CI skip-list step runs outside R CMD check and does not fail on a failed test). D-019 was corrected in place before it reached the default branch.
+- 2026-10-21: T7 done: with sessioninfo in Suggests, `devtools::check()` gave 0 errors, 0 warnings, 0 notes. The suite before that change gave 309 tests, 0 failed, 7 skipped.
 
 ## Decisions
 
