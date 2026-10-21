@@ -73,6 +73,7 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: T7: the chunk now prints its output with each spelling of `USERPROFILE` and `HOME` replaced by `~`, calls `utils::sessionInfo()`, and sets `cache: false`. `add_report()` reads the section from the installed template's example (`environment_section()`), so the two copies cannot differ. With the old chunk restored from HEAD, the AC1 test failed 1 expectation (a home path on the unhidden page) and the new home-folder test failed 2. Both pass with the new chunk.
 - 2026-10-21: T7: the guide now names the paths the output shows, tells authors to copy the section from `analyses/example.qmd` and render the report by name, and README.md and DESIGN.md mention the section.
 - 2026-10-21: question set (implement stop, dependency change): sessioninfo in Suggests — the user chose to add it. DESCRIPTION lists it, the CI skip list counts `{sessioninfo}` as a missing tool, and D-019 records it. Checks after this change are still to run.
+- 2026-10-21: claim audit: 31 claims read, 1 corrected — cairn/DECISIONS.md D-019 Context (the CI skip-list step runs outside R CMD check and does not fail on a failed test). D-019 was corrected in place before it reached the default branch.
 
 ## Decisions
 

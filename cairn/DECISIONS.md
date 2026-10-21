@@ -113,6 +113,6 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 
 ### D-019 (2026-10-21): sessioninfo is a suggested dependency (extends D-007)
 
-**Context:** The template's Computing environment section prints `sessioninfo::session_info()` when sessioninfo is installed and `utils::sessionInfo()` otherwise. Two tests use sessioninfo and skip without it. D-007 says that packages the tests use belong in DESCRIPTION. CI runs `R CMD check --as-cran`, which hides packages outside Suggests, so without this entry CI tests only the `sessionInfo()` form.
+**Context:** The template's Computing environment section prints `sessioninfo::session_info()` when sessioninfo is installed and `utils::sessionInfo()` otherwise. Two tests use sessioninfo and skip without it. D-007 says that packages the tests use belong in DESCRIPTION. CI runs `R CMD check --as-cran`, which hides packages outside Suggests, so without this entry the tests inside R CMD check run only the `sessionInfo()` form, and the later CI step that lists skips does not fail on a failed test.
 **Decision:** DESCRIPTION lists sessioninfo under Suggests, and the CI skip list counts a skip for missing sessioninfo as a missing tool. The user granted this at an M030 implement stop.
 **Consequences:** Installing supplement installs nothing new. CI renders and tests both forms of the section. The template's report code still runs without sessioninfo.
