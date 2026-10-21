@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-21 (M028 done and archived; "Fix edge cases of the 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M029 | check_supplement() finds site files that git ignores or a render missed | planned | M028 | normal | milestones/M029-unpublished-files.md |
+| M029 | check_supplement() finds site files that git ignores or a render missed | in-progress | M028 | normal | milestones/M029-unpublished-files.md |
 | M028 | The template saves paper figures safely in more setups | done | — | normal | milestones/archive/M028-figure-code.md |
 | M027 | check_supplement() finds stored output older than its report | done | — | normal | milestones/archive/M027-stale-output.md |
 | M026 | check_supplement() finds code of any engine and more inline shapes | done | — | normal | milestones/archive/M026-inline-shapes.md |

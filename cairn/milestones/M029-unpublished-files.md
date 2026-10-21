@@ -1,13 +1,13 @@
 # M029: check_supplement() finds site files that git ignores or a render missed
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** M028
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — an exported check whose rows stop `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m029-unpublished-files
 
 ## Goal
 
@@ -39,9 +39,9 @@
 
 ## Tasks
 
-- [ ] T1: Probe in a scratch site: how `list.files(recursive = TRUE)` and `git ls-files` list a folder link and a file link in `figures/`; a name with `é` in two Unicode forms on macOS (`core.precomposeunicode`); and whether a render by name copies a figure that is new at the start of the render. Record each result in the work log. The help text and Out follow what the probes show (the derived-claims rule).
+- [x] T1: Probe in a scratch site: how `list.files(recursive = TRUE)` and `git ls-files` list a folder link and a file link in `figures/`; a name with `é` in two Unicode forms on macOS (`core.precomposeunicode`); and whether a render by name copies a figure that is new at the start of the render. Record each result in the work log. The help text and Out follow what the probes show (the derived-claims rule).
 - [ ] T2: Add the AC1 to AC4 and AC6 tests. Write fixture bytes with `writeBin()` (LESSONS M011). Run each row case against main and record that each fails there (LESSONS M010). Recheck the tests that match whole row sets in `test-check-supplement.R` and the full-render tests in `test-add-render.R`, which may now give rows.
-- [ ] T3: Write the `ignored-output` check from the git listing that `git_files()` already reads (`R/check-supplement.R:256`), with paths relative to the site. Walk the three folders without entering links, as `docs_entries()` does (`R/check-supplement.R:561`) with `is_link()`. Add the check to the `skipped` attribute and to the skip message in `report_problems()` (line 205).
+- [ ] T3: Write the `ignored-output` check from git's list of ignored files (`git ls-files --others --ignored --exclude-standard`), read in `git_files()` (`R/check-supplement.R:256`), with paths relative to the site. Keep the files in the three folders whose path holds no hidden name and no link, tested with `is_link()`. Add the check to the `skipped` attribute and to the skip message in `report_problems()` (line 205).
 - [ ] T4: Write the `unpublished-figure` check with `tools::md5sum()` (LESSONS M027) and the same link-free walk. Add both calls to `check_supplement()` (line 186).
 - [ ] T5: Add the roxygen items and run `devtools::document()`. Edit the existing NEWS.md bullet for `check_supplement()`. Add two lines to the check list in `inst/template/_README.md`.
 - [ ] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
@@ -61,6 +61,12 @@
 - 2026-10-20: lessons surfaced: M008 (list folders, not globs), M011 (`writeBin()` fixtures), M010 (prove a test fails on main), M018 and M022 (links and junctions on Windows), M027 (`tools::md5sum()` needs no Imports entry).
 - 2026-10-20: changelog: the existing 0.0.0.9000 bullet for `check_supplement()` gets the change, with no new bullet.
 - 2026-10-20: criteria audit (full mode, fresh Opus reader): 10 findings over M028 and M029, all taken. For M029: AC1 no longer enters links, which `list.files()` follows, states git's view in place of the checker's own listing, and adds cases for `.git/info/exclude`, a site in a subfolder, nested files, and `docs/data/`. AC3 adds nested, file-named-`figures`, and folder-in-`docs/` cases and says hidden files are not compared. AC5 names its claims. The Unicode-form case went to T1 and Out. AC2 and AC4 had no finding.
+- 2026-10-20: started; branch m029-unpublished-files cut from main at fb80252.
+- 2026-10-20: T1 probe (macOS, git 2.54): `list.files(recursive = TRUE)` enters a folder link (`figures/dirlink/t.png`) and lists a file link and a broken link by name; `git ls-files --others` lists each link as one entry and never enters a folder link.
+- 2026-10-20: T1 probe: `git init` on macOS sets `core.precomposeunicode=true`, and git then lists a file stored as NFD `café2.png` in NFC form while `list.files()` gives the NFD bytes, so a set difference of the disk walk and git's list gives a false row. `file.exists()` and `tools::md5sum()` on the NFC path find the NFD file on APFS.
+- 2026-10-20: T1 probe: `git ls-files -z --others --ignored --exclude-standard -- figures docs _freeze` lists each file inside an ignored folder, lists links, hidden files, and folder links as entries, leaves out a tracked file that a rule matches, and prints paths relative to the folder it runs in.
+- 2026-10-20: T1 probe: with Quarto 1.10.19, a render by name of `analyses/example.qmd` or of `index.qmd` copies a figure that is new in `figures/` at the start of the render (`figures/sub/x.png` too); after a full render and after a render by name, `figures/bootstrap-means.png` and its copy in `docs/figures/` have the same MD5.
+- 2026-10-20: minor amendment: T3 reads git's list of ignored files in place of a set difference with a disk walk, because of the Unicode-form probe. With it a name stored as NFD gives no false row, so the help page needs no note on Unicode forms (Out's condition did not fire).
 
 ## Decisions
 
