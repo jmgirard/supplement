@@ -8,9 +8,14 @@ report, and keep one `.qmd` file per report in this folder.
 
 ## Data
 
+Quarto sets `QUARTO_PROJECT_DIR` to the site folder during a render. When
+you run the code by hand from `analyses/`, it is not set, so the site folder
+is `..`.
+
 ```{r}
 #| label: data
-dat <- read.csv(file.path("..", "data", "example.csv"))
+site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
+dat <- read.csv(file.path(site, "data", "example.csv"))
 summary(dat)
 ```
 
@@ -29,14 +34,27 @@ hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
 ## Paper Figures
 
 Save each figure for the paper in `figures/`, which git tracks and the site
-publishes. A report runs from its own folder, so it writes there as
-`file.path("..", "figures", ...)`.
+publishes. `save_png()` draws the plot into a temporary file and copies it
+into `figures/` only when the plot succeeds, so a failed plot leaves no
+partial file there.
 
 ```{r}
 #| label: save-figure
-dir.create(file.path("..", "figures"), showWarnings = FALSE)
-png(file.path("..", "figures", "bootstrap-means.png"),
-    width = 6, height = 4, units = "in", res = 300)
-hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
-invisible(dev.off())
+figures <- file.path(site, "figures")
+if (file.exists(figures) && !dir.exists(figures)) {
+  stop("`figures` is a file, not a folder. Rename it, then render again.")
+}
+dir.create(figures, showWarnings = FALSE)
+save_png <- function(file, plot) {
+  tmp <- tempfile(fileext = ".png")
+  on.exit(unlink(tmp))
+  png(tmp, width = 6, height = 4, units = "in", res = 300)
+  device <- dev.cur()
+  tryCatch(plot, finally = dev.off(device))
+  if (!file.copy(tmp, file.path(figures, file), overwrite = TRUE)) {
+    stop("Could not write ", file, " in ", figures, ".")
+  }
+}
+save_png("bootstrap-means.png",
+         hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score"))
 ```
