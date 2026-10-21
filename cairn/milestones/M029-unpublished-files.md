@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — an exported check whose rows stop `release_supplement()`
-- **Branch/PR:** m029-unpublished-files
+- **Branch/PR:** m029-unpublished-files, https://github.com/jmgirard/supplement/pull/30
 
 ## Goal
 
