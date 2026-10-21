@@ -1,6 +1,6 @@
 # M030: Each report shows the R setup that made its stored output
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -67,6 +67,7 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: the AC1 test hides sessioninfo with `R_PROFILE_USER` naming a profile that defines `requireNamespace()`, and asserts that the hidden render printed "attached base packages" and not "Session info".
 - 2026-10-21: T6: `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Of four full `devtools::test()` runs, three passed (308 tests, 0 failed, 7 skipped) and one gave 2 failures and 1 error whose messages were not kept. This may be the parked "template test flake" row, but that was not confirmed.
 - 2026-10-21: claim audit: 19 claims read, 2 corrected — inst/template/_README.md (library folders show only with sessioninfo), tests/testthat/helper-template.R (four named references and `&#39;`).
+- 2026-10-21: review return 1: the Computing environment output publishes the author's account name in library, pandoc, and quarto paths under the home folder, which can unblind a double-blind review (diff-bug #1). The fix-now findings in the Review section ride with it.
 
 ## Decisions
 
@@ -78,3 +79,32 @@ The template's example report and each report that `add_report()` writes end wit
 - AC4 evidence: `inst/template/_README.md` Reports part, "### Computing environment": it says the section shows the R and package versions of the last render, that a full render reuses `_freeze/` so the page keeps them when `_freeze/` holds the report's output, and it shows the section's code.
 - AC5 evidence (local part): NEWS.md has one new bullet (line 127). `devtools::test()`: 308 tests, 0 failed, 0 errors, 7 skipped (existing Windows and case-sensitive-disk skips). `devtools::check()`: 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR (step 8).
 - Gate: `cairn_validate.py` passed. `devtools::document()` made no diff. No README.Rmd and no `_pkgdown.yml`. No new top-level file. No principle changed.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the page publishes the author's account name in library, pandoc, and quarto paths (`/Users/<name>/…`, `C:/Users/<name>/…`), which can unblind a double-blind review — fix now (floor return 1).
+- diff-bug #2: the guide's privacy sentence leaves out the account name, the pandoc and quarto paths, and the BLAS paths of `sessionInfo()` — fix now.
+- diff-bug #3: the guide's steps for an older report do not say to render it by name, so a full render keeps the old stored output — fix now.
+- diff-bug #4: the unhidden render never checks which branch ran, and in CI both renders take the fallback — fix now (the unhidden render asserts "Session info" when sessioninfo is installed for that R).
+- diff-bug #5: `R_PROFILE_USER = NA` in the unhidden render changes its setup from other render tests — fix now.
+- diff-bug #6: the one failing run of four was not explained — follow-up, noted in the candidate row "template test flake".
+- diff-bug #7: each render by name changes the date and versions in `_freeze/` — reject, planned change: the section exists to record each render.
+- diff-bug #8: the callout's `title` attribute also shows as a browser tooltip — reject, style (Quarto's own markup).
+- diff-bug #9: the code calls bare `sessionInfo()` while AC2 names `utils::sessionInfo()` — fix now.
+- diff-bug #10: sessioninfo lists itself among loaded packages — reject, false as a defect: it was loaded to print the list, and the list is accurate.
+- diff-bug #11: with `cache: true` the chunk would show an old render's versions with no warning — fix now (`#| cache: false` on the chunk).
+- diff-bug #12: "Computing environment" is in sentence case while other headings use title case — reject, planned change: AC1 names this heading.
+- diff-bug #13: the section's first sentence has no main verb — fix now.
+- diff-bug #14: the guide's snippet leaves out the section's paragraph — fix now.
+- diff-bug #15: DESIGN.md does not mention the new section — fix now.
+- diff-bug #16: Windows behavior of `R_HOME/bin/Rscript` through `system2()` is unverified — reject, planned change: the AC5 CI run on Windows is that check.
+- blame-history #1: the published machine data has no recorded decision — fix now, same fix as diff-bug #1.
+- blame-history #2: a test uses sessioninfo (`skip_if_not_installed`) though DESCRIPTION does not list it, against D-007's rule — a dependency change, posed to the user at implement.
+- blame-history #3: AC2 names `utils::sessionInfo()` and the code does not — fix now, same as diff-bug #9.
+- blame-history #4: existing sites do not get the section — reject, planned change (Scope Out).
+- prior-review #1: the two `run_session_code()` tests start Rscript with no `skip_on_cran()`, unlike every other subprocess test — fix now.
+- prior-review #2: the page publishes library folders and the time zone — fix now, same as diff-bug #1.
+- prior-review #3: an empty Rscript output could pass `expect_match()` — reject, false: testthat 3e's `expect_match()` fails on a zero-length value.
+- prior-review #4: some new expectations have no `info =` — reject, style.
+- ripple #1: the guide's steps for an older report do not say to render it by name — fix now, same as diff-bug #3.
+- ripple #2: README.md and the guide's `add_report()` sentences do not mention the section — fix now.
+- ripple #3: DESIGN.md calls the output a "report stub" — fix now with diff-bug #15.
+- ripple #4: DESIGN.md's list of what the example holds leaves out the section — fix now with diff-bug #15.
