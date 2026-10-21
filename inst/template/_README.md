@@ -142,6 +142,8 @@ data frame. It finds:
 - files larger than 100 MiB, which GitHub refuses
 - `.rds`, `.rda`, `.RData`, `.qs`, and `.qs2` files that git tracks or
   does not ignore
+- files in `figures/`, `docs/`, and `_freeze/` that git ignores, which a
+  release leaves out
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
 - reports directly in `analyses/` whose stored output in `_freeze/` was
@@ -153,10 +155,12 @@ data frame. It finds:
 - symbolic links in `docs/` to existing files or folders outside `docs/`,
   and on Windows junctions to folders outside `docs/`
 - pages in `docs/` that cannot be read
+- figures in `figures/` whose copy in `docs/figures/` is missing or
+  differs (render the site again)
 - a DOI in `CITATION.cff` or on the home page's badge that differs from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
 
-The first two checks read the file list from git. When git cannot run or
+The first three checks read the file list from git. When git cannot run or
 this folder is not in a git work tree, the function skips them and says
 so.
 
@@ -186,8 +190,8 @@ Last, it prints the git and GitHub commands that commit the site, tag it,
 push it, and make the GitHub release. It runs none of them. Run them yourself in this folder.
 The printed `git status -- .` shows only files under this folder, and
 `git add -A -- .` and `git commit -m "Release vX.Y.Z" -- .` stage and
-commit only these files. These are the files that the git checks of
-`check_supplement()` read. If this folder
+commit only these files. These are the files that the file size and saved
+object checks of `check_supplement()` read. If this folder
 is a subfolder of its repository, changes outside it stay out of the
 release commit. A file outside this folder that was staged before the
 release stays staged, so a later `git commit` adds it.
@@ -260,7 +264,9 @@ another plain format there, and keep private data out of the folder.
 `.gitignore` blocks `.rds`, `.rda`, `.RData`, `.qs`, and `.qs2` files
 everywhere, in any letter case. Saved R objects such as fitted models can
 embed the data. Such a file in `data/` is copied to `docs/` but
-never committed, so its download link breaks.
+never committed, so its download link breaks. `check_supplement()`
+reports the copy in `docs/data/` as a file that git ignores. Remove the
+file from `data/` and render the whole site again.
 
 ## Stable figures
 

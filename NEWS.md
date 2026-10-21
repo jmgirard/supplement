@@ -35,7 +35,10 @@
   from other text than the report holds now. It also finds stored output
   whose hash cannot be read. A change in a file that the report includes does
   not count. It also finds relative links in `docs/` to files that are not in `docs/`, and
-  pages there that cannot be read. It finds DOIs that differ from
+  pages there that cannot be read. It finds files in `figures/`, `docs/`,
+  and `_freeze/` that git ignores, which a release leaves out. It finds
+  figures in `figures/` whose copy in `docs/figures/` is missing or
+  differs. It finds DOIs that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It returns
   the problems as a data frame.
 * `release_supplement()` prepares a release. An empty `citation` is one

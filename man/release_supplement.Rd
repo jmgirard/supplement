@@ -82,7 +82,7 @@ The printed commands, for version \code{X.Y.Z}, are \verb{git status -- .},
 \verb{gh release create vX.Y.Z --generate-notes}. The \code{-- .} limits the first
 three commands to the site folder: \verb{git status} shows, and \verb{git add} and
 \verb{git commit} stage and commit, only files under the site folder. These
-are the files that the git checks of
+are the files that the \code{"large-file"} and \code{"saved-object"} checks of
 \code{\link[=check_supplement]{check_supplement()}} read, so \verb{docs/}, \verb{_freeze/}, and \verb{figures/} reach
 the release when git does not ignore them, as in the template.
 When the site is a subfolder of its repository, a change outside the

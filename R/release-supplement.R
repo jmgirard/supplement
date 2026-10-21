@@ -64,7 +64,7 @@
 #' `gh release create vX.Y.Z --generate-notes`. The `-- .` limits the first
 #' three commands to the site folder: `git status` shows, and `git add` and
 #' `git commit` stage and commit, only files under the site folder. These
-#' are the files that the git checks of
+#' are the files that the `"large-file"` and `"saved-object"` checks of
 #' [check_supplement()] read, so `docs/`, `_freeze/`, and `figures/` reach
 #' the release when git does not ignore them, as in the template.
 #' When the site is a subfolder of its repository, a change outside the
@@ -479,8 +479,8 @@ write_release_files <- function(read, lines, file, outputs, texts, old, call = p
 release_commands <- function(version) {
   tag <- paste0("v", version)
   c(
-    # `-- .` limits each command to the site folder, the files that
-    # check_supplement() checked, also when the site is a subfolder of its
+    # `-- .` limits each command to the site folder, the files that the
+    # git checks of check_supplement() read, also when the site is a subfolder of its
     # repository and files outside it are changed or staged.
     "git status -- .",
     "git add -A -- .",

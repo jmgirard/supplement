@@ -58,11 +58,15 @@ test_that("a rendered site in a git repository has no problems", {
              file.path(site, "analyses", "new.qmd"))
   write_page(site, "extra.html", '<a href="missing.csv">x</a>')
   writeLines(c("doi: \"10.5281/zenodo.99\""), file.path(site, "CITATION.cff"))
+  writeBin(as.raw(1:4), file.path(site, "figures", "new.png"))
+  dir.create(file.path(site, "docs", "data"), showWarnings = FALSE)
+  writeBin(as.raw(1:4), file.path(site, "docs", "data", "x.rds"))
   result <- check_quiet(site)
   expect_setequal(
     paste(result$check, result$file),
     c("large-file data/big.csv", "saved-object fits-shared/model.qs2", "no-stored-output analyses/new.qmd",
-      "broken-link docs/extra.html", "doi-mismatch CITATION.cff")
+      "broken-link docs/extra.html", "doi-mismatch CITATION.cff", "ignored-output docs/data/x.rds",
+      "unpublished-figure figures/new.png")
   )
 })
 
@@ -171,11 +175,13 @@ test_that("the git checks are skipped when git cannot run", {
       mock(args, dir)
     })
     msgs <- testthat::capture_messages(result <- check_supplement(site))
-    expect_identical(attr(result, "skipped"), c("large-file", "saved-object"), info = case)
-    expect_false(any(result$check %in% c("large-file", "saved-object")), info = case)
+    git_checks <- c("large-file", "saved-object", "ignored-output")
+    expect_identical(attr(result, "skipped"), git_checks, info = case)
+    expect_false(any(result$check %in% git_checks), info = case)
     # cli wraps long lines, so compare with each run of spaces as one.
     shown <- gsub("\\s+", " ", paste(msgs, collapse = " "))
     expect_true(grepl("Skipped", shown, fixed = TRUE) && grepl(case, shown, fixed = TRUE), info = case)
+    for (check in git_checks) expect_match(shown, check, fixed = TRUE, info = case)
     for (args in calls) {
       expect_true(identical(args, "--version") || identical(args, c("rev-parse", "--is-inside-work-tree")),
                   info = case)
@@ -1010,4 +1016,211 @@ test_that("git output in a folder with pattern characters removes only its own f
   expect_match(rawToChar(result$stdout), "^git version")
   expect_false(file.exists(out))
   expect_identical(readLines(file.path(base, "tmpa", "git-out")), "mine")
+})
+
+# Ignored output ----------------------------------------------------------------
+
+# Write a few bytes to each of `files`, paths in `dir`, making folders as
+# needed.
+put_files <- function(dir, files) {
+  for (file in files) {
+    full <- file.path(dir, file)
+    dir.create(dirname(full), showWarnings = FALSE, recursive = TRUE)
+    writeBin(as.raw(c(0x89, 0x50, 0x4e, 0x47)), full)
+  }
+}
+
+# Add a line to an ignore file, with an LF ending on every system.
+add_rule <- function(file, rule) {
+  con <- file(file, "ab")
+  on.exit(close(con))
+  writeBin(charToRaw(paste0(rule, "\n")), con)
+}
+
+ignored_rows <- function(site) sort(rows_of(check_quiet(site), "ignored-output")$file)
+
+test_that("a *.png rule gives an ignored-output row for each PNG in the published folders", {
+  skip_if_no_git()
+  published <- c("figures/a.png", "docs/b.png", "_freeze/c.png", "docs/sub/d.png", "_freeze/sub/e.png")
+  # An ignored PNG outside the three folders, and hidden files, give no row.
+  # The template ignores analyses/*.png and .DS_Store already.
+  others <- c("analyses/f.png", "figures/.DS_Store", "docs/.hidden/g.png", "_freeze/.h.png")
+  # The shipped figure is a PNG in figures/ too.
+  expected <- sort(c(published, "figures/bootstrap-means.png"))
+
+  site <- git_site()
+  put_files(site, c(published, others))
+  expect_identical(ignored_rows(site), character())
+  add_rule(file.path(site, ".gitignore"), "*.png")
+  expect_identical(ignored_rows(site), expected)
+  rows <- rows_of(check_quiet(site), "ignored-output")
+  expect_match(rows$problem, "change the ignore rule", fixed = TRUE)
+  expect_match(rows$problem, "remove its source", fixed = TRUE)
+
+  # The same rule in .git/info/exclude.
+  site <- git_site()
+  put_files(site, c(published, others))
+  dir.create(file.path(site, ".git", "info"), showWarnings = FALSE)
+  add_rule(file.path(site, ".git", "info", "exclude"), "*.png")
+  expect_identical(ignored_rows(site), expected)
+
+  # A site in a subfolder of its repository gives paths that start at the
+  # site.
+  base <- withr::local_tempdir("repo-")
+  site <- file.path(base, "site")
+  suppressMessages(create_supplement(site))
+  file.copy(file.path(site, "_gitignore"), file.path(site, ".gitignore"))
+  expect_status(git_in(base, c("init", "-q")))
+  put_files(site, c(published, others))
+  add_rule(file.path(site, ".gitignore"), "*.png")
+  expect_identical(ignored_rows(site), expected)
+})
+
+test_that("a figures/ rule gives an ignored-output row for each file in figures", {
+  skip_if_no_git()
+  site <- git_site()
+  put_files(site, c("figures/a.png", "figures/sub/b.pdf", "docs/c.png"))
+  add_rule(file.path(site, ".gitignore"), "figures/")
+  expect_identical(ignored_rows(site), c("figures/a.png", "figures/bootstrap-means.png", "figures/sub/b.pdf"))
+})
+
+test_that("a data file that the template ignores gives a row for its copy in docs", {
+  skip_if_no_git()
+  site <- git_site()
+  put_files(site, c("data/x.rds", "docs/data/x.rds"))
+  expect_identical(ignored_rows(site), "docs/data/x.rds")
+  # A file that git tracks and that an ignore rule matches gives no row.
+  expect_status(git_in(site, c("add", "-f", "docs/data/x.rds")))
+  expect_identical(ignored_rows(site), character())
+})
+
+test_that("a folder link in figures gives no row for the files in its target", {
+  skip_if_no_git()
+  site <- git_site()
+  outside <- withr::local_tempdir("outside-")
+  put_files(outside, c("t.png", "sub/u.png"))
+  symlink_or_skip(outside, file.path(site, "figures", "linked"))
+  expect_status(git_in(site, c("add", "figures/linked")))
+  add_rule(file.path(site, ".gitignore"), "*.png")
+  expect_identical(ignored_rows(site), "figures/bootstrap-means.png")
+  # Nor is the target compared with docs/figures/.
+  expect_identical(rows_of(check_quiet(site), "unpublished-figure")$file, "figures/bootstrap-means.png")
+})
+
+test_that("an ignored file link in figures gives no ignored-output row", {
+  skip_if_no_git()
+  site <- git_site()
+  outside <- withr::local_tempdir("outside-")
+  put_files(outside, "t.png")
+  symlink_or_skip(file.path(outside, "t.png"), file.path(site, "figures", "flink.png"))
+  add_rule(file.path(site, ".gitignore"), "*.png")
+  listed <- git_in(site, c("ls-files", "--others", "--ignored", "--exclude-standard", "--", "figures"))
+  expect_true("figures/flink.png" %in% listed$output)
+  expect_identical(ignored_rows(site), "figures/bootstrap-means.png")
+})
+
+# Unpublished figures -----------------------------------------------------------
+
+unpublished_rows <- function(site) sort(rows_of(check_quiet(site), "unpublished-figure")$file)
+
+# Copy figures/ into docs/, as a render does.
+publish_figures <- function(site) {
+  dir.create(file.path(site, "docs"), showWarnings = FALSE)
+  file.copy(file.path(site, "figures"), file.path(site, "docs"), recursive = TRUE)
+}
+
+test_that("a figure with no equal copy in docs/figures gives an unpublished-figure row", {
+  site <- new_site()
+  # A new site has no docs/ folder yet.
+  expect_identical(unpublished_rows(site), "figures/bootstrap-means.png")
+  publish_figures(site)
+  expect_identical(unpublished_rows(site), character())
+
+  # Figures saved after the copy, with hidden files that give no row.
+  put_files(site, c("figures/new.png", "figures/sub/x.png", "figures/.hidden.png", "figures/.dir/y.png"))
+  # New bytes under a published name.
+  shipped <- file.path(site, "figures", "bootstrap-means.png")
+  writeBin(c(readBin(shipped, "raw", file.size(shipped)), as.raw(0)), shipped)
+  # A folder in docs/figures/ where the figure should be.
+  put_files(site, "figures/z.png")
+  dir.create(file.path(site, "docs", "figures", "z.png"))
+  rows <- rows_of(check_quiet(site), "unpublished-figure")
+  expect_identical(sort(rows$file), c("figures/bootstrap-means.png", "figures/new.png", "figures/sub/x.png",
+                                      "figures/z.png"))
+  expect_match(rows$problem, "Render", fixed = TRUE)
+})
+
+test_that("a site with no figures folder, or a file named figures, gives no unpublished-figure row", {
+  site <- new_site()
+  dir.create(file.path(site, "docs"))
+  unlink(file.path(site, "figures"), recursive = TRUE)
+  expect_no_error(rows <- unpublished_rows(site))
+  expect_identical(rows, character())
+  writeBin(charToRaw("not a folder"), file.path(site, "figures"))
+  expect_no_error(rows <- unpublished_rows(site))
+  expect_identical(rows, character())
+})
+
+test_that("a link in docs/figures with the figure's bytes gives an unpublished-figure row", {
+  site <- new_site()
+  publish_figures(site)
+  put_files(site, "figures/x.png")
+  outside <- withr::local_tempdir("outside-")
+  file.copy(file.path(site, "figures", "x.png"), outside)
+  symlink_or_skip(file.path(outside, "x.png"), file.path(site, "docs", "figures", "x.png"))
+  expect_identical(unpublished_rows(site), "figures/x.png")
+})
+
+test_that("rows of the new checks come in byte order, not the locale's order", {
+  site <- new_site()
+  put_files(site, c("figures/a.png", "figures/B.png"))
+  set <- suppressWarnings(Sys.setlocale("LC_COLLATE", "en_US.UTF-8"))
+  skip_if(!nzchar(set), "the en_US.UTF-8 locale is not available")
+  withr::defer(Sys.setlocale("LC_COLLATE", "C"))
+  byte_order <- c("figures/B.png", "figures/a.png", "figures/bootstrap-means.png")
+  # The locale's order differs, so the test can tell the two apart.
+  expect_false(identical(sort(byte_order), byte_order))
+  expect_identical(rows_of(check_quiet(site), "unpublished-figure")$file, byte_order)
+})
+
+# The second git listing, of ignored files, mocked to give names that a
+# disk cannot hold everywhere.
+mock_ignored <- function(names, status = 0L, env = parent.frame()) {
+  local_mocked_bindings(git_run = function(args, dir) {
+    out <- switch(args[1],
+      "--version" = charToRaw("git version 2"),
+      "rev-parse" = charToRaw("true\n"),
+      "ls-files" = if ("--ignored" %in% args) unlist(lapply(names, function(n) c(n, as.raw(0)))) else raw()
+    )
+    list(status = if ("--ignored" %in% args) status else 0L, stdout = out)
+  }, .env = env)
+}
+
+test_that("an ignored name that is not valid UTF-8 gives a row and no warning", {
+  # Windows file names are UTF-16, so git lists no such name there, and
+  # is_reparse_point() stops on one in drop_trailing_sep().
+  skip_on_os("windows")
+  site <- new_site()
+  mock_ignored(list(c(charToRaw("docs/b"), as.raw(0xe9), charToRaw(".png")), charToRaw("docs/ok.png")))
+  expect_no_warning(rows <- ignored_rows(site))
+  expect_identical(rows, c("docs/b<e9>.png", "docs/ok.png"))
+})
+
+test_that("an ignored file under a linked folder gives no row", {
+  site <- new_site()
+  outside <- withr::local_tempdir("outside-")
+  put_files(outside, "t.png")
+  symlink_or_skip(outside, file.path(site, "figures", "linked"))
+  # Such a path comes from a git that enters a junction on Windows.
+  mock_ignored(list(charToRaw("figures/linked/t.png"), charToRaw("docs/ok.png")))
+  expect_identical(ignored_rows(site), "docs/ok.png")
+})
+
+test_that("a failed listing of ignored files skips the three git checks", {
+  site <- new_site()
+  mock_ignored(list(), status = 128L)
+  msgs <- testthat::capture_messages(result <- check_supplement(site))
+  expect_identical(attr(result, "skipped"), c("large-file", "saved-object", "ignored-output"))
+  expect_false(any(result$check %in% c("large-file", "saved-object", "ignored-output")))
+  expect_match(gsub("\\s+", " ", paste(msgs, collapse = " ")), "`git ls-files` failed", fixed = TRUE)
 })
