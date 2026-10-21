@@ -78,6 +78,7 @@
 - 2026-10-20: step-7 approval: m029-unpublished-files approved for merge
 - 2026-10-20: PR #30 opened; the CI wait reached the 590 s ceiling with all 6 R-CMD-check jobs pending, so the watcher was stopped and the run stops for a resume.
 - 2026-10-21: resume: PR #30 open, main unchanged at fb80252; the second CI wait reached the ceiling with macOS and Ubuntu passing (4 jobs) and the 2 Windows jobs pending, so the watcher was stopped again.
+- 2026-10-21: resume: PR #30 CI red on both Windows jobs, 1 test: "an ignored name that is not valid UTF-8 gives a row and no warning" errors in `drop_trailing_sep()` (`sub()` "input string 2 is invalid") through `is_reparse_point()`. Windows file names are UTF-16, so git lists no such name there; the test now skips on Windows with that reason (a test-only fix, so no new approval). macOS and Ubuntu passed.
 
 ## Decisions
 

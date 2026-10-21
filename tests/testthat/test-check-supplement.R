@@ -1197,6 +1197,9 @@ mock_ignored <- function(names, status = 0L, env = parent.frame()) {
 }
 
 test_that("an ignored name that is not valid UTF-8 gives a row and no warning", {
+  # Windows file names are UTF-16, so git lists no such name there, and
+  # is_reparse_point() stops on one in drop_trailing_sep().
+  skip_on_os("windows")
   site <- new_site()
   mock_ignored(list(c(charToRaw("docs/b"), as.raw(0xe9), charToRaw(".png")), charToRaw("docs/ok.png")))
   expect_no_warning(rows <- ignored_rows(site))
