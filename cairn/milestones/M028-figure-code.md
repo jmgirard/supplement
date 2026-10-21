@@ -1,13 +1,13 @@
 # M028: The template saves paper figures safely in more setups
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template that `create_supplement()` copies into each author's site
-- **Branch/PR:** —
+- **Branch/PR:** m028-figure-code
 
 ## Goal
 
@@ -41,7 +41,7 @@ A new site's first render publishes the example figure, and the example's figure
 
 ## Tasks
 
-- [ ] T1: Render the example report in a scratch site and copy its `figures/bootstrap-means.png` to `inst/template/figures/`. Check that `template_files()` (`R/create-supplement.R:131`) lists it and that `R CMD build` keeps it. The README text "the template has no `figures/` folder until a report makes it" (`_README.md:284`) changes in T5.
+- [x] T1: Render the example report in a scratch site and copy its `figures/bootstrap-means.png` to `inst/template/figures/`. Check that `template_files()` (`R/create-supplement.R:131`) lists it and that `R CMD build` keeps it. The README text "the template has no `figures/` folder until a report makes it" (`_README.md:284`) changes in T5.
 - [ ] T2: Rewrite the two chunks of `analyses/example.qmd` (lines 12 and 35). Take the site folder from `Sys.getenv("QUARTO_PROJECT_DIR", "..")`. Stop with the AC4 error when `figures` exists and is not a folder. Write the PNG to a temporary file inside `local()` with `on.exit(dev.off())`, and copy it into `figures/` only after the plot succeeds. Keep the chunk short, because authors copy it.
 - [ ] T3: Add the AC1 to AC4 tests beside the figure test at `tests/testthat/test-template.R:194`, with `skip_if_no_quarto()`. Run each against the template on main and record that each fails there (LESSONS M010). For AC3, take the chunk code with `knitr` (a Suggests package) or a label match, not by line numbers.
 - [ ] T4: Spell the two rules in `inst/template/_gitignore` with bracket patterns, as for `.rds` (LESSONS M003). Extend the tests at `test-template.R:179` and `:251` for AC5, with `-c core.ignorecase=false` on every `check-ignore` (macOS and Windows default to true).
@@ -62,6 +62,7 @@ A new site's first render publishes the example figure, and the example's figure
 - 2026-10-20: lessons surfaced: M017 (resources are listed at the start of a render, so new bytes under an existing name are copied in the same render), M003 (bracket patterns), M010 (prove a test fails on main), M018 (8.3 short names on the Windows runner).
 - 2026-10-20: changelog: the existing 0.0.0.9000 bullet for the template's paper figures gets the change, with no new bullet.
 - 2026-10-20: criteria audit (full mode, fresh Opus reader): 10 findings over M028 and M029, all taken. For M028: AC2 adds the `data` chunk, because its `..` path fails first under `execute-dir: project`, and adds a run with `QUARTO_PROJECT_DIR` not set. AC3 compares all of `figures/`, so a temporary file there cannot pass. AC4 matches a phrase that main does not print. AC5 uses `core.ignorecase=false` and both setup paths. AC6 names its claims in place of a review promise. The `quarto use template` gap went to Out.
+- 2026-10-20: T1: added `inst/template/figures/bootstrap-means.png` (86,686 bytes, from a render by name of the current example on macOS). `template_files()` lists it; `.Rbuildignore` and `.gitattributes` (`text=auto`) leave it as it is.
 
 ## Decisions
 

@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-21 (M027 done and archived; "Find stale stored outp
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M028 | The template saves paper figures safely in more setups | planned | — | normal | milestones/M028-figure-code.md |
+| M028 | The template saves paper figures safely in more setups | in-progress | — | normal | milestones/M028-figure-code.md |
 | M029 | check_supplement() finds site files that git ignores or a render missed | planned | M028 | normal | milestones/M029-unpublished-files.md |
 | M027 | check_supplement() finds stored output older than its report | done | — | normal | milestones/archive/M027-stale-output.md |
 | M026 | check_supplement() finds code of any engine and more inline shapes | done | — | normal | milestones/archive/M026-inline-shapes.md |
