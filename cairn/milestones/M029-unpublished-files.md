@@ -73,6 +73,7 @@
 - 2026-10-20: T5 probe: a render of `index.qmd` by name copied `figures/.hidden.png` to `docs/figures/` (Quarto 1.10.19), the help page's "Quarto copies them too".
 - 2026-10-20: checkpoint: T3 to T5 code, help, NEWS, and README written; the three changed test files pass (97 tests); the full suite is running, so T3 to T5 stay unticked.
 - 2026-10-20: full `devtools::test()` at b3e757f's code: 299 tests, 0 failing, 7 skipped; T3 to T5 ticked.
+- 2026-10-20: claim audit: 38 claims read, 2 corrected — R/check-supplement.R, man/check_supplement.Rd (the `docs/data/` copy holds only for a rule with no `/`; the Unicode comment now names core.precomposeUnicode). The same reader re-read both corrections and found they hold.
 
 ## Decisions
 

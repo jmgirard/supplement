@@ -20,8 +20,9 @@
 #'   `.`. The file gets a row when git neither tracks it nor lists it as
 #'   untracked, because its ignore rules exclude it, such as a rule in
 #'   `.gitignore` or `.git/info/exclude`. A file that git tracks gives no
-#'   row, also when a rule matches it. A data file that `.gitignore` blocks
-#'   also gets a row for its copy in `docs/data/`.
+#'   row, also when a rule matches it. A data file that a rule with no `/`
+#'   blocks, such as the template's rule for `.rds` files, also gets a row
+#'   for its copy in `docs/data/`.
 #' * `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
 #'   a folder inside it, with code and no stored output in `_freeze/`. A
 #'   full render then runs its code, which needs the data. A report has
@@ -300,8 +301,9 @@ git_files <- function(path) {
   # The files that git neither tracks nor lists as untracked, because its
   # ignore rules exclude them. git lists each file in an ignored folder, and
   # lists a link as one entry without entering it. Read from git, and not
-  # from a walk of the disk, because git on macOS lists a name stored in
-  # decomposed Unicode form in its composed form.
+  # from a walk of the disk, because git on macOS, with the
+  # core.precomposeUnicode setting that `git init` turns on there, lists a
+  # name stored in decomposed Unicode form in its composed form.
   ignored <- git_run(c("ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--",
                        published_folders), path)
   if (!identical(ignored$status, 0L)) {
