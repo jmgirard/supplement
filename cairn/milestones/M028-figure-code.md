@@ -1,6 +1,6 @@
 # M028: The template saves paper figures safely in more setups
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -47,7 +47,7 @@ A new site's first render publishes the example figure, and the example's figure
 - [x] T4: Spell the two rules in `inst/template/_gitignore` with bracket patterns, as for `.rds` (LESSONS M003). Extend the tests at `test-template.R:179` and `:251` for AC5, with `-c core.ignorecase=false` on every `check-ignore` (macOS and Windows default to true).
 - [x] T5: Edit the "Paper figures" section of `inst/template/_README.md` (lines 272 to 301) and the NEWS.md template bullet. Each statement comes from a T3 or T4 test run in this branch (the derived-claims rule).
 - [x] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
-- [ ] T7: Review return 1. Build both AC5 sites with `create_supplement()`, one with `git init` after the first render and one before it. Apply the fix-now items of the Review section: `save_png(file, draw, dir = figures)` calls `draw()`, writes a hidden temporary file in `figures/`, renames it into place, stops on a folder at the target, and restores the earlier device; the `save-figure` chunk defines `site` itself; `skip_on_cran()` and the CI `missing_tool` reason for the png tests; DESIGN.md:163-165; NEWS wording and width.
+- [x] T7: Review return 1. Build both AC5 sites with `create_supplement()`, one with `git init` after the first render and one before it. Apply the fix-now items of the Review section: `save_png(file, draw, dir = figures)` calls `draw()`, writes a hidden temporary file in `figures/`, renames it into place, stops on a folder at the target, and restores the earlier device; the `save-figure` chunk defines `site` itself; `skip_on_cran()` and the CI `missing_tool` reason for the png tests; DESIGN.md:163-165; NEWS wording and width.
 
 ## Work log
 
@@ -74,6 +74,9 @@ A new site's first render publishes the example figure, and the example's figure
 - 2026-10-20: review return 1: AC5 — the tests at `test-template.R:179` and `:344` build their sites with `quarto use template`, not with `create_supplement()` as AC5 states (diff-bug #4). The same round carries the fix-now items listed in the Review section.
 - 2026-10-20: minor amendment: added T7 for review return 1 and mapped AC3 and AC5 to it; unticked AC5, whose evidence came from the wrong setup. Two follow-up rows added: "Make report paths work from any folder" and "Stop the example at a linked figures".
 - 2026-10-20: T7 checkpoint: `save_png(file, draw, dir = figures)` renames a hidden temporary file in `figures/` into place, stops on a folder at the target, and restores the earlier device; the `save-figure` chunk defines `site`; new test "the figure rules hold in sites made by create_supplement()"; `skip_on_cran()` on the two png tests and "R has no png device" in the CI list; DESIGN.md, README, and NEWS updated. A probe drew a ggplot through `function() print(p)`. All 24 tests in `test-template.R` pass; with main's `example.qmd` the execute-dir, failed-plot, and `figures`-file tests fail, and with main's `_gitignore` the new AC5 test fails. Full suite and `R CMD check` still running.
+- 2026-10-20: T7 done: `NOT_CRAN=true devtools::test()` ran 289 tests, 4365 expectations, 0 failed, 7 skipped; `devtools::document()` gave no diff; `devtools::check()` gave 0 errors, 0 warnings, 0 notes.
+- 2026-10-20: claim audit: 21 claims read, 0 corrected — inst/template/analyses/example.qmd, inst/template/_README.md, NEWS.md, cairn/DESIGN.md, tests/testthat/test-template.R, .github/workflows/R-CMD-check.yaml (the lines T7 added).
+- 2026-10-20: all tasks done; status set to review.
 
 ## Decisions
 
