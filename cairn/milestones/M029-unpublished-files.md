@@ -75,6 +75,7 @@
 - 2026-10-20: full `devtools::test()` at b3e757f's code: 299 tests, 0 failing, 7 skipped; T3 to T5 ticked.
 - 2026-10-20: claim audit: 38 claims read, 2 corrected — R/check-supplement.R, man/check_supplement.Rd (the `docs/data/` copy holds only for a rule with no `/`; the Unicode comment now names core.precomposeUnicode). The same reader re-read both corrections and found they hold.
 - 2026-10-20: T6: `devtools::check()` at b3e757f's code (before the claim-audit wording fix, which changed only help text and a comment): 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR. Status set to review.
+- 2026-10-20: step-7 approval: m029-unpublished-files approved for merge
 
 ## Decisions
 
