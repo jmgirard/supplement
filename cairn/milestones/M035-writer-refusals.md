@@ -1,6 +1,6 @@
 # M035: The writers refuse links and repeated lockfile keys
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -24,7 +24,7 @@
 - [x] AC1: On macOS and Linux, with a `_supplement.yml` that the writer accepts, `write_citation()` and `write_zenodo()` stop with `supplement_error_file_exists` for a symbolic link at the output path, with `overwrite = TRUE` and with `overwrite = FALSE`. After the call the site folder's files are the same, a link target that exists has the same bytes, and a missing target still does not exist. A test in `tests/testthat/test-write-metadata-errors.R` runs both writers, both `overwrite` values, and four link shapes: an absolute link to a file outside the site, an absolute link to a folder, an absolute link to a missing target, and a relative link to a file inside the site (`README.md`). The test skips on Windows.
 - [x] AC2: On macOS and Linux, for a link at an output path, the three writers give a message that says the path is a link and tells the author to remove it, with either `overwrite` value, and the message does not suggest `overwrite = TRUE`. This holds for `write_dockerfile()` also when the link is at `.dockerignore` and a plain `Dockerfile` exists with `overwrite = FALSE`. The AC1 test and the `write_dockerfile()` link test in `tests/testthat/test-write-dockerfile.R` assert this text for each writer, and the second test has a case for that `Dockerfile` setup.
 - [x] AC3: On macOS and Linux, `write_dockerfile()` refuses a link at `Dockerfile` or `.dockerignore` with `supplement_error_file_exists`, for both `overwrite` values and the three link shapes of its existing link test, and leaves the site folder unchanged. The existing test keeps its inputs.
-- [x] AC4: `write_dockerfile()` stops with `supplement_error_lockfile`, writes nothing, and names the repeated key in its message when `renv.lock` holds one of these keys twice in the same object: `R` or `Packages` at the top level, `Version` in `R`, `renv` in `Packages`, or `Version` in `Packages.renv`. The repeated-key error comes before every check of a value. A test in `tests/testthat/test-write-dockerfile.R` runs one lockfile per key with two different values, one that repeats `R` with the same value twice, and one that repeats `Packages.renv.Version` while `R.Version` is `"3.6.0"`. A lockfile that repeats a key the function does not read (a second `cli` entry under `Packages`) still gives a `Dockerfile`, in the same test.
+- [ ] AC4: `write_dockerfile()` stops with `supplement_error_lockfile`, writes nothing, and names the repeated key in its message when `renv.lock` holds one of these keys twice in the same object: `R` or `Packages` at the top level, `Version` in `R`, `renv` in `Packages`, or `Version` in `Packages.renv`. The repeated-key error comes before every check of a value. A test in `tests/testthat/test-write-dockerfile.R` runs one lockfile per key with two different values, one that repeats `R` with the same value twice, and one that repeats `Packages.renv.Version` while `R.Version` is `"3.6.0"`. A lockfile that repeats a key the function does not read (a second `cli` entry under `Packages`) still gives a `Dockerfile`, in the same test.
 - [x] AC5: The Errors section of `?write_citation` (which `?write_zenodo` inherits) says that a link at the output path is `supplement_error_file_exists` whatever `overwrite` is, except a file link to a missing file on Windows. The Errors section of `?write_dockerfile` says the same for its two targets and lists a repeated key among the `supplement_error_lockfile` cases. In `NEWS.md`, the bullet that starts "`write_citation()` and `write_zenodo()` write" states the link rule, and the bullet that starts "`write_dockerfile()` reads" states the repeated-key rule.
 
 ## Coverage
@@ -61,6 +61,7 @@
 - 2026-10-22: checkpoint (T3 not checked off): Errors sections, help pages, two NEWS bullets, and DESIGN Architecture and Known issue updated; the Windows sentence says a missing-target file link is written through only with `overwrite = TRUE`, since with `FALSE` it reads as an existing file (the `is_reparse_point()` comment). `devtools::check()` running.
 - 2026-10-22: claim audit: 22 claims read, 1 corrected — NEWS.md (the writers' link bullet gained the Windows exception); also fixed a spacing slip at `R/write-dockerfile.R:233`.
 - 2026-10-22: T3 done: `devtools::document()` wrote the three Rd files; `devtools::check()` 0 errors, 0 warnings, 0 notes (built from 43e50d7; the later commit changed one space in R code and one NEWS sentence, and the dockerfile tests pass after it). Status set to review.
+- 2026-10-22: review return 1: AC4 fails as written — the repeated `cli` case is its own `test_that()`, not in the same test as the refused lockfiles (diff-bug #1). The fix-now findings ride with it: drop the weaker `file.exists()` checks (diff-bug #6, #7), share `expect_link_message()` through a helper file (diff-bug #9), fix the folder reason in the Errors text (blame-history #4), add the Windows caveat to `check_overwrite()`'s comment (prior-review #1), and fix `cairn/DESIGN.md:235` (diff-bug #11) and the NEWS referent (diff-bug #12). Status back to in-progress.
 
 ## Decisions
 
@@ -74,3 +75,31 @@ Review pass 1, 2026-10-22, at 8db7885 (main not moved since the cut).
 - AC4 evidence: `test-write-dockerfile.R` "a lockfile that repeats a key it reads is refused before its values" ran 21 expectations (7 lockfiles × 3: class, unchanged folder, message names the key), 0 failed, including `R` twice with one value and `Packages.renv.Version` twice with R 3.6.0; "a lockfile that repeats a key it does not read is written" ran 2, 0 failed.
 - gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; no README.Rmd and no `_pkgdown.yml`; NEWS entry present; no new top-level files; no principle changed, so `cairn_impact` skipped. `devtools::check()` at 8db7885 running.
 - AC5 evidence: `man/write_citation.Rd:89-92` and `man/write_zenodo.Rd:89-92` state the link rule with the Windows exception; `man/write_dockerfile.Rd:132-134` lists the repeated keys under `supplement_error_lockfile` and line 138 the Windows exception; `NEWS.md:82-86` (bullet "`write_citation()` and `write_zenodo()` write") states the link rule, and `NEWS.md:33-34` (bullet "`write_dockerfile()` reads") the repeated-key rule.
+- gate: `devtools::check()` at 8db7885: 0 errors, 0 warnings, 0 notes.
+- AC4 tick withdrawn: its evidence line missed that the `cli` case is not in the same test as the criterion says (diff-bug #1).
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: AC4 says the repeated `cli` case is "in the same test", but it is its own `test_that()` (`test-write-dockerfile.R:190`) — fix now; AC4 fails as written, so review return 1.
+- diff-bug #2: a folder at `.dockerignore` behind a plain `Dockerfile` with `overwrite = FALSE` now says ".dockerignore is a folder" where main said "Dockerfile already exists" — reject (planned change: Scope In orders link, then folder, then existing file).
+- diff-bug #3: the link hint says "run this function again" in place of naming `write_dockerfile()`, and differs from the release's link hint — reject (style).
+- diff-bug #4: only the first link, folder, or existing file is named, so two broken targets take two runs — reject (edge: two broken targets at once is outside documented and common use; the effect is a second error).
+- diff-bug #5: no Windows test of the new behavior; the link tests skip Windows — follow-up, new candidate row "Test the link refusals on Windows".
+- diff-bug #6: `expect_false(file.exists(outside/missing))` is a weaker check after `folder_md5(outside)` (`test-write-metadata-errors.R:398`) — fix now.
+- diff-bug #7: `expect_true(file.exists(Dockerfile))` is covered by the `read_text()` match after it (`test-write-dockerfile.R:196`) — fix now.
+- diff-bug #8: "R, the same value twice" runs the same path as "R" — reject (planned change: AC4 names the case).
+- diff-bug #9: the 16 link cases run one `is_link()` branch, and the message checks are inline rather than through `expect_link_message()` — the case count is rejected (planned change: AC1 names the shapes); the helper reuse is fix now (move it to a helper file).
+- diff-bug #10: the comment "The link at .dockerignore comes before the plain Dockerfile" restates the setup — reject (false: it states the order the case tests, which the setup does not show).
+- diff-bug #11: `cairn/DESIGN.md:235` credits the Windows `is_link()` gap for `write_dockerfile()` to M035, though M032 had it — fix now.
+- diff-bug #12: "or its `Version`" in `NEWS.md:33-35` has an unclear referent, and the bullet leaves a short line — fix now.
+- diff-bug #13: a long line at `R/write-dockerfile.R:226` — reject (style).
+- blame-history #1: the citation writers now refuse a link with `overwrite = TRUE`, reversing M005's write-through — reject (planned change, chosen at the question set; the package is unreleased).
+- blame-history #2: on Windows a file link to a missing file still says "Use overwrite = TRUE", and with TRUE writes through it; predates the branch — follow-up, same new row "Test the link refusals on Windows".
+- blame-history #3: the `write_dockerfile()` hint lost its function name — reject (style; same as diff-bug #3).
+- blame-history #4: "A folder or a link ... because a write would follow the link" gives a reason that fits only links (`R/write-citation.R:76-78`, and the same sentence in `R/write-dockerfile.R`) — fix now.
+- blame-history #5: links at both targets are checked before folders and files, and a folder link now says "is a link" — reject (planned change, tested).
+- prior-review #1: `check_overwrite()`'s comment says a link is refused whatever `overwrite` is, with no Windows caveat, while the help pages carry one (`R/supplement-yml.R:276`) — fix now.
+- prior-review #2: the link tests skip Windows, though M022 practice makes folder links there with `Sys.junction()` — follow-up, same new row.
+- ripple #1: `cairn/ROADMAP.md:39` still says the citation writers write through a link — reject (planned change: the row graduates at post-merge hygiene).
+- ripple #2: `cairn/ROADMAP.md:40` still says `write_dockerfile()` takes the first repeated key — reject (planned change: the row graduates at post-merge hygiene).
+- ripple #3: `inst/template/_README.md:159` says to use `overwrite = TRUE` to write the citation files again — reject (false: that holds for a regular file, and a link now gets a message saying to remove it).
+- ripple #4: `inst/template/_README.md:400` and `:416` say to use `overwrite = TRUE` to replace the recipe — reject (false, as ripple #3).
+- ripple #5: `inst/template/_README.md:362` lists the lockfile's version needs and not the repeated-key refusal — reject (false: no line disagrees; the help page lists every error).
