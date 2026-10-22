@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template's example report and the report stub that `add_report()` writes
-- **Branch/PR:** m030-session-record
+- **Branch/PR:** m030-session-record, https://github.com/jmgirard/supplement/pull/31
 
 ## Goal
 
