@@ -114,11 +114,15 @@
 #'   whole numbers joined by `.`. A development version such as
 #'   `1.1.5.9000` is such an error, because the build installs released
 #'   versions. An R version older than 4.0.0 or a renv version older than
-#'   1.3.1 is also this error.
+#'   1.3.1 is also this error. So is a key that the function reads, given
+#'   twice in the same object: `R` or `Packages` at the top level,
+#'   `Version` in `R`, `renv` in `Packages`, or `Version` in that `renv`
+#'   entry. This check comes before the version checks.
 #' * `supplement_error_file_exists`: `Dockerfile` or `.dockerignore`
-#'   exists and `overwrite` is `FALSE`. A folder or a link at either path is
-#'   this error even when `overwrite` is `TRUE`, because a write would
-#'   follow the link.
+#'   exists and `overwrite` is `FALSE`. A folder at either path is this
+#'   error even when `overwrite` is `TRUE`. So is a link, because a write
+#'   would follow it. On Windows a file link to a missing file is not seen
+#'   as a link, so with `overwrite = TRUE` it is written through.
 #' * `supplement_error_write`: a file was opened, but writing it gave an
 #'   error or a warning, or the file then has another size than the text.
 #'
@@ -158,16 +162,7 @@ write_dockerfile <- function(path = ".", quarto, digest = NULL, overwrite = FALS
 
   dockerfile <- file.path(path, "Dockerfile")
   dockerignore <- file.path(path, ".dockerignore")
-  for (file in c(dockerfile, dockerignore)) {
-    if (is_link(file)) {
-      cli::cli_abort(
-        c("{.path {file}} is a link, so the file is not written there.",
-          "i" = "Remove the link, then run {.fn write_dockerfile} again."),
-        class = c("supplement_error_file_exists", "supplement_error")
-      )
-    }
-    check_overwrite(file, overwrite)
-  }
+  check_overwrite(c(dockerfile, dockerignore), overwrite, "write_dockerfile")
 
   # .dockerignore first, so a Dockerfile never stands without it.
   write_utf8(c("*", "!renv.lock"), dockerignore)
@@ -218,6 +213,23 @@ read_lockfile_versions <- function(path, call = parent.frame()) {
   if (!is_map(lock)) {
     lockfile_error("is not a JSON object.")
   }
+  # jsonlite keeps both copies of a repeated key, and `[[` takes the
+  # first, while renv may read another. So each key read here must appear
+  # once in its object, checked before any value.
+  repeated <- function(map, key) is_map(map) && sum(names(map) == key) > 1
+  packages <- lock[["Packages"]]
+  keys <- list(
+    "R" = repeated(lock, "R"),
+    "Packages" = repeated(lock, "Packages"),
+    "R.Version" = repeated(lock[["R"]], "Version"),
+    "Packages.renv" = repeated(packages, "renv"),
+    "Packages.renv.Version" = is_map(packages) && repeated(packages[["renv"]], "Version")
+  )
+  for (key in names(keys)) {
+    if (keys[[key]]) {
+      lockfile_error("has the key {.field {key}} more than once.")
+    }
+  }
   r <- if (is_map(lock[["R"]])) lock[["R"]][["Version"]]
   if (!is_version_string(r)) {
     lockfile_error("has no R version of three whole numbers in {.field R.Version}.")
@@ -229,7 +241,6 @@ read_lockfile_versions <- function(path, call = parent.frame()) {
       "Rocker images for older R lack the scripts that the build runs."
     )
   }
-  packages <- lock[["Packages"]]
   renv <- if (is_map(packages) && is_map(packages[["renv"]])) packages[["renv"]][["Version"]]
   if (!is_version_string(renv)) {
     lockfile_error(

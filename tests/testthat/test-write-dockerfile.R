@@ -18,11 +18,12 @@ lock_site <- function(text = lock_json(), env = parent.frame()) {
 read_bytes <- function(path) readBin(path, "raw", file.size(path))
 
 # Expect write_dockerfile(...) to stop with `class` and to leave `dir`
-# as it was.
+# as it was. Returns the error.
 expect_refused <- function(dir, class, ..., info = NULL) {
   before <- folder_md5(dir)
-  expect_error(write_dockerfile(...), class = class, info = info)
+  err <- expect_error(write_dockerfile(...), class = class, info = info)
   expect_identical(folder_md5(dir), before, info = info)
+  invisible(err)
 }
 
 dockerfile_461 <- paste0(paste(c(
@@ -152,6 +153,39 @@ test_that("a lockfile R older than 4.0.0 or renv older than 1.3.1 is refused", {
   expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
 })
 
+test_that("a lockfile that repeats a key it reads is refused before its values, and one it does not read is not", {
+  packages <- function(renv_version) {
+    sprintf('{"knitr": {"Package": "knitr", "Version": "1.52"}, "renv": {"Package": "renv", "Version": "%s"}}',
+            renv_version)
+  }
+  renv_twice <- '{"Package": "renv", "Version": "1.3.1"},\n    "renv": {"Package": "renv", "Version": "1.3.2"}'
+  version_twice <- '{"Package": "renv", "Version": "1.3.1", "Version": "1.3.2"}'
+  texts <- list(
+    "R" = sprintf('{"R": {"Version": "4.6.1"}, "R": {"Version": "4.5.0"}, "Packages": %s}', packages("1.3.1")),
+    "R, the same value twice" = sprintf('{"R": {"Version": "4.6.1"}, "R": {"Version": "4.6.1"}, "Packages": %s}',
+                                        packages("1.3.1")),
+    "Packages" = sprintf('{"R": {"Version": "4.6.1"}, "Packages": %s, "Packages": %s}',
+                         packages("1.3.1"), packages("1.3.2")),
+    "R.Version" = lock_json(r = '{"Version": "4.6.1", "Version": "4.5.0"}'),
+    "Packages.renv" = lock_json(renv = renv_twice),
+    "Packages.renv.Version" = lock_json(renv = version_twice),
+    "Packages.renv.Version, with R 3.6.0" = lock_json(r = '{"Version": "3.6.0"}', renv = version_twice)
+  )
+  for (name in names(texts)) {
+    key <- sub(",.*", "", name)
+    site <- lock_site(texts[[name]])
+    err <- expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19", info = name)
+    expect_match(conditionMessage(err), paste0(key, "\\W+more\\s+than\\s+once"), info = name)
+  }
+
+  cli_twice <- paste0('{"Package": "renv", "Version": "1.3.1"},\n',
+                      '    "cli": {"Package": "cli", "Version": "3.6.4"},\n',
+                      '    "cli": {"Package": "cli", "Version": "3.6.5"}')
+  site <- lock_site(lock_json(renv = cli_twice))
+  write_dockerfile(site, quarto = "1.10.19")
+  expect_match(read_text(file.path(site, "Dockerfile")), "FROM rocker/r-ver:4.6.1\n", fixed = TRUE)
+})
+
 test_that("errors name write_dockerfile() as the call", {
   site <- lock_site()
   calls <- list(
@@ -269,9 +303,19 @@ test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
       for (shape in names(targets)) {
         site <- lock_site()
         skip_if_not(file.symlink(targets[[shape]], file.path(site, file)), "cannot make a symbolic link here")
-        expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19",
-                       overwrite = overwrite, info = paste(file, overwrite, shape))
+        info <- paste(file, overwrite, shape)
+        err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19",
+                              overwrite = overwrite, info = info)
+        expect_link_message(err, "write_dockerfile", info = info)
       }
     }
   }
+  # Links at both targets are checked before any existing file.
+  site <- lock_site()
+  writeBin(charToRaw("old\n"), file.path(site, "Dockerfile"))
+  skip_if_not(file.symlink(targets[["a link to a file"]], file.path(site, ".dockerignore")),
+              "cannot make a symbolic link here")
+  err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19")
+  expect_link_message(err, "write_dockerfile")
+  expect_match(conditionMessage(err), ".dockerignore", fixed = TRUE)
 })

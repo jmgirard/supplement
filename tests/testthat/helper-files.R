@@ -18,6 +18,15 @@ folder_state <- function(dir) {
   })
 }
 
+# Expect `err` to say that a path is a link and to run `fn` again, and
+# not to suggest `overwrite = TRUE`.
+expect_link_message <- function(err, fn, info = NULL) {
+  expect_match(conditionMessage(err), "is\\s+a\\s+link", info = info)
+  expect_match(conditionMessage(err), paste0("Remove\\s+the\\s+link,\\s+then\\s+run\\s+`", fn, "\\(\\)`\\s+again"),
+               info = info)
+  expect_no_match(conditionMessage(err), "overwrite", fixed = TRUE, info = info)
+}
+
 # Check that `after` is `before` with one run of lines added, and return
 # the added lines.
 added_lines <- function(before, after) {

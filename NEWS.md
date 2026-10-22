@@ -30,9 +30,10 @@
 * `write_dockerfile()` reads the R and renv versions in `renv.lock` and
   writes a `Dockerfile` that builds an image with that R, the packages in
   `renv.lock`, and a given Quarto version. `renv.lock` must record R 4.0.0
-  or later and renv 1.3.1 or later. It also writes a `.dockerignore` that
-  lets only `renv.lock` of the site's files into the image. `digest` pins
-  the base image.
+  or later and renv 1.3.1 or later. It must not give `R`, `Packages`,
+  `R.Version`, `Packages.renv`, or `Packages.renv.Version` twice in one
+  object. It also writes a `.dockerignore` that lets only `renv.lock` of
+  the site's files into the image. `digest` pins the base image.
   The template guide shows how to build the image and render a report in
   it.
 * `check_supplement()` lists the problems in a site before a release, and
@@ -78,7 +79,10 @@
   their old text back. The commands are printed after the files are
   written, so an error while printing keeps the files.
 * `write_citation()` and `write_zenodo()` write `CITATION.cff` and
-  `.zenodo.json` from `_supplement.yml`.
+  `.zenodo.json` from `_supplement.yml`. Like `write_dockerfile()`, they
+  refuse a link at the output path even with `overwrite = TRUE`, because
+  a write follows the link. On Windows a file link to a missing file is
+  not seen as a link.
 * The template's page footer shows the licenses in `license.code` and
   `license.content` of `_supplement.yml`, in place of a fixed MIT and
   CC BY 4.0. A new `supplement-license` shortcode shows a readable name

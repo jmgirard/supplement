@@ -128,11 +128,15 @@ under \code{Packages}, or one of the two versions is not one string of three
 whole numbers joined by \code{.}. A development version such as
 \verb{1.1.5.9000} is such an error, because the build installs released
 versions. An R version older than 4.0.0 or a renv version older than
-1.3.1 is also this error.
+1.3.1 is also this error. So is a key that the function reads, given
+twice in the same object: \code{R} or \code{Packages} at the top level,
+\code{Version} in \code{R}, \code{renv} in \code{Packages}, or \code{Version} in that \code{renv}
+entry. This check comes before the version checks.
 \item \code{supplement_error_file_exists}: \code{Dockerfile} or \code{.dockerignore}
-exists and \code{overwrite} is \code{FALSE}. A folder or a link at either path is
-this error even when \code{overwrite} is \code{TRUE}, because a write would
-follow the link.
+exists and \code{overwrite} is \code{FALSE}. A folder at either path is this
+error even when \code{overwrite} is \code{TRUE}. So is a link, because a write
+would follow it. On Windows a file link to a missing file is not seen
+as a link, so with \code{overwrite = TRUE} it is written through.
 \item \code{supplement_error_write}: a file was opened, but writing it gave an
 error or a warning, or the file then has another size than the text.
 }

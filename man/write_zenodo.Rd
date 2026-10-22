@@ -85,9 +85,11 @@ of authors.
 \verb{http://orcid.org/} in front,
 or its last character is not the iD's check digit. The last character
 can be \code{X}.
-\item \code{supplement_error_file_exists}: the output file (or a link with its
-name) exists and \code{overwrite} is \code{FALSE}, or a folder has the output
-file's name.
+\item \code{supplement_error_file_exists}: the output file exists and
+\code{overwrite} is \code{FALSE}. A folder at the output path is this error
+even when \code{overwrite} is \code{TRUE}. So is a link, because a write would
+follow it. On Windows a file link to a missing file is not seen as a
+link, so with \code{overwrite = TRUE} it is written through.
 \item \code{supplement_error_write}: the output file was opened, but writing it
 gave an error or a warning (R warns when the disk is full), or the
 file then has another size than the text.

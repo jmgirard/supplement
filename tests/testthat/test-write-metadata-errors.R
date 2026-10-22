@@ -369,15 +369,33 @@ test_that("a folder with the output file's name is refused", {
   }
 })
 
-test_that("a dangling link with the output file's name is kept", {
+test_that("a link at the output path is refused, with overwrite TRUE and FALSE", {
   skip_on_os("windows")
-  dir <- local_site(full_supplement())
-  target <- file.path(dir, "missing-target")
+  outside <- withr::local_tempdir("outside-")
+  writeBin(charToRaw("target\n"), file.path(outside, "target.txt"))
+  targets <- c(
+    "a link to a file" = file.path(outside, "target.txt"),
+    "a link to a folder" = outside,
+    "a broken link" = file.path(outside, "missing"),
+    "a relative link inside the site" = "README.md"
+  )
   for (file in names(writers)) {
-    link <- file.path(dir, file)
-    file.symlink(target, link)
-    expect_error(writers[[file]](dir), class = "supplement_error_file_exists")
-    expect_false(file.exists(target))
+    for (overwrite in c(FALSE, TRUE)) {
+      for (shape in names(targets)) {
+        info <- paste(file, overwrite, shape)
+        dir <- local_site(full_supplement())
+        writeBin(charToRaw("readme\n"), file.path(dir, "README.md"))
+        skip_if_not(file.symlink(targets[[shape]], file.path(dir, file)), "cannot make a symbolic link here")
+        before <- folder_md5(dir)
+        outside_before <- folder_md5(outside)
+        err <- expect_error(writers[[file]](dir, overwrite = overwrite),
+                            class = "supplement_error_file_exists", info = info)
+        fn <- if (file == "CITATION.cff") "write_citation" else "write_zenodo"
+        expect_link_message(err, fn, info = info)
+        expect_identical(folder_md5(dir), before, info = info)
+        expect_identical(folder_md5(outside), outside_before, info = info)
+      }
+    }
   }
 })
 
