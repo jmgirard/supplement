@@ -283,6 +283,39 @@ test_that("the example report saves its figure in the site with either execute-d
   }
 })
 
+test_that("a report from add_report() reads data through its site chunk with either execute-dir", {
+  skip_if_no_quarto()
+  rows <- nrow(read.csv(file.path(template_dir(), "data", "example.csv")))
+  # One site for each setup, because a second render of one site would
+  # reuse the stored output and run no code.
+  for (execute_dir in c("file", "project")) {
+    site <- new_site()
+    if (execute_dir == "project") {
+      config <- file.path(site, "_quarto.yml")
+      lines <- readLines(config)
+      at <- which(lines == "  output-dir: docs")
+      writeLines(append(lines, "  execute-dir: project", after = at), config)
+    }
+    report <- suppressMessages(add_report("counts", "Counts", path = site))
+    cat(
+      "", "```{r}", "#| label: count",
+      'nrow(read.csv(file.path(site, "data", "example.csv")))', "```",
+      file = report, sep = "\n", append = TRUE
+    )
+
+    expect_status(run_in(site, "quarto", "render"))
+    page <- paste(readLines(file.path(site, "docs", "analyses", "counts.html"), warn = FALSE), collapse = "\n")
+    # The output block that follows the count chunk's code.
+    after <- substring(page, regexpr('"example.csv"', page, fixed = TRUE))
+    output <- regmatches(after, regexpr('(?s)cell-output-stdout">\\s*<pre><code>.*?</code>', after, perl = TRUE))
+    expect_identical(
+      sub("(?s).*<code>(.*)</code>", "\\1", output, perl = TRUE),
+      paste("[1]", rows),
+      info = execute_dir
+    )
+  }
+})
+
 test_that("the example code run by hand from analyses/ saves into the site's figures/", {
   skip_on_cran()
   skip_if_not(capabilities("png"), "R has no png device")

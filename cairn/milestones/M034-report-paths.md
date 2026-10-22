@@ -41,8 +41,8 @@ The example report and each report from `add_report()` find the site folder by o
 
 - [x] T1: Write the AC2 test first, then add the `site` chunk and its prose to `inst/template/analyses/example.qmd` (around lines 9-17). Remove the `site <-` lines from the `data` and `save-figure` chunks.
 - [x] T2: In `tests/testthat/test-template.R` (around lines 248-330), make the hand-run, failed-plot, and `save_png()` tests run the `site` chunk before the chunks they run, and update the comment that says `save-figure` finds the site folder itself.
-- [ ] T3: Write the AC3 test, then change `report_lines()` in `R/add-report.R` (line 191) to put the example's `site` chunk first, read by a helper beside `environment_section()`, and to name `file.path(site, "data", ...)` in its text.
-- [ ] T4: Write the AC4 render test, with one new site for each `execute-dir` setup, because freeze reuses stored output in a second render of one site (D-002).
+- [x] T3: Write the AC3 test, then change `report_lines()` in `R/add-report.R` (line 191) to put the example's `site` chunk first, read by a helper beside `environment_section()`, and to name `file.path(site, "data", ...)` in its text.
+- [x] T4: Write the AC4 render test, with one new site for each `execute-dir` setup, because freeze reuses stored output in a second render of one site (D-002).
 - [ ] T5: Change `inst/template/_README.md` (around lines 268-272 and 440-455) for AC5, add the README comparison test, and run the AC5 grep.
 - [ ] T6: Change the `NEWS.md` bullets (around line 130) for AC6 and the example rule in `cairn/DESIGN.md` Architecture (line 186). Run `devtools::test()` and `devtools::check()`.
 
@@ -61,6 +61,9 @@ The example report and each report from `add_report()` find the site folder by o
 - 2026-10-22: implement started on branch m034-report-paths, cut from main at 4efd1b9.
 - 2026-10-22: T1: the example gets a "Site Folder" section and a `site` chunk (`Find()` over `.` and `..`, then a base `stop()`). The new test failed before the chunk existed (`chunk_code()` found no `site` label) and passes with 8 expectations.
 - 2026-10-22: T2: the hand-run, failed-plot, and `save_png()` tests run the `site` chunk first; all three pass with NOT_CRAN=true (3, 7, and 4 expectations). Checkpoint: the full `devtools::test()` run for T1 and T2 was still running at this commit.
+- 2026-10-22: the full `devtools::test()` run on 9d3b309 (NOT_CRAN=true): 333 tests, 0 failed, 0 errors, 8 skipped.
+- 2026-10-22: T3: `site_chunk()` in `R/add-report.R` copies the example's `site` chunk, fence to fence, and `example_lines()` now serves it and `environment_section()`. The new test failed before the change (no `site` label in the stub); `test-add-report.R` passes whole.
+- 2026-10-22: T4: the render test passes in both sites (4 expectations, NOT_CRAN=true). With `R/add-report.R` from main it fails with "object 'site' not found" from the render, then the file was restored.
 
 ## Decisions
 
