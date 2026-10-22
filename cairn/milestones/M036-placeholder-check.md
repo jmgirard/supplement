@@ -66,6 +66,7 @@
 - 2026-10-22: claim audit corrections (re-read by the same reader pending): the example report's problem text no longer says to delete only its menu item, which leaves an empty `menu:` that fails Quarto's validation; the example data's text also names the example report, which reads it; the `NEWS.md` bullet says `OWNER` and `REPO` for the site address, which holds no `OWNER/REPO`.
 - 2026-10-22: claim audit: 59 claims read, 3 corrected — R/check-supplement.R, NEWS.md (the same reader re-read the three corrections and found them true).
 - 2026-10-22: implement done: suite with NOT_CRAN=true 349 tests, 0 failed, 8 skipped; status set to review.
+- 2026-10-22: step-7 approval: m036-placeholder-check approved for merge
 
 ## Decisions
 
