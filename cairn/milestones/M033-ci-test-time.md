@@ -125,3 +125,7 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 - ripple #5: DESIGN.md cited only D-016 for the skip list — fixed 53fb384 (cites D-020).
 - ripple #6: DESIGN.md did not name the retry — fixed 53fb384.
 - ripple #7: the parked row "template test flake" says no cause was found — follow-up: the row gains the lock finding, since the macOS failure's cause was not seen.
+- 2026-10-22 red CI after approval: PR #32's Windows job failed twice on Quarto's `deno_std` cache folder (runs 39725171937 and 39726319603; work log). Fixed e96a721 (a retry, which did not clear it) and 268b4cc (a Quarto cache folder per Windows test process); the merge question is posed again.
+- 2026-10-22 AC6 (re-read on the merge head 268b4cc): pull_request run 39727412289: windows-latest 482 s (26.4% of 1,824 s), macos-latest 452 s (55.0% of 822 s), ubuntu-latest 305 s (30.0% of 1,017 s); push run 39727410426: 455 s (24.9%), 270 s (32.8%), 421 s (41.4%). Pass.
+- 2026-10-22 AC4, AC5, AC7 (re-read on 268b4cc): both runs passed on all three jobs; "Starting 4 test processes" on Windows and Ubuntu, 3 on macOS; Windows skip lines in the two files are `test-agreement.R:62`, `:118`, `test-shortcodes.R:28`, `:144`, `:181`, `:226`, `:354`, and macOS and Ubuntu have none; no skip for a missing tool. `devtools::test()` on the Mac after the change: 0 failures, 7 skips, 4,486 passes. Pass.
+- conversation: PR #32 — 0 reviews, 0 comments, 0 review threads.
