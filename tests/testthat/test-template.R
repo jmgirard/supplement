@@ -475,17 +475,22 @@ test_that("the example page shows the R and knitr versions of its render", {
   homes <- unique(sub("[/\\\\]+$", "", homes))
   homes <- homes[!grepl("^([A-Za-z]:)?$", homes)]
 
-  # One render as the machine is, and one with sessioninfo hidden through
-  # a profile that R reads at the start of the render.
-  profile <- file.path(dir, "hide-sessioninfo.R")
-  writeLines(hide_sessioninfo, profile)
+  # One render as the machine is, and one with sessioninfo hidden by a
+  # chunk that the test puts in its copy of the report, before the section.
+  # A profile named in R_PROFILE_USER hid it on macOS, but not in the R that
+  # Quarto ran on the Windows CI runner.
   for (hidden in c(FALSE, TRUE)) {
     site <- new_site()
     if (hidden) {
-      withr::with_envvar(c(R_PROFILE_USER = profile), expect_status(run_in(site, "quarto", "render")))
-    } else {
-      expect_status(run_in(site, "quarto", "render"))
+      report <- file.path(site, "analyses", "example.qmd")
+      text <- rawToChar(read_bytes(report))
+      at <- regexpr("\n## Computing environment\n", text, fixed = TRUE)
+      expect_gt(at, 0)
+      chunk <- paste(c("", "```{r}", "#| include: false", hide_sessioninfo, "```", ""), collapse = "\n")
+      text <- paste0(substring(text, 1, at), chunk, substring(text, at + 1))
+      writeBin(charToRaw(text), report)
     }
+    expect_status(run_in(site, "quarto", "render"))
 
     page <- read_text(file.path(site, "docs", "analyses", "example.html"))
     section <- section_html(page, "computing-environment")
