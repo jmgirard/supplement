@@ -66,6 +66,7 @@
 - 2026-10-22: added T4 for review return 1 (minor amendment); Coverage AC4 → T2, T4.
 - 2026-10-22: checkpoint (T4 not checked off): the `cli` case is in the AC4 test (22 expectations, 0 failed), `expect_link_message()` moved to `helper-files.R` and used by both link tests, the weaker `file.exists()` checks dropped, and the wording fixes made; `devtools::document()` rewrote the three Rd files. `devtools::check()` running.
 - 2026-10-22: T4 done: `devtools::check()` at 13d5aaf 0 errors, 0 warnings, 0 notes, its test run included. Status set to review.
+- 2026-10-22: step-7 approval: m035-writer-refusals approved for merge
 
 ## Decisions
 
