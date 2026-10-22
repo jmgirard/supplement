@@ -87,59 +87,60 @@ The template's example report and each report that `add_report()` writes end wit
 - AC5 evidence (local part): NEWS.md has one new bullet (line 127). `devtools::test()`: 308 tests, 0 failed, 0 errors, 7 skipped (existing Windows and case-sensitive-disk skips). `devtools::check()`: 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow runs at the PR (step 8).
 - Gate: `cairn_validate.py` passed. `devtools::document()` made no diff. No README.Rmd and no `_pkgdown.yml`. No new top-level file. No principle changed.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: the page publishes the author's account name in library, pandoc, and quarto paths (`/Users/<name>/…`, `C:/Users/<name>/…`), which can unblind a double-blind review — fix now (floor return 1).
-- diff-bug #2: the guide's privacy sentence leaves out the account name, the pandoc and quarto paths, and the BLAS paths of `sessionInfo()` — fix now.
-- diff-bug #3: the guide's steps for an older report do not say to render it by name, so a full render keeps the old stored output — fix now.
-- diff-bug #4: the unhidden render never checks which branch ran, and in CI both renders take the fallback — fix now (the unhidden render asserts "Session info" when sessioninfo is installed for that R).
-- diff-bug #5: `R_PROFILE_USER = NA` in the unhidden render changes its setup from other render tests — fix now.
+- diff-bug #1: the page publishes the author's account name in library, pandoc, and quarto paths (`/Users/<name>/…`, `C:/Users/<name>/…`), which can unblind a double-blind review — fix now (floor return 1)., fixed 63c8f8d
+- diff-bug #2: the guide's privacy sentence leaves out the account name, the pandoc and quarto paths, and the BLAS paths of `sessionInfo()` — fix now., fixed 63c8f8d
+- diff-bug #3: the guide's steps for an older report do not say to render it by name, so a full render keeps the old stored output — fix now., fixed 63c8f8d
+- diff-bug #4: the unhidden render never checks which branch ran, and in CI both renders take the fallback — fix now (the unhidden render asserts "Session info" when sessioninfo is installed for that R)., fixed 63c8f8d
+- diff-bug #5: `R_PROFILE_USER = NA` in the unhidden render changes its setup from other render tests — fix now., fixed 63c8f8d
 - diff-bug #6: the one failing run of four was not explained — follow-up, noted in the candidate row "template test flake".
 - diff-bug #7: each render by name changes the date and versions in `_freeze/` — reject, planned change: the section exists to record each render.
 - diff-bug #8: the callout's `title` attribute also shows as a browser tooltip — reject, style (Quarto's own markup).
-- diff-bug #9: the code calls bare `sessionInfo()` while AC2 names `utils::sessionInfo()` — fix now.
+- diff-bug #9: the code calls bare `sessionInfo()` while AC2 names `utils::sessionInfo()` — fix now., fixed 63c8f8d
 - diff-bug #10: sessioninfo lists itself among loaded packages — reject, false as a defect: it was loaded to print the list, and the list is accurate.
-- diff-bug #11: with `cache: true` the chunk would show an old render's versions with no warning — fix now (`#| cache: false` on the chunk).
+- diff-bug #11: with `cache: true` the chunk would show an old render's versions with no warning — fix now (`#| cache: false` on the chunk)., fixed 63c8f8d
 - diff-bug #12: "Computing environment" is in sentence case while other headings use title case — reject, planned change: AC1 names this heading.
-- diff-bug #13: the section's first sentence has no main verb — fix now.
-- diff-bug #14: the guide's snippet leaves out the section's paragraph — fix now.
-- diff-bug #15: DESIGN.md does not mention the new section — fix now.
+- diff-bug #13: the section's first sentence has no main verb — fix now., fixed 63c8f8d
+- diff-bug #14: the guide's snippet leaves out the section's paragraph — fix now., fixed 63c8f8d
+- diff-bug #15: DESIGN.md does not mention the new section — fix now., fixed 63c8f8d
 - diff-bug #16: Windows behavior of `R_HOME/bin/Rscript` through `system2()` is unverified — reject, planned change: the AC5 CI run on Windows is that check.
-- blame-history #1: the published machine data has no recorded decision — fix now, same fix as diff-bug #1.
-- blame-history #2: a test uses sessioninfo (`skip_if_not_installed`) though DESCRIPTION does not list it, against D-007's rule — a dependency change, posed to the user at implement.
-- blame-history #3: AC2 names `utils::sessionInfo()` and the code does not — fix now, same as diff-bug #9.
+- blame-history #1: the published machine data has no recorded decision — fix now, same fix as diff-bug #1., fixed 63c8f8d
+- blame-history #2: a test uses sessioninfo (`skip_if_not_installed`) though DESCRIPTION does not list it, against D-007's rule — a dependency change, posed to the user at implement. The user chose to add it, fixed 541a7a9
+- blame-history #3: AC2 names `utils::sessionInfo()` and the code does not — fix now, same as diff-bug #9., fixed 63c8f8d
 - blame-history #4: existing sites do not get the section — reject, planned change (Scope Out).
-- prior-review #1: the two `run_session_code()` tests start Rscript with no `skip_on_cran()`, unlike every other subprocess test — fix now.
-- prior-review #2: the page publishes library folders and the time zone — fix now, same as diff-bug #1.
+- prior-review #1: the two `run_session_code()` tests start Rscript with no `skip_on_cran()`, unlike every other subprocess test — fix now., fixed 63c8f8d
+- prior-review #2: the page publishes library folders and the time zone — fix now, same as diff-bug #1., fixed 63c8f8d
 - prior-review #3: an empty Rscript output could pass `expect_match()` — reject, false: testthat 3e's `expect_match()` fails on a zero-length value.
 - prior-review #4: some new expectations have no `info =` — reject, style.
-- ripple #1: the guide's steps for an older report do not say to render it by name — fix now, same as diff-bug #3.
-- ripple #2: README.md and the guide's `add_report()` sentences do not mention the section — fix now.
-- ripple #3: DESIGN.md calls the output a "report stub" — fix now with diff-bug #15.
-- ripple #4: DESIGN.md's list of what the example holds leaves out the section — fix now with diff-bug #15.
+- ripple #1: the guide's steps for an older report do not say to render it by name — fix now, same as diff-bug #3., fixed 63c8f8d
+- ripple #2: README.md and the guide's `add_report()` sentences do not mention the section — fix now., fixed 63c8f8d
+- ripple #3: DESIGN.md calls the output a "report stub" — fix now with diff-bug #15., fixed 63c8f8d
+- ripple #4: DESIGN.md's list of what the example holds leaves out the section — fix now with diff-bug #15., fixed 63c8f8d
 - Pass 2 (2026-10-21, after review return 1, head 2be8587): the five criterion tests ran fresh with 0 failures (AC1 test 19 expectations, the two branch tests 3 each, the home-folder test 3, the AC3 test 4). `cairn_validate.py` passed and `devtools::document()` made no diff.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: replacing the shortest home spelling first mangles a linked home whose real path ends with the linked path (`/private~/lib`, confirmed) — fix now: longest spelling first.
-- diff-bug #2: no folder-boundary check, so HOME `…/al` turned `…/alice` into `~ice` (confirmed) — fix now: the match must start after white space or at the line start and end at a separator, white space, or the line end.
-- diff-bug #3: Windows 8.3 short names of the home folder are not replaced — fix now: `utils::shortPathName()` spellings on Windows.
-- diff-bug #4: the match is case-sensitive, and Windows paths can differ in case — fix now: `ignore.case` on Windows.
-- diff-bug #5: `nchar(homes) > 3` drops a real home such as `/al` — fix now: drop only a drive root or `/`.
-- diff-bug #6: NEWS.md states the privacy result as absolute — fix now: NEWS, the guide, and the example's prose say that folders outside the home folder show in full.
-- diff-bug #7: the chunk leaves `info`, `homes`, `lines`, and `home` in the report's environment — fix now: the chunk runs in `local()`.
-- diff-bug #8: the AC1 test's home spellings leave out `normalizePath()` forms and check case — fix now.
-- diff-bug #9: the home-folder test covers neither a prefix home, a linked home, nor the `sessionInfo()` form — fix now: three tests. With the pass-1 chunk restored, the prefix test failed 2 expectations and the linked-home test failed 3.
+- diff-bug #1: replacing the shortest home spelling first mangles a linked home whose real path ends with the linked path (`/private~/lib`, confirmed) — fix now: longest spelling first., fixed 2cee711
+- diff-bug #2: no folder-boundary check, so HOME `…/al` turned `…/alice` into `~ice` (confirmed) — fix now: the match must start after white space or at the line start and end at a separator, white space, or the line end., fixed 2cee711
+- diff-bug #3: Windows 8.3 short names of the home folder are not replaced — fix now: `utils::shortPathName()` spellings on Windows., fixed 2cee711
+- diff-bug #4: the match is case-sensitive, and Windows paths can differ in case — fix now: `ignore.case` on Windows., fixed 2cee711
+- diff-bug #5: `nchar(homes) > 3` drops a real home such as `/al` — fix now: drop only a drive root or `/`., fixed 2cee711
+- diff-bug #6: NEWS.md states the privacy result as absolute — fix now: NEWS, the guide, and the example's prose say that folders outside the home folder show in full., fixed 2cee711
+- diff-bug #7: the chunk leaves `info`, `homes`, `lines`, and `home` in the report's environment — fix now: the chunk runs in `local()`., fixed 2cee711
+- diff-bug #8: the AC1 test's home spellings leave out `normalizePath()` forms and check case — fix now., fixed 2cee711
+- diff-bug #9: the home-folder test covers neither a prefix home, a linked home, nor the `sessionInfo()` form — fix now: three tests. With the pass-1 chunk restored, the prefix test failed 2 expectations and the linked-home test failed 3., fixed 2cee711
 - diff-bug #10: the AC3 byte test cannot catch drift, because the stub reads the section from the example — reject, planned change: AC3 as written, and drift is now impossible by construction.
 - diff-bug #11: a missing or edited installed example gives an unclassed error from `environment_section()` — reject, edge: a broken package install, outside documented and common use, and the effect is an error.
 - diff-bug #12: no finding (encoding and final newline checked).
 - diff-bug #13: session_info() runs `quarto -V` on each render — reject, planned change: session_info() reports the Quarto version.
 - diff-bug #14: on Windows `~` stands for USERPROFILE as well as HOME — reject, style.
 - blame-history #1: D-019 says `--as-cran` hides packages outside Suggests, but check only prepends its library — reject, false: R 4.6.1 `tools:::.check_packages` sets `R_check_suggests_only` under `--as-cran`, and `setRlibs()` then gives the tests `R_LIBS` with links to declared packages only and `R_LIBS_USER` and `R_LIBS_SITE` as `NULL`.
-- blame-history #2: NEWS.md's privacy claim has no caveat — fix now with diff-bug #6.
+- blame-history #2: NEWS.md's privacy claim has no caveat — fix now with diff-bug #6., fixed 2cee711
 - prior-review #1: `stopifnot()` in `environment_section()` gives an unclassed error — reject, edge, as diff-bug #11.
 - prior-review #2: `environment_section()` uses `readLines()`, not `read_text_lines()` — reject, edge: the input is the package's own UTF-8 template, which the AC3 test reads.
 - prior-review #3: some expectations have no `info =` — reject, style.
 - prior-review #4: the AC1 render test has no `skip_on_cran()` — reject, false: `skip_if_no_quarto()` calls `skip_on_cran()` (`helper-template.R:4`).
-- ripple #1: the candidate row "Compare renv.lock with report records" says each report has the section — fix now.
-- ripple #2: the row "Keep tests within the Suggests floors" lists the Suggests entries with no floor and leaves out sessioninfo — fix now.
-- ripple #3: the guide's "Publishing from one machine" part does not say a render elsewhere changes the section — fix now.
+- ripple #1: the candidate row "Compare renv.lock with report records" says each report has the section — fix now., fixed 2cee711
+- ripple #2: the row "Keep tests within the Suggests floors" lists the Suggests entries with no floor and leaves out sessioninfo — fix now., fixed 2cee711
+- ripple #3: the guide's "Publishing from one machine" part does not say a render elsewhere changes the section — fix now., fixed 2cee711
 - ripple #4: README.md's render requirements do not name sessioninfo — reject, false as a conflict: sessioninfo is optional.
 - ripple #5: DESIGN.md's list of missing tools — reject, false: "such as" covers it.
 - ripple #6: the example's "shows the parts of an analysis page" — reject, false: the section is one more part.
+- Pass 2 gate (head 2cee711): `devtools::test()` gave 312 tests, 0 failed, 0 errors, 7 skipped (existing Windows and case-sensitive-disk skips). `devtools::check()` gave 0 errors, 0 warnings, 0 notes. `devtools::document()` made no diff.
