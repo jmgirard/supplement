@@ -441,8 +441,9 @@ figures change.
 
 Save each figure for the paper in `figures/`. During a render, Quarto sets
 `QUARTO_PROJECT_DIR` to the site folder. When you run a report's code by
-hand, it is not set, so the code uses the folder that holds `_quarto.yml`:
-the current folder or the one above it. If neither holds it, the code
+hand, it is not set. The code then looks for `_quarto.yml` in the current
+folder first, then in the folder above it, and uses the first folder that
+holds it. If neither holds it, the code
 stops and says to run it from the site folder or from `analyses/`. So a
 report finds `figures/` as:
 
@@ -459,7 +460,7 @@ dir.create(figures, showWarnings = FALSE)
 ```
 
 The first lines are the `site` chunk of the example report.
-`add_report()` puts the same chunk at the start of each new report. The
+`add_report()` writes the same chunk as the first chunk of each new report. The
 `dir.create()` line makes the folder in a clone where it is empty, because
 git does not keep empty folders. If `_quarto.yml` sets
 `execute-dir: project`, this path also works.

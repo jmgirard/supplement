@@ -401,7 +401,7 @@ test_that("finding the Analyses menu runs no !expr code", {
   expect_false(file.exists(marker))
 })
 
-test_that("a report stub starts with the example report's site chunk and reads data through it", {
+test_that("a report stub's first chunk is the example's site chunk, and its text reads data through site", {
   site <- new_site()
   stub <- suppressMessages(add_report("models", "Models", path = site))
   example <- file.path(template_dir(), "analyses", "example.qmd")

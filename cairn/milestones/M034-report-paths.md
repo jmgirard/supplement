@@ -1,6 +1,6 @@
 # M034: Reports find the site folder from any folder
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -44,7 +44,7 @@ The example report and each report from `add_report()` find the site folder by o
 - [x] T3: Write the AC3 test, then change `report_lines()` in `R/add-report.R` (line 191) to put the example's `site` chunk first, read by a helper beside `environment_section()`, and to name `file.path(site, "data", ...)` in its text.
 - [x] T4: Write the AC4 render test, with one new site for each `execute-dir` setup, because freeze reuses stored output in a second render of one site (D-002).
 - [x] T5: Change `inst/template/_README.md` (around lines 268-272 and 440-455) for AC5, add the README comparison test, and run the AC5 grep.
-- [ ] T6: Change the `NEWS.md` bullets (around line 130) for AC6 and the example rule in `cairn/DESIGN.md` Architecture (line 186). Run `devtools::test()` and `devtools::check()`.
+- [x] T6: Change the `NEWS.md` bullets (around line 130) for AC6 and the example rule in `cairn/DESIGN.md` Architecture (line 186). Run `devtools::test()` and `devtools::check()`.
 
 ## Work log
 
@@ -66,6 +66,8 @@ The example report and each report from `add_report()` find the site folder by o
 - 2026-10-22: T4: the render test passes in both sites (4 expectations, NOT_CRAN=true). With `R/add-report.R` from main it fails with "object 'site' not found" from the render, then the file was restored.
 - 2026-10-22: T5: the README's "Paper figures" block starts with the `site` chunk's code, its prose states the rule and says to copy `save_png()` after the `site` chunk and the `figures` lines, and the fits advice reads `file.path(site, "analyses", "fits", ...)`. The new comparison test passes and fails on main's README. The AC5 grep printed nothing (exit 1).
 - 2026-10-22: T6 (checkpoint): NEWS.md's figures bullet states the `site` chunk rule and a new bullet covers `add_report()` reports and old sites; `cairn/DESIGN.md` Architecture states the rule and names `site_chunk()`. `devtools::document()` changed nothing. The full suite and `devtools::check()` were running at this commit.
+- 2026-10-22: on 520d810 the full `devtools::test()` (NOT_CRAN=true) gave 336 tests, 0 failed, 0 errors, 8 skipped. The `devtools::check()` run right after it reported 1 error whose text was not kept; two reruns gave 0 errors, 0 warnings, 0 notes (4681 passed, 10 skipped in `tests/testthat.Rout`). The cause of the first error is not known; see the parked row "template test flake".
+- 2026-10-22: claim audit: 32 claims read, 3 corrected — NEWS.md (the stub's first code chunk is `site`, and only its text names the data path; the folder order when both `.` and `..` hold `_quarto.yml`), tests/testthat/test-add-report.R (test name). The folder-order wording was also fixed in `inst/template/_README.md` and `inst/template/analyses/example.qmd`, and a README wording note was taken. `test-template.R`, `test-add-report.R`, and `test-create-supplement.R` pass after the edits (NOT_CRAN=true).
 
 ## Decisions
 
