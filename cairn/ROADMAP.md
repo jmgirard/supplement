@@ -1,22 +1,20 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-22 (M035 review: graduated "Refuse links in the citation writers" and "Refuse duplicate keys in renv.lock"; added "Test the link refusals on Windows"; pruned the M032 row; validate green)_
+_Last hygiene check: 2026-10-22 (M036 review: graduated "Refuse placeholder values at release"; added "Match example files after editor saves"; pruned the M033 row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M036 | The release stops on template placeholders | review | — | normal | milestones/M036-placeholder-check.md |
+| M036 | The release stops on template placeholders | done | — | normal | milestones/archive/M036-placeholder-check.md |
 | M035 | The writers refuse links and repeated lockfile keys | done | — | normal | milestones/archive/M035-writer-refusals.md |
 | M034 | Reports find the site folder from any folder | done | — | normal | milestones/archive/M034-report-paths.md |
-| M033 | Each CI job runs the tests once, in parallel | done | — | normal | milestones/archive/M033-ci-test-time.md |
 
 ## Candidates
 
 - Build a package site with pkgdown: a package site built with the toolkit itself. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review), and `write_dockerfile()` (from the M032 review). — added 2026-10-18, split 2026-10-19
 - Write a first-time publishing guide: a first-time guide to GitHub Pages and Zenodo. From the ease-of-use review: a short walk from an empty folder to a published site with a DOI. It covers making and pushing the GitHub repository, setting Pages to serve `main` and `/docs`, linking a Zenodo account and turning on the repository's switch before the first release, then adding the DOIs and rendering again. It says which commands run in the R console and which in a terminal, and gives one rule for rendering again after a report changes. Neither `README.md` nor the template guide has these steps (observed 2026-10-22). See also "Split the template guide by reader". — added 2026-10-18, split 2026-10-19, widened 2026-10-22
-- Refuse placeholder values at release: from the ease-of-use review. On a new site with every template value left in place, `check_supplement()` reported no problems, and `release_supplement("major")` wrote `CITATION.cff` with the title "Title of the paper" and the authors "Author, A. A." and "Author, B. B.", then printed the release commands (observed 2026-10-22). A row for template leftovers (the placeholder values in `_supplement.yml`, `OWNER` and `REPO`, the "Before your first commit" box in `index.qmd`) would stop a release before Zenodo archives it under a DOI. Whether the example report and `example.csv` count as leftovers is a design choice. — added 2026-10-22 — started M036
 - Split the template guide by reader: from the ease-of-use review. `README.md` (198 lines) and `inst/template/_README.md` (519 lines) put edge cases, such as Windows device names, the SPDX id syntax, and `--` read as an en dash, beside the main steps. The first render makes the template guide the site repository's `README.md`, so visitors on GitHub read author instructions under a placeholder citation. A short guide for the main steps, the edge cases in help pages or a reference part, and a public README for the site's readers would fix both. See also "Write a first-time publishing guide". — added 2026-10-22
 - Report missing tools before site setup: from the ease-of-use review. A site needs R with knitr and rmarkdown, the Quarto CLI, git, a GitHub account, `gh` for the last release command, and a Zenodo account. Nothing checks for them, and `create_supplement()` does not look for Quarto. A function that names the missing tools, or a check in `create_supplement()`, would report the problem before the first render fails. — added 2026-10-22
 - Shorten the setup code in new reports: from the ease-of-use review. `add_report()` writes about 50 lines, about 30 of them the Computing environment block that hides the home folder with regular expressions. The example report has 123 lines, and the template guide asks authors to copy `save_png()` by hand. Package functions for that code would shorten reports, but a render by name would then need supplement installed, which is a design choice. See also "Stop the example at a linked figures". — added 2026-10-22
