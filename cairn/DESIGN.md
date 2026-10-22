@@ -183,9 +183,11 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   `analyses/example.qmd`, `data/example.csv`, and license files are starter
   content for the author to replace. The template ships
   `figures/bootstrap-means.png`, so the first render publishes it. The
-  example report finds the site with `QUARTO_PROJECT_DIR` (`..` when it is
-  not set), stops when `figures` is a file, makes `figures/` when it is
-  missing, and saves the figure again with `save_png()`, which renames a
+  example report finds the site in its `site` chunk: `QUARTO_PROJECT_DIR`
+  if it is not empty, else `.` or `..`, whichever holds `_quarto.yml`, else
+  a stop (M034). `add_report()` copies that chunk to the start of each new
+  report (`site_chunk()` in `R/add-report.R`). The example stops when
+  `figures` is a file, makes `figures/` when it is missing, and saves the figure again with `save_png()`, which renames a
   temporary file into place (D-018). It ends with a "Computing
   environment" section, a collapsed callout whose chunk prints
   `sessioninfo::session_info()` or, without sessioninfo,

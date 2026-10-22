@@ -65,6 +65,7 @@ The example report and each report from `add_report()` find the site folder by o
 - 2026-10-22: T3: `site_chunk()` in `R/add-report.R` copies the example's `site` chunk, fence to fence, and `example_lines()` now serves it and `environment_section()`. The new test failed before the change (no `site` label in the stub); `test-add-report.R` passes whole.
 - 2026-10-22: T4: the render test passes in both sites (4 expectations, NOT_CRAN=true). With `R/add-report.R` from main it fails with "object 'site' not found" from the render, then the file was restored.
 - 2026-10-22: T5: the README's "Paper figures" block starts with the `site` chunk's code, its prose states the rule and says to copy `save_png()` after the `site` chunk and the `figures` lines, and the fits advice reads `file.path(site, "analyses", "fits", ...)`. The new comparison test passes and fails on main's README. The AC5 grep printed nothing (exit 1).
+- 2026-10-22: T6 (checkpoint): NEWS.md's figures bullet states the `site` chunk rule and a new bullet covers `add_report()` reports and old sites; `cairn/DESIGN.md` Architecture states the rule and names `site_chunk()`. `devtools::document()` changed nothing. The full suite and `devtools::check()` were running at this commit.
 
 ## Decisions
 
