@@ -77,6 +77,7 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 - 2026-10-21: T6: CI run 39722320941 (0cfd0cd) passed on all three jobs: Windows 530 s (29% of 1,824 s), macOS 415 s (50% of 822 s), Ubuntu 413 s (41% of 1,017 s; 286 s on the first run). "Starting 4 test processes" on Windows and Ubuntu, 3 on macOS. Skip lists: Windows 32 (25 "On Windows", including `test-agreement.R:62`, `:118` and `test-shortcodes.R:28`, `:144`, `:181`, `:226`, and none of `test-shortcodes.R` 12, 91, 117, 277), macOS 9, Ubuntu 8, none for a missing tool. The source step ran 2 tests, 0 failures, on each job.
 - 2026-10-21: claim audit: not owed — internal tier.
 - 2026-10-21: implement done; status review.
+- 2026-10-21: step-7 approval: m033-ci-test-time approved for merge
 
 ## Decisions
 
