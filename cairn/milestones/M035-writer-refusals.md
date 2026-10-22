@@ -139,3 +139,6 @@ Review pass 2, 2026-10-22, at 71eeeb3 (main not moved).
 - prior-review #3: the hint wording M032 fixed is changed — fix now (same as diff-bug #2).
 - prior-review #4: the new check order — reject (planned change).
 - ripple: no ripple evidence.
+- fixed 396c0a2: pass 2 diff-bug #2, #7, #9; blame-history #1, #3; prior-review #3.
+- gate (pass 2, after fixes): `devtools::check()` at 396c0a2 0 errors, 0 warnings, 0 notes.
+- snapshot: no changed snapshot files (`git diff --name-only main...HEAD` lists none under `_snaps`).
