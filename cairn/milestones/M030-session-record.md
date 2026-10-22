@@ -149,10 +149,10 @@ The template's example report and each report that `add_report()` writes end wit
 - Pass 2 gate (head 2cee711): `devtools::test()` gave 312 tests, 0 failed, 0 errors, 7 skipped (existing Windows and case-sensitive-disk skips). `devtools::check()` gave 0 errors, 0 warnings, 0 notes. `devtools::document()` made no diff.
 - Pass 3 (2026-10-21, resume; PR #31 open, approval recorded): PR #31 CI passed on Windows, macOS, and Ubuntu at f781b6f (runs 39708031432 and 39708035640). main (two ROADMAP commits) merged into the branch cleanly. On the merged head, `cairn_validate.py` passed, `devtools::document()` made no diff, the AC1 test gave 20 expectations with 0 failures (the hidden render now uses a chunk in the test's copy of the report, after the Windows CI failure), the two branch tests 3 each, the AC3 test 4, `devtools::test()` 312 tests with 0 failed and 7 skipped, and `devtools::check()` 0 errors, 0 warnings, 0 notes. This evidence replaces the pass-1 AC1 line, which described the `R_PROFILE_USER` render.
 - spawned: diff-bug, blame-history, prior-review, ripple (scope `2ab0989..HEAD`, the CI fixes)
-- diff-bug #1: the AC1 evidence line and work log still describe the `R_PROFILE_USER` render — fix now: the pass-3 line above replaces it (the work log is history and stays).
-- diff-bug #2: the test comment above the hidden render tells CI history instead of the reason — fix now.
-- diff-bug #3: `expect_gt(at, 0)` does not stop the test when the heading is missing, so later failures hide the cause — fix now: `stopifnot()`.
-- diff-bug #4: the inserted chunk's closing fence sits directly above the heading — fix now: a blank line between them.
+- diff-bug #1: the AC1 evidence line and work log still describe the `R_PROFILE_USER` render — fix now: the pass-3 line above replaces it (the work log is history and stays)., fixed f860980
+- diff-bug #2: the test comment above the hidden render tells CI history instead of the reason — fix now., fixed f860980
+- diff-bug #3: `expect_gt(at, 0)` does not stop the test when the heading is missing, so later failures hide the cause — fix now: `stopifnot()`., fixed f860980
+- diff-bug #4: the inserted chunk's closing fence sits directly above the heading — fix now: a blank line between them., fixed f860980
 - diff-bug #5, #6, #7: no finding (AC1 fidelity, `info` values and the temporary home on each system, and tracking-rules "What gets a test").
 - blame-history #1: the R-library-under-home case is no longer tested — reject, false: the new test still puts a library folder inside the home folder and asserts `[1] ~/lib`.
 - blame-history #2: older milestone-file lines name `R_PROFILE_USER` — reject: work-log lines are history, and the pass-3 evidence line replaces the AC1 evidence.
