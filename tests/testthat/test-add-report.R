@@ -401,6 +401,20 @@ test_that("finding the Analyses menu runs no !expr code", {
   expect_false(file.exists(marker))
 })
 
+test_that("a report stub's first chunk is the example's site chunk, and its text reads data through site", {
+  site <- new_site()
+  stub <- suppressMessages(add_report("models", "Models", path = site))
+  example <- file.path(template_dir(), "analyses", "example.qmd")
+  expect_identical(chunk_code(stub, "site"), chunk_code(example, "site"))
+
+  lines <- readLines(stub, encoding = "UTF-8")
+  chunks <- grep("^```\\{", lines)
+  expect_identical(lines[chunks[1] + 1L], "#| label: site")
+  expect_true(any(grepl('file.path(site, "data", "<file name>")', lines, fixed = TRUE)))
+  meta <- grep("^(title|description): ", lines)
+  expect_false(any(grepl('"..", "data"', lines[-meta], fixed = TRUE)))
+})
+
 test_that("a report stub ends with the example report's Computing environment section", {
   site <- new_site()
   stub <- suppressMessages(add_report("models", "Models", path = site))

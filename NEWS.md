@@ -129,11 +129,16 @@
 * The template publishes paper figures from a `figures/` folder, which git
   tracks. The template ships `figures/bootstrap-means.png`, so the first
   render of a new site publishes it. The example report saves it again on
-  each render that runs its code. The example finds the site folder from
-  `QUARTO_PROJECT_DIR`. If that is not set, it uses `..`. So the example
-  also works with `execute-dir: project`. A failed plot leaves no partial
-  file in `figures/`. If a file named `figures` is in place of the folder,
-  the report stops with a message when its code runs. The site's README
+  each render that runs its code. The example finds the site folder in a
+  `site` chunk. If `QUARTO_PROJECT_DIR` is not empty, as in a render, the
+  chunk uses it. Otherwise the chunk looks for `_quarto.yml` in the
+  current folder first, then in the folder above it, and uses the first
+  folder that holds it. If neither holds it, the chunk stops with a
+  message. So the example also works with `execute-dir: project` and with
+  its code run by hand from the site folder or from `analyses/`. A failed
+  plot leaves no partial file in `figures/`. If a file named `figures` is
+  in place of the folder, the report stops with a message when its code
+  runs. The site's README
   says how a report writes a figure to `figures/`. In new sites, git
   ignores `.png` and `.pdf` files saved directly in `analyses/` in any
   letter case.
@@ -143,6 +148,15 @@
   `sessioninfo::session_info()`. Otherwise it uses `utils::sessionInfo()`.
   It shows the home folder as `~`, and folders outside it in full. The
   stored output keeps the versions of each report's last render.
+* In each report that `add_report()` writes, the first code chunk is the
+  example report's `site` chunk, so the report finds the site folder by
+  the same rule. Its text says to read a data file as
+  `file.path(site, "data", "<file name>")`. Before, its text said to read
+  data from `..`. That path is wrong for code run from the site folder.
+  The site's README tells reports to read fit files as
+  `file.path(site, "analyses", "fits", ...)`. In a site made before this
+  change, copy the `site` chunk from a new site's `analyses/example.qmd`
+  into each report.
 * Fixes on Windows. `create_supplement()`, `add_report()`, and `add_data()`
   now stop with `supplement_error_file_exists` for a junction where the
   site needs a folder, as they already did on other systems for a link.

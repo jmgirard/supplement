@@ -6,6 +6,14 @@
 #' `analyses/` with its title and description, so the new report shows
 #' there too.
 #'
+#' The first code chunk of the new report is the `site` chunk of the
+#' template's example report, which sets `site` to the site folder. If
+#' `QUARTO_PROJECT_DIR` is not empty, as in a render, `site` is its value.
+#' Otherwise `site` is `"."` or `".."`, the first of the two that holds
+#' `_quarto.yml`, and the chunk stops with an error if neither holds it.
+#' The report's text says to read a data file as
+#' `file.path(site, "data", "<file name>")`.
+#'
 #' The new report ends with a "Computing environment" section, the same as
 #' the template's example report. It prints the R and package versions of
 #' the render, with `sessioninfo::session_info()` when the sessioninfo
@@ -195,8 +203,10 @@ report_lines <- function(title, description) {
     if (nzchar(description)) paste0("description: ", yaml_quote(description)),
     "---",
     "",
-    "Write the report here. It runs from the `analyses/` folder, so it reads",
-    "a data file as `file.path(\"..\", \"data\", \"<file name>\")`.",
+    "Write the report here. The `site` chunk finds the site folder, so the",
+    "report reads a data file as `file.path(site, \"data\", \"<file name>\")`.",
+    "",
+    site_chunk(),
     "",
     "```{r}",
     "#| label: setup",
@@ -211,9 +221,24 @@ report_lines <- function(title, description) {
 # report, from its heading to the end of the file, so that every new report
 # ends with the same lines.
 environment_section <- function() {
-  example <- system.file("template", "analyses", "example.qmd", package = "supplement", mustWork = TRUE)
-  lines <- readLines(example, encoding = "UTF-8", warn = FALSE)
+  lines <- example_lines()
   start <- which(lines == "## Computing environment")
   stopifnot(length(start) == 1L)
   lines[start:length(lines)]
+}
+
+# The `site` chunk of the template's example report, from its opening fence
+# to its closing fence, so that every new report finds the site folder the
+# same way.
+site_chunk <- function() {
+  lines <- example_lines()
+  label <- which(lines == "#| label: site")
+  stopifnot(length(label) == 1L, label > 1L, lines[label - 1L] == "```{r}")
+  ends <- which(lines == "```")
+  lines[(label - 1L):min(ends[ends > label])]
+}
+
+example_lines <- function() {
+  example <- system.file("template", "analyses", "example.qmd", package = "supplement", mustWork = TRUE)
+  readLines(example, encoding = "UTF-8", warn = FALSE)
 }

@@ -6,15 +6,31 @@ description: "A short example report. Replace it with your own."
 This report shows the parts of an analysis page. Replace it with your own
 report, and keep one `.qmd` file per report in this folder.
 
-## Data
+## Site Folder
 
-Quarto sets `QUARTO_PROJECT_DIR` to the site folder during a render. When
-you run the code by hand from `analyses/`, it is not set, so the site folder
-is `..`.
+The code reads and writes files through `site`, the site folder. Quarto
+sets `QUARTO_PROJECT_DIR` to the site folder during a render. When you run
+the code by hand, the variable is usually missing. If it is missing or
+empty, the code looks for `_quarto.yml` in the current folder and then in
+the folder above it. It uses the first folder that holds the file. If
+neither folder holds it, the code stops with an error. So run it from the
+site folder or from `analyses/`.
+
+```{r}
+#| label: site
+site <- Sys.getenv("QUARTO_PROJECT_DIR")
+if (!nzchar(site)) {
+  site <- Find(function(dir) file.exists(file.path(dir, "_quarto.yml")), c(".", ".."))
+}
+if (is.null(site)) {
+  stop("Run this code from the site folder or from its analyses/ folder.")
+}
+```
+
+## Data
 
 ```{r}
 #| label: data
-site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
 dat <- read.csv(file.path(site, "data", "example.csv"))
 summary(dat)
 ```
@@ -40,7 +56,6 @@ plot succeeds, so a failed plot leaves no partial file there.
 
 ```{r}
 #| label: save-figure
-site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
 figures <- file.path(site, "figures")
 if (file.exists(figures) && !dir.exists(figures)) {
   stop("`figures` is a file, not a folder. Rename it, then render again.")
