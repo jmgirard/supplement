@@ -223,6 +223,18 @@ test_that("the example's site chunk finds the site folder from analyses/ or the 
   }
 })
 
+test_that("the README's figure code starts with the example's site chunk", {
+  readme <- readLines(file.path(template_dir(), "_README.md"), encoding = "UTF-8")
+  section <- readme[which(readme == "## Paper figures"):length(readme)]
+  start <- which(section == "```r")[1]
+  end <- which(section == "```")
+  block <- section[(start + 1L):(min(end[end > start]) - 1L)]
+
+  chunk <- chunk_code(file.path(template_dir(), "analyses", "example.qmd"), "site")
+  chunk <- chunk[!startsWith(chunk, "#|")]
+  expect_identical(block[seq_along(chunk)], chunk)
+})
+
 test_that("the example report saves a figure that the next full render publishes", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")

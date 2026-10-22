@@ -268,8 +268,9 @@ Quarto runs two scripts in `_scripts/` on each render. They need no R.
 
 If a report needs private data or saved model fits, render it on the
 machine that holds them. Keep fit files in `analyses/fits/`, which
-`.gitignore` keeps out of git. A report runs from its own folder, so its
-code reads them as `file.path("fits", ...)`.
+`.gitignore` keeps out of git. A report's code reads them through `site`,
+the site folder (see "Paper figures"), as
+`file.path(site, "analyses", "fits", ...)`.
 
 1. Before a full render, check the `.rds` fit files of each report that
    has no stored output in `_freeze/` yet. Before a render by name, check
@@ -440,21 +441,33 @@ figures change.
 
 Save each figure for the paper in `figures/`. During a render, Quarto sets
 `QUARTO_PROJECT_DIR` to the site folder. When you run a report's code by
-hand from `analyses/`, it is not set, and the site folder is `..`. So a
+hand, it is not set, so the code uses the folder that holds `_quarto.yml`:
+the current folder or the one above it. If neither holds it, the code
+stops and says to run it from the site folder or from `analyses/`. So a
 report finds `figures/` as:
 
 ```r
-site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
+site <- Sys.getenv("QUARTO_PROJECT_DIR")
+if (!nzchar(site)) {
+  site <- Find(function(dir) file.exists(file.path(dir, "_quarto.yml")), c(".", ".."))
+}
+if (is.null(site)) {
+  stop("Run this code from the site folder or from its analyses/ folder.")
+}
 figures <- file.path(site, "figures")
 dir.create(figures, showWarnings = FALSE)
 ```
 
-The `dir.create()` line makes the folder in a clone where it is empty,
-because git does not keep empty folders. If `_quarto.yml` sets
+The first lines are the `site` chunk of the example report.
+`add_report()` puts the same chunk at the start of each new report. The
+`dir.create()` line makes the folder in a clone where it is empty, because
+git does not keep empty folders. If `_quarto.yml` sets
 `execute-dir: project`, this path also works.
 
 The example report saves `figures/bootstrap-means.png` with its
-`save_png()` function. Copy that function into your own reports. It takes a
+`save_png()` function. Copy that function into your own reports, after the
+`site` chunk and the `figures` lines above, because it saves into
+`figures`. It takes a
 function that draws the plot. For a ggplot `p`, pass
 `function() print(p)`. It draws into a temporary file in `figures/`. It
 gives that file its name only after the plot succeeds, so a failed plot
