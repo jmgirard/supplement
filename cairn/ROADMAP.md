@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-22 (M034 review: graduated "Make report paths work 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M035 | The writers refuse links and repeated lockfile keys | in-progress | — | normal | milestones/M035-writer-refusals.md |
+| M035 | The writers refuse links and repeated lockfile keys | review | — | normal | milestones/M035-writer-refusals.md |
 | M034 | Reports find the site folder from any folder | done | — | normal | milestones/archive/M034-report-paths.md |
 | M032 | write_dockerfile() writes a container recipe from renv.lock | done | M031 | normal | milestones/archive/M032-dockerfile.md |
 | M033 | Each CI job runs the tests once, in parallel | done | — | normal | milestones/archive/M033-ci-test-time.md |
