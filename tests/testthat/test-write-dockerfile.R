@@ -195,6 +195,38 @@ test_that("a folder at either path is refused, with overwrite TRUE and FALSE", {
   }
 })
 
+test_that("the image renders a report offline as the user, with the lockfile's R", {
+  skip_if_not(identical(Sys.getenv("SUPPLEMENT_TEST_DOCKER"), "true"), "SUPPLEMENT_TEST_DOCKER is not true")
+  skip_on_os("windows")
+  skip_if(Sys.which("docker") == "", "docker is not on PATH")
+  site <- long_dir(renv_site())
+  r_version <- jsonlite::read_json(file.path(site, "renv.lock"))[["R"]][["Version"]]
+  manifest <- run_in(site, "docker", c("manifest", "inspect", paste0("rocker/r-ver:", r_version)))
+  skip_if(manifest$status != 0L, paste0("no rocker/r-ver:", r_version, " image"))
+
+  quarto <- run_in(site, "quarto", "--version")
+  expect_status(quarto)
+  write_dockerfile(site, quarto = trimws(utils::tail(quarto$output, 1)))
+  image <- paste0("supplement-test-", tolower(gsub("[^A-Za-z0-9]", "", basename(site))))
+  withr::defer(run_in(tempdir(), "docker", c("image", "rm", "-f", image)))
+  expect_status(run_in(site, "docker", c("build", "-t", image, ".")))
+
+  user <- paste0(run_in(site, "id", "-u")$output, ":", run_in(site, "id", "-g")$output)
+  rendered <- run_in(site, "docker", c(
+    "run", "--rm", "--network", "none", "--user", user, "-e", "HOME=/tmp",
+    "-v", paste0(site, ":/site"), image, "quarto", "render", "analyses/example.qmd"
+  ))
+  expect_status(rendered)
+  page <- paste(readLines(file.path(site, "docs", "analyses", "example.html"), warn = FALSE), collapse = "\n")
+  section <- html_text(section_html(page, "computing-environment"))
+  expect_match(section, paste0("R version ", r_version, " "), fixed = TRUE)
+  # The library in the image, so the section is from the render in Docker.
+  expect_match(section, "/opt/renv/library/", fixed = TRUE)
+
+  unlink(site, recursive = TRUE)
+  expect_false(dir.exists(site))
+})
+
 test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
   skip_on_os("windows")
   outside <- withr::local_tempdir("docker-outside-")
