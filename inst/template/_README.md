@@ -314,8 +314,10 @@ then run these commands in R from this folder.
    It finds the packages that the reports use and adds them to a library
    in `renv/library/`. It writes `renv.lock`, `.Rprofile`, and the files in
    `renv/`. Commit these files. The file `renv/.gitignore` keeps
-   `renv/library/` out of git.
-2. After you render a report, record its packages:
+   `renv/library/` out of git. Later, to add a package that a report
+   needs, start R in this folder and run `install.packages()`. R installs
+   the package in `renv/library/`.
+2. After you render a report, record the packages that the reports use:
 
    ```r
    renv::snapshot()

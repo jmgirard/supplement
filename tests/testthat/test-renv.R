@@ -6,7 +6,7 @@
 # arguments joined by spaces, with no quotes. On Windows, `where` can find
 # R as a .bat or .cmd file, such as a shim that runs the real R.
 r_process_lines <- function(log) {
-  lines <- trimws(grep("^\\[execProcess\\] ", log, value = TRUE))
+  lines <- grep("^\\[execProcess\\] ", trimws(log), value = TRUE)
   lookup <- "^\\[execProcess\\] (which|CMD /C where) (R|Rscript)$"
   lines <- lines[!grepl(lookup, lines)]
   names_r <- vapply(strsplit(sub("^\\[execProcess\\] ", "", lines), " ", fixed = TRUE), function(words) {
