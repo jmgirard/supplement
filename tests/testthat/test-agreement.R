@@ -57,6 +57,9 @@ license_shapes <- list(
 
 test_that("write_citation() and the license shortcode accept and refuse the same ids", {
   skip_if_no_quarto(needs_r = FALSE)
+  # The id rules do not depend on the system, and a render is slow on
+  # Windows. The null-and-block test below renders both sides there.
+  skip_on_os("windows")
 
   page <- "BEFORE {{< supplement-license code >}} MID {{< supplement-license content >}} AFTER"
   # full_supplement() has code MIT and content CC-BY-4.0.
@@ -110,6 +113,9 @@ doi_shapes <- list(
 
 test_that("write_citation() and the DOI badge accept and refuse the same DOIs", {
   skip_if_no_quarto(needs_r = FALSE)
+  # The DOI rules do not depend on the system, and a render is slow on
+  # Windows. The null-and-block test below renders both sides there.
+  skip_on_os("windows")
 
   for (key in c("version-doi", "concept-doi")) {
     field <- paste0("supplement.zenodo.", key)

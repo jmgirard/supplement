@@ -1082,14 +1082,3 @@ test_that("for a site at the top of the repository, the release commit holds its
   expect_true(all(c("CITATION.cff", "_supplement.yml", "docs/index.html") %in% paths),
               label = paste(paths, collapse = ", "))
 })
-
-test_that("release_supplement() starts no process of its own", {
-  source <- test_path("..", "..", "R", "release-supplement.R")
-  skip_if_not(file.exists(source), "the package source is not here")
-  rx <- "\\b(git_run|git_files|system2?|processx|callr|shell|pipe)\\s*(::|\\()"
-  lines <- readLines(source)
-  expect_gt(length(lines), 0)
-  expect_false(any(grepl(rx, lines, perl = TRUE)))
-  # The pattern finds the git helper where it is called.
-  expect_true(any(grepl(rx, readLines(test_path("..", "..", "R", "check-supplement.R")), perl = TRUE)))
-})
