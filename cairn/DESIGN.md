@@ -164,7 +164,8 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   (a page only for ids that SPDX lists). The license and
   DOI shortcodes apply the rules of `license_id()` and `bare_doi()` and
   stop the render on a value those refuse; `tests/testthat/test-agreement.R`
-  runs the same value shapes through both sides.
+  runs the same value shapes through both sides, except on Windows, where
+  only its null-and-block test runs (D-020).
 - `index.qmd` reads its paper facts from `_supplement.yml` and lists the
   reports in `analyses/` through a Quarto table listing.
   `analyses/example.qmd`, `data/example.csv`, and license files are starter
@@ -190,10 +191,18 @@ through `info` in the one test of those helpers.
 is already set, so the output of a
 render whose project script failed holds the script's exit code;
 `run_split()` sets no log level.
+Both run a `quarto` command once more when it fails with "database is
+locked", which Quarto's Sass cache gives when parallel renders write it at
+once.
+Test files run in parallel (`Config/testthat/parallel` in DESCRIPTION), so
+no test relies on state that another test file sets.
 `.github/workflows/R-CMD-check.yaml` runs `R CMD check` on Windows, macOS,
 and Ubuntu with the R release and Quarto 1.10, with `NOT_CRAN=true` so the
-render tests run, then lists the skipped tests and fails on a skip for a
-missing tool (D-016).
+render tests run and one test process per runner core (D-016).
+`.github/scripts/check-skips.R` then reads the skipped tests from the test
+output that R CMD check keeps, with no second test run, and fails on a skip
+for a missing tool. A last step runs `tests/testthat/test-source.R`, whose
+tests read the package's R files, from the checkout (D-020).
 
 ## Known issues
 

@@ -177,8 +177,8 @@ use_template <- function(dir) {
   run_in(dir, "quarto", c("use", "template", shQuote(template_dir()), "--no-prompt"))
 }
 
-# Render one site per test run, because a render runs R. Each test gets its
-# own copy of it, so no test changes what another test sees.
+# Render one site per test process, because a render runs R. Each test gets
+# its own copy of it, so no test changes what another test sees.
 rendered_site <- local({
   cache <- NULL
   function() {
