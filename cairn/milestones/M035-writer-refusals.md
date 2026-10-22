@@ -117,3 +117,25 @@ Review pass 2, 2026-10-22, at 71eeeb3 (main not moved).
 - AC4 evidence (pass 2): "a lockfile that repeats a key it reads is refused before its values, and one it does not read is not" ran 22 expectations, 0 failed: 7 refused lockfiles × 3, and the repeated `cli` case in the same `test_that()` writing a `Dockerfile` from R 4.6.1.
 - AC5 evidence (pass 2): `man/write_citation.Rd`, `man/write_zenodo.Rd`, and `man/write_dockerfile.Rd` keep the link rule with the Windows exception and the repeated-key list; `NEWS.md` bullets "`write_dockerfile()` reads" (now naming `Packages.renv.Version`) and "`write_citation()` and `write_zenodo()` write" state the two rules.
 - gate (pass 2): `cairn_validate.py` all checks passed; `devtools::document()` no diff; `devtools::check()` at 13d5aaf 0 errors, 0 warnings, 0 notes (71eeeb3 changes only `cairn/`).
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: on Windows a file link to a missing file gets the "Use `overwrite = TRUE`" hint, and following it writes through the link — follow-up, absorbed by the row "Test the link refusals on Windows", which states it.
+- diff-bug #2: the link hint says "run this function again" though `write_dockerfile()` used to name itself — fix now (`check_overwrite()` takes `fn`; `expect_link_message()` asserts the name).
+- diff-bug #3: only the first link or folder is named — reject (edge, as pass 1 diff-bug #4).
+- diff-bug #4: a folder link at `CITATION.cff` now says "is a link", and NEWS does not say so — reject (planned change; the Errors text covers it, and the package is unreleased).
+- diff-bug #5: `expect_link_message()` runs for every link shape, all through one `is_link()` branch — reject (false: on main the shapes reached different messages, so the per-shape check pins what the change altered).
+- diff-bug #6: keep the `.dockerignore` name match in the last link case — noted (requests nothing).
+- diff-bug #7: the comment on that case restates the setup — fix now (it now says links at both targets are checked before any existing file).
+- diff-bug #8: AC4 tests the order only against the R < 4.0.0 check — reject (planned change: AC4 names the cases).
+- diff-bug #9: the Windows sentence added to the "Release edge cases" Known issue is hard to read — fix now.
+- diff-bug #10: a wide line in `cairn/DESIGN.md:101-102` — reject (style).
+- diff-bug #11: NEWS lists `R.Version` as a dotted path where `?write_dockerfile` says `Version` in `R` — reject (style).
+- diff-bug #12: cli can wrap a long path so a message line is empty; predates the branch — reject (style).
+- blame-history #1: `cairn/DESIGN.md:71-73` states the link refusal with no Windows caveat — fix now.
+- blame-history #2: the citation writers now refuse a link with `overwrite = TRUE` — reject (planned change).
+- blame-history #3: the hint lost its function name, which M032's review had made specific — fix now (same as diff-bug #2).
+- blame-history #4: links at both targets are checked before folders — reject (planned change, tested).
+- prior-review #1: Windows still writes through a missing-target file link with `overwrite = TRUE` (M018 review) — follow-up, absorbed by "Test the link refusals on Windows".
+- prior-review #2: the link tests skip Windows, though `Sys.junction()` could run the folder cases (M022) — follow-up, same row.
+- prior-review #3: the hint wording M032 fixed is changed — fix now (same as diff-bug #2).
+- prior-review #4: the new check order — reject (planned change).
+- ripple: no ripple evidence.

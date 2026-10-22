@@ -98,7 +98,7 @@ write_citation <- function(path = ".", overwrite = FALSE) {
   meta <- read_supplement(path)
   text <- citation_text(meta)
   file <- file.path(path, "CITATION.cff")
-  check_overwrite(file, overwrite)
+  check_overwrite(file, overwrite, "write_citation")
   write_utf8(text, file)
   invisible(file)
 }

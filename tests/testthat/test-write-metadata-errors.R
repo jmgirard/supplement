@@ -390,7 +390,8 @@ test_that("a link at the output path is refused, with overwrite TRUE and FALSE",
         outside_before <- folder_md5(outside)
         err <- expect_error(writers[[file]](dir, overwrite = overwrite),
                             class = "supplement_error_file_exists", info = info)
-        expect_link_message(err, info = info)
+        fn <- if (file == "CITATION.cff") "write_citation" else "write_zenodo"
+        expect_link_message(err, fn, info = info)
         expect_identical(folder_md5(dir), before, info = info)
         expect_identical(folder_md5(outside), outside_before, info = info)
       }

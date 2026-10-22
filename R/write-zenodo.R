@@ -47,7 +47,7 @@ write_zenodo <- function(path = ".", overwrite = FALSE) {
   meta <- read_supplement(path)
   text <- zenodo_text(meta)
   file <- file.path(path, ".zenodo.json")
-  check_overwrite(file, overwrite)
+  check_overwrite(file, overwrite, "write_zenodo")
   write_utf8(text, file)
   invisible(file)
 }

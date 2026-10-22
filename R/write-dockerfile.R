@@ -162,7 +162,7 @@ write_dockerfile <- function(path = ".", quarto, digest = NULL, overwrite = FALS
 
   dockerfile <- file.path(path, "Dockerfile")
   dockerignore <- file.path(path, ".dockerignore")
-  check_overwrite(c(dockerfile, dockerignore), overwrite)
+  check_overwrite(c(dockerfile, dockerignore), overwrite, "write_dockerfile")
 
   # .dockerignore first, so a Dockerfile never stands without it.
   write_utf8(c("*", "!renv.lock"), dockerignore)

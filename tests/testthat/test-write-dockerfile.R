@@ -306,16 +306,16 @@ test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
         info <- paste(file, overwrite, shape)
         err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19",
                               overwrite = overwrite, info = info)
-        expect_link_message(err, info = info)
+        expect_link_message(err, "write_dockerfile", info = info)
       }
     }
   }
-  # The link at .dockerignore comes before the plain Dockerfile.
+  # Links at both targets are checked before any existing file.
   site <- lock_site()
   writeBin(charToRaw("old\n"), file.path(site, "Dockerfile"))
   skip_if_not(file.symlink(targets[["a link to a file"]], file.path(site, ".dockerignore")),
               "cannot make a symbolic link here")
   err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19")
-  expect_link_message(err)
+  expect_link_message(err, "write_dockerfile")
   expect_match(conditionMessage(err), ".dockerignore", fixed = TRUE)
 })

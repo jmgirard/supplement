@@ -275,13 +275,13 @@ license_id <- function(id, field, call = parent.frame()) {
 # would follow a link, even one whose target is missing, maybe out of the
 # site, so a link is refused whatever `overwrite` is. On Windows,
 # is_link() misses a file link to a missing file, which then reads as an
-# existing file.
-check_overwrite <- function(files, overwrite, call = parent.frame()) {
+# existing file. `fn` names the function to run again.
+check_overwrite <- function(files, overwrite, fn, call = parent.frame()) {
   link <- files[is_link(files)]
   if (length(link) > 0) {
     cli::cli_abort(
       c("{.path {link[[1]]}} is a link, so the file is not written there.",
-        "i" = "Remove the link, then run this function again."),
+        "i" = "Remove the link, then run {.fn {fn}} again."),
       class = c("supplement_error_file_exists", "supplement_error"),
       call = call
     )
