@@ -54,7 +54,8 @@ already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. If
 both files exist, no guide is written. The template ships these files as `_gitignore` and `_README.md`, because
 `quarto use template` does not copy those file names. The guide explains how
 the site renders, how to render on the machine that holds private data, and
-how to publish. It also shows how to record R packages with renv.
+how to publish. It also shows how to record R packages with renv and how
+to render reports in a Docker container.
 
 Put the paper title, citation, Zenodo DOIs, and data files in
 `_supplement.yml`. The home page reads them from that file. The guide
@@ -85,10 +86,20 @@ Both functions add lines to these files as text, so the other lines and
 the comments stay as they are. If a function cannot find the menu or the
 list, it stops, writes nothing, and shows the lines to add by hand.
 
+## Record the R setup
+
 To record the version of each R package that the reports use, so that
 another machine can install the same versions, use the renv package. The
 guide's "Recording R packages with renv" part shows the three commands.
 supplement does not call renv.
+
+In R, `supplement::write_dockerfile(quarto = "1.10.19")` in the site
+folder reads `renv.lock` and writes a `Dockerfile` and a `.dockerignore`.
+Docker builds an image from them. The image holds the R version and the R
+packages in `renv.lock`, and Quarto. A report can render in it where Docker
+runs Linux containers on amd64, or on arm64 for R 4.1.0 or later. The
+guide's "Running reports in a container" part shows how to build the image
+and render a report in it.
 
 ## Check a site before a release
 
