@@ -1,6 +1,6 @@
 # M034: Reports find the site folder from any folder
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -68,7 +68,43 @@ The example report and each report from `add_report()` find the site folder by o
 - 2026-10-22: T6 (checkpoint): NEWS.md's figures bullet states the `site` chunk rule and a new bullet covers `add_report()` reports and old sites; `cairn/DESIGN.md` Architecture states the rule and names `site_chunk()`. `devtools::document()` changed nothing. The full suite and `devtools::check()` were running at this commit.
 - 2026-10-22: on 520d810 the full `devtools::test()` (NOT_CRAN=true) gave 336 tests, 0 failed, 0 errors, 8 skipped. The `devtools::check()` run right after it reported 1 error whose text was not kept; two reruns gave 0 errors, 0 warnings, 0 notes (4681 passed, 10 skipped in `tests/testthat.Rout`). The cause of the first error is not known; see the parked row "template test flake".
 - 2026-10-22: claim audit: 32 claims read, 3 corrected — NEWS.md (the stub's first code chunk is `site`, and only its text names the data path; the folder order when both `.` and `..` hold `_quarto.yml`), tests/testthat/test-add-report.R (test name). The folder-order wording was also fixed in `inst/template/_README.md` and `inst/template/analyses/example.qmd`, and a README wording note was taken. `test-template.R`, `test-add-report.R`, and `test-create-supplement.R` pass after the edits (NOT_CRAN=true).
+- 2026-10-22: review return 1: AC1 fails. The prose before the `site` chunk in `inst/template/analyses/example.qmd` does not say that the code stops when neither folder holds `_quarto.yml`, or that an empty `QUARTO_PROJECT_DIR` counts as unset. The same task carries the pass-1 fix-now items: the `add_report()` roxygen and `man/add_report.Rd` describe the stub's first `site` chunk; `cairn/DESIGN.md` names `site_chunk()`; NEWS.md's fits sentence says the README tells reports to read fit files so; the nested-site comment in `test-template.R` says why.
 
 ## Decisions
 
 ## Review
+
+Pass 1, 2026-10-22, on ffface2 (main at 4efd1b9, not moved).
+
+- Gate: `devtools::test()` (NOT_CRAN=true) 336 tests, 0 failed, 0 errors, 8 skipped. `devtools::check()` 0 errors, 0 warnings, 0 notes. `devtools::document()` left no diff. `cairn_validate.py` all checks passed. No principle changed, so no `cairn_impact` run. No README.Rmd and no pkgdown site. NEWS.md has entries for the change. No new top-level files.
+- AC1: not met. The chunk and the grep pass (`site <-` only at example.qmd:19 and :21, inside the `site` chunk at :17-25), but the prose before the chunk (:11-15) does not say that the code stops when neither folder holds `_quarto.yml`, or that an empty variable counts as unset (diff-bug #6). Review return 1.
+- [x] AC2 evidence: "the example's site chunk finds the site folder from analyses/ or the site folder" passed in the full suite on ffface2 (8 expectations at T1). It covers `..` and `.` with the variable unset and `""`, the nested site (`.`), a set path compared with `identical()`, and the stop matched by its message, unset and `""`.
+- [x] AC3 evidence: "a report stub's first chunk is the example's site chunk, and its text reads data through site" passed in the full suite. It compares `chunk_code()` of both files, checks the first chunk's label, the data-path text, and no `"..", "data"` outside the title and description lines.
+- [x] AC4 evidence: "a report from add_report() reads data through its site chunk with either execute-dir" passed in the full suite (NOT_CRAN=true), two new sites, each page holding `[1] 10` against the row count read from `inst/template/data/example.csv`. With main's `R/add-report.R` it failed with "object 'site' not found" (T4).
+- [x] AC5 evidence: "the README's figure code starts with the example's site chunk" passed. The README prose (`_README.md` "Paper figures") states the rule and says to copy `save_png()` after the `site` chunk and the `figures` lines. The fits advice is at `_README.md:273`. The AC5 grep printed nothing (exit 1).
+- [x] AC6 evidence: NEWS.md's figures bullet now states the `site` chunk rule in place of the `..` fallback, and the new bullet covers `add_report()` reports and copying the chunk from a new site's `analyses/example.qmd`.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the `add_report()` help (roxygen in R/add-report.R, man/add_report.Rd) does not describe the stub's new first `site` chunk — fix now (in return 1).
+- diff-bug #2: cairn/DESIGN.md:76-79 names only `environment_section()` for the stub, not `site_chunk()` — fix now (in return 1).
+- diff-bug #3: a folder named `_quarto.yml` counts as the site in the chunk, while `add_report()` treats it as no config — reject, edge: such a folder is outside documented and common use, and Quarto then fails to render the site with an error.
+- diff-bug #4: `site` is the relative `.` or `..`, so a later `setwd()` in report code breaks the paths — reject, edge: changing the working folder inside a report is outside the template's documented and common use, and the effect is a file-not-found error.
+- diff-bug #5: `site_chunk()` needs the exact fence "```{r}", fails with an unclear error on a missing closing fence, and its `stopifnot()` error has no `supplement_error` class — reject, false: it reads only the package's own installed example, which no user input changes, as `environment_section()` does.
+- diff-bug #6: the prose before the `site` chunk does not state the stop or the empty-variable case, which AC1 asks it to — review return 1.
+- diff-bug #7: both AC4 renders take the `QUARTO_PROJECT_DIR` branch, so a render never tests the `.`/`..` fallback — reject, planned change: AC4 is the render case, and AC2 covers the fallback.
+- diff-bug #8: NEWS.md "The site's README reads fit files as…" is odd, since the README tells reports to read them so — fix now (in return 1).
+- diff-bug #9: the README's figure block leaves out the example's check for a file named `figures` while it tells authors to copy `save_png()` after it — follow-up, absorbed into the row "Stop the example at a linked figures" (the gap predates the branch).
+- diff-bug #10: `readLines(stub, encoding = "UTF-8")` in test-add-report.R has no `warn = FALSE` — reject, style.
+- diff-bug #11: the `NA` and `""` loops in the AC2 test run the same code path — reject, planned change: AC2 names both, and `""` is the case the old `Sys.getenv(x, "..")` form got wrong.
+- diff-bug #12: the comment "A site inside a folder that also holds _quarto.yml." restates the code, not why — fix now (in return 1): say that the case checks that `.` is tried before `..`.
+- diff-bug #13: the comment on the output block in the AC4 test is acceptable — reject, false: no defect stated.
+- blame-history #1: `data` and `save-figure` no longer run alone, which M028 (0c312a3) gave them — reject, planned change (work-log choice of one `site` chunk).
+- blame-history #2: copying the README block now needs the `site` chunk first — reject, planned change; the README says so.
+- blame-history #3: the M028 comment that the chunk runs alone is gone, and no test checks "object 'site' not found" — reject, planned change: running `save-figure` alone is no longer a promised use.
+- blame-history #4: no D-entry records the `_quarto.yml` search — reject, planned change: it is milestone-local and recorded in this work log; `QUARTO_PROJECT_DIR` stays first, as M028 chose.
+- blame-history #5: reports written before this change keep `file.path("..", "data", ...)` — reject, planned change: Scope Out, and NEWS tells authors to copy the chunk.
+- blame-history #6: the fits advice now depends on the `site` chunk — reject, planned change (AC5).
+- prior-review #1: the lookup is now in every new report through `site_chunk()` — reject, planned change (AC3).
+- prior-review #2: the figures write still follows a linked `figures` folder — reject, planned change: Scope Out names the row "Stop the example at a linked figures".
+- ripple #1: cairn/ROADMAP.md:34 states the old rule — reject, planned change: it is the candidate row this milestone absorbs, removed at hygiene.
+- ripple #2: cairn/DESIGN.md:76-78 omits `site_chunk()` — fix now (same as diff-bug #2).
+- ripple #3: man/add_report.Rd and its roxygen omit the new first chunk — fix now (same as diff-bug #1).
