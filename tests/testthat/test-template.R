@@ -477,16 +477,15 @@ test_that("the example page shows the R and knitr versions of its render", {
 
   # One render as the machine is, and one with sessioninfo hidden by a
   # chunk that the test puts in its copy of the report, before the section.
-  # A profile named in R_PROFILE_USER hid it on macOS, but not in the R that
-  # Quarto ran on the Windows CI runner.
+  # The chunk runs in the R that Quarto starts, on every system.
   for (hidden in c(FALSE, TRUE)) {
     site <- new_site()
     if (hidden) {
       report <- file.path(site, "analyses", "example.qmd")
       text <- rawToChar(read_bytes(report))
       at <- regexpr("\n## Computing environment\n", text, fixed = TRUE)
-      expect_gt(at, 0)
-      chunk <- paste(c("", "```{r}", "#| include: false", hide_sessioninfo, "```", ""), collapse = "\n")
+      stopifnot("the example report has a Computing environment heading" = at > 0)
+      chunk <- paste(c("", "```{r}", "#| include: false", hide_sessioninfo, "```", "", ""), collapse = "\n")
       text <- paste0(substring(text, 1, at), chunk, substring(text, at + 1))
       writeBin(charToRaw(text), report)
     }
