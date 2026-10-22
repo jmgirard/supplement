@@ -202,7 +202,7 @@ test_that("the example's site chunk finds the site folder from analyses/ or the 
     expect_identical(site_from(site, unset), ".", info = format(unset))
   }
 
-  # A site inside a folder that also holds _quarto.yml.
+  # When both folders hold _quarto.yml, the current folder wins.
   parent <- withr::local_tempdir("parent-")
   file.create(file.path(parent, "_quarto.yml"))
   nested <- file.path(parent, "site")

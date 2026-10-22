@@ -74,8 +74,9 @@ template into a folder, refuses any file, folder, or link in its way
 before it writes, removes what it made when a write fails, and with
 `repo` fills the GitHub placeholders. It never runs git.
 `R/add-report.R` and `R/add-data.R`: `add_report()` writes a report stub
-in `analyses/`, ending with the example report's "Computing environment"
-section read from the installed template (`environment_section()`), and
+in `analyses/`, starting with the example report's `site` chunk
+(`site_chunk()`) and ending with its "Computing environment" section
+(`environment_section()`), both read from the installed template, and
 adds it to the Analyses menu in `_quarto.yml`;
 `add_data()` copies a file into `data/` and adds it to the `data` list in
 `_supplement.yml`. Both check every argument and the target file before

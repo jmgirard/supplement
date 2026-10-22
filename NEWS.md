@@ -151,9 +151,9 @@
 * In each report that `add_report()` writes, the first code chunk is the
   example report's `site` chunk, so the report finds the site folder by
   the same rule. Its text says to read a data file as
-  `file.path(site, "data", "<file name>")`. Before, its text
-  said to read data from `..`. That path is wrong for code run from the
-  site folder. The site's README reads fit files as
+  `file.path(site, "data", "<file name>")`. Before, its text said to read
+  data from `..`. That path is wrong for code run from the site folder.
+  The site's README tells reports to read fit files as
   `file.path(site, "analyses", "fits", ...)`. In a site made before this
   change, copy the `site` chunk from a new site's `analyses/example.qmd`
   into each report.
