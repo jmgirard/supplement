@@ -43,7 +43,7 @@
 - [x] T2: Write the AC2 tests first, then add the file and line list and a line reader that turns a read failure into no row (`read_text_lines()` in `R/yaml-insert.R` stops with `supplement_error_encoding`, so catch it or read the bytes and test `validUTF8()`). Run `devtools::test()`.
 - [x] T3: Write the AC3 test first, then add the text comparison of the two example files with the template's copies, with CR LF read as LF. Run `devtools::test()`.
 - [x] T4: Add a helper in `tests/testthat/helper-files.R` that replaces each placeholder of AC1 to AC3 in a site with valid values that `citation_text()` accepts, edits `_README.md` before a render renames it, and writes bytes with `writeBin()` (LESSONS M011). Call it before any render or stored hash: in the first test of `test-check-supplement.R` (line 29), in `renv_site()` of `helper-template.R` after `git_site()` and before the render (line 218), and in `checked_site()` of `test-release-supplement.R` (line 216) through a `placeholders = TRUE` argument. Write the AC4 test with `checked_site(placeholders = FALSE)`, then replace the placeholders and rewrite `html.json` from the report's new MD5. Run `devtools::test()` and confirm that the zero-row tests pass for their own reason (no row of any check).
-- [ ] T5: Add the `"placeholder"` bullet and the opening-sentence change to the roxygen of `check_supplement()`, update the example comment (line 202), and run `devtools::document()`. Edit the `NEWS.md` bullet at line 39. Add the check to the `check_supplement()` paragraph of `cairn/DESIGN.md` Architecture. Run `devtools::check()`.
+- [x] T5: Add the `"placeholder"` bullet and the opening-sentence change to the roxygen of `check_supplement()`, update the example comment (line 202), and run `devtools::document()`. Edit the `NEWS.md` bullet at line 39. Add the check to the `check_supplement()` paragraph of `cairn/DESIGN.md` Architecture. Run `devtools::check()`.
 
 ## Work log
 
@@ -62,6 +62,7 @@
 - 2026-10-22: T2 checkpoint: `placeholder_lines` and `placeholder_line_rows()` give one row per file with its own problem text; `plain_lines()` turns a missing path, a folder, or a read error of `read_text_lines()` into no lines. Five tests added, all passing.
 - 2026-10-22: T3 checkpoint: `placeholder_example_rows()` compares the two example files with the template's through `report_hash()`, the CR LF reader of the stale-output check. One test runs the five states for each file and passes.
 - 2026-10-22: T4 done: `fill_placeholders()` and `replace_in_file()` in `helper-files.R` (the T2 test's own copy of `replace_in_file()` moved there); called in the first check test, in `renv_site()` before its render, and in `checked_site(placeholders = TRUE)`. The AC4 test sees 8 placeholder rows, a release stop with "8 problems" and an unchanged folder, then a release to 1.0.0 after the fill. Full suite with NOT_CRAN=true: 349 tests, 0 failed, 8 skipped (Windows, case-sensitive disk, Docker; the renv test ran). T1 to T3 ticked with it.
+- 2026-10-22: T5 done: `?check_supplement` opening sentence, `"placeholder"` bullet, and example comment (the comment checked against a run of the example, which gave 8 placeholder rows); `NEWS.md` bullet; `cairn/DESIGN.md` Architecture. `devtools::document()` rewrote `man/check_supplement.Rd`; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 
 ## Decisions
 

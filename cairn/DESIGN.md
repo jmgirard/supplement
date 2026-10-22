@@ -132,6 +132,12 @@ inside `docs/`, matching each name's
 letter case as GitHub Pages does, and fails a link when a part of its
 path resolves outside `docs/`. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
+Its placeholder check (`check_placeholders()`, M036) compares four
+`_supplement.yml` values with the installed template's, read through
+`template_supplement()`. It also looks for the lines of
+`placeholder_lines` in seven site files and compares the two example
+files with the template's copies through `report_hash()`. A file that it
+cannot read as UTF-8 text gives no row and does not stop the check.
 `R/release-supplement.R`: `release_supplement()` checks `bump`, reads
 `_supplement.yml` once, and from that read checks the current
 `supplement.version` and the `version:` line. It builds the new

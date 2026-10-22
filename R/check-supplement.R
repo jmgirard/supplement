@@ -1,7 +1,8 @@
 #' Check a supplement site before a release
 #'
 #' `check_supplement()` looks for problems that can break a release of a
-#' site or publish files that must stay private. It changes no file. It
+#' site, publish files that must stay private, or publish the template's
+#' placeholder values in place of the author's. It changes no file. It
 #' prints each problem it finds and returns all of them as a data frame.
 #'
 #' The checks, by the value in the `check` column:
@@ -161,6 +162,30 @@
 #'   that cannot be read or is not a YAML map (a link to a missing file
 #'   included), and a DOI in `CITATION.cff` or on the badge that is not a
 #'   DOI.
+#' * `"placeholder"`: a template value that the author has not replaced, so
+#'   that a release would archive it. The check compares the site with the
+#'   template that the installed package holds:
+#'   * `_supplement.yml` gets one row when `paper-title`, `citation`, or
+#'     `contact` equals the template's value, or an `authors` entry has the
+#'     `family` and `given` of a template author. Values are compared with
+#'     each run of white space read as one space and the ends removed. A
+#'     value that is not one text value does not count. The row names the
+#'     fields.
+#'   * `_quarto.yml` gets a row for the line
+#'     `href: https://github.com/OWNER/REPO`, `index.qmd` for the line
+#'     `## Before your first commit`, `LICENSE.md` and `LICENSE-CC-BY.md`
+#'     for the line `Copyright (c) YEAR AUTHORS`, and `README.md`,
+#'     `SUPPLEMENT.md`, and `_README.md` for the line
+#'     `Website: https://OWNER.github.io/REPO/`. Spaces, tabs, and a
+#'     carriage return at the ends of a line are ignored. A file that is
+#'     missing, a folder, or not UTF-8 text gives no row.
+#'   * `analyses/example.qmd` and `data/example.csv` each get a row when
+#'     their text equals the template's copy, with each CR LF read as LF.
+#'
+#'   Only a whole value or a whole line counts, so a value that keeps part
+#'   of a placeholder, such as a citation with `(Year)` in it, gives no row.
+#'   A site made from an older version of the template, whose placeholders
+#'   differ from the installed ones, gives no row for them.
 #'
 #' The `"large-file"` and `"saved-object"` checks look at the files that git
 #' tracks or does not ignore, which
@@ -199,8 +224,8 @@
 #' @examples
 #' site <- file.path(tempdir(), "check-example")
 #' create_supplement(site)
-#' # A new site has not been rendered, and its example report has no
-#' # stored output yet.
+#' # A new site has not been rendered, its example report has no stored
+#' # output yet, and it still holds the template's placeholder values.
 #' problems <- check_supplement(site)
 #' problems$check
 #' unlink(site, recursive = TRUE)
