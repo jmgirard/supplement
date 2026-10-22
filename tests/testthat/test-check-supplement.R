@@ -1160,9 +1160,10 @@ test_that("a link in docs/figures with the figure's bytes gives an unpublished-f
 test_that("rows of the new checks come in byte order, not the locale's order", {
   site <- new_site()
   put_files(site, c("figures/a.png", "figures/B.png"))
+  old <- Sys.getlocale("LC_COLLATE")
   set <- suppressWarnings(Sys.setlocale("LC_COLLATE", "en_US.UTF-8"))
+  withr::defer(Sys.setlocale("LC_COLLATE", old))
   skip_if(!nzchar(set), "the en_US.UTF-8 locale is not available")
-  withr::defer(Sys.setlocale("LC_COLLATE", "C"))
   byte_order <- c("figures/B.png", "figures/a.png", "figures/bootstrap-means.png")
   # The locale's order differs, so the test can tell the two apart.
   expect_false(identical(sort(byte_order), byte_order))

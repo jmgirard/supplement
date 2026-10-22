@@ -234,7 +234,9 @@ run_split <- function(dir, command, args) {
     withr::with_dir(long_dir(dir), suppressWarnings(system2(command, args, stdout = out, stderr = err)))
   }
   status <- run()
-  if (is_quarto_command(command) && status != 0L && sass_cache_locked(read_text(err))) status <- run()
+  if (is_quarto_command(command) && status != 0L && sass_cache_locked(c(read_text(out), read_text(err)))) {
+    status <- run()
+  }
   list(status = status, stdout = read_text(out), stderr = read_text(err))
 }
 

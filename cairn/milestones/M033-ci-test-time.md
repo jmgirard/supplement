@@ -80,6 +80,8 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 
 ## Decisions
 
+- 2026-10-21 (review): the render retry stands beside the M019 and M020 plan choice of "diagnostics only, no retry". That choice was about failed renders whose cause is unknown. The retry here fires only on Quarto's own "database is locked" text, a cause reproduced on the Mac, so a render that fails any other way, the parked flake's "Running script" shape included, still fails at once. Logging each retry is a candidate row ("Log render retries after a cache lock").
+
 ## Review
 
 - 2026-10-21 AC1: the workflow's "List skipped tests" step is `Rscript .github/scripts/check-skips.R check/supplement.Rcheck/tests` and runs no test (no `test_local` or `test_check` in the step). Fresh runs: on a local check's `testthat.Rout` (bbca29f tests) it printed the section and passed (9 skips); a missing folder failed "No test output: neither …"; a folder with both files read `testthat.Rout.fail` and failed "No test passed." (`PASS 0`); a copy with no summary line failed "has no testthat summary line"; a copy with the rule line removed failed "The skip lines count 0 skips, but the summary line counts 9." Pass.
@@ -88,3 +90,29 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 - 2026-10-21 AC4: `skip_on_os("windows")` sits in the six named tests (`test-agreement.R` 58, 114; `test-shortcodes.R` 25, 141, 178, 223). CI run 39722320941 skip lines in those two files: Windows `test-agreement.R:62`, `:118`, `test-shortcodes.R:28`, `:144`, `:181`, `:226` (and `:354`, the existing read-only-folder skip); macOS and Ubuntu none. `supplement.lua` registers 4 shortcodes; each keeps a Windows render in a test with no Windows skip and no Windows skip line: `supplement-doi` and `supplement-download` (`test-shortcodes.R:12`, `render_doi_page()`), `supplement-download` (`:91`), `supplement-license` (`:117`), `supplement-data-table` (`:277`). Pass.
 - 2026-10-21 AC5: DESCRIPTION has `Config/testthat/parallel: true` (line 26). CI run 39722320941: "Starting 4 test processes." on Windows and Ubuntu, "Starting 3 test processes." on macOS. Pass.
 - 2026-10-21 AC6: CI run 39722320941 (0cfd0cd), the last run so far, `gh run view --json jobs`: windows-latest 530 s (29.1% of 1,824 s), macos-latest 415 s (50.5% of 822 s), ubuntu-latest 413 s (40.6% of 1,017 s). Pass; the PR's own run is read again at step 8 before the merge.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: one byte that is not UTF-8 in the Rout makes `gsub()` stop, so the step shows an R error and no skip list — fix now (`iconv(…, sub = "byte")`; a planted bad byte now passes with 9 skips).
+- diff-bug #2: testthat keeps only a skip message's first line, so a missing-tool text after a line break would pass silently — fix now as a stated rule in the script's comment; no skip message in the suite has a line break.
+- diff-bug #3: a skip line with no location ends "(1):" and stops the step with "Cannot read these skip lines" — fix now (`item_rx` takes an empty location; a planted "git is not on PATH (1):" fails as a missing tool, another reason passes).
+- diff-bug #4: a bullet alone on its line, or "Skipped tests (" inside a failure message, misreads the section — reject (edge: a reason whose first word is wider than the 80-column wrap, or a failure message quoting the rule; both give a loud count-mismatch error).
+- diff-bug #5: the retry leaves no trace — follow-up, new row "Log render retries after a cache lock". Its sub-points: an expected-failure test gets the same result, and `quarto use template` retried only on the lock text — reject (false: neither changes a result). `test-shortcodes.R:16` lacking `info =` sits in the row "Show output on failed status checks".
+- diff-bug #6: `if: always()` runs both new steps after a cancelled or failed setup and adds errors — reject (edge: a job that already failed or was cancelled; the old step did the same).
+- diff-bug #7: DESIGN.md cited D-016 for one process per core — fix now (cites D-020). Parallel teardown's 1 s limit could leave temp files on Windows — reject (edge: a slow unlink in the worker's temp folder; all three jobs passed "checking for detritus").
+- blame-history #1: `run_split()` looked for the lock text on stderr only — fix now (stdout and stderr; a stand-in `quarto` writing the text to either stream is retried once, and another error is not).
+- blame-history #2: the retry discards the first attempt's output and could hide the parked flake — reject (false: the retry fires only on the lock text, and the flake prints "Running script"); the trace part is diff-bug #5's row.
+- blame-history #3: the collation test reset `LC_COLLATE` to "C", not the old value, which under parallel workers reaches whichever file runs next — fix now (restores the value read before the change).
+- blame-history #4: the six Windows skips drop the R-to-Lua agreement check on Windows — reject (planned change, chosen at the question set; D-020).
+- blame-history #5: reasons cut at the first line break — fix now, as diff-bug #2.
+- blame-history #6: `skip_on_os()` sits before the cheap `write_citation()` checks, against the M023 skip-after pattern — reject (planned change: the loops run a render and a `write_citation()` call per shape together).
+- blame-history #7: a literal `•` in `check-skips.R` — fix now (written as `•`; the file is ASCII).
+- prior-review #1: the retry reverses M019/M020's "no retry", and the CI failure was not matched to the lock text — fix now as a milestone-local decision (Decisions above); the unmatched CI failure — follow-up, noted in the row "template test flake".
+- prior-review #2: Windows skips placed before the cheap checks — reject (planned change), as blame-history #6.
+- prior-review #3: parallel tests can raise the flake rate — reject (planned change; the risk was posed at the question set).
+- prior-review #4: the source-reading tests leave R CMD check — reject (planned change, AC3).
+- ripple #1: DESIGN.md's CI paragraph described the second test pass — fixed 53fb384.
+- ripple #2: the `rendered_site()` comment said one site per test run — fixed 53fb384 (per test process).
+- ripple #3: the candidate row "Cut the test time of each CI job" describes the old CI — reject (planned change: post-merge hygiene removes the row).
+- ripple #4: DESIGN.md said `test-agreement.R` runs every shape on both sides — fixed 53fb384 (except on Windows).
+- ripple #5: DESIGN.md cited only D-016 for the skip list — fixed 53fb384 (cites D-020).
+- ripple #6: DESIGN.md did not name the retry — fixed 53fb384.
+- ripple #7: the parked row "template test flake" says no cause was found — follow-up: the row gains the lock finding, since the macOS failure's cause was not seen.

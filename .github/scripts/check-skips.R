@@ -23,6 +23,8 @@ if (length(found) == 0) {
 }
 file <- found[[1]]
 lines <- readLines(file, warn = FALSE, encoding = "UTF-8")
+# A failing test can print bytes that are not UTF-8, such as a file name.
+lines <- iconv(lines, "UTF-8", "UTF-8", sub = "byte")
 lines <- gsub("\033\\[[0-9;]*m", "", lines)
 
 summary_rx <- "^\\[ FAIL [0-9]+ \\| WARN [0-9]+ \\| SKIP ([0-9]+) \\| PASS ([0-9]+) \\]$"
@@ -38,8 +40,10 @@ if (n_pass == 0L) stop("No test passed.", call. = FALSE)
 
 # testthat's check reporter writes one bullet per skip reason,
 # "<bullet> <reason> (<count>): <locations>", wrapped with a two-space
-# indent, under a "Skipped tests" rule and up to the next blank line.
-bullet_rx <- "^[*•] "
+# indent, under a "Skipped tests" rule and up to the next blank line. It
+# keeps only the first line of a skip message, so a missing-tool text in
+# the list above must sit in the first line of its skip message.
+bullet_rx <- "^[*\u2022] "
 reasons <- character()
 counts <- integer()
 start <- grep("Skipped tests (", lines, fixed = TRUE)
@@ -56,7 +60,8 @@ if (length(start) > 0) {
       items[[length(items)]] <- paste(items[[length(items)]], trimws(line))
     }
   }
-  item_rx <- paste0(bullet_rx, "(.*) \\(([0-9]+)\\): .*$")
+  # A skip with no source location ends at "(<count>):".
+  item_rx <- paste0(bullet_rx, "(.*) \\(([0-9]+)\\):( .*)?$")
   parsed <- grepl(item_rx, items, perl = TRUE)
   if (!all(parsed)) {
     stop("Cannot read these skip lines:\n", paste(items[!parsed], collapse = "\n"), call. = FALSE)
