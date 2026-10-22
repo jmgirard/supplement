@@ -110,3 +110,4 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - blame-history #8: `fill_placeholders()` leaves `(Year)` and `*Journal Name*` in the citation — reject, false (test data; a partial placeholder gives no row by AC1's design, and the release accepts it).
 - blame-history #9: loose wording in the help's opening sentence and in "They are also the" in NEWS — reject, style.
 - Re-run after the fixes: full suite with NOT_CRAN=true 349 tests, 0 failed, 8 skipped. No snapshot file changed (`git diff --name-only` lists no `_snaps` path).
+- `devtools::check()` on cfd053b: 0 errors, 0 warnings, 0 notes. Open PRs by the operator: none, so the feature cap of 1 is not reached.
