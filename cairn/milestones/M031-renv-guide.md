@@ -1,13 +1,13 @@
 # M031: An author can record and restore a site's R packages with renv
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** M030
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template guide's renv part and the tested behavior of a site set up with renv
-- **Branch/PR:** —
+- **Branch/PR:** m031-renv-guide
 
 ## Goal
 
@@ -37,7 +37,7 @@ The template guide shows how to record and restore a site's R packages with renv
 
 ## Tasks
 
-- [ ] T1: Probe in a scratch site on macOS, and read Quarto's source for Windows. Find the lookup line that a frozen full render logs on each system. Find whether `renv::init()` in a subprocess needs a network when every package that the site uses is installed. Find what it writes outside the site when `RENV_PATHS_ROOT` points to a temporary folder. Record each result in the work log.
+- [x] T1: Probe in a scratch site on macOS, and read Quarto's source for Windows. Find the lookup line that a frozen full render logs on each system. Find whether `renv::init()` in a subprocess needs a network when every package that the site uses is installed. Find what it writes outside the site when `RENV_PATHS_ROOT` points to a temporary folder. Record each result in the work log.
 - [ ] T2: Add a helper in `tests/testthat/helper-template.R` that makes the AC1 site. It runs `renv::init()` through `Rscript` in the site folder with `RENV_PATHS_ROOT` set to a temporary folder, so the test never activates renv in its own session. It skips when renv is not installed for that `Rscript` and when a network is needed and missing.
 - [ ] T3: Add the AC1 to AC3 tests in a new `tests/testthat/test-renv.R`. Use `expect_status()` for each command. Show that the AC1 pattern finds an R call by running it over a log line that names `Rscript`, `/usr/bin/R`, `"C:\Program Files\R\bin\Rscript.exe"`, and `Rterm.exe`. Make the R-CMD-check workflow's skip list count a skip for missing renv as a missing tool (`.github/workflows/R-CMD-check.yaml:86`). Add renv to Suggests in DESCRIPTION and write the D-entry.
 - [ ] T4: Write the renv part of `inst/template/_README.md`, after "Rendering on the machine with the private data" (line 237), and a short pointer in `README.md`. Add a NEWS.md bullet.
@@ -59,6 +59,13 @@ The template guide shows how to record and restore a site's R packages with renv
 - 2026-10-21: criteria audit (full mode, fresh Opus reader): 5 findings for M031, all taken. AC1 now states the deliverable (a full render runs no R), and it allows the Windows lookup line and every form of an R call. The test isolates renv's cache and skips offline (T2). AC4 now limits the no-R claim to reports with stored output. The skip check for renv in the subprocess moved to T2, and CI counting a renv skip as missing moved to T3. AC2 and AC3 had no finding.
 - 2026-10-21: changelog: one new bullet in NEWS.md under 0.0.0.9000.
 - 2026-10-21: cross-reference: M033 moves the workflow's missing-tool list into `.github/scripts/check-skips.R`. If M033 merges first, T3 adds the renv text there.
+- 2026-10-22: branch m031-renv-guide cut from main at 1810bd5; status in-progress.
+- 2026-10-22: a probe command with an unset path variable committed the two status edits on the branch under a throwaway author; undone with a soft reset before any push.
+- 2026-10-22: T1: macOS (Quarto 1.10.19, renv 1.3.1, R 4.6.1), a site from `create_supplement()`, rendered and committed, then `renv::init()` through Rscript: init exited 0, and a frozen full render exited 0 with `which Rscript` as its only R-related `[execProcess]` line. Every render also logs deno, sass, and pandoc `[execProcess]` lines.
+- 2026-10-22: T1: Quarto's bundled source (`rBinaryPath`, `which` in quarto.js): with R_HOME set it finds Rscript by a file check and runs no lookup process; otherwise it logs `which Rscript`, or `CMD /C where Rscript` on Windows, and on Windows then reads the registry through `cmd /c <temp>.bat`. No lookup line names an R executable.
+- 2026-10-22: T1: with a dead proxy and an unreachable package repository, `renv::init()` exited 0 in 2 s, so it needs a network only when a package the site uses is not installed.
+- 2026-10-22: T1: with only RENV_PATHS_ROOT set, renv also wrote a sandbox under `~/Library/Caches/org.R-project.R/R/renv/sandbox`; with RENV_PATHS_SANDBOX also set to a temporary folder, it wrote nothing outside the site and those two folders.
+- 2026-10-22: T1: git also listed `renv/.gitignore` beside the four files AC3 names, and nothing in `renv/library/`. `check_supplement()` gave zero rows.
 
 ## Decisions
 
