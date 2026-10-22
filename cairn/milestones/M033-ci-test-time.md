@@ -1,6 +1,6 @@
 # M033: Each CI job runs the tests once, in parallel
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -46,7 +46,7 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 - [x] T3: Read the helpers and test files for state that parallel workers share: the `rendered_site()` cache and its `teardown_env()` cleanup, fixed paths outside `tempdir()`, the size fixtures, and Quarto's cache. Fix what breaks. Add `Config/testthat/parallel: true` and `Config/testthat/start-first` for the three slowest files to DESCRIPTION, and set `TESTTHAT_CPUS` in the workflow to each runner's core count. Run `devtools::test()` three times in a row on the Mac and record each time and result in the work log.
 - [x] T4: Add `skip_on_os("windows")` to the six AC4 tests, with a comment that the rules do not depend on the system. Find one test per shortcode (`supplement-doi`, `supplement-download`, `supplement-data-table`, `supplement-license`) that keeps a Windows render, and record them in the work log.
 - [x] T5: Append a D-entry that amends D-016: the skip list reads R CMD check's own test output, the source-reading tests run in their own step, test files run in parallel, and the six string-rule loops skip on Windows.
-- [ ] T6: Run `devtools::test()` and `devtools::check()`. Push the branch to start CI. From that run, read each job's time with `gh run view --json jobs`, its "Starting N test processes" line, and its skip lines, and record them in the work log.
+- [x] T6: Run `devtools::test()` and `devtools::check()`. Push the branch to start CI. From that run, read each job's time with `gh run view --json jobs`, its "Starting N test processes" line, and its skip lines, and record them in the work log.
 
 ## Work log
 
@@ -74,6 +74,9 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 - 2026-10-21: T3 fix (minor amendment, T3's "fix what breaks"), commit 0cfd0cd: `run_in()` and `run_split()` run a Quarto render once more when it fails with "database is locked". A stand-in `quarto` that fails once showed both helpers retry on that message (status 0 after 2 runs) and not on another error (status 1 after 1 run). Thirty-six more cold-cache renders through `run_split()` gave no lock. `devtools::test()` with 4 processes: 0 failures, 7 skips, 4,486 passes.
 - 2026-10-21: implement chose the render retry over a per-worker Quarto cache, because a cache per worker compiles the Sass once in each worker and needs a different HOME; falsified by a lock failure that a second render does not clear.
 - 2026-10-21: catch-up: commit 0cfd0cd carried the code without these lines because a work-log edit missed its anchor; this commit carries them.
+- 2026-10-21: T6: CI run 39722320941 (0cfd0cd) passed on all three jobs: Windows 530 s (29% of 1,824 s), macOS 415 s (50% of 822 s), Ubuntu 413 s (41% of 1,017 s; 286 s on the first run). "Starting 4 test processes" on Windows and Ubuntu, 3 on macOS. Skip lists: Windows 32 (25 "On Windows", including `test-agreement.R:62`, `:118` and `test-shortcodes.R:28`, `:144`, `:181`, `:226`, and none of `test-shortcodes.R` 12, 91, 117, 277), macOS 9, Ubuntu 8, none for a missing tool. The source step ran 2 tests, 0 failures, on each job.
+- 2026-10-21: claim audit: not owed — internal tier.
+- 2026-10-21: implement done; status review.
 
 ## Decisions
 

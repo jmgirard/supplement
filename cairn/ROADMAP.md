@@ -9,7 +9,7 @@ _Last hygiene check: 2026-10-21 (M030 done and archived; M027 row pruned; one le
 |---|---|---|---|---|---|
 | M031 | An author can record and restore a site's R packages with renv | planned | M030 | normal | milestones/M031-renv-guide.md |
 | M032 | write_dockerfile() writes a container recipe from renv.lock | planned | M031 | normal | milestones/M032-dockerfile.md |
-| M033 | Each CI job runs the tests once, in parallel | in-progress | — | normal | milestones/M033-ci-test-time.md |
+| M033 | Each CI job runs the tests once, in parallel | review | — | normal | milestones/M033-ci-test-time.md |
 | M030 | Each report shows the R setup that made its stored output | done | — | normal | milestones/archive/M030-session-record.md |
 | M029 | check_supplement() finds site files that git ignores or a render missed | done | M028 | normal | milestones/archive/M029-unpublished-files.md |
 | M028 | The template saves paper figures safely in more setups | done | — | normal | milestones/archive/M028-figure-code.md |
