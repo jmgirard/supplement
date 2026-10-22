@@ -1022,8 +1022,8 @@ check_placeholders <- function(path, meta) {
 }
 
 placeholder_example_problems <- c(
-  "analyses/example.qmd" = "This is the template's example report. Delete it and its Analyses menu item, or write your own report in it.",
-  "data/example.csv" = "This is the template's example data. Delete it and its entry under data in _supplement.yml, or put your own data in it."
+  "analyses/example.qmd" = "This is the template's example report. Write your own report in it, or delete it and make the Analyses menu in _quarto.yml list your own reports.",
+  "data/example.csv" = "This is the template's example data. Put your own data in it, or delete it, its entry under data in _supplement.yml, and the example report, which reads it."
 )
 
 # A row for each example file whose text, with each CR LF read as LF,

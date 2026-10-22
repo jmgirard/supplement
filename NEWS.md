@@ -56,8 +56,8 @@
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It finds
   the template's placeholder values that the author did not replace. These
   are the paper title, citation, contact, and authors in
-  `_supplement.yml`, and `OWNER/REPO` in the GitHub link and the site
-  address. They are also the "Before your first commit" box, the
+  `_supplement.yml`, `OWNER/REPO` in the GitHub link, and `OWNER` and
+  `REPO` in the site address. They are also the "Before your first commit" box, the
   `YEAR AUTHORS` copyright lines, and the example report and data while
   they are unchanged. Each such row stops `release_supplement()`. It
   returns the problems as a data frame.
