@@ -105,3 +105,59 @@
 - AC6 evidence (2026-10-22): read `man/write_dockerfile.Rd` and the guide part "Running reports in a container" in `inst/template/_README.md`. Both state: how to build (`docker build -t my-supplement .`) and render one report with the site mounted (`docker run --rm --network none --user ... -v "$PWD":/site my-supplement quarto render analyses/example.qmd`); that `.dockerignore` lets only `renv.lock` of the site's files into the image, so it holds no other site file and no data; that without a digest a later build can get newer system libraries; how to read the multi-platform index digest with `docker buildx imagetools inspect rocker/r-ver:4.6.1`; that `docker save` writes the image to a file to archive; and that the Zenodo archive of a GitHub release holds the committed Dockerfile but not the image. The claim audit (64 claims, 14 corrected, re-read once) checked these against Docker and the code.
 - AC7 evidence, local part (2026-10-22): NEWS.md has one `write_dockerfile()` bullet (line 30). `devtools::test()`: 331 tests, 0 failed, 0 errors, 8 skipped. `devtools::check()`: 0 errors, 0 warnings, 0 notes. The R-CMD-check workflow on Windows, macOS, and Ubuntu runs when step 8 opens the PR; AC7 is ticked only after it passes.
 - gate (2026-10-22): `cairn_validate.py` all checks passed (exit 0). No DESIGN.md principle changed, so no `cairn_impact`. `devtools::document()` gives no diff. No README.Rmd and no `_pkgdown.yml`, so no knit or pkgdown check. NEWS.md has the bullet with no milestone number. New files are under `R/`, `man/`, and `tests/`, no new top-level file. `devtools::check()` 0/0/0 (AC7 line).
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: a lockfile with R before 4.0.0 gets a Dockerfile that cannot build (`rocker/r-ver:3.6.3` has no `/rocker_scripts`), with no error — fix now (refused with `supplement_error_lockfile`), fixed 00f4768
+- diff-bug #2: the Dockerfile is written before `.dockerignore`, so a failure between them leaves a Dockerfile without its context filter — fix now (`.dockerignore` first), fixed 00f4768
+- diff-bug #3: `apt-get install` runs without `DEBIAN_FRONTEND=noninteractive` — fix now, fixed 00f4768 (rebuilt: Docker test passed)
+- diff-bug #4: older Rocker images and amd64 were not built — follow-up: row "Build the Dockerfile on older R images"; the help now states what was built and when, fixed 00f4768
+- diff-bug #5: the bootstrap renv URL is fixed to p3m.dev and ignores the lockfile's repositories — reject (edge: only a build that cannot reach p3m.dev, such as a private-mirror-only network, outside documented use; effect is a build error)
+- diff-bug #6: the "run renv::snapshot()" hint does not help for a development renv or an old renv — fix now (own hints), fixed 00f4768
+- diff-bug #7: the failed-write help wording reads as if an open failure is not a failed write — fix now, fixed 00f4768
+- diff-bug #8: DESIGN.md has no family or Architecture paragraph for `write_dockerfile()` — fix now, fixed 00f4768
+- diff-bug #9: a failed `install.packages()` exits 0 and the build stops one step later — fix now (`library(renv)` after it), fixed 00f4768
+- diff-bug #10: the required `quarto` comes after the defaulted `path` — reject (planned change: Scope fixes the signature)
+- diff-bug #11: the link refusal has no hint — fix now, fixed 00f4768
+- diff-bug #12: `argument_error()` and `is_version_string()` sit in the feature file — reject (style)
+- diff-bug #13: `quarto` or `digest` with invalid UTF-8 adds a base `grepl()` warning — follow-up: DESIGN.md Known issues "Release edge cases", extended in this review
+- diff-bug #14: a BOM is accepted with jsonlite's warning, and with duplicate keys the first wins silently — follow-up: row "Refuse duplicate keys in renv.lock" (the BOM part: reject, edge: renv writes no BOM; effect a warning)
+- diff-bug #15: a roxygen line past 100 characters — reject (style); the paragraph was rewrapped with #7
+- diff-bug #16: the Dockerfile comment "a library in this folder" does not name the folder — fix now, fixed 00f4768
+- diff-bug (c)1: the no-CR check repeats the exact bytes check — fix now (removed), fixed 00f4768
+- diff-bug (c)2: four `path` values run the untouched `check_path()` — fix now (kept `c(site, site)`, a missing folder, a file), fixed 00f4768
+- diff-bug (c)3: three `overwrite` values run the untouched `check_args()` — reject (planned change: AC4 lists NA, "TRUE", and length 2)
+- diff-bug (c)4: eight version values at three sources run one regex — reject (planned change: AC4 lists each value at each source)
+- diff-bug (c)5: renv 1.3.0 and 1.2.0 take one branch — fix now (1.3.0 kept), fixed 00f4768
+- diff-bug (c)6: `overwrite` FALSE and TRUE run one path for folders and links — reject (planned change: AC4 asks for both)
+- diff-bug (c)7: the outside-folder checks guard a write the refusal already prevents — fix now (removed; `folder_md5()` of the site reads through the link), fixed 00f4768
+- diff-bug (c)8: unescaped dots in the negative version match — fix now (fixed matches), fixed 00f4768
+- diff-bug (c)9: the FALSE link cases pass through `check_overwrite()` without the new refusal — reject (false as a defect: AC4 lists them, and the TRUE file-link and broken-link cases cover the new refusal)
+- diff-bug (c)10: no test checks that errors name `write_dockerfile()` as the call — fix now (new test, five branches), fixed 00f4768
+- blame-history #1: a failed overwrite has no restore, unlike the release writer — follow-up: DESIGN.md Known issues "Release edge cases" (the accepted no-restore limit of the sibling writers), extended in this review
+- blame-history #2: the link refusal differs from `write_citation()` and `write_zenodo()`, which write through a link with `overwrite = TRUE` — follow-up: row "Refuse links in the citation writers"
+- blame-history #3: the link refusal has no Windows test — reject (planned change: AC4 skips the link shapes on Windows as the existing link tests do)
+- blame-history #4: the CI missing-tool list lacks the Docker skip texts — reject (false: CI never sets `SUPPLEMENT_TEST_DOCKER`, so those skips cannot occur there)
+- blame-history #5: the build's download of renv from p3m.dev is not documented — fix now (help names it), fixed 00f4768
+- blame-history #6: a trailing separator gives `site//Dockerfile` — reject (false as a defect: the path names the same file; the sibling writers share it)
+- blame-history #7: "supplement does not call renv" next to the new paragraph — reject (false: the sentence still holds; the README part was regrouped with ripple #3)
+- prior-review #1: a failed overwrite leaves the old file truncated (M006, M009 restore findings) — follow-up: same Known issues extension as blame-history #1
+- prior-review #2: the link refusal has no Windows test (M018, M022) — reject (planned change, as blame-history #3)
+- prior-review #3: invalid UTF-8 `quarto` or `digest` warns (RR01 5.2) — follow-up: same Known issues extension as diff-bug #13
+- prior-review #4: a `renv.lock` with invalid UTF-8 or a nul gets "is not a JSON object" rather than `supplement_error_encoding` — reject (edge: renv writes UTF-8 JSON; effect a lockfile error with a vague message)
+- prior-review #5: only an aarch64 Mac ran the image test, while the help names amd64 — follow-up: row "Build the Dockerfile on older R images"; help states what was built, fixed 00f4768
+- prior-review #6: the Docker skip texts are not on the CI missing-tool list — reject (false, as blame-history #4)
+- prior-review #7: the guide says the Computing environment section shows the image's packages, but the fallback `utils::sessionInfo()` prints no library paths — reject (false: the fallback still prints the R and package versions; the test's library check rests on sessioninfo, which `renv_site()` requires)
+- prior-review #8: link handling differs between writers — follow-up: row "Refuse links in the citation writers"
+- prior-review #9: `unlink(site, recursive = TRUE)` expands globs (LESSONS M009) — fix now (`expand = FALSE`), fixed 00f4768
+- prior-review #10: `expect_match(all = FALSE)` passes for a version on the wrong line — reject (false: the bytes test pins every line's place for the same template code; this test shows only that the values come from the inputs)
+- prior-review #11: the link refusal's `cli_abort()` has no `call` — reject (false: its default call is `write_dockerfile()`, as the printed error and the new call test show)
+- ripple #1: DESIGN.md Function Families lacks `write_dockerfile()` — fix now, fixed 00f4768
+- ripple #2: DESIGN.md Architecture has no paragraph for `R/write-dockerfile.R` — fix now, fixed 00f4768
+- ripple #3: the README paragraph sits under "Add reports and data" — fix now (new "Record the R setup" part holding the renv and Docker paragraphs), fixed 00f4768
+- ripple #4: PROFILE.md's `_pkgdown.yml` rule is unmet — reject (false: no `_pkgdown.yml` exists; the pkgdown row carries it, ripple #5)
+- ripple #5: the pkgdown row's reference index names only two writers — follow-up: row "Build a package site with pkgdown" now names `write_dockerfile()`
+- ripple #6: the guide's renv part gives no renv version floor — reject (false: the container part states the floors in its first paragraph, before step 1)
+- ripple #7: the guide's Contents list does not name `Dockerfile` — reject (false: Contents lists what the template ships, and these files are optional, as renv's are)
+- ripple #8: DESIGN.md Conventions does not say supplement never runs Docker — fix now, fixed 00f4768
+- ripple #9: DESIGN.md's test paragraph does not say the Docker test runs only locally — fix now, fixed 00f4768
+- return floor: no finding shows an acceptance criterion failing; diff-bug #1 is fixed on the branch with no status change. Totals: 53 findings, 22 fix now, 10 follow-up, 21 reject (2 on the edge ground, plus the BOM part of diff-bug #14).
+- re-verify after fixes (2026-10-22): `test-write-dockerfile.R` with `SUPPLEMENT_TEST_DOCKER=true`: 18 tests, 0 failed (Docker test 11 expectations, rebuilt RUN layer, 36 s). `devtools::test()` 332 tests, 0 failed, 8 skipped. `devtools::check()` 0/0/0. `devtools::document()` no diff.
