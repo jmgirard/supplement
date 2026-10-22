@@ -51,7 +51,7 @@ run_in <- function(dir, command, args, env = character()) {
     }))
   }
   out <- run()
-  if (is_quarto && !is.null(attr(out, "status")) && sass_cache_locked(out)) out <- run()
+  if (is_quarto && !is.null(attr(out, "status")) && quarto_cache_clash(out)) out <- run()
   list(status = attr(out, "status") %||% 0L, output = out)
 }
 
@@ -59,12 +59,16 @@ is_quarto_command <- function(command) {
   sub("\\.exe$", "", basename(command), ignore.case = TRUE) == "quarto"
 }
 
-# Quarto 1.10 keeps the Sass it compiles in a database in the user's
-# cache. When test files run in parallel, two renders that write it at
-# once can make one stop with "ERROR: database is locked", so run_in() and
-# run_split() run such a render once more.
-sass_cache_locked <- function(output) {
-  any(grepl("database is locked", output, fixed = TRUE))
+# When test files run in parallel, two Quarto 1.10 renders can clash in the
+# user's Quarto cache while it is still empty, so run_in() and run_split()
+# run such a render once more. One clash is in the database of compiled
+# Sass: "ERROR: database is locked". The other is on Windows, where a
+# project script makes Quarto copy its deno_std folder into the cache:
+# "ERROR: PermissionDenied: Access is denied. (os error 5): remove
+# 'C:\Users\...\AppData\Local\quarto\deno_std'".
+quarto_cache_clash <- function(output) {
+  any(grepl("database is locked", output, fixed = TRUE)) ||
+    any(grepl("remove '[^']*deno_std'", output, perl = TRUE))
 }
 
 # Check the exit status of a result from run_in() or git_in(), and with
@@ -234,7 +238,7 @@ run_split <- function(dir, command, args) {
     withr::with_dir(long_dir(dir), suppressWarnings(system2(command, args, stdout = out, stderr = err)))
   }
   status <- run()
-  if (is_quarto_command(command) && status != 0L && sass_cache_locked(c(read_text(out), read_text(err)))) {
+  if (is_quarto_command(command) && status != 0L && quarto_cache_clash(c(read_text(out), read_text(err)))) {
     status <- run()
   }
   list(status = status, stdout = read_text(out), stderr = read_text(err))

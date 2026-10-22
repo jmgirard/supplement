@@ -191,9 +191,10 @@ through `info` in the one test of those helpers.
 is already set, so the output of a
 render whose project script failed holds the script's exit code;
 `run_split()` sets no log level.
-Both run a `quarto` command once more when it fails with "database is
-locked", which Quarto's Sass cache gives when parallel renders write it at
-once.
+Both run a `quarto` command once more when it fails on a clash in the
+user's Quarto cache, which parallel renders can cause while the cache is
+empty: "database is locked" from the Sass cache, or, on Windows, a refused
+removal of the cache's `deno_std` folder.
 Test files run in parallel (`Config/testthat/parallel` in DESCRIPTION), so
 no test relies on state that another test file sets.
 `.github/workflows/R-CMD-check.yaml` runs `R CMD check` on Windows, macOS,

@@ -78,10 +78,13 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 - 2026-10-21: claim audit: not owed — internal tier.
 - 2026-10-21: implement done; status review.
 - 2026-10-21: step-7 approval: m033-ci-test-time approved for merge
+- 2026-10-22: red CI on PR #32: the pull_request run 39725171937 failed on Windows in "the example report saves a figure that the next full render publishes" (`test-template.R:199`): after "Running script '_scripts/nojekyll.ts'", Quarto's `initDenoCache` stopped with "ERROR: PermissionDenied: Access is denied. (os error 5): remove 'C:\Users\runneradmin\AppData\Local\quarto\deno_std'". The push run 39725170785 passed on all three jobs. Quarto 1.10.19 removes and recopies that folder whenever its copy differs from the bundled one, so two parallel renders with an empty cache can clash.
+- 2026-10-22: fix: the helpers' one-time retry (`quarto_cache_clash()`, was `sass_cache_locked()`) also matches "remove '…deno_std'". A stand-in `quarto` showed a retry for that text on stdout and stderr, none for the same error on another path or for another error, and the matcher is TRUE on the CI failure's own output. `devtools::test()` with 4 processes: 0 failures, 7 skips, 4,486 passes. The fix changes what the merge question approved, so the question is posed again.
 
 ## Decisions
 
 - 2026-10-21 (review): the render retry stands beside the M019 and M020 plan choice of "diagnostics only, no retry". That choice was about failed renders whose cause is unknown. The retry here fires only on Quarto's own "database is locked" text, a cause reproduced on the Mac, so a render that fails any other way, the parked flake's "Running script" shape included, still fails at once. Logging each retry is a candidate row ("Log render retries after a cache lock").
+- 2026-10-22 (review): the retry also covers Windows' refused removal of Quarto's `deno_std` cache folder, seen on PR #32's CI; it is the same kind of clash, in the same cache, from the same cause (parallel renders with an empty cache). A CI step that fills Quarto's cache before the tests was the alternative; it was not taken because it covers CI alone and the template's own Sass theme would still compile in parallel.
 
 ## Review
 
