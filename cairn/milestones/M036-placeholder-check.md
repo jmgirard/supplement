@@ -60,6 +60,7 @@
 - 2026-10-22: implement started on branch m036-placeholder-check, cut from main at 7d391d9.
 - 2026-10-22: T1 checkpoint: `check_placeholders()` and `placeholder_values()` in `R/check-supplement.R`, with five tests; the template is read through `template_supplement()`, so a test can mock it. The zero-row test "a rendered site in a git repository has no problems" now fails until T4's helper; T1 to T3 are ticked once the suite is clean.
 - 2026-10-22: T2 checkpoint: `placeholder_lines` and `placeholder_line_rows()` give one row per file with its own problem text; `plain_lines()` turns a missing path, a folder, or a read error of `read_text_lines()` into no lines. Five tests added, all passing.
+- 2026-10-22: T3 checkpoint: `placeholder_example_rows()` compares the two example files with the template's through `report_hash()`, the CR LF reader of the stale-output check. One test runs the five states for each file and passes.
 
 ## Decisions
 

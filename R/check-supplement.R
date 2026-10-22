@@ -993,7 +993,29 @@ plain_files <- function(dir) {
 
 # The rows for the template's placeholders that the site still holds.
 check_placeholders <- function(path, meta) {
-  rbind(placeholder_values(meta), placeholder_line_rows(path))
+  rbind(placeholder_values(meta), placeholder_line_rows(path), placeholder_example_rows(path))
+}
+
+placeholder_example_problems <- c(
+  "analyses/example.qmd" = "This is the template's example report. Delete it and its Analyses menu item, or write your own report in it.",
+  "data/example.csv" = "This is the template's example data. Delete it and its entry under data in _supplement.yml, or put your own data in it."
+)
+
+# A row for each example file whose text, with each CR LF read as LF,
+# equals the installed template's copy. A missing file or a folder gives no
+# row.
+placeholder_example_rows <- function(path) {
+  files <- names(placeholder_example_problems)
+  template <- system.file("template", package = "supplement", mustWork = TRUE)
+  same <- vapply(files, function(file) {
+    site_file <- file.path(path, file)
+    if (!file.exists(site_file) || dir.exists(site_file)) {
+      return(FALSE)
+    }
+    hash <- report_hash(site_file)
+    !is.null(hash) && identical(hash, report_hash(file.path(template, file)))
+  }, logical(1))
+  problem_rows("placeholder", files[same], placeholder_example_problems[files[same]])
 }
 
 # Lines of the template's files that the author replaces or deletes. The

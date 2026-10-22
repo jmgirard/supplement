@@ -1397,3 +1397,25 @@ test_that("each placeholder line is a line of the template's file", {
   }
   expect_setequal(names(placeholder_lines), line_files)
 })
+
+test_that("an example file gives a row only while its text is the template's", {
+  for (file in c("analyses/example.qmd", "data/example.csv")) {
+    has_row <- function(site) file %in% placeholder_rows(site)$file
+    site <- new_site()
+    expect_true(has_row(site), info = file)
+
+    replace_in_file(file.path(site, file), "\n", "\r\n")
+    expect_true(has_row(site), info = file)
+
+    site <- new_site()
+    bytes <- readBin(file.path(site, file), "raw", file.size(file.path(site, file)))
+    writeBin(c(bytes, charToRaw("\n")), file.path(site, file))
+    expect_false(has_row(site), info = file)
+
+    site <- new_site()
+    file.remove(file.path(site, file))
+    expect_false(has_row(site), info = file)
+    dir.create(file.path(site, file))
+    expect_no_error(expect_false(has_row(site), info = file))
+  }
+})
