@@ -89,6 +89,8 @@
 - 2026-10-22: minor amendment from the claim audit: `write_dockerfile()` refuses a lockfile renv older than 1.3.1 (`supplement_error_lockfile`), with a test for 1.3.0 and 1.2.0; the version-source test moved to renv 1.10.0. No AC wording changed (AC4 lists the refusal shapes its tests must cover; this adds one). See Decisions.
 - 2026-10-22: verify after the audit: `devtools::test()` 331 tests, 0 failed, 8 skipped; the last edits were help and guide wording, and the new file's 17 tests pass after them.
 - 2026-10-22: status review; handed to /milestone-review.
+- 2026-10-22: review: 53 findings settled (22 fix now in 00f4768, 10 follow-up, 21 reject); three candidate rows added, the pkgdown row and the DESIGN.md "Release edge cases" known issue extended.
+- 2026-10-22: step-7 approval: m032-dockerfile approved for merge
 
 ## Decisions
 
