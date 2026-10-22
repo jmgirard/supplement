@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — the CI workflow, test files, and a testthat field in DESCRIPTION; no package user calls them
-- **Branch/PR:** m033-ci-test-time
+- **Branch/PR:** m033-ci-test-time, https://github.com/jmgirard/supplement/pull/32
 
 ## Goal
 
