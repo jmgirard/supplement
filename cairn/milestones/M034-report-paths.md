@@ -1,6 +1,6 @@
 # M034: Reports find the site folder from any folder
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -45,7 +45,7 @@ The example report and each report from `add_report()` find the site folder by o
 - [x] T4: Write the AC4 render test, with one new site for each `execute-dir` setup, because freeze reuses stored output in a second render of one site (D-002).
 - [x] T5: Change `inst/template/_README.md` (around lines 268-272 and 440-455) for AC5, add the README comparison test, and run the AC5 grep.
 - [x] T6: Change the `NEWS.md` bullets (around line 130) for AC6 and the example rule in `cairn/DESIGN.md` Architecture (line 186). Run `devtools::test()` and `devtools::check()`.
-- [ ] T7: Review return 1. In `inst/template/analyses/example.qmd`, make the prose before the `site` chunk state the stop and the empty-variable case. Describe the stub's first `site` chunk in the `add_report()` roxygen and run `devtools::document()`. Name `site_chunk()` in `cairn/DESIGN.md` Architecture, fix NEWS.md's fits sentence, and make the nested-site test comment say why.
+- [x] T7: Review return 1. In `inst/template/analyses/example.qmd`, make the prose before the `site` chunk state the stop and the empty-variable case. Describe the stub's first `site` chunk in the `add_report()` roxygen and run `devtools::document()`. Name `site_chunk()` in `cairn/DESIGN.md` Architecture, fix NEWS.md's fits sentence, and make the nested-site test comment say why.
 
 ## Work log
 
@@ -71,6 +71,7 @@ The example report and each report from `add_report()` find the site folder by o
 - 2026-10-22: claim audit: 32 claims read, 3 corrected — NEWS.md (the stub's first code chunk is `site`, and only its text names the data path; the folder order when both `.` and `..` hold `_quarto.yml`), tests/testthat/test-add-report.R (test name). The folder-order wording was also fixed in `inst/template/_README.md` and `inst/template/analyses/example.qmd`, and a README wording note was taken. `test-template.R`, `test-add-report.R`, and `test-create-supplement.R` pass after the edits (NOT_CRAN=true).
 - 2026-10-22: review return 1: AC1 fails. The prose before the `site` chunk in `inst/template/analyses/example.qmd` does not say that the code stops when neither folder holds `_quarto.yml`, or that an empty `QUARTO_PROJECT_DIR` counts as unset. The same task carries the pass-1 fix-now items: the `add_report()` roxygen and `man/add_report.Rd` describe the stub's first `site` chunk; `cairn/DESIGN.md` names `site_chunk()`; NEWS.md's fits sentence says the README tells reports to read fit files so; the nested-site comment in `test-template.R` says why.
 - 2026-10-22: T7 (checkpoint): example.qmd prose states the empty-variable case and the stop; the `add_report()` roxygen and `man/add_report.Rd` describe the first `site` chunk; DESIGN names `site_chunk()`; NEWS fits sentence and the test comment fixed. Full `devtools::test()` (NOT_CRAN=true): 336 tests, 0 failed, 0 errors, 8 skipped. The claim audit of these lines was running at this commit.
+- 2026-10-22: claim audit: 14 claims read, 0 corrected — inst/template/analyses/example.qmd, R/add-report.R, man/add_report.Rd, NEWS.md, tests/testthat/test-template.R (T7 lines, 9a8b3b1..7419829).
 
 ## Decisions
 
