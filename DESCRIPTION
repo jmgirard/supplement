@@ -18,6 +18,7 @@ Imports:
     yaml
 Suggests:
     knitr,
+    renv,
     rmarkdown,
     sessioninfo,
     testthat (>= 3.3.0),

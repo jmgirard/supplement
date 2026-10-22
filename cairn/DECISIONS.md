@@ -122,3 +122,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** D-016's last step ran the whole suite a second time to list skips, and the Windows job took about 30 minutes. R CMD check keeps the test output, skip reasons included, in `tests/testthat.Rout`.
 **Decision:** The skip-list step reads that file with `.github/scripts/check-skips.R` and runs no test; the missing-tool list lives in that script. The two tests that read the package's R files sit in `test-source.R`, and a workflow step runs that file from the checkout. Test files run in parallel (`Config/testthat/parallel: true`), so a test must not rely on state another test file sets. Six loop tests of license and DOI string rules skip on Windows, and each shortcode keeps a Windows render. The user chose parallel tests and the Windows skips at the M033 plan.
 **Consequences:** D-016's "The tests run twice in each job" no longer holds. The skip list depends on the format of testthat's check reporter, and the step fails when it cannot read that format. A Windows-only change to the string rules would not show in CI.
+
+### D-021 (2026-10-22): renv is a suggested dependency (extends D-019)
+
+**Context:** The template guide shows how to record and restore a site's R packages with renv. A test sets up renv in a temporary site, and D-007 says that packages the tests use belong in DESCRIPTION. The package's own functions never call renv.
+**Decision:** DESCRIPTION lists renv under Suggests, and the CI skip list counts a skip for missing renv as a missing tool. The user granted this at the M031 plan, which chose a guide and tests over a `renv` argument to `create_supplement()`.
+**Consequences:** Installing supplement installs nothing new. Authors install renv themselves to follow the guide. The test runs renv in a separate Rscript process, with renv's cache and sandbox in temporary folders, so a test never activates renv in its own session.

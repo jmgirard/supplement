@@ -85,6 +85,11 @@ Both functions add lines to these files as text, so the other lines and
 the comments stay as they are. If a function cannot find the menu or the
 list, it stops, writes nothing, and shows the lines to add by hand.
 
+To record the version of each R package that the reports use, so that
+another machine can install the same versions, use the renv package. The
+guide's "Recording R packages with renv" part shows the three commands.
+supplement does not call renv.
+
 ## Check a site before a release
 
 In R, run this function in the site folder:

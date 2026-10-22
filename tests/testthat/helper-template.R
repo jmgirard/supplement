@@ -187,6 +187,49 @@ git_site <- function(env = parent.frame()) {
   site
 }
 
+# A git_site() that is rendered and committed, in which renv::init() then
+# ran. renv runs in an Rscript process with its cache and sandbox in
+# temporary folders, so a test never activates renv in its own session or
+# writes to the user's renv folders. renv::init() needs a network only to
+# install a package that the site uses and that Rscript does not have, so
+# the test skips then.
+renv_site <- function(env = parent.frame()) {
+  skip_if_no_quarto()
+  skip_if_no_git()
+  scripts <- withr::local_tempdir("renv-scripts-", .local_envir = env)
+  writeLines(
+    c('pkgs <- c("renv", "knitr", "rmarkdown", "sessioninfo")',
+      "cat(pkgs[!vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)], sep = \"\\n\")"),
+    file.path(scripts, "missing.R")
+  )
+  writeLines("renv::init()", file.path(scripts, "init.R"))
+  missing <- run_in(scripts, home_rscript(), c("--no-init-file", "missing.R"))
+  expect_status(missing)
+  pkgs <- trimws(missing$output)
+  pkgs <- pkgs[nzchar(pkgs)]
+  skip_if("renv" %in% pkgs, "renv is not installed for Rscript")
+  skip_if(length(pkgs) > 0,
+          paste("renv::init() would download packages that Rscript does not have:",
+                paste(pkgs, collapse = ", ")))
+
+  site <- git_site(env)
+  expect_status(run_in(site, "quarto", "render"))
+  expect_status(git_in(site, c("add", "-A")))
+  expect_status(git_in(site, c("-c", "user.name=Test", "-c", "user.email=test@example.com",
+                               "-c", "commit.gpgsign=false", "commit", "-q", "-m", "Site")))
+
+  renv_dirs <- c(
+    RENV_PATHS_ROOT = withr::local_tempdir("renv-root-", .local_envir = env),
+    RENV_PATHS_SANDBOX = withr::local_tempdir("renv-sandbox-", .local_envir = env)
+  )
+  init <- file.path(long_dir(scripts), "init.R")
+  expect_status(withr::with_envvar(
+    renv_dirs,
+    run_in(site, home_rscript(), c("--no-init-file", shQuote(init)))
+  ))
+  site
+}
+
 # Make a new folder from the template without rendering it.
 use_template <- function(dir) {
   run_in(dir, "quarto", c("use", "template", shQuote(template_dir()), "--no-prompt"))
