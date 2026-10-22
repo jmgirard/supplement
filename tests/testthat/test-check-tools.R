@@ -117,7 +117,7 @@ test_that("a copy in QUARTO_PATH or an editor folder is not on the path", {
   row <- quarto_row()
   expect_identical(row$status, "not on path")
   expect_match(row$detail, "QUARTO_PATH", fixed = TRUE)
-  expect_match(row$detail, "`quarto render` in a terminal", fixed = TRUE)
+  expect_match(row$detail, "`quarto render` in a terminal can miss", fixed = TRUE)
 
   editor <- fake_quarto(file.path(dir, "editor"))
   local_tools(editors = c(file.path(dir, "absent", "bin", "quarto"), editor))
@@ -125,6 +125,7 @@ test_that("a copy in QUARTO_PATH or an editor folder is not on the path", {
   expect_identical(row$status, "not on path")
   expect_match(row$detail, editor, fixed = TRUE)
   expect_match(row$detail, "RStudio or Positron", fixed = TRUE)
+  expect_match(row$detail, "can miss", fixed = TRUE)
 
   exe <- fake_quarto(file.path(dir, "win"), exe = "quarto.exe")
   local_tools(editors = exe)
@@ -151,6 +152,12 @@ test_that("the first place that holds a copy wins", {
   row <- quarto_row()
   expect_identical(row$status, "found")
   expect_match(row$detail, on_path, fixed = TRUE)
+
+  env <- fake_quarto(file.path(dir, "env2"))
+  local_tools(env = list(QUARTO_PATH = env), editors = fake_quarto(file.path(dir, "editor")))
+  row <- quarto_row()
+  expect_match(row$detail, env, fixed = TRUE)
+  expect_match(row$detail, "QUARTO_PATH", fixed = TRUE)
 })
 
 test_that("the version is compared as a version number", {

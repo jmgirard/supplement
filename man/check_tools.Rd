@@ -8,16 +8,18 @@ check_tools()
 }
 \value{
 A data frame with one row per tool and the character columns
-\code{tool}, \code{status}, and \code{detail}, invisibly. \code{detail} gives the path and
-version of a tool that was found, or what a missing tool is for and
-where to get it.
+\code{tool}, \code{status}, and \code{detail}, invisibly. \code{detail} gives the path of
+a program that was found (with the version, for Quarto), the version
+of an R package that was found, or what a missing tool or an account
+is for and where to get it.
 }
 \description{
 \code{check_tools()} looks for the programs and R packages that rendering and
 publishing a supplement site need, and prints one line for each. Run it
 before your first render, or when a render fails because a tool is
 missing. \code{\link[=create_supplement]{create_supplement()}} runs the same lookups after it makes a
-site and names the tools that are missing.
+site and names the tools that are missing, too old, or not on the system
+path.
 }
 \details{
 The function looks for these tools, in this order:
@@ -44,8 +46,10 @@ Each row has one of these statuses:
 \item \code{found}: the tool is installed. For Quarto, the copy is on the system
 path, and its version is 1.4.0 or later or unknown.
 \item \verb{not on path}: a copy of Quarto was found only in \code{QUARTO_PATH} or in
-an editor's folder. \verb{quarto render} in a terminal will not find that
-copy. Add its \code{bin} folder to the system path, or install Quarto.
+an editor's folder, and its version is 1.4.0 or later or unknown. An
+older copy there is \verb{too old}. The copy is not on the system path that
+R sees, so \verb{quarto render} in a terminal can miss it. Add its \code{bin}
+folder to the system path, or install Quarto.
 \item \verb{too old}: the Quarto version is below 1.4.0, the minimum that the
 template's Quarto extension states.
 \item \code{missing}: the tool was not found.
