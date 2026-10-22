@@ -19,15 +19,18 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          - {os: windows-latest, r: 'release'}
-          - {os: macos-latest,   r: 'release'}
-          - {os: ubuntu-latest,  r: 'release'}
+          - {os: windows-latest, r: 'release', cpus: 4}
+          - {os: macos-latest,   r: 'release', cpus: 3}
+          - {os: ubuntu-latest,  r: 'release', cpus: 4}
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       # The template tests call skip_on_cran(), so without this they skip.
       NOT_CRAN: true
+      # Test files run in parallel (DESCRIPTION), one process per core of
+      # the runner.
+      TESTTHAT_CPUS: ${{ matrix.config.cpus }}
 
     steps:
       - uses: actions/checkout@v4
@@ -56,37 +59,23 @@ jobs:
           error-on: '"warning"'
 
       # R CMD check prints the test output only when a test fails. This step
-      # runs the tests again, prints each skip with its reason, and fails when
-      # a test skipped with one of the missing-tool reasons listed below.
+      # reads the output it keeps, prints each skip with its reason, and
+      # fails when a test skipped because a tool is missing.
       - name: List skipped tests
         if: always()
+        run: Rscript .github/scripts/check-skips.R check/supplement.Rcheck/tests
+
+      # These tests read the package's R files, which R CMD check does not
+      # keep beside the tests, so they run here from the checkout.
+      - name: Run the tests that read the package source
+        if: always()
         shell: Rscript {0}
+        env:
+          TESTTHAT_PARALLEL: false
         run: |
-          res <- testthat::test_local(reporter = "silent", stop_on_failure = FALSE)
-          rows <- do.call(rbind, lapply(res, function(t) {
-            skips <- Filter(function(e) inherits(e, "expectation_skip"), t$results)
-            if (length(skips) == 0) return(NULL)
-            data.frame(file = t$file, test = t$test,
-                       reason = vapply(skips, conditionMessage, character(1)))
-          }))
-          cat(length(res), "tests ran.\n")
-          if (is.null(rows)) {
-            cat("No test skipped.\n")
-          } else {
-            print(rows, right = FALSE, row.names = FALSE)
-          }
-          passed <- sum(as.data.frame(res)$passed)
-          cat(passed, "expectations passed.\n")
-          if (length(res) == 0 || passed == 0) stop("No test ran.")
-          missing_tool <- c(
-            "On CRAN", "quarto is not on PATH", "git is not on PATH",
-            "git is not on the PATH", "git --version fails", "knitr cannot be loaded",
-            "rmarkdown cannot be loaded", "cannot make a symbolic link here",
-            "R has no png device",
-            # skip_if_not_installed() names the package in braces.
-            "{knitr}", "{rmarkdown}", "{sessioninfo}"
-          )
-          if (!is.null(rows)) {
-            bad <- Reduce(`|`, lapply(missing_tool, grepl, x = rows$reason, fixed = TRUE))
-            if (any(bad)) stop(sum(bad), " tests skipped because a tool is missing.")
+          res <- as.data.frame(testthat::test_local(filter = "^source$", stop_on_failure = FALSE))
+          print(res[c("file", "test", "nb", "failed", "skipped", "error")], right = FALSE)
+          if (nrow(res) == 0) stop("No test ran.")
+          if (any(res$failed > 0 | res$error | res$skipped)) {
+            stop("A test that reads the package source failed or skipped.")
           }

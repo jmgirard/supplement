@@ -24,6 +24,8 @@ test_that("the DOI badge shows the version DOI, then the concept DOI", {
 
 test_that("the DOI badge removes a doi: or doi.org link prefix", {
   skip_if_no_quarto(needs_r = FALSE)
+  # String rules that do not depend on the system; a render is slow on Windows.
+  skip_on_os("windows")
 
   bare <- "10.5281/zenodo.333"
   prefixes <- c("https://doi.org/", "https://www.doi.org/", "http://dx.doi.org/",
@@ -138,6 +140,8 @@ test_that("the license shortcode shows an unlisted id as written", {
 
 test_that("the license shortcode shows nothing for an empty value or no license map", {
   skip_if_no_quarto(needs_r = FALSE)
+  # String rules that do not depend on the system; a render is slow on Windows.
+  skip_on_os("windows")
 
   empty <- render_license_page(license_yaml("", ""))
   expect_equal(empty$status, 0L, info = empty$stderr)
@@ -173,6 +177,8 @@ expect_license_stop <- function(page, text, info) {
 
 test_that("a license value that is not one SPDX id stops the render and names the field", {
   skip_if_no_quarto(needs_r = FALSE)
+  # String rules that do not depend on the system; a render is slow on Windows.
+  skip_on_os("windows")
 
   shapes <- c(
     "a list of two ids" = "[MIT, Apache-2.0]",
@@ -216,6 +222,8 @@ test_that("the license id error explains -- and ... only when Quarto changed the
 
 test_that("the license shortcode stops unless its one argument is code or content", {
   skip_if_no_quarto(needs_r = FALSE)
+  # String rules that do not depend on the system; a render is slow on Windows.
+  skip_on_os("windows")
 
   calls <- c("{{< supplement-license >}}", "{{< supplement-license other >}}",
              "{{< supplement-license code content >}}", "{{< supplement-license code foo=bar >}}")

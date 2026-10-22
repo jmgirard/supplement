@@ -1,13 +1,13 @@
 # M033: Each CI job runs the tests once, in parallel
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — the CI workflow, test files, and a testthat field in DESCRIPTION; no package user calls them
-- **Branch/PR:** —
+- **Branch/PR:** m033-ci-test-time
 
 ## Goal
 
@@ -45,7 +45,7 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 - [ ] T2: Replace the "List skipped tests" step with a step that runs the T1 script (`if: always()`). Move the two source-reading tests (`test-release-supplement.R:1086`, `test-check-supplement.R:140`) to `tests/testthat/test-source.R`, and add a step that runs it with `testthat::test_local(filter = "^source$")` and stops on a failure, a skip, or no test.
 - [ ] T3: Read the helpers and test files for state that parallel workers share: the `rendered_site()` cache and its `teardown_env()` cleanup, fixed paths outside `tempdir()`, the size fixtures, and Quarto's cache. Fix what breaks. Add `Config/testthat/parallel: true` and `Config/testthat/start-first` for the three slowest files to DESCRIPTION, and set `TESTTHAT_CPUS` in the workflow to each runner's core count. Run `devtools::test()` three times in a row on the Mac and record each time and result in the work log.
 - [ ] T4: Add `skip_on_os("windows")` to the six AC4 tests, with a comment that the rules do not depend on the system. Find one test per shortcode (`supplement-doi`, `supplement-download`, `supplement-data-table`, `supplement-license`) that keeps a Windows render, and record them in the work log.
-- [ ] T5: Append a D-entry that amends D-016: the skip list reads R CMD check's own test output, the source-reading tests run in their own step, test files run in parallel, and the six string-rule loops skip on Windows.
+- [x] T5: Append a D-entry that amends D-016: the skip list reads R CMD check's own test output, the source-reading tests run in their own step, test files run in parallel, and the six string-rule loops skip on Windows.
 - [ ] T6: Run `devtools::test()` and `devtools::check()`. Push the branch to start CI. From that run, read each job's time with `gh run view --json jobs`, its "Starting N test processes" line, and its skip lines, and record them in the work log.
 
 ## Work log
@@ -64,6 +64,8 @@ Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because th
 - 2026-10-21: plan gate chose parsing the check's `testthat.Rout` over keeping a second `test_local()` pass because the second pass took 45% of the Windows and Ubuntu jobs; falsified by a testthat release whose check reporter drops or reshapes the skip section.
 - 2026-10-21: plan gate chose moving the two source-reading tests to their own file over finding the source inside `supplement.Rcheck/00_pkg_src`, because that path belongs to R CMD check's layout; falsified by a third source-reading test that cannot move.
 - 2026-10-21: changelog: none, since the change touches only CI and tests.
+- 2026-10-21: checkpoint (half-done): the T1 script, the T2 steps and `test-source.R` (run locally: 2 tests, 5 passes, no skip), the T3 DESCRIPTION fields and `TESTTHAT_CPUS` per runner (4, 3, 4), the T4 skips, and D-020 are written; no task is checked off but T5. A local `devtools::check()` is running for T1's real `testthat.Rout`.
+- 2026-10-21: T4 Windows renders kept: `supplement-doi` in "the DOI badge shows the version DOI, then the concept DOI", `supplement-download` in "the download link points at the archive", `supplement-license` in "the license shortcode shows readable names for listed ids in any letter case", `supplement-data-table` in "the data table lists each file with its size and a page-relative link".
 
 ## Decisions
 

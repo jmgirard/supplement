@@ -137,20 +137,6 @@ test_that("saved R objects that git would publish give a saved-object row", {
   expect_setequal(rows$file, c("fits/model.RDS", "open/données.rds"))
 })
 
-test_that("git runs only through its helper", {
-  r_dir <- test_path("..", "..", "R")
-  skip_if_not(dir.exists(r_dir), "the package source is not here")
-  files <- list.files(r_dir, pattern = "\\.[Rr]$", full.names = TRUE)
-  hits <- character()
-  for (file in files) {
-    lines <- readLines(file, warn = FALSE)
-    found <- grep("system\\(|system2\\(|shell\\(|pipe\\(|processx|callr|sys::", lines)
-    hits <- c(hits, sprintf("%s:%d: %s", basename(file), found, trimws(lines[found])))
-  }
-  expect_length(hits, 1L)
-  expect_match(hits, "^check-supplement\\.R:[0-9]+: .*system2\\(")
-})
-
 test_that("the git checks are skipped when git cannot run", {
   site <- new_site()
   rev_parse <- function(status, out) {
