@@ -230,7 +230,7 @@ read_lockfile_versions <- function(path, call = parent.frame()) {
       lockfile_error("has the key {.field {key}} more than once.")
     }
   }
-  r <-if (is_map(lock[["R"]])) lock[["R"]][["Version"]]
+  r <- if (is_map(lock[["R"]])) lock[["R"]][["Version"]]
   if (!is_version_string(r)) {
     lockfile_error("has no R version of three whole numbers in {.field R.Version}.")
   }
