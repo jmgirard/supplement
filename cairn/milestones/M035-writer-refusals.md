@@ -1,13 +1,13 @@
 # M035: The writers refuse links and repeated lockfile keys
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the errors of the exported `write_citation()`, `write_zenodo()`, and `write_dockerfile()`
-- **Branch/PR:** —
+- **Branch/PR:** m035-writer-refusals
 
 ## Goal
 
@@ -53,6 +53,8 @@
 - 2026-10-22: criteria audit (full mode, fresh Opus reader) returned 9 findings, all fixed: AC1 scoped to macOS and Linux and an accepted `_supplement.yml`, with a relative in-site link shape and "still does not exist" for a missing target; AC2's `.dockerignore` link behind a plain `Dockerfile` case, fixed by checking links on both targets first; AC3 restated as behavior, not as the test; AC4's repeated-key check moved before value checks, with a probe that pairs it with R 3.6.0; AC5 given the Windows exception and named bullets. A JSON-escaped spelling of a key was judged optional and left out, because the duplicate is found after parsing.
 - 2026-10-22: lessons applied: M018 and M022 (Windows link behavior; the link tests skip Windows as the existing one does), M006 (`Sys.readlink()` NA for a missing path), M012 (assert the error class on the returned condition).
 - 2026-10-22: changelog: AC5 edits two existing unreleased `NEWS.md` bullets and adds none.
+- 2026-10-22: implement started on branch m035-writer-refusals.
+- 2026-10-22: checkpoint (T1 not checked off): `check_overwrite()` takes several paths and refuses links first; the new link test replaces "a dangling link with the output file's name is kept", which it covers. On main it failed with "already exists" for `overwrite = FALSE` and no error for `overwrite = TRUE`; both writer test files pass with the change. Full suite still running.
 
 ## Decisions
 

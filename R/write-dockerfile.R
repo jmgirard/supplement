@@ -158,16 +158,7 @@ write_dockerfile <- function(path = ".", quarto, digest = NULL, overwrite = FALS
 
   dockerfile <- file.path(path, "Dockerfile")
   dockerignore <- file.path(path, ".dockerignore")
-  for (file in c(dockerfile, dockerignore)) {
-    if (is_link(file)) {
-      cli::cli_abort(
-        c("{.path {file}} is a link, so the file is not written there.",
-          "i" = "Remove the link, then run {.fn write_dockerfile} again."),
-        class = c("supplement_error_file_exists", "supplement_error")
-      )
-    }
-    check_overwrite(file, overwrite)
-  }
+  check_overwrite(c(dockerfile, dockerignore), overwrite)
 
   # .dockerignore first, so a Dockerfile never stands without it.
   write_utf8(c("*", "!renv.lock"), dockerignore)

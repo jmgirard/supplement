@@ -18,11 +18,20 @@ lock_site <- function(text = lock_json(), env = parent.frame()) {
 read_bytes <- function(path) readBin(path, "raw", file.size(path))
 
 # Expect write_dockerfile(...) to stop with `class` and to leave `dir`
-# as it was.
+# as it was. Returns the error.
 expect_refused <- function(dir, class, ..., info = NULL) {
   before <- folder_md5(dir)
-  expect_error(write_dockerfile(...), class = class, info = info)
+  err <- expect_error(write_dockerfile(...), class = class, info = info)
   expect_identical(folder_md5(dir), before, info = info)
+  invisible(err)
+}
+
+# Expect `err` to say that a path is a link, and not to suggest
+# `overwrite = TRUE`.
+expect_link_message <- function(err, info = NULL) {
+  expect_match(conditionMessage(err), "is\\s+a\\s+link", info = info)
+  expect_match(conditionMessage(err), "Remove\\s+the\\s+link", info = info)
+  expect_no_match(conditionMessage(err), "overwrite", fixed = TRUE, info = info)
 }
 
 dockerfile_461 <- paste0(paste(c(
@@ -269,9 +278,19 @@ test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
       for (shape in names(targets)) {
         site <- lock_site()
         skip_if_not(file.symlink(targets[[shape]], file.path(site, file)), "cannot make a symbolic link here")
-        expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19",
-                       overwrite = overwrite, info = paste(file, overwrite, shape))
+        info <- paste(file, overwrite, shape)
+        err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19",
+                              overwrite = overwrite, info = info)
+        expect_link_message(err, info = info)
       }
     }
   }
+  # The link at .dockerignore comes before the plain Dockerfile.
+  site <- lock_site()
+  writeBin(charToRaw("old\n"), file.path(site, "Dockerfile"))
+  skip_if_not(file.symlink(targets[["a link to a file"]], file.path(site, ".dockerignore")),
+              "cannot make a symbolic link here")
+  err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19")
+  expect_link_message(err)
+  expect_match(conditionMessage(err), ".dockerignore", fixed = TRUE)
 })

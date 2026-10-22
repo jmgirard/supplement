@@ -270,24 +270,38 @@ license_id <- function(id, field, call = parent.frame()) {
   id
 }
 
-check_overwrite <- function(file, overwrite, call = parent.frame()) {
-  if (dir.exists(file)) {
+# Refuses, in this order, a link at any of `files`, a folder at any of
+# them, and, unless `overwrite` is TRUE, a file at any of them. A write
+# would follow a link, even one whose target is missing, maybe out of the
+# site, so a link is refused whatever `overwrite` is.
+check_overwrite <- function(files, overwrite, call = parent.frame()) {
+  link <- files[is_link(files)]
+  if (length(link) > 0) {
     cli::cli_abort(
-      "{.path {file}} is a folder, so the file cannot be written there.",
+      c("{.path {link[[1]]}} is a link, so the file is not written there.",
+        "i" = "Remove the link, then run this function again."),
       class = c("supplement_error_file_exists", "supplement_error"),
       call = call
     )
   }
-  # Writing would follow a link, even one whose target is missing.
-  if (path_occupied(file) && !isTRUE(overwrite)) {
+  folder <- files[dir.exists(files)]
+  if (length(folder) > 0) {
     cli::cli_abort(
-      c("{.file {file}} already exists.",
+      "{.path {folder[[1]]}} is a folder, so the file cannot be written there.",
+      class = c("supplement_error_file_exists", "supplement_error"),
+      call = call
+    )
+  }
+  existing <- files[file.exists(files)]
+  if (length(existing) > 0 && !isTRUE(overwrite)) {
+    cli::cli_abort(
+      c("{.file {existing[[1]]}} already exists.",
         "i" = "Use {.code overwrite = TRUE} to replace it."),
       class = c("supplement_error_file_exists", "supplement_error"),
       call = call
     )
   }
-  invisible(file)
+  invisible(files)
 }
 
 # TRUE for each path that holds a file, a folder, or a link.
