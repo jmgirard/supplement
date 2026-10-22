@@ -161,6 +161,42 @@ test_that("a lockfile R older than 4.0.0 or renv older than 1.3.1 is refused", {
   expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
 })
 
+test_that("a lockfile that repeats a key it reads is refused before its values", {
+  packages <- function(renv_version) {
+    sprintf('{"knitr": {"Package": "knitr", "Version": "1.52"}, "renv": {"Package": "renv", "Version": "%s"}}',
+            renv_version)
+  }
+  renv_twice <- '{"Package": "renv", "Version": "1.3.1"},\n    "renv": {"Package": "renv", "Version": "1.3.2"}'
+  version_twice <- '{"Package": "renv", "Version": "1.3.1", "Version": "1.3.2"}'
+  texts <- list(
+    "R" = sprintf('{"R": {"Version": "4.6.1"}, "R": {"Version": "4.5.0"}, "Packages": %s}', packages("1.3.1")),
+    "R, the same value twice" = sprintf('{"R": {"Version": "4.6.1"}, "R": {"Version": "4.6.1"}, "Packages": %s}',
+                                        packages("1.3.1")),
+    "Packages" = sprintf('{"R": {"Version": "4.6.1"}, "Packages": %s, "Packages": %s}',
+                         packages("1.3.1"), packages("1.3.2")),
+    "R.Version" = lock_json(r = '{"Version": "4.6.1", "Version": "4.5.0"}'),
+    "Packages.renv" = lock_json(renv = renv_twice),
+    "Packages.renv.Version" = lock_json(renv = version_twice),
+    "Packages.renv.Version, with R 3.6.0" = lock_json(r = '{"Version": "3.6.0"}', renv = version_twice)
+  )
+  for (name in names(texts)) {
+    key <- sub(",.*", "", name)
+    site <- lock_site(texts[[name]])
+    err <- expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19", info = name)
+    expect_match(conditionMessage(err), paste0(key, "\\W+more\\s+than\\s+once"), info = name)
+  }
+})
+
+test_that("a lockfile that repeats a key it does not read is written", {
+  cli_twice <- paste0('{"Package": "renv", "Version": "1.3.1"},\n',
+                      '    "cli": {"Package": "cli", "Version": "3.6.4"},\n',
+                      '    "cli": {"Package": "cli", "Version": "3.6.5"}')
+  site <- lock_site(lock_json(renv = cli_twice))
+  write_dockerfile(site, quarto = "1.10.19")
+  expect_true(file.exists(file.path(site, "Dockerfile")))
+  expect_match(read_text(file.path(site, "Dockerfile")), "FROM rocker/r-ver:4.6.1\n", fixed = TRUE)
+})
+
 test_that("errors name write_dockerfile() as the call", {
   site <- lock_site()
   calls <- list(

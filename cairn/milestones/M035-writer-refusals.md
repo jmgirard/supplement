@@ -56,6 +56,7 @@
 - 2026-10-22: implement started on branch m035-writer-refusals.
 - 2026-10-22: checkpoint (T1 not checked off): `check_overwrite()` takes several paths and refuses links first; the new link test replaces "a dangling link with the output file's name is kept", which it covers. On main it failed with "already exists" for `overwrite = FALSE` and no error for `overwrite = TRUE`; both writer test files pass with the change. Full suite still running.
 - 2026-10-22: T1 done: `devtools::test()` 336 tests, 0 failed, 8 skipped.
+- 2026-10-22: checkpoint (T2 not checked off): repeated-key check in `read_lockfile_versions()` before any value check; on main the new test failed with no error raised, and the dockerfile test file passes with the change. Full suite running.
 
 ## Decisions
 
