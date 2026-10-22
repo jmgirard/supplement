@@ -10,11 +10,11 @@ report, and keep one `.qmd` file per report in this folder.
 
 The code reads and writes files through `site`, the site folder. Quarto
 sets `QUARTO_PROJECT_DIR` to the site folder during a render. When you run
-the code by hand, the variable is missing. If it is missing or empty, the
-code looks for `_quarto.yml` in the current folder and then in the folder
-above it. It uses the first folder that holds the file. If neither folder
-holds it, the code stops with an error. So run it from the site folder or from
-`analyses/`.
+the code by hand, the variable is usually missing. If it is missing or
+empty, the code looks for `_quarto.yml` in the current folder and then in
+the folder above it. It uses the first folder that holds the file. If
+neither folder holds it, the code stops with an error. So run it from the
+site folder or from `analyses/`.
 
 ```{r}
 #| label: site
