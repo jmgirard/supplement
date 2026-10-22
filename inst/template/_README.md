@@ -358,7 +358,7 @@ The image holds the R version and the R packages in `renv.lock`, and Quarto. A
 report that you render in that image runs with those versions. This works
 on a machine that runs Docker with Linux containers on an amd64 processor,
 or on arm64 for R 4.1.0 or later.
-`renv.lock` must record renv 1.3.1 or later.
+`renv.lock` must record R 4.0.0 or later and renv 1.3.1 or later.
 
 1. Write the recipe. In R, in this folder, run:
 

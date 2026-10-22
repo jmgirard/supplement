@@ -7,13 +7,17 @@
 #' You can then render a report in the image with the site folder mounted,
 #' so that its code runs with those versions on another machine that runs
 #' Docker with Linux containers on an amd64 processor, or on arm64 for R
-#' 4.1.0 or later, the platforms of the Rocker images. supplement never
-#' runs Docker itself.
+#' 4.1.0 or later, the platforms of the Rocker images. `renv.lock` must
+#' record R 4.0.0 or later, because older `rocker/r-ver` images lack the
+#' Rocker scripts that the build runs. The Dockerfile was built and run with
+#' `rocker/r-ver:4.6.1` on arm64 (Docker 29.9.1, 2026-10-22); older images
+#' and amd64 were not built. supplement never runs Docker itself.
 #'
 #' The `Dockerfile` starts from the Rocker image `rocker/r-ver` with the R
 #' version in `renv.lock`, and installs Quarto with Rocker's
-#' `install_quarto.sh`. It copies `renv.lock` into the image. It installs
-#' the renv version that `renv.lock` records into a temporary library, uses
+#' `install_quarto.sh`. It copies `renv.lock` into the image. It downloads
+#' the renv version that `renv.lock` records from the CRAN archive of Posit
+#' Package Manager (`p3m.dev`), installs it into a temporary library, uses
 #' it to install the Ubuntu packages that `renv::sysreqs()` lists for the
 #' packages in `renv.lock`, and runs `renv::restore()`. renv reads those
 #' packages from `renv.lock` from version 1.3.1 on, so `renv.lock` must
@@ -91,9 +95,11 @@
 #' @section Errors:
 #' The function checks the arguments, `renv.lock`, and both target paths
 #' before it writes a file, so after any error but a failed write the site
-#' folder is as it was. A failed write can leave the `Dockerfile` written,
-#' and either file empty or cut short. A file that cannot be opened for writing gives R's own error. The
-#' other errors have the class `supplement_error` and one of these classes:
+#' folder is as it was. It writes `.dockerignore` first, then the
+#' `Dockerfile`. A failed write, an open that fails included, can leave
+#' `.dockerignore` written, and either file empty or cut short. A file that
+#' cannot be opened for writing gives R's own error. The other errors have
+#' the class `supplement_error` and one of these classes:
 #'
 #' * `supplement_error_argument`: `path` is not a single non-missing,
 #'   non-empty string, or it is not a folder. `quarto` is missing or is not
@@ -107,7 +113,8 @@
 #'   under `Packages`, or one of the two versions is not one string of three
 #'   whole numbers joined by `.`. A development version such as
 #'   `1.1.5.9000` is such an error, because the build installs released
-#'   versions. A renv version older than 1.3.1 is also this error.
+#'   versions. An R version older than 4.0.0 or a renv version older than
+#'   1.3.1 is also this error.
 #' * `supplement_error_file_exists`: `Dockerfile` or `.dockerignore`
 #'   exists and `overwrite` is `FALSE`. A folder or a link at either path is
 #'   this error even when `overwrite` is `TRUE`, because a write would
@@ -154,15 +161,17 @@ write_dockerfile <- function(path = ".", quarto, digest = NULL, overwrite = FALS
   for (file in c(dockerfile, dockerignore)) {
     if (is_link(file)) {
       cli::cli_abort(
-        "{.path {file}} is a link, so the file is not written there.",
+        c("{.path {file}} is a link, so the file is not written there.",
+          "i" = "Remove the link, then run {.fn write_dockerfile} again."),
         class = c("supplement_error_file_exists", "supplement_error")
       )
     }
     check_overwrite(file, overwrite)
   }
 
-  write_utf8(dockerfile_text(versions$r, versions$renv, quarto, digest), dockerfile)
+  # .dockerignore first, so a Dockerfile never stands without it.
   write_utf8(c("*", "!renv.lock"), dockerignore)
+  write_utf8(dockerfile_text(versions$r, versions$renv, quarto, digest), dockerfile)
   invisible(c(dockerfile, dockerignore))
 }
 
@@ -190,13 +199,15 @@ read_lockfile_versions <- function(path, call = parent.frame()) {
       call = call
     )
   }
-  # `problem` is part of the cli template, so its markup is read.
-  lockfile_error <- function(problem) {
+  # `problem` and `hint` are part of the cli template, so their markup is
+  # read.
+  lockfile_error <- function(problem,
+                             hint = "Run {.code renv::snapshot()} in the site to write it again.") {
     cli::cli_abort(
-      c(paste("{.path {file}}", problem),
-        "i" = "Run {.code renv::snapshot()} in the site to write it again."),
+      c(paste("{.path {file}}", problem), "i" = hint),
       class = c("supplement_error_lockfile", "supplement_error"),
-      call = call
+      call = call,
+      .envir = parent.frame()
     )
   }
   bytes <- readBin(file, "raw", file.size(file))
@@ -211,19 +222,27 @@ read_lockfile_versions <- function(path, call = parent.frame()) {
   if (!is_version_string(r)) {
     lockfile_error("has no R version of three whole numbers in {.field R.Version}.")
   }
+  # rocker/r-ver images before R 4.0.0 have no /rocker_scripts.
+  if (numeric_version(r) < "4.0.0") {
+    lockfile_error(
+      "records R {r}, and the Dockerfile needs R 4.0.0 or later.",
+      "Rocker images for older R lack the scripts that the build runs."
+    )
+  }
   packages <- lock[["Packages"]]
   renv <- if (is_map(packages) && is_map(packages[["renv"]])) packages[["renv"]][["Version"]]
   if (!is_version_string(renv)) {
-    lockfile_error("has no renv version of three whole numbers in {.field Packages.renv.Version}.")
+    lockfile_error(
+      "has no renv version of three whole numbers in {.field Packages.renv.Version}.",
+      "Install a released renv from CRAN, then run {.code renv::snapshot()} in the site."
+    )
   }
   # Before 1.3.1, renv::sysreqs() reads the packages from the project's
   # code, which the build does not have, and before 1.1.2 it does not exist.
   if (numeric_version(renv) < "1.3.1") {
-    cli::cli_abort(
-      c("{.path {file}} records renv {renv}, and the Dockerfile needs renv 1.3.1 or later.",
-        "i" = "Update renv, then run {.code renv::snapshot()} in the site."),
-      class = c("supplement_error_lockfile", "supplement_error"),
-      call = call
+    lockfile_error(
+      "records renv {renv}, and the Dockerfile needs renv 1.3.1 or later.",
+      "Update renv, then run {.code renv::snapshot()} in the site."
     )
   }
   list(r = r, renv = renv)
@@ -238,8 +257,8 @@ dockerfile_text <- function(r, renv, quarto, digest) {
     "# ?supplement::write_dockerfile for how to build the image and render in it.",
     paste0("FROM ", from),
     "",
-    "# renv installs the packages into a library in this folder, with its",
-    "# package cache off, and the site's renv/activate.R finds them there.",
+    "# renv installs the packages into a library under /opt/renv/library, with",
+    "# its package cache off, and the site's renv/activate.R finds them there.",
     "ENV RENV_PATHS_LIBRARY=/opt/renv/library \\",
     "    RENV_CONFIG_CACHE_ENABLED=FALSE",
     "",
@@ -250,9 +269,9 @@ dockerfile_text <- function(r, renv, quarto, digest) {
     "WORKDIR /opt/renv",
     "COPY renv.lock renv.lock",
     "RUN apt-get update \\",
-    "    && export R_LIBS=/tmp/renv/library RENV_PATHS_ROOT=/tmp/renv/root \\",
+    "    && export DEBIAN_FRONTEND=noninteractive R_LIBS=/tmp/renv/library RENV_PATHS_ROOT=/tmp/renv/root \\",
     "    && mkdir -p \"$R_LIBS\" \\",
-    paste0("    && Rscript -e 'install.packages(\"", tarball, "\", repos = NULL, type = \"source\")' \\"),
+    paste0("    && Rscript -e 'install.packages(\"", tarball, "\", repos = NULL, type = \"source\"); library(renv)' \\"),
     "    && Rscript -e 'writeLines(as.character(unique(unlist(lapply(renv::sysreqs(report = FALSE, check = FALSE), `[[`, \"packages\")))), \"/tmp/renv/sysreqs.txt\")' \\",
     "    && xargs -r apt-get install -y --no-install-recommends < /tmp/renv/sysreqs.txt \\",
     "    && Rscript -e 'renv::restore(library = renv::paths$library(), prompt = FALSE)' \\",

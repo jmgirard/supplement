@@ -33,14 +33,18 @@ packages that \code{renv.lock} records, and the Quarto version that you give.
 You can then render a report in the image with the site folder mounted,
 so that its code runs with those versions on another machine that runs
 Docker with Linux containers on an amd64 processor, or on arm64 for R
-4.1.0 or later, the platforms of the Rocker images. supplement never
-runs Docker itself.
+4.1.0 or later, the platforms of the Rocker images. \code{renv.lock} must
+record R 4.0.0 or later, because older \code{rocker/r-ver} images lack the
+Rocker scripts that the build runs. The Dockerfile was built and run with
+\verb{rocker/r-ver:4.6.1} on arm64 (Docker 29.9.1, 2026-10-22); older images
+and amd64 were not built. supplement never runs Docker itself.
 }
 \details{
 The \code{Dockerfile} starts from the Rocker image \code{rocker/r-ver} with the R
 version in \code{renv.lock}, and installs Quarto with Rocker's
-\code{install_quarto.sh}. It copies \code{renv.lock} into the image. It installs
-the renv version that \code{renv.lock} records into a temporary library, uses
+\code{install_quarto.sh}. It copies \code{renv.lock} into the image. It downloads
+the renv version that \code{renv.lock} records from the CRAN archive of Posit
+Package Manager (\code{p3m.dev}), installs it into a temporary library, uses
 it to install the Ubuntu packages that \code{renv::sysreqs()} lists for the
 packages in \code{renv.lock}, and runs \code{renv::restore()}. renv reads those
 packages from \code{renv.lock} from version 1.3.1 on, so \code{renv.lock} must
@@ -105,9 +109,11 @@ release then holds them, but not the image.
 
 The function checks the arguments, \code{renv.lock}, and both target paths
 before it writes a file, so after any error but a failed write the site
-folder is as it was. A failed write can leave the \code{Dockerfile} written,
-and either file empty or cut short. A file that cannot be opened for writing gives R's own error. The
-other errors have the class \code{supplement_error} and one of these classes:
+folder is as it was. It writes \code{.dockerignore} first, then the
+\code{Dockerfile}. A failed write, an open that fails included, can leave
+\code{.dockerignore} written, and either file empty or cut short. A file that
+cannot be opened for writing gives R's own error. The other errors have
+the class \code{supplement_error} and one of these classes:
 \itemize{
 \item \code{supplement_error_argument}: \code{path} is not a single non-missing,
 non-empty string, or it is not a folder. \code{quarto} is missing or is not
@@ -121,7 +127,8 @@ a leading zero. \code{digest} is not \code{NULL} or one string of \verb{sha256:}
 under \code{Packages}, or one of the two versions is not one string of three
 whole numbers joined by \code{.}. A development version such as
 \verb{1.1.5.9000} is such an error, because the build installs released
-versions. A renv version older than 1.3.1 is also this error.
+versions. An R version older than 4.0.0 or a renv version older than
+1.3.1 is also this error.
 \item \code{supplement_error_file_exists}: \code{Dockerfile} or \code{.dockerignore}
 exists and \code{overwrite} is \code{FALSE}. A folder or a link at either path is
 this error even when \code{overwrite} is \code{TRUE}, because a write would

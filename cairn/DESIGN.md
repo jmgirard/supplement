@@ -32,6 +32,7 @@ Zenodo API, Python helper functions, and migration of existing sites.
 - metadata writers: `write_citation()`, `write_zenodo()`
 - scaffolding: `create_supplement()`, `add_report()`, `add_data()`
 - release steps: `check_supplement()`, `release_supplement()`
+- container recipe: `write_dockerfile()`
 
 Status and order live in `ROADMAP.md`.
 
@@ -44,7 +45,9 @@ Status and order live in `ROADMAP.md`.
   authors, ORCIDs, DOIs, and licenses. `CITATION.cff` and `.zenodo.json`
   are generated from it.
 - The package never runs `git tag`, `git push`, or a GitHub release. It
-  prints those commands for the author to run.
+  prints those commands for the author to run. It never runs Docker or
+  renv either: `write_dockerfile()` writes the recipe, and the help and
+  the guide show the commands (M032).
 - No oracle-verification rule for numeric results (declined at init,
   2026-10-18).
 
@@ -91,6 +94,15 @@ Every YAML parse in `R/` goes through `yaml_load_list()` or
 `yaml_scalar()`, and both pass `eval.expr = FALSE`, so no read runs
 `!expr` code under `options(yaml.eval.expr = TRUE)` (M025).
 `R/add-utils.R` holds the checks the two share.
+`R/write-dockerfile.R`: `write_dockerfile()` reads the R and renv versions
+of `renv.lock` with jsonlite, refuses R before 4.0.0 and renv before 1.3.1,
+and writes `.dockerignore` (`*`, `!renv.lock`) and then a `Dockerfile` from
+`rocker/r-ver:<R>`, optionally pinned by digest. The build installs Quarto
+with Rocker's script, a temporary renv that installs the Ubuntu packages
+`renv::sysreqs()` lists, and `renv::restore()` into
+`RENV_PATHS_LIBRARY=/opt/renv/library` with renv's cache off. It refuses a
+link or folder at either target even with `overwrite = TRUE`, using the
+path helpers of `R/supplement-yml.R`.
 `R/check-supplement.R`: `check_supplement()` changes no file and returns
 its problems as a data frame (`check`, `file`, `problem`), with a
 `skipped` attribute. Its file size and saved-object checks read `git
@@ -183,6 +195,9 @@ Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when a tool they need,
 such as quarto, git, or a png device, is missing.
 The metadata writer tests need no Quarto.
+The one Docker test in `tests/testthat/test-write-dockerfile.R` builds the
+image and renders a report in it only when `SUPPLEMENT_TEST_DOCKER=true`;
+the CI workflow does not set it, so that test runs only on a local machine.
 In `tests/testthat/test-template.R`, each exit-status check of a command
 shows everything the command printed when it fails, through
 `expect_status()` or `expect_command_fails()` (`helper-template.R`), or

@@ -29,10 +29,10 @@
   no problem in it, and git keeps `renv/library/` out.
 * `write_dockerfile()` reads the R and renv versions in `renv.lock` and
   writes a `Dockerfile` that builds an image with that R, the packages in
-  `renv.lock`, and a given Quarto version. `renv.lock` must record renv
-  1.3.1 or later. It also writes a `.dockerignore` that lets only
-  `renv.lock` of the site's files into the image. `digest` pins the base
-  image.
+  `renv.lock`, and a given Quarto version. `renv.lock` must record R 4.0.0
+  or later and renv 1.3.1 or later. It also writes a `.dockerignore` that
+  lets only `renv.lock` of the site's files into the image. `digest` pins
+  the base image.
   The template guide shows how to build the image and render a report in
   it.
 * `check_supplement()` lists the problems in a site before a release, and

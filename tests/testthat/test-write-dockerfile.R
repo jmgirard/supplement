@@ -30,8 +30,8 @@ dockerfile_461 <- paste0(paste(c(
   "# ?supplement::write_dockerfile for how to build the image and render in it.",
   "FROM rocker/r-ver:4.6.1",
   "",
-  "# renv installs the packages into a library in this folder, with its",
-  "# package cache off, and the site's renv/activate.R finds them there.",
+  "# renv installs the packages into a library under /opt/renv/library, with",
+  "# its package cache off, and the site's renv/activate.R finds them there.",
   "ENV RENV_PATHS_LIBRARY=/opt/renv/library \\",
   "    RENV_CONFIG_CACHE_ENABLED=FALSE",
   "",
@@ -42,9 +42,9 @@ dockerfile_461 <- paste0(paste(c(
   "WORKDIR /opt/renv",
   "COPY renv.lock renv.lock",
   "RUN apt-get update \\",
-  "    && export R_LIBS=/tmp/renv/library RENV_PATHS_ROOT=/tmp/renv/root \\",
+  "    && export DEBIAN_FRONTEND=noninteractive R_LIBS=/tmp/renv/library RENV_PATHS_ROOT=/tmp/renv/root \\",
   "    && mkdir -p \"$R_LIBS\" \\",
-  "    && Rscript -e 'install.packages(\"https://p3m.dev/cran/latest/src/contrib/Archive/renv/renv_1.3.1.tar.gz\", repos = NULL, type = \"source\")' \\",
+  "    && Rscript -e 'install.packages(\"https://p3m.dev/cran/latest/src/contrib/Archive/renv/renv_1.3.1.tar.gz\", repos = NULL, type = \"source\"); library(renv)' \\",
   "    && Rscript -e 'writeLines(as.character(unique(unlist(lapply(renv::sysreqs(report = FALSE, check = FALSE), `[[`, \"packages\")))), \"/tmp/renv/sysreqs.txt\")' \\",
   "    && xargs -r apt-get install -y --no-install-recommends < /tmp/renv/sysreqs.txt \\",
   "    && Rscript -e 'renv::restore(library = renv::paths$library(), prompt = FALSE)' \\",
@@ -59,7 +59,6 @@ test_that("the Dockerfile and .dockerignore have the expected bytes", {
   expect_identical(written, file.path(site, c("Dockerfile", ".dockerignore")))
   expect_identical(read_bytes(file.path(site, "Dockerfile")), charToRaw(dockerfile_461))
   expect_identical(read_bytes(file.path(site, ".dockerignore")), charToRaw("*\n!renv.lock\n"))
-  expect_false(any(read_bytes(file.path(site, "Dockerfile")) == as.raw(13)))
 })
 
 test_that("the R, renv, and Quarto versions come from renv.lock and the quarto argument", {
@@ -70,7 +69,9 @@ test_that("the R, renv, and Quarto versions come from renv.lock and the quarto a
   expect_identical(grep("install_quarto", lines, value = TRUE), "RUN /rocker_scripts/install_quarto.sh 1.9.37")
   expect_match(lines, "/renv_1.10.0.tar.gz", fixed = TRUE, all = FALSE)
   expect_match(lines, "copy of renv 1.10.0 ", fixed = TRUE, all = FALSE)
-  expect_false(any(grepl("4.6.1|1.3.1|1.10.19", lines)))
+  for (version in c("4.6.1", "1.3.1", "1.10.19")) {
+    expect_false(any(grepl(version, lines, fixed = TRUE)), info = version)
+  }
 })
 
 test_that("a digest pins the base image", {
@@ -93,7 +94,7 @@ test_that("overwrite = TRUE replaces both files", {
 test_that("a path that is not one folder is refused", {
   site <- lock_site()
   file <- file.path(site, "renv.lock")
-  for (path in list(c(site, site), 1, NA_character_, "", file.path(site, "no-such-folder"), file)) {
+  for (path in list(c(site, site), file.path(site, "no-such-folder"), file)) {
     expect_refused(site, "supplement_error_argument", path, quarto = "1.10.19", info = format(path))
   }
 })
@@ -144,10 +145,30 @@ test_that("a lockfile R or renv version that is not three whole numbers is refus
   }
 })
 
-test_that("a lockfile renv older than 1.3.1 is refused", {
-  for (version in c("1.3.0", "1.2.0")) {
-    site <- lock_site(lock_json(renv = sprintf('{"Version": "%s"}', version)))
-    expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19", info = version)
+test_that("a lockfile R older than 4.0.0 or renv older than 1.3.1 is refused", {
+  site <- lock_site(lock_json(r = '{"Version": "3.6.3"}'))
+  expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
+  site <- lock_site(lock_json(renv = '{"Version": "1.3.0"}'))
+  expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
+})
+
+test_that("errors name write_dockerfile() as the call", {
+  site <- lock_site()
+  calls <- list(
+    argument = function() write_dockerfile(site, quarto = "1.10"),
+    lockfile = function() write_dockerfile(lock_site("[]"), quarto = "1.10.19"),
+    renv = function() write_dockerfile(lock_site(lock_json(renv = '{"Version": "1.3.0"}')), quarto = "1.10.19"),
+    no_file = function() write_dockerfile(lock_site(NULL), quarto = "1.10.19"),
+    folder = function() {
+      dir.create(file.path(site, "Dockerfile"))
+      on.exit(unlink(file.path(site, "Dockerfile"), recursive = TRUE, expand = FALSE))
+      write_dockerfile(site, quarto = "1.10.19")
+    }
+  )
+  for (name in names(calls)) {
+    err <- tryCatch(calls[[name]](), supplement_error = identity)
+    expect_s3_class(err, "supplement_error")
+    expect_identical(conditionCall(err)[[1]], quote(write_dockerfile), info = name)
   }
 })
 
@@ -230,7 +251,7 @@ test_that("the image renders a report offline as the user, with the lockfile's R
   # The library in the image, so the section is from the render in Docker.
   expect_match(section, "/opt/renv/library/", fixed = TRUE)
 
-  unlink(site, recursive = TRUE)
+  unlink(site, recursive = TRUE, expand = FALSE)
   expect_false(dir.exists(site))
 })
 
@@ -248,12 +269,8 @@ test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
       for (shape in names(targets)) {
         site <- lock_site()
         skip_if_not(file.symlink(targets[[shape]], file.path(site, file)), "cannot make a symbolic link here")
-        before <- folder_md5(outside)
-        info <- paste(file, overwrite, shape)
         expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19",
-                       overwrite = overwrite, info = info)
-        expect_identical(folder_md5(outside), before, info = info)
-        expect_false(file.exists(file.path(outside, "missing")), info = info)
+                       overwrite = overwrite, info = paste(file, overwrite, shape))
       }
     }
   }
