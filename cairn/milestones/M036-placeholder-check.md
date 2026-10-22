@@ -1,6 +1,6 @@
 # M036: The release stops on template placeholders
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -64,6 +64,8 @@
 - 2026-10-22: T4 done: `fill_placeholders()` and `replace_in_file()` in `helper-files.R` (the T2 test's own copy of `replace_in_file()` moved there); called in the first check test, in `renv_site()` before its render, and in `checked_site(placeholders = TRUE)`. The AC4 test sees 8 placeholder rows, a release stop with "8 problems" and an unchanged folder, then a release to 1.0.0 after the fill. Full suite with NOT_CRAN=true: 349 tests, 0 failed, 8 skipped (Windows, case-sensitive disk, Docker; the renv test ran). T1 to T3 ticked with it.
 - 2026-10-22: T5 done: `?check_supplement` opening sentence, `"placeholder"` bullet, and example comment (the comment checked against a run of the example, which gave 8 placeholder rows); `NEWS.md` bullet; `cairn/DESIGN.md` Architecture. `devtools::document()` rewrote `man/check_supplement.Rd`; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - 2026-10-22: claim audit corrections (re-read by the same reader pending): the example report's problem text no longer says to delete only its menu item, which leaves an empty `menu:` that fails Quarto's validation; the example data's text also names the example report, which reads it; the `NEWS.md` bullet says `OWNER` and `REPO` for the site address, which holds no `OWNER/REPO`.
+- 2026-10-22: claim audit: 59 claims read, 3 corrected — R/check-supplement.R, NEWS.md (the same reader re-read the three corrections and found them true).
+- 2026-10-22: implement done: suite with NOT_CRAN=true 349 tests, 0 failed, 8 skipped; status set to review.
 
 ## Decisions
 
