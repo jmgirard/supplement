@@ -1,13 +1,13 @@
 # M034: Reports find the site folder from any folder
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template's example report, the report that `add_report()` writes, and the site README
-- **Branch/PR:** —
+- **Branch/PR:** m034-report-paths
 
 ## Goal
 
@@ -39,8 +39,8 @@ The example report and each report from `add_report()` find the site folder by o
 
 ## Tasks
 
-- [ ] T1: Write the AC2 test first, then add the `site` chunk and its prose to `inst/template/analyses/example.qmd` (around lines 9-17). Remove the `site <-` lines from the `data` and `save-figure` chunks.
-- [ ] T2: In `tests/testthat/test-template.R` (around lines 248-330), make the hand-run, failed-plot, and `save_png()` tests run the `site` chunk before the chunks they run, and update the comment that says `save-figure` finds the site folder itself.
+- [x] T1: Write the AC2 test first, then add the `site` chunk and its prose to `inst/template/analyses/example.qmd` (around lines 9-17). Remove the `site <-` lines from the `data` and `save-figure` chunks.
+- [x] T2: In `tests/testthat/test-template.R` (around lines 248-330), make the hand-run, failed-plot, and `save_png()` tests run the `site` chunk before the chunks they run, and update the comment that says `save-figure` finds the site folder itself.
 - [ ] T3: Write the AC3 test, then change `report_lines()` in `R/add-report.R` (line 191) to put the example's `site` chunk first, read by a helper beside `environment_section()`, and to name `file.path(site, "data", ...)` in its text.
 - [ ] T4: Write the AC4 render test, with one new site for each `execute-dir` setup, because freeze reuses stored output in a second render of one site (D-002).
 - [ ] T5: Change `inst/template/_README.md` (around lines 268-272 and 440-455) for AC5, add the README comparison test, and run the AC5 grep.
@@ -58,6 +58,9 @@ The example report and each report from `add_report()` find the site folder by o
 - 2026-10-22: criteria audit (full mode, fresh Opus reader) returned 8 findings, all fixed: the M028 tests that run `save-figure` alone (T2), the example and README prose that states the old rule (AC1, AC5), three more AC2 setups and `identical()` comparison, AC3 scoped past the title and description lines, AC4 split into two sites because of freeze and matched on `[1] <n>`, AC5 compared after the `#|` lines, the AC6 grep dropped because it would match the new wording, and `cairn/DESIGN.md` line 186 added to T6.
 - 2026-10-22: lessons applied: M028 (`QUARTO_PROJECT_DIR` is set in every render kind), M018 (compare paths as set, because of 8.3 short names on Windows), M001 and D-002 (freeze reuses stored output, so each render leg gets its own site).
 - 2026-10-22: changelog: AC6 edits the existing unreleased M028 bullet and adds one bullet.
+- 2026-10-22: implement started on branch m034-report-paths, cut from main at 4efd1b9.
+- 2026-10-22: T1: the example gets a "Site Folder" section and a `site` chunk (`Find()` over `.` and `..`, then a base `stop()`). The new test failed before the chunk existed (`chunk_code()` found no `site` label) and passes with 8 expectations.
+- 2026-10-22: T2: the hand-run, failed-plot, and `save_png()` tests run the `site` chunk first; all three pass with NOT_CRAN=true (3, 7, and 4 expectations). Checkpoint: the full `devtools::test()` run for T1 and T2 was still running at this commit.
 
 ## Decisions
 

@@ -185,6 +185,44 @@ test_that(".gitignore keeps figures/ and blocks figures saved in analyses/", {
   expect_figure_rules(site$dir)
 })
 
+test_that("the example's site chunk finds the site folder from analyses/ or the site folder", {
+  code <- chunk_code(file.path(template_dir(), "analyses", "example.qmd"), "site")
+  site_from <- function(dir, project_dir) {
+    env <- new.env()
+    withr::with_envvar(c(QUARTO_PROJECT_DIR = project_dir), withr::with_dir(
+      dir,
+      eval(parse(text = code), envir = env)
+    ))
+    env$site
+  }
+  site <- new_site()
+  analyses <- file.path(site, "analyses")
+  for (unset in list(NA, "")) {
+    expect_identical(site_from(analyses, unset), "..", info = format(unset))
+    expect_identical(site_from(site, unset), ".", info = format(unset))
+  }
+
+  # A site inside a folder that also holds _quarto.yml.
+  parent <- withr::local_tempdir("parent-")
+  file.create(file.path(parent, "_quarto.yml"))
+  nested <- file.path(parent, "site")
+  suppressMessages(create_supplement(nested))
+  expect_identical(site_from(nested, NA), ".")
+
+  other <- withr::local_tempdir("other-")
+  expect_identical(site_from(analyses, other), other)
+
+  lost <- file.path(withr::local_tempdir("lost-"), "a", "b")
+  dir.create(lost, recursive = TRUE)
+  for (unset in list(NA, "")) {
+    expect_error(
+      site_from(lost, unset),
+      "Run this code from the site folder or from its analyses/ folder.",
+      fixed = TRUE
+    )
+  }
+})
+
 test_that("the example report saves a figure that the next full render publishes", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
@@ -250,7 +288,7 @@ test_that("the example code run by hand from analyses/ saves into the site's fig
   skip_if_not(capabilities("png"), "R has no png device")
   dirs <- figure_site()
   qmd <- file.path(dirs$site, "analyses", "example.qmd")
-  code <- unlist(lapply(c("data", "bootstrap", "save-figure"), chunk_code, path = qmd))
+  code <- unlist(lapply(c("site", "data", "bootstrap", "save-figure"), chunk_code, path = qmd))
 
   # The bootstrap chunk draws on the current device.
   grDevices::pdf(NULL)
@@ -270,12 +308,13 @@ test_that("a failed plot in the example closes its device and leaves figures/ as
   skip_on_cran()
   skip_if_not(capabilities("png"), "R has no png device")
   site <- new_site()
-  code <- chunk_code(file.path(site, "analyses", "example.qmd"), "save-figure")
+  qmd <- file.path(site, "analyses", "example.qmd")
+  code <- unlist(lapply(c("site", "save-figure"), chunk_code, path = qmd))
   figures <- file.path(site, "figures")
 
-  # The chunk runs alone, as an author who copies it runs it, so it finds
-  # the site folder itself. folder_md5() also reads hidden files, so a
-  # temporary file left in figures/ fails the test.
+  # The chunk runs after the site chunk only, as an author who copies the
+  # two runs them. folder_md5() also reads hidden files, so a temporary file
+  # left in figures/ fails the test.
   expect_failed_plot_changes_nothing <- function() {
     env <- new.env()
     env$boot_means <- c(1, 2, 3)
@@ -305,7 +344,8 @@ test_that("save_png() refuses a folder at its target and a plot that is not a fu
   skip_on_cran()
   skip_if_not(capabilities("png"), "R has no png device")
   site <- new_site()
-  code <- chunk_code(file.path(site, "analyses", "example.qmd"), "save-figure")
+  qmd <- file.path(site, "analyses", "example.qmd")
+  code <- unlist(lapply(c("site", "save-figure"), chunk_code, path = qmd))
   figures <- file.path(site, "figures")
   env <- new.env()
   env$boot_means <- c(1, 2, 3)

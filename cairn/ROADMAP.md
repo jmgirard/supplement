@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-22 (triage: routed "Read reports as Quarto does at 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M034 | Reports find the site folder from any folder | planned | — | normal | milestones/M034-report-paths.md |
+| M034 | Reports find the site folder from any folder | in-progress | — | normal | milestones/M034-report-paths.md |
 | M032 | write_dockerfile() writes a container recipe from renv.lock | done | M031 | normal | milestones/archive/M032-dockerfile.md |
 | M031 | An author can record and restore a site's R packages with renv | done | M030 | normal | milestones/archive/M031-renv-guide.md |
 | M033 | Each CI job runs the tests once, in parallel | done | — | normal | milestones/archive/M033-ci-test-time.md |
