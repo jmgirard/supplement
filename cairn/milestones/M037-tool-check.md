@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M037: Report missing tools before site setup
 
-- **Status:** planned   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
 - **Principles touched:** —   <!-- owner: plan · create/amend-via-gate -->
 - **Resolves:** —   <!-- owner: plan · create/amend-via-gate -->
 - **Surface tier:** user-facing — a new exported function and a changed `create_supplement()` message   <!-- owner: plan · create/amend-via-gate -->
-- **Branch/PR:** —   <!-- owner: implement (branch) / review (PR URL) · create -->
+- **Branch/PR:** m037-tool-check   <!-- owner: implement (branch) / review (PR URL) · create -->
 
 ## Goal
 <!-- owner: plan · create; a wrong goal returns to plan, never edited in place -->
@@ -50,7 +50,7 @@ Authors can see which tools a supplement site needs are missing before a first r
 ## Tasks
 <!-- owner: plan (create) / implement (check-off, minor edits); substantive change is amend-via-gate. -->
 
-- [ ] T1: Check each editor path of AC2 against an install (the Positron and Quarto installs on this Mac) or the vendor's own docs or release files. Write one work-log line per path with its source. A path that turns out wrong changes through the amendment protocol.
+- [x] T1: Check each editor path of AC2 against an install (the Positron and Quarto installs on this Mac) or the vendor's own docs or release files. Write one work-log line per path with its source. A path that turns out wrong changes through the amendment protocol.
 - [ ] T2: Write `tests/testthat/test-check-tools.R` first, for AC1 to AC3. Mock the lookups through small internal helpers with `local_mocked_bindings()` (LESSONS M011). Build version files with `writeBin()` so no line break is added (LESSONS M011).
 - [ ] T3: Write `R/check-tools.R`: `check_tools()`, the Quarto lookup and its editor list, the version read with `numeric_version()`, and the printed lines through cli. Look programs up with `Sys.which()`, which on Unix runs `which` but no looked-up tool. Add the roxygen help page (AC6 items) and run `devtools::document()`.
 - [ ] T4: Write the AC5 tests in `tests/testthat/test-create-supplement.R` first, then add the lookups to the closing message at `R/create-supplement.R:113-121`, inside `tryCatch()` for errors and warnings. Existing tests match "Made a supplement site", so they keep passing.
@@ -70,6 +70,14 @@ Authors can see which tools a supplement site needs are missing before a first r
 - 2026-10-22: plan chose `not on path` for a `QUARTO_PATH`-only copy as for an editor copy, because a terminal `quarto render` reads only the system path; falsified by a Quarto release whose CLI reads `QUARTO_PATH`.
 - 2026-10-22: criteria audit (full, fresh Opus reader): 12 findings, all taken. AC1 limited to the four non-Quarto tools and asserts a printed line per status. `too old` wins over `not on path`. Editor folders listed in AC2 with a per-system list test, a `quarto.exe` probe, and four `QUARTO_PATH` shapes. Version probes 1.3.450, 1.10.0, no final line break, and a link probe. AC4 narrowed from "starts no process" to "runs none of the tools", because `Sys.which()` runs `which` on Unix. AC5 probes each of three statuses and a warning. DESIGN.md added to AC6.
 - 2026-10-22: lessons harvested: M011 (mock a slow step, `writeBin()` for exact bytes), M018 (`Sys.readlink()` gives `""` on Windows, so the link probe skips there), M007 (cli drops leading spaces in message lines).
+- 2026-10-22: implement started on branch m037-tool-check, cut from main at 33ebeba.
+- 2026-10-22: T1 path RStudio macOS `/Applications/RStudio.app/Contents/Resources/app/quarto/bin/quarto`: rstudio/rstudio `src/cpp/session/CMakeLists.txt` installs the Quarto folder into `RSTUDIO_INSTALL_RESOURCES/app` on Apple, and `cmake/globals.cmake` sets that to `RStudio.app/Contents/Resources`.
+- 2026-10-22: T1 path RStudio Windows `<PROGRAMFILES>/RStudio/resources/app/bin/quarto/bin/quarto.exe`: the same CMake rule installs into `RSTUDIO_INSTALL_BIN` (`resources/app/bin` for the Electron build), and a Posit forum `quarto check` output shows `C:\Program Files\RStudio\resources\app\bin\quarto\bin`.
+- 2026-10-22: T1 path RStudio Linux `/usr/lib/rstudio/resources/app/bin/quarto/bin/quarto`: the same CMake rule, and a Posit forum post (Linux Mint) that ran `./quarto --version` there.
+- 2026-10-22: T1 path Positron macOS `/Applications/Positron.app/Contents/Resources/app/quarto/bin/quarto`: present on this Mac with `share/version` 1.10.18 beside `bin/`.
+- 2026-10-22: T1 paths Positron Windows `<LOCALAPPDATA>/Programs/Positron/...` and `<PROGRAMFILES>/Positron/...`: the install roots are from positron.posit.co/add-to-path, and posit-dev/positron `build/lib/quarto.ts` puts `quarto/` at the app root that macOS shows as `Resources/app`, which is `resources/app` in a Windows build.
+- 2026-10-22: T1 path Positron Linux `/usr/share/positron/resources/app/quarto/bin/quarto`: posit-dev/positron `build/gulpfile.vscode.linux.ts` installs to `/usr/share/${applicationName}`, and `product.json` sets `applicationName` to `positron`. Not checked on an install.
+- 2026-10-22: T1 done: all seven paths match AC2, so no amendment. A standalone Quarto 1.10.19 at `/Applications/quarto` also has `share/version` beside `bin/`.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local -->
