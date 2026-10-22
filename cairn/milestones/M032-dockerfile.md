@@ -1,13 +1,13 @@
 # M032: write_dockerfile() writes a container recipe from renv.lock
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** M031
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — a new exported function and a guide part
-- **Branch/PR:** —
+- **Branch/PR:** m032-dockerfile
 
 ## Goal
 
@@ -48,7 +48,7 @@
 
 ## Tasks
 
-- [ ] T1: Probe with Docker on the Mac. Build a first draft Dockerfile for a site with renv. Find how `/rocker_scripts/install_quarto.sh` takes a Quarto version, how renv gets into the `RENV_PATHS_LIBRARY` library so that `activate.R` finds it with no download, and which setting turns off cache links. Find whether the render runs with `--network none` and `--user`. Record each result in the work log, and write the help text from what the probes show (the derived-claims rule).
+- [x] T1: Probe with Docker on the Mac. Build a first draft Dockerfile for a site with renv. Find how `/rocker_scripts/install_quarto.sh` takes a Quarto version, how renv gets into the `RENV_PATHS_LIBRARY` library so that `activate.R` finds it with no download, and which setting turns off cache links. Find whether the render runs with `--network none` and `--user`. Record each result in the work log, and write the help text from what the probes show (the derived-claims rule).
 - [ ] T2: Write the AC1 to AC4 tests in a new `tests/testthat/test-write-dockerfile.R`. Write the full expected Dockerfile into the test from the T1 probe. Write fixtures with `writeBin()` (LESSONS M011). Use `folder_md5()` (`helper-template.R:208`) before and after each refusal.
 - [ ] T3: Write `write_dockerfile()` with roxygen help. Read `renv.lock` with jsonlite. Check versions with a `\z` anchor (LESSONS M007). Refuse links and folders with `is_link()` and `path_occupied()` (`R/supplement-yml.R`). Write with `writeBin()` so that line endings are LF. Add the export to NAMESPACE with `devtools::document()`.
 - [ ] T4: Write the AC5 test in `tests/testthat/test-write-dockerfile.R`, and run it on the Mac with `SUPPLEMENT_TEST_DOCKER=true`. Record the run in the work log. The R-CMD-check workflow does not set the variable.
@@ -69,6 +69,14 @@
 - 2026-10-21: lessons surfaced: M007 (`\z` anchors), M011 (`writeBin()` fixtures), M018 and M022 (links and junctions on Windows), M006 (record a target before a write that can fail).
 - 2026-10-21: criteria audit (full mode, fresh Opus reader): 6 findings for the draft and 10 for the revision after the question set, all taken. Main changes: renv goes into the `RENV_PATHS_LIBRARY` library, cache links are off, and the file is LF and compared as bytes. Each refusal names its class, and the shapes now vary path, lockfile form, each version source, digest, and `overwrite`. The Docker test runs offline and as the user, skips without a Rocker tag for the R version, and compares with the lockfile's R version. The guide reads the base image's multi-platform digest, and the Zenodo claim needs a committed Dockerfile. AC2 and AC7 had no finding.
 - 2026-10-21: changelog: one new bullet in NEWS.md under 0.0.0.9000.
+- 2026-10-22: implement started on branch m032-dockerfile, cut from main at b32dc42.
+- 2026-10-22: T1 probe (Docker 29.0.1 on the Mac, aarch64, rocker/r-ver:4.6.1, a template site after renv::init() with renv 1.3.1): `/rocker_scripts/install_quarto.sh 1.10.19` takes the version as its first argument and installs the GitHub release .deb for the machine's architecture.
+- 2026-10-22: T1 probe: renv's library path under `RENV_PATHS_LIBRARY` is `<root>/linux-ubuntu-noble/R-4.6/<platform>` (`renv::paths$library()`), so the Dockerfile asks renv for it rather than building it. `restore(library = renv::paths$library())` installs renv 1.3.1 from the lockfile into that library, and `activate.R` loads it there in a `--network none` run. Without `library =`, restore wrote into `/usr/local/lib/R/site-library`.
+- 2026-10-22: T1 probe: the first build failed because binary `fs` needs libuv (`libuv.so.1: cannot open shared object file`). `renv::sysreqs(report = FALSE, check = FALSE)` lists the apt packages (cmake, libuv1-dev, make, pandoc for the template), and the build installs them before restore. Minor amendment: this step is part of the recipe; AC1 wording unchanged.
+- 2026-10-22: T1 probe: with `RENV_CONFIG_CACHE_SYMLINKS=FALSE` the library held real folders but renv's cache added 72 MB under `/root/.cache/R/renv`; `RENV_CONFIG_CACHE_ENABLED=FALSE` installs straight into the library with no cache and no links. Decision: use `RENV_CONFIG_CACHE_ENABLED=FALSE`, which turns off cache links by turning off the cache. renv's downloads go to a temporary `RENV_PATHS_ROOT` that the same RUN deletes, with the bootstrap renv copy in a temporary `R_LIBS`.
+- 2026-10-22: T1 probe: renv 1.3.1's source tarball downloads from `https://p3m.dev/cran/latest/src/contrib/Archive/renv/renv_1.3.1.tar.gz` (also 1.0.0, and the current version), independent of the image's dated CRAN snapshot. Decision: the bootstrap install uses that URL with the lockfile's renv version.
+- 2026-10-22: T1 probe: `docker run --rm --network none --user $(id -u):$(id -g) -e HOME=/tmp -v "$PWD":/site <image> quarto render analyses/example.qmd` exits 0; the session info shows R 4.6.1, Ubuntu 24.04.5, and library `/opt/renv/library/linux-ubuntu-noble/R-4.6/aarch64-unknown-linux-gnu`. The image's `/site` is empty and `/opt/renv` holds only `renv.lock` and the library.
+- 2026-10-22: T1 probe: `docker buildx imagetools inspect rocker/r-ver:4.6.1` prints the multi-platform `Digest:` line (sha256:bafb3b9a…), and a FROM line with `@` and that digest builds. `docker manifest inspect` exits 0 for 4.6.1 and 1 for a missing tag. `docker save -o image.tar` wrote 586 MB for a 2.32 GB image, and `docker load -i` reloaded it.
 
 ## Decisions
 
