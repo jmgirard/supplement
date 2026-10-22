@@ -38,7 +38,7 @@
 ## Tasks
 
 - [x] T1: Write the AC1 test and the AC2 message assertions first, and see the `overwrite = TRUE` cases fail on main. Then change `check_overwrite()` (`R/supplement-yml.R:273`) to take a vector of paths and check links, then folders, then existing files. Make `write_dockerfile()` (`R/write-dockerfile.R:160`) call it once with both targets, and add the `.dockerignore` link plus plain `Dockerfile` case to its link test (line 258). Run `devtools::test()`.
-- [ ] T2: Write the AC4 test first, then add the repeated-key check to `read_lockfile_versions()` (`R/write-dockerfile.R:190`), at each level before that level's value checks, through `lockfile_error()`. Run `devtools::test()`.
+- [x] T2: Write the AC4 test first, then add the repeated-key check to `read_lockfile_versions()` (`R/write-dockerfile.R:190`), at each level before that level's value checks, through `lockfile_error()`. Run `devtools::test()`.
 - [ ] T3: Update the roxygen Errors sections of `R/write-citation.R` and `R/write-dockerfile.R`, run `devtools::document()`, and edit the two `NEWS.md` bullets (around lines 30 and 80). Update `cairn/DESIGN.md` Architecture (the writers' sentence near line 70 and the `write_dockerfile()` sentence near line 105) and add the writers to the Windows sentence of the "Release edge cases" Known issue. Run `devtools::check()`.
 
 ## Work log
@@ -57,6 +57,7 @@
 - 2026-10-22: checkpoint (T1 not checked off): `check_overwrite()` takes several paths and refuses links first; the new link test replaces "a dangling link with the output file's name is kept", which it covers. On main it failed with "already exists" for `overwrite = FALSE` and no error for `overwrite = TRUE`; both writer test files pass with the change. Full suite still running.
 - 2026-10-22: T1 done: `devtools::test()` 336 tests, 0 failed, 8 skipped.
 - 2026-10-22: checkpoint (T2 not checked off): repeated-key check in `read_lockfile_versions()` before any value check; on main the new test failed with no error raised, and the dockerfile test file passes with the change. Full suite running.
+- 2026-10-22: T2 done: `devtools::test()` 338 tests, 0 failed, 8 skipped.
 
 ## Decisions
 
