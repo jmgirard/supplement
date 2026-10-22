@@ -489,19 +489,21 @@ test_that("the example page shows the R and knitr versions of its render", {
 
     page <- read_text(file.path(site, "docs", "analyses", "example.html"))
     section <- section_html(page, "computing-environment")
-    expect_match(section, "<h2[^>]*>Computing environment</h2>", info = hidden)
+    # testthat needs `info` as text.
+    info <- sprintf("hidden: %s, sessioninfo found: %s", hidden, has_sessioninfo)
+    expect_match(section, "<h2[^>]*>Computing environment</h2>", info = info)
     text <- html_text(section)
-    expect_match(text, "R version [0-9]+\\.[0-9]+\\.[0-9]+", info = hidden)
-    expect_match(text, knitr_rx, info = hidden)
+    expect_match(text, "R version [0-9]+\\.[0-9]+\\.[0-9]+", info = info)
+    expect_match(text, knitr_rx, info = info)
     if (hidden || !has_sessioninfo) {
-      expect_match(text, "attached base packages", fixed = TRUE, info = hidden)
-      expect_no_match(text, "Session info", fixed = TRUE, info = hidden)
+      expect_match(text, "attached base packages", fixed = TRUE, info = info)
+      expect_no_match(text, "Session info", fixed = TRUE, info = info)
     } else {
-      expect_match(text, "Session info", fixed = TRUE)
-      expect_no_match(text, "attached base packages", fixed = TRUE)
+      expect_match(text, "Session info", fixed = TRUE, info = info)
+      expect_no_match(text, "attached base packages", fixed = TRUE, info = info)
     }
     for (home in homes) {
-      expect_false(grepl(tolower(home), tolower(page), fixed = TRUE), info = paste(hidden, home))
+      expect_false(grepl(tolower(home), tolower(page), fixed = TRUE), info = paste(info, home, sep = ", home: "))
     }
   }
 })
@@ -545,11 +547,14 @@ home_lines <- function(home, lib = NULL) {
 test_that("the environment section shows the home folder as ~", {
   skip_on_cran()
   skip_if_not_installed("sessioninfo")
-  # With R's own folder as the home folder, the library folder that
-  # session_info() lists, R_HOME/library, is inside the home folder.
-  home <- normalizePath(R.home(), winslash = "/")
-  text <- run_session_code(home_lines(home))
-  expect_match(text, "~/library", fixed = TRUE)
+  # A writable home folder with a library folder inside it. Quarto, which
+  # session_info() runs for its version, writes a cache under the home
+  # folder and prints an error that names it when it cannot.
+  home <- normalizePath(withr::local_tempdir("home-"), winslash = "/")
+  lib <- file.path(home, "lib")
+  dir.create(lib)
+  text <- run_session_code(home_lines(home, lib))
+  expect_match(text, "[1] ~/lib", fixed = TRUE)
   expect_no_match(text, home, fixed = TRUE)
 })
 

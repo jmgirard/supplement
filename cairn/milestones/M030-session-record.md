@@ -76,6 +76,7 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: claim audit: 31 claims read, 1 corrected — cairn/DECISIONS.md D-019 Context (the CI skip-list step runs outside R CMD check and does not fail on a failed test). D-019 was corrected in place before it reached the default branch.
 - 2026-10-21: T7 done: with sessioninfo in Suggests, `devtools::check()` gave 0 errors, 0 warnings, 0 notes. The suite before that change gave 309 tests, 0 failed, 7 skipped.
 - 2026-10-21: step-7 approval: m030-session-record approved for merge
+- 2026-10-21: CI on PR #31 (head 80b08d7) failed on Ubuntu and Windows. Ubuntu: the home-folder test set HOME to R's read-only folder, and Quarto, run by session_info() for its version, printed a mkdir error naming that folder. The test now uses a writable temporary home. Windows: a failed expectation in the AC1 test raised "`info` must be a character vector" because `info` was logical, which hid the failure. `info` is now text naming the branch flags. The Windows cause is not known yet.
 
 ## Decisions
 
