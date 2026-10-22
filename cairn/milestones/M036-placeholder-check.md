@@ -100,3 +100,13 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - diff-bug #10: `expect_setequal(names(placeholder_lines), line_files)` checks a test list against the code — reject, false (it is the independent statement of the seven files that check discrimination asks for).
 - diff-bug #11: the release test comment restates the next lines — fix now (removed).
 - diff-bug #12: the per-file and per-field loops run one code path several times — reject, false (each pass pins a different list entry that AC1 and AC2 name).
+- blame-history #1: the `_quarto.yml` line scan reads a site YAML file without `yaml_read_file_text()`, which D-015 asks of every function that reads one — reject, false (D-015 governs YAML parses and their parse errors; the scan parses nothing and never stops, so no parse error can arise).
+- blame-history #2: the test "one problem of any other check stops the release" does not list `placeholder` — fix now (added).
+- blame-history #3: `plain_lines()` and the example comparison read through symbolic links, unlike `plain_files()` — reject, false (the links rule there is about what gets published; these reads yield only an equality, and the stale-output check reads reports through links the same way).
+- blame-history #4: `report_hash()` is named for reports and used on a CSV — reject, style.
+- blame-history #5: `read_text_lines()` says "nothing was written" in an error the scan catches — reject, style (the message never reaches the user).
+- blame-history #6: `checked_site()` puts `placeholders` before `env`, unlike `git_site(env)` — fix now (`env` first).
+- blame-history #7: `check_placeholders()` gets no `call`, so an unreadable installed template names an internal helper — reject, edge (a broken package install, outside documented use; the effect is an error).
+- blame-history #8: `fill_placeholders()` leaves `(Year)` and `*Journal Name*` in the citation — reject, false (test data; a partial placeholder gives no row by AC1's design, and the release accepts it).
+- blame-history #9: loose wording in the help's opening sentence and in "They are also the" in NEWS — reject, style.
+- Re-run after the fixes: full suite with NOT_CRAN=true 349 tests, 0 failed, 8 skipped. No snapshot file changed (`git diff --name-only` lists no `_snaps` path).
