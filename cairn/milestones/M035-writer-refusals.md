@@ -1,6 +1,6 @@
 # M035: The writers refuse links and repeated lockfile keys
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -39,7 +39,7 @@
 
 - [x] T1: Write the AC1 test and the AC2 message assertions first, and see the `overwrite = TRUE` cases fail on main. Then change `check_overwrite()` (`R/supplement-yml.R:273`) to take a vector of paths and check links, then folders, then existing files. Make `write_dockerfile()` (`R/write-dockerfile.R:160`) call it once with both targets, and add the `.dockerignore` link plus plain `Dockerfile` case to its link test (line 258). Run `devtools::test()`.
 - [x] T2: Write the AC4 test first, then add the repeated-key check to `read_lockfile_versions()` (`R/write-dockerfile.R:190`), at each level before that level's value checks, through `lockfile_error()`. Run `devtools::test()`.
-- [ ] T3: Update the roxygen Errors sections of `R/write-citation.R` and `R/write-dockerfile.R`, run `devtools::document()`, and edit the two `NEWS.md` bullets (around lines 30 and 80). Update `cairn/DESIGN.md` Architecture (the writers' sentence near line 70 and the `write_dockerfile()` sentence near line 105) and add the writers to the Windows sentence of the "Release edge cases" Known issue. Run `devtools::check()`.
+- [x] T3: Update the roxygen Errors sections of `R/write-citation.R` and `R/write-dockerfile.R`, run `devtools::document()`, and edit the two `NEWS.md` bullets (around lines 30 and 80). Update `cairn/DESIGN.md` Architecture (the writers' sentence near line 70 and the `write_dockerfile()` sentence near line 105) and add the writers to the Windows sentence of the "Release edge cases" Known issue. Run `devtools::check()`.
 
 ## Work log
 
@@ -60,6 +60,7 @@
 - 2026-10-22: T2 done: `devtools::test()` 338 tests, 0 failed, 8 skipped.
 - 2026-10-22: checkpoint (T3 not checked off): Errors sections, help pages, two NEWS bullets, and DESIGN Architecture and Known issue updated; the Windows sentence says a missing-target file link is written through only with `overwrite = TRUE`, since with `FALSE` it reads as an existing file (the `is_reparse_point()` comment). `devtools::check()` running.
 - 2026-10-22: claim audit: 22 claims read, 1 corrected — NEWS.md (the writers' link bullet gained the Windows exception); also fixed a spacing slip at `R/write-dockerfile.R:233`.
+- 2026-10-22: T3 done: `devtools::document()` wrote the three Rd files; `devtools::check()` 0 errors, 0 warnings, 0 notes (built from 43e50d7; the later commit changed one space in R code and one NEWS sentence, and the dockerfile tests pass after it). Status set to review.
 
 ## Decisions
 
