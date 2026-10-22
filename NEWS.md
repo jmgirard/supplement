@@ -124,6 +124,12 @@
   says how a report writes a figure to `figures/`. In new sites, git
   ignores `.png` and `.pdf` files saved directly in `analyses/` in any
   letter case.
+* The template's example report and each report that `add_report()` writes
+  end with a "Computing environment" section. It prints the R and package
+  versions of the render. If the sessioninfo package is installed, it uses
+  `sessioninfo::session_info()`. Otherwise it uses `utils::sessionInfo()`.
+  It shows the home folder as `~`, and folders outside it in full. The
+  stored output keeps the versions of each report's last render.
 * Fixes on Windows. `create_supplement()`, `add_report()`, and `add_data()`
   now stop with `supplement_error_file_exists` for a junction where the
   site needs a folder, as they already did on other systems for a link.

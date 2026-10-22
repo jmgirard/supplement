@@ -84,7 +84,7 @@ jobs:
             "rmarkdown cannot be loaded", "cannot make a symbolic link here",
             "R has no png device",
             # skip_if_not_installed() names the package in braces.
-            "{knitr}", "{rmarkdown}"
+            "{knitr}", "{rmarkdown}", "{sessioninfo}"
           )
           if (!is.null(rows)) {
             bad <- Reduce(`|`, lapply(missing_tool, grepl, x = rows$reason, fixed = TRUE))

@@ -34,8 +34,38 @@ supplement::add_data("path/to/scores.csv", "Scores of each participant")
 ```
 
 `add_report()` writes `analyses/models.qmd` and adds it to the Analyses
-menu. `add_data()` copies the file into `data/` and adds it to the `data`
-list in `_supplement.yml`.
+menu. The new report ends with the "Computing environment" section below.
+`add_data()` copies the file into `data/` and adds it to the `data` list in
+`_supplement.yml`.
+
+### Computing environment
+
+The example report and each report that `add_report()` writes end with a
+"Computing environment" section. It shows the version of R and of each
+package that the report's last render used. A full render reuses the
+stored output in `_freeze/`. So when `_freeze/` holds output for a report,
+its page keeps the versions of the render that made its results.
+
+If the sessioninfo package is installed, the section prints
+`sessioninfo::session_info()`. Otherwise it prints `utils::sessionInfo()`,
+which comes with R. The output also shows your operating system, your time
+zone, and some folders on your computer: the R library folders, Pandoc,
+and Quarto with sessioninfo, and the BLAS and LAPACK files without it. The
+section shows your home folder as `~`, in each spelling that R gives for
+it. Folders outside your home folder show in full, so read the output
+before you publish it.
+
+To add the section to an older report, copy the lines from the
+`## Computing environment` heading to the end of `analyses/example.qmd`.
+If you removed the example, R prints the path of the template's copy:
+
+```r
+system.file("template", "analyses", "example.qmd", package = "supplement")
+```
+
+Paste the lines at the end of the report. Then render the report by name,
+for example `quarto render analyses/models.qmd`. A full render reuses the
+old stored output, so it does not show the new section.
 
 ## Paper facts in `_supplement.yml`
 
@@ -324,7 +354,8 @@ PNG and PDF files saved directly in `analyses/` are not committed, because
 Render and push the site from one machine. The theme file name in
 `docs/site_libs/` is a hash of the compiled theme, which can differ between
 machines, for example with another Quarto version. A render on a second
-machine can then change every page.
+machine can then change every page. A report rendered there also shows that
+machine's versions in its Computing environment section.
 
 ## Site search
 

@@ -71,7 +71,9 @@ template into a folder, refuses any file, folder, or link in its way
 before it writes, removes what it made when a write fails, and with
 `repo` fills the GitHub placeholders. It never runs git.
 `R/add-report.R` and `R/add-data.R`: `add_report()` writes a report stub
-in `analyses/` and adds it to the Analyses menu in `_quarto.yml`;
+in `analyses/`, ending with the example report's "Computing environment"
+section read from the installed template (`environment_section()`), and
+adds it to the Analyses menu in `_quarto.yml`;
 `add_data()` copies a file into `data/` and adds it to the `data` list in
 `_supplement.yml`. Both check every argument and the target file before
 the first write, and refuse a linked `analyses/` or `data/` folder. Both
@@ -171,7 +173,10 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   example report finds the site with `QUARTO_PROJECT_DIR` (`..` when it is
   not set), stops when `figures` is a file, makes `figures/` when it is
   missing, and saves the figure again with `save_png()`, which renames a
-  temporary file into place (D-018).
+  temporary file into place (D-018). It ends with a "Computing
+  environment" section, a collapsed callout whose chunk prints
+  `sessioninfo::session_info()` or, without sessioninfo,
+  `utils::sessionInfo()`, with the home folder shown as `~`.
 
 Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when a tool they need,

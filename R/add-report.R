@@ -6,6 +6,12 @@
 #' `analyses/` with its title and description, so the new report shows
 #' there too.
 #'
+#' The new report ends with a "Computing environment" section, the same as
+#' the template's example report. It prints the R and package versions of
+#' the render, with `sessioninfo::session_info()` when the sessioninfo
+#' package is installed and with `utils::sessionInfo()` otherwise. It shows
+#' the home folder as `~`.
+#'
 #' The function adds lines to `_quarto.yml` as text, so the other lines of
 #' the file, its comments included, stay as they are. It finds the menu as
 #' the item with `text: Analyses` under `website: navbar: left:` (or
@@ -195,6 +201,19 @@ report_lines <- function(title, description) {
     "```{r}",
     "#| label: setup",
     "set.seed(2026)",
-    "```"
+    "```",
+    "",
+    environment_section()
   )
+}
+
+# The "Computing environment" section that ends the template's example
+# report, from its heading to the end of the file, so that every new report
+# ends with the same lines.
+environment_section <- function() {
+  example <- system.file("template", "analyses", "example.qmd", package = "supplement", mustWork = TRUE)
+  lines <- readLines(example, encoding = "UTF-8", warn = FALSE)
+  start <- which(lines == "## Computing environment")
+  stopifnot(length(start) == 1L)
+  lines[start:length(lines)]
 }

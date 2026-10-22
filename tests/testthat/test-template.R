@@ -433,3 +433,174 @@ test_that("setup keeps both files when README.md and SUPPLEMENT.md exist", {
   expect_equal(readLines(file.path(dir, "SUPPLEMENT.md")), "my supplement")
   expect_false(file.exists(file.path(dir, "_README.md")))
 })
+
+# Lines that hide sessioninfo from code that asks requireNamespace() for it.
+# On macOS, sessioninfo can sit in R's own library, so no library path
+# setting hides it.
+hide_sessioninfo <- c(
+  "requireNamespace <- function(package, ...) {",
+  "  if (identical(package, \"sessioninfo\")) FALSE else base::requireNamespace(package, ...)",
+  "}"
+)
+
+test_that("the example page shows the R and knitr versions of its render", {
+  skip_if_no_quarto()
+  withr::local_envvar(QUARTO_R = NA)
+
+  # The knitr version of the Rscript in R_HOME, which Quarto runs when
+  # QUARTO_R is unset.
+  dir <- withr::local_tempdir("knitr-")
+  writeLines('cat(as.character(packageVersion("knitr")), "\\n")', file.path(dir, "v.R"))
+  knitr <- run_in(dir, home_rscript(), "v.R")
+  expect_status(knitr)
+  version <- trimws(utils::tail(knitr$output, 1))
+  expect_match(version, "^[0-9]+(\\.[0-9]+)+$")
+  # sessionInfo() prints knitr_1.52, and session_info() prints knitr  1.52.
+  # The end of the match keeps 1.5 from matching inside 1.52.
+  knitr_rx <- paste0("knitr(_| +\\*? *)", rx_escape(version), "(\\s|$)")
+
+  # Whether that R finds sessioninfo, which decides the branch of a render
+  # that hides nothing.
+  writeLines('cat(requireNamespace("sessioninfo", quietly = TRUE), "\\n")', file.path(dir, "s.R"))
+  found <- run_in(dir, home_rscript(), "s.R")
+  expect_status(found)
+  has_sessioninfo <- identical(trimws(utils::tail(found$output, 1)), "TRUE")
+
+  # The home folder in each spelling, which the page must not show in any
+  # letter case.
+  homes <- Sys.getenv(c("USERPROFILE", "HOME"))
+  homes <- homes[nzchar(homes)]
+  homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
+  homes <- c(chartr("\\", "/", homes), chartr("/", "\\", homes))
+  homes <- unique(sub("[/\\\\]+$", "", homes))
+  homes <- homes[!grepl("^([A-Za-z]:)?$", homes)]
+
+  # One render as the machine is, and one with sessioninfo hidden by a
+  # chunk that the test puts in its copy of the report, before the section.
+  # The chunk runs in the R that Quarto starts, on every system.
+  for (hidden in c(FALSE, TRUE)) {
+    site <- new_site()
+    if (hidden) {
+      report <- file.path(site, "analyses", "example.qmd")
+      text <- rawToChar(read_bytes(report))
+      at <- regexpr("\n## Computing environment\n", text, fixed = TRUE)
+      stopifnot("the example report has a Computing environment heading" = at > 0)
+      chunk <- paste(c("", "```{r}", "#| include: false", hide_sessioninfo, "```", "", ""), collapse = "\n")
+      text <- paste0(substring(text, 1, at), chunk, substring(text, at + 1))
+      writeBin(charToRaw(text), report)
+    }
+    expect_status(run_in(site, "quarto", "render"))
+
+    page <- read_text(file.path(site, "docs", "analyses", "example.html"))
+    section <- section_html(page, "computing-environment")
+    # testthat needs `info` as text.
+    info <- sprintf("hidden: %s, sessioninfo found: %s", hidden, has_sessioninfo)
+    expect_match(section, "<h2[^>]*>Computing environment</h2>", info = info)
+    text <- html_text(section)
+    expect_match(text, "R version [0-9]+\\.[0-9]+\\.[0-9]+", info = info)
+    expect_match(text, knitr_rx, info = info)
+    if (hidden || !has_sessioninfo) {
+      expect_match(text, "attached base packages", fixed = TRUE, info = info)
+      expect_no_match(text, "Session info", fixed = TRUE, info = info)
+    } else {
+      expect_match(text, "Session info", fixed = TRUE, info = info)
+      expect_no_match(text, "attached base packages", fixed = TRUE, info = info)
+    }
+    for (home in homes) {
+      expect_false(grepl(tolower(home), tolower(page), fixed = TRUE), info = paste(info, home, sep = ", home: "))
+    }
+  }
+})
+
+# Run the code of the example report's session-info chunk with Rscript, after
+# the lines in `before`, and return all it printed as one string.
+run_session_code <- function(before = character(), env = parent.frame()) {
+  code <- chunk_code(file.path(template_dir(), "analyses", "example.qmd"), "session-info")
+  dir <- withr::local_tempdir("session-", .local_envir = env)
+  writeLines(c(before, code), file.path(dir, "session.R"))
+  out <- run_in(dir, home_rscript(), "session.R")
+  expect_status(out)
+  paste(out$output, collapse = "\n")
+}
+
+test_that("the environment section prints sessionInfo() when sessioninfo is not found", {
+  skip_on_cran()
+  text <- run_session_code(hide_sessioninfo)
+  expect_match(text, "attached base packages", fixed = TRUE)
+  expect_no_match(text, "Session info", fixed = TRUE)
+})
+
+test_that("the environment section prints session_info() when sessioninfo is installed", {
+  skip_on_cran()
+  skip_if_not_installed("sessioninfo")
+  text <- run_session_code()
+  expect_match(text, "Session info", fixed = TRUE)
+  expect_no_match(text, "attached base packages", fixed = TRUE)
+})
+
+# Lines that set the home folder to `home`, and put `lib` first among the
+# library folders that session_info() lists.
+home_lines <- function(home, lib = NULL) {
+  c(
+    sprintf("Sys.setenv(HOME = %s)", deparse(home)),
+    'Sys.unsetenv("USERPROFILE")',
+    if (!is.null(lib)) sprintf(".libPaths(c(%s, .libPaths()))", deparse(lib))
+  )
+}
+
+test_that("the environment section shows the home folder as ~", {
+  skip_on_cran()
+  skip_if_not_installed("sessioninfo")
+  # A writable home folder with a library folder inside it. Quarto, which
+  # session_info() runs for its version, writes a cache under the home
+  # folder and prints an error that names it when it cannot.
+  home <- normalizePath(withr::local_tempdir("home-"), winslash = "/")
+  lib <- file.path(home, "lib")
+  dir.create(lib)
+  text <- run_session_code(home_lines(home, lib))
+  expect_match(text, "[1] ~/lib", fixed = TRUE)
+  expect_no_match(text, home, fixed = TRUE)
+})
+
+test_that("the environment section leaves a folder that only starts like the home folder", {
+  skip_on_cran()
+  skip_if_not_installed("sessioninfo")
+  base <- normalizePath(withr::local_tempdir("homes-"), winslash = "/")
+  dir.create(file.path(base, "al"))
+  lib <- file.path(base, "alice", "lib")
+  dir.create(lib, recursive = TRUE)
+  text <- run_session_code(home_lines(file.path(base, "al"), lib))
+  expect_match(text, lib, fixed = TRUE)
+  expect_no_match(text, "~ice", fixed = TRUE)
+})
+
+test_that("the environment section shows a linked home folder as ~ by its real path", {
+  skip_on_cran()
+  skip_on_os("windows")
+  skip_if_not_installed("sessioninfo")
+  # The home folder is reached through a link, and its real path ends with
+  # the linked path, as /tmp/h and /private/tmp/h do on macOS. A match of
+  # the shorter spelling inside the real path would print /private~/lib.
+  root <- normalizePath(withr::local_tempdir("homes-"), winslash = "/")
+  real <- file.path(root, "real")
+  lib <- file.path(real, root, "h", "lib")
+  dir.create(lib, recursive = TRUE)
+  skip_if_not(file.symlink(file.path(real, root, "h"), file.path(root, "h")), "cannot make a symbolic link here")
+  text <- run_session_code(home_lines(file.path(root, "h"), lib))
+  expect_match(text, "[1] ~/lib", fixed = TRUE)
+  expect_no_match(text, real, fixed = TRUE)
+  expect_no_match(text, "real~", fixed = TRUE)
+})
+
+test_that("the sessionInfo() output shows the home folder as ~", {
+  skip_on_cran()
+  # sessionInfo() prints the path of the LAPACK library, so a home folder
+  # two levels above it shows there.
+  lapack <- La_library()
+  skip_if(!nzchar(lapack), "R gives no LAPACK path here")
+  home <- dirname(dirname(normalizePath(lapack, winslash = "/")))
+  text <- run_session_code(c(hide_sessioninfo, home_lines(home)))
+  expect_match(text, "attached base packages", fixed = TRUE)
+  expect_match(text, "LAPACK: ~/", fixed = TRUE)
+  expect_no_match(text, home, fixed = TRUE)
+})

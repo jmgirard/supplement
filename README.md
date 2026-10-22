@@ -70,8 +70,10 @@ supplement::add_data("path/to/scores.csv", "Scores of each participant")
 ```
 
 `add_report()` writes `analyses/models.qmd`, with the title and the
-description in its front matter. It also adds a link to the report to the
-Analyses menu in `_quarto.yml`. The home page lists each report in
+description in its front matter. The report ends with a "Computing
+environment" section that shows the R and package versions of its last
+render. The function also adds a link to the report to the Analyses menu
+in `_quarto.yml`. The home page lists each report in
 `analyses/` with its title and description.
 
 `add_data()` copies the file into `data/` and adds it to the `data` list
