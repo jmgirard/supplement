@@ -214,7 +214,7 @@ renv_site <- function(env = parent.frame()) {
           paste("renv::init() would download packages that Rscript does not have:",
                 paste(pkgs, collapse = ", ")))
 
-  site <- git_site(env)
+  site <- fill_placeholders(git_site(env))
   expect_status(run_in(site, "quarto", "render"))
   expect_status(git_in(site, c("add", "-A")))
   expect_status(git_in(site, c("-c", "user.name=Test", "-c", "user.email=test@example.com",

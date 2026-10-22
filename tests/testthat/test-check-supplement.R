@@ -29,7 +29,7 @@ touch <- function(path) {
 test_that("a rendered site in a git repository has no problems", {
   skip_if_no_quarto()
   skip_if_no_git()
-  site <- new_site()
+  site <- fill_placeholders(new_site())
   # With both DOIs, the home page shows a Zenodo badge from Quarto's own
   # output, and CITATION.cff holds the concept DOI.
   yml <- file.path(site, "_supplement.yml")
@@ -1325,13 +1325,6 @@ line_files <- c("_quarto.yml", "index.qmd", "LICENSE.md", "LICENSE-CC-BY.md", "R
 placeholder_files <- function(site) {
   rows <- placeholder_rows(site)
   rows$file[rows$file %in% line_files]
-}
-
-# Replace `from` with `to` in each line of a file, keeping its bytes
-# otherwise.
-replace_in_file <- function(file, from, to) {
-  text <- rawToChar(readBin(file, "raw", file.size(file)))
-  writeBin(charToRaw(gsub(from, to, text, fixed = TRUE)), file)
 }
 
 test_that("a placeholder line gives a row for its file until it is changed", {

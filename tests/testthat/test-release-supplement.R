@@ -212,9 +212,11 @@ test_that("one problem of any other check stops the release", {
 
 # A site in a git repository with a docs/ folder that holds a copy of
 # figures/, and stored output for its one report with the report's hash,
-# so that the real check finds no problem.
-checked_site <- function(env = parent.frame()) {
+# so that the real check finds no problem. With `placeholders = FALSE`, the
+# template's placeholders stay in place.
+checked_site <- function(placeholders = TRUE, env = parent.frame()) {
   site <- git_site(env)
+  if (placeholders) fill_placeholders(site)
   dir.create(file.path(site, "docs"))
   file.copy(file.path(site, "figures"), file.path(site, "docs"), recursive = TRUE)
   report <- file.path(site, "analyses", "example.qmd")
@@ -223,6 +225,31 @@ checked_site <- function(env = parent.frame()) {
   writeBin(charToRaw(sprintf('{"hash": "%s", "result": {}}', unname(tools::md5sum(report)))), stored)
   site
 }
+
+test_that("template placeholders from the real check stop the release", {
+  skip_if_no_git()
+  site <- checked_site(placeholders = FALSE)
+  result <- suppressMessages(check_supplement(site))
+  expect_setequal(
+    paste(result$check, result$file),
+    paste("placeholder", c("_supplement.yml", "_quarto.yml", "index.qmd", "LICENSE.md", "LICENSE-CC-BY.md",
+                           "_README.md", "analyses/example.qmd", "data/example.csv"))
+  )
+
+  before <- folder_state(site)
+  err <- expect_error(release("1.0.0", path = site), class = "supplement_error_release_check")
+  expect_match(conditionMessage(err), "8 problems", fixed = TRUE)
+  expect_identical(folder_state(site), before)
+
+  # With the placeholders replaced and the stored hash written again from
+  # the changed report, the same site releases.
+  fill_placeholders(site)
+  report <- file.path(site, "analyses", "example.qmd")
+  stored <- file.path(site, "_freeze", "analyses", "example", "execute-results", "html.json")
+  writeBin(charToRaw(sprintf('{"hash": "%s", "result": {}}', unname(tools::md5sum(report)))), stored)
+  release("1.0.0", path = site)
+  expect_identical(site_version(site), "1.0.0")
+})
 
 test_that("a stale-output row from the real check stops the release", {
   skip_if_no_git()
