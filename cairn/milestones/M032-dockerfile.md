@@ -53,7 +53,7 @@
 - [x] T3: Write `write_dockerfile()` with roxygen help. Read `renv.lock` with jsonlite. Check versions with a `\z` anchor (LESSONS M007). Refuse links and folders with `is_link()` and `path_occupied()` (`R/supplement-yml.R`). Write with `writeBin()` so that line endings are LF. Add the export to NAMESPACE with `devtools::document()`.
 - [x] T4: Write the AC5 test in `tests/testthat/test-write-dockerfile.R`, and run it on the Mac with `SUPPLEMENT_TEST_DOCKER=true`. Record the run in the work log. The R-CMD-check workflow does not set the variable.
 - [x] T5: Write the container part of `inst/template/_README.md` after the renv part from M031, and a pointer in `README.md`. Add a NEWS.md bullet.
-- [ ] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
+- [x] T6: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
 
@@ -84,6 +84,7 @@
 - 2026-10-22: verify: `devtools::test()` 329 tests, 0 failed, 7 skipped (before the `as.character()` change; the new file's 15 tests pass after it).
 - 2026-10-22: T4: the AC5 test ran on the Mac with `SUPPLEMENT_TEST_DOCKER=true` (Docker 29.9.1, R 4.6.1, Quarto 1.10.19): 11 expectations, 0 failed, 11.6 s with Docker's layer cache from the T3 builds; its image is removed after. Without the variable it skips with "SUPPLEMENT_TEST_DOCKER is not true", which is not on the CI missing-tool list. It also skips on Windows (`id -u`). Beyond AC5 it checks that the section names `/opt/renv/library/`: with the render replaced by `true`, the R version check passed on the host-rendered page and that check failed.
 - 2026-10-22: T5: guide part "Running reports in a container" after the renv part, two README edits (the guide summary and a `write_dockerfile()` paragraph after the renv one), and one NEWS bullet after the renv bullet. The guide adds one fact beyond AC6, from the Dockerfile text: after `renv::snapshot()`, build again, and write the recipe again when the R or renv version changed. `devtools::test()`: 330 tests, 0 failed, 8 skipped (the Docker test is the new skip).
+- 2026-10-22: T6: `devtools::check()` 0 errors, 0 warnings, 0 notes on the Mac. The R-CMD-check workflow runs at the PR.
 
 ## Decisions
 
