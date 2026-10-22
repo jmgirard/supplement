@@ -79,6 +79,7 @@ The template guide shows how to record and restore a site's R packages with renv
 - 2026-10-22: T5: `devtools::check()` 0 errors, 0 warnings, 0 notes on macOS. The R-CMD-check workflow runs at the PR.
 - 2026-10-22: claim audit: 23 claims read, 1 corrected — inst/template/_README.md (renv's start-up script uses only the project library, so it copies renv from renv's cache or downloads it); the test-renv.R header comment's loose "commits" wording was also tightened; the same reader re-read both and found them holding.
 - 2026-10-22: after the corrections, test-create-supplement.R, test-template.R, and test-renv.R pass; status review.
+- 2026-10-22: review pass 1: four lenses spawned; 25 findings settled (15 fix now, 1 follow-up, 9 reject); fix-now commits 6706945, c8c7f26, 29a5ce4; full suite re-run after them, 0 failures. No snapshot files changed; open-PR feature cap read: 0 open PRs.
 
 ## Decisions
 
@@ -90,13 +91,24 @@ The template guide shows how to record and restore a site's R packages with renv
 - AC4 evidence (read 2026-10-22 at cca88fe): `inst/template/_README.md` has the part "Recording R packages with renv" with three commands: step 1 `renv::init()` sets up renv; step 2 `renv::snapshot()` runs "After you render a report"; step 3 `renv::restore()` runs "On another machine", then "render one report by name". It says that when every report holds stored output in `_freeze/`, a full render runs no R; that `renv.lock` shows the packages at the last snapshot; and that each report's Computing environment section shows the packages of its own last render.
 - AC5 partial evidence (2026-10-22, macOS, at efbcc4a): DESCRIPTION lists renv under Suggests; NEWS.md has one renv bullet; `devtools::test()` 16 files, 4508 expectations, 0 failed, 0 errors, 7 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes, and `check-skips.R` on its test output found 9 skips, none for a missing tool (the renv test ran). After the fix-now commits, test-create-supplement.R, test-template.R, and test-renv.R passed again. The R-CMD-check workflow on three systems runs at step 8.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- ripple #1: the ROADMAP row "Keep tests within the Suggests floors" lists the Suggests entries with no floor and omits the new renv entry — fix now (row corrected in place).
-- ripple #2: README.md's summary of the guide's topics omits the new renv part — fix now (one sentence added).
+- ripple #1: the ROADMAP row "Keep tests within the Suggests floors" lists the Suggests entries with no floor and omits the new renv entry — fix now (row corrected in place), fixed 6706945.
+- ripple #2: README.md's summary of the guide's topics omits the new renv part — fix now (one sentence added), fixed 6706945.
+- diff-bug #1: renv makes its sandbox folder read-only, so withr cannot delete it and each run leaves it in the temp folder (reviewer verified by a run) — fix now (`RENV_SANDBOX_LOCKING_ENABLED=FALSE`; a run with its own TMPDIR left nothing), fixed 29a5ce4.
+- diff-bug #2: an inherited RENV_PATHS_CACHE, RENV_PATHS_LIBRARY, RENV_PATHS_LIBRARY_ROOT, or RENV_PROFILE would move renv's writes out of the temporary folders or the site — fix now (all four unset for the init), fixed 29a5ce4.
+- diff-bug #3: stderr lines of the missing-package script would read as package names and give a false skip — fix now (each missing package prints a `missing:` line, and only those are read), fixed 29a5ce4.
+- diff-bug #4: the private-data recipe stages only three folders, so `renv.lock` is never committed — fix now (same as blame-history #1), fixed c8c7f26.
+- diff-bug #5: the guide does not say how to add a package after `renv::init()`, and "record its packages" is wrong because snapshot records the packages of all reports — fix now (wording changed; one sentence on `install.packages()` in R started in the folder, checked: `.libPaths()[1]` there is `renv/library/`), fixed 29a5ce4.
+- diff-bug #6: the NEWS bullet's "still renders" is wider than the tested full render from stored output — fix now (narrowed to what the test checks), fixed 29a5ce4.
+- diff-bug #7: the package list in the missing-package script is written by hand, so a new template package would make the init download it — fix now (a comment ties the list to `renv::dependencies()` of the template's reports), fixed 29a5ce4.
+- diff-bug #8: renv's cache path under the Windows runner's temp folder may pass 260 characters, and the renv folders skipped `long_dir()` — fix now in part (`long_dir()` added), fixed c8c7f26; the path length is checked by the Windows CI run at step 8.
+- diff-bug #9: the child inherits TESTTHAT=true, so renv prints little on a failed init — fix now (`RENV_VERBOSE=TRUE`), fixed 29a5ce4.
+- diff-bug #10: `r_process_lines()` matched before trimming, so a line with leading spaces would be dropped — fix now (trim first), fixed 29a5ce4.
+- diff-bug #11: some probe inputs share one code path, and the AC3 check mostly tests renv's own `.gitignore` — reject (planned change: T3 names each probe form, and AC3 states the git listing).
 - prior-review #1: the renv test adds a render and a `renv::init()` to each CI job, after M033 cut job times — reject (planned change: AC5 asks this test to pass in the workflow; the file took 6.9 s locally, and the workflow has three jobs, not six).
-- blame-history #1: the guide's private-data recipe stages only `_freeze/`, `docs/`, and `figures/`, so an author who follows it never commits `renv.lock` — fix now (step 2 of the renv part says to add `renv.lock` to that `git add` command).
-- blame-history #2: "A report that you render after the last snapshot shows the packages of that render" holds only for a render by name; a full render reuses stored output (M030 text) — fix now ("render by name").
+- blame-history #1: the guide's private-data recipe stages only `_freeze/`, `docs/`, and `figures/`, so an author who follows it never commits `renv.lock` — fix now (step 2 of the renv part says to add `renv.lock` to that `git add` command), fixed c8c7f26.
+- blame-history #2: "A report that you render after the last snapshot shows the packages of that render" holds only for a render by name; a full render reuses stored output (M030 text) — fix now ("render by name"), fixed c8c7f26.
 - blame-history #3: "run `renv::snapshot()` after a render" suggests snapshot depends on a render — reject (false: the step is advice to record the packages that a render used; it says nothing about how snapshot works).
-- blame-history #4: RENV_PATHS_ROOT and RENV_PATHS_SANDBOX are not passed through `long_dir()`, unlike the init script path — fix now (both wrapped, for Windows 8.3 names).
+- blame-history #4: RENV_PATHS_ROOT and RENV_PATHS_SANDBOX are not passed through `long_dir()`, unlike the init script path — fix now (both wrapped, for Windows 8.3 names), fixed c8c7f26.
 - blame-history #5: renv in Suggests has no version floor — follow-up (absorbed by the candidate row "Keep tests within the Suggests floors", which now names renv).
 - blame-history #6: the renv test runs in all three CI jobs, Windows included, after D-020 cut Windows time — reject (planned change: AC5 asks the test to pass on Windows, macOS, and Ubuntu).
 - blame-history #7: the guide's Contents list omits `renv.lock`, `.Rprofile`, and `renv/` — reject (false: the list names what the template ships, and those files exist only after an author runs `renv::init()`, which the renv part names).
