@@ -31,10 +31,9 @@
   writes a `Dockerfile` that builds an image with that R, the packages in
   `renv.lock`, and a given Quarto version. `renv.lock` must record R 4.0.0
   or later and renv 1.3.1 or later. It must not give `R`, `Packages`,
-  `R.Version`, `Packages.renv`, or its `Version` twice in one object.
-  It also writes a `.dockerignore` that
-  lets only `renv.lock` of the site's files into the image. `digest` pins
-  the base image.
+  `R.Version`, `Packages.renv`, or `Packages.renv.Version` twice in one
+  object. It also writes a `.dockerignore` that lets only `renv.lock` of
+  the site's files into the image. `digest` pins the base image.
   The template guide shows how to build the image and render a report in
   it.
 * `check_supplement()` lists the problems in a site before a release, and

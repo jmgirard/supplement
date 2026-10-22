@@ -26,14 +26,6 @@ expect_refused <- function(dir, class, ..., info = NULL) {
   invisible(err)
 }
 
-# Expect `err` to say that a path is a link, and not to suggest
-# `overwrite = TRUE`.
-expect_link_message <- function(err, info = NULL) {
-  expect_match(conditionMessage(err), "is\\s+a\\s+link", info = info)
-  expect_match(conditionMessage(err), "Remove\\s+the\\s+link", info = info)
-  expect_no_match(conditionMessage(err), "overwrite", fixed = TRUE, info = info)
-}
-
 dockerfile_461 <- paste0(paste(c(
   "# Written by supplement::write_dockerfile() from renv.lock. See",
   "# ?supplement::write_dockerfile for how to build the image and render in it.",
@@ -161,7 +153,7 @@ test_that("a lockfile R older than 4.0.0 or renv older than 1.3.1 is refused", {
   expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
 })
 
-test_that("a lockfile that repeats a key it reads is refused before its values", {
+test_that("a lockfile that repeats a key it reads is refused before its values, and one it does not read is not", {
   packages <- function(renv_version) {
     sprintf('{"knitr": {"Package": "knitr", "Version": "1.52"}, "renv": {"Package": "renv", "Version": "%s"}}',
             renv_version)
@@ -185,15 +177,12 @@ test_that("a lockfile that repeats a key it reads is refused before its values",
     err <- expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19", info = name)
     expect_match(conditionMessage(err), paste0(key, "\\W+more\\s+than\\s+once"), info = name)
   }
-})
 
-test_that("a lockfile that repeats a key it does not read is written", {
   cli_twice <- paste0('{"Package": "renv", "Version": "1.3.1"},\n',
                       '    "cli": {"Package": "cli", "Version": "3.6.4"},\n',
                       '    "cli": {"Package": "cli", "Version": "3.6.5"}')
   site <- lock_site(lock_json(renv = cli_twice))
   write_dockerfile(site, quarto = "1.10.19")
-  expect_true(file.exists(file.path(site, "Dockerfile")))
   expect_match(read_text(file.path(site, "Dockerfile")), "FROM rocker/r-ver:4.6.1\n", fixed = TRUE)
 })
 

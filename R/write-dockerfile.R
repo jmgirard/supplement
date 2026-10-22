@@ -119,9 +119,9 @@
 #'   `Version` in `R`, `renv` in `Packages`, or `Version` in that `renv`
 #'   entry. This check comes before the version checks.
 #' * `supplement_error_file_exists`: `Dockerfile` or `.dockerignore`
-#'   exists and `overwrite` is `FALSE`. A folder or a link at either path is
-#'   this error even when `overwrite` is `TRUE`, because a write would
-#'   follow the link. On Windows a file link to a missing file is not seen
+#'   exists and `overwrite` is `FALSE`. A folder at either path is this
+#'   error even when `overwrite` is `TRUE`. So is a link, because a write
+#'   would follow it. On Windows a file link to a missing file is not seen
 #'   as a link, so with `overwrite = TRUE` it is written through.
 #' * `supplement_error_write`: a file was opened, but writing it gave an
 #'   error or a warning, or the file then has another size than the text.

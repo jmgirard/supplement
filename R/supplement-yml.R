@@ -273,7 +273,9 @@ license_id <- function(id, field, call = parent.frame()) {
 # Refuses, in this order, a link at any of `files`, a folder at any of
 # them, and, unless `overwrite` is TRUE, a file at any of them. A write
 # would follow a link, even one whose target is missing, maybe out of the
-# site, so a link is refused whatever `overwrite` is.
+# site, so a link is refused whatever `overwrite` is. On Windows,
+# is_link() misses a file link to a missing file, which then reads as an
+# existing file.
 check_overwrite <- function(files, overwrite, call = parent.frame()) {
   link <- files[is_link(files)]
   if (length(link) > 0) {

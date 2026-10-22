@@ -32,7 +32,7 @@
 - AC1 → T1
 - AC2 → T1
 - AC3 → T1
-- AC4 → T2
+- AC4 → T2, T4
 - AC5 → T3
 
 ## Tasks
@@ -40,6 +40,7 @@
 - [x] T1: Write the AC1 test and the AC2 message assertions first, and see the `overwrite = TRUE` cases fail on main. Then change `check_overwrite()` (`R/supplement-yml.R:273`) to take a vector of paths and check links, then folders, then existing files. Make `write_dockerfile()` (`R/write-dockerfile.R:160`) call it once with both targets, and add the `.dockerignore` link plus plain `Dockerfile` case to its link test (line 258). Run `devtools::test()`.
 - [x] T2: Write the AC4 test first, then add the repeated-key check to `read_lockfile_versions()` (`R/write-dockerfile.R:190`), at each level before that level's value checks, through `lockfile_error()`. Run `devtools::test()`.
 - [x] T3: Update the roxygen Errors sections of `R/write-citation.R` and `R/write-dockerfile.R`, run `devtools::document()`, and edit the two `NEWS.md` bullets (around lines 30 and 80). Update `cairn/DESIGN.md` Architecture (the writers' sentence near line 70 and the `write_dockerfile()` sentence near line 105) and add the writers to the Windows sentence of the "Release edge cases" Known issue. Run `devtools::check()`.
+- [ ] T4: Review return 1. Move the repeated `cli` case into the AC4 test, and apply the fix-now findings that the `review return 1:` work-log line names. Run `devtools::test()` and `devtools::check()`.
 
 ## Work log
 
@@ -62,6 +63,8 @@
 - 2026-10-22: claim audit: 22 claims read, 1 corrected — NEWS.md (the writers' link bullet gained the Windows exception); also fixed a spacing slip at `R/write-dockerfile.R:233`.
 - 2026-10-22: T3 done: `devtools::document()` wrote the three Rd files; `devtools::check()` 0 errors, 0 warnings, 0 notes (built from 43e50d7; the later commit changed one space in R code and one NEWS sentence, and the dockerfile tests pass after it). Status set to review.
 - 2026-10-22: review return 1: AC4 fails as written — the repeated `cli` case is its own `test_that()`, not in the same test as the refused lockfiles (diff-bug #1). The fix-now findings ride with it: drop the weaker `file.exists()` checks (diff-bug #6, #7), share `expect_link_message()` through a helper file (diff-bug #9), fix the folder reason in the Errors text (blame-history #4), add the Windows caveat to `check_overwrite()`'s comment (prior-review #1), and fix `cairn/DESIGN.md:235` (diff-bug #11) and the NEWS referent (diff-bug #12). Status back to in-progress.
+- 2026-10-22: added T4 for review return 1 (minor amendment); Coverage AC4 → T2, T4.
+- 2026-10-22: checkpoint (T4 not checked off): the `cli` case is in the AC4 test (22 expectations, 0 failed), `expect_link_message()` moved to `helper-files.R` and used by both link tests, the weaker `file.exists()` checks dropped, and the wording fixes made; `devtools::document()` rewrote the three Rd files. `devtools::check()` running.
 
 ## Decisions
 
