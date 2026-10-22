@@ -141,8 +141,8 @@ Pass 3, 2026-10-22, on cbdf12d (main at 4efd1b9, not moved).
 - Gate: `devtools::test()` (NOT_CRAN=true) 336 tests, 0 failed, 0 errors, 8 skipped. `devtools::check()` 0 errors, 0 warnings, 0 notes. `devtools::document()` left no diff. `cairn_validate.py` all checks passed.
 - AC5 evidence: "the README's figure code starts with the example's site chunk" passed in this run. `_README.md:442-448` states the AC1 rule (missing or empty variable, `.` then `..`, the stop), and `_README.md:468-470` says to put `save_png()` after the `site` chunk and the `figures` lines. The fits advice is at `_README.md:271-273`. The AC5 grep printed nothing (exit 1).
 - spawned: diff-bug, ripple, blame-history, prior-review (over 8a7ab13..cbdf12d within the branch)
-- diff-bug #1: `_README.md:468-470` says to put `save_png()` after the `site` chunk but never says outright to copy the chunk — fix now: say to copy the `site` chunk, the `figures` lines, and the function.
-- diff-bug #2: `_README.md:471` breaks a line early after "`figures`. It takes a" — fix now with #1, since the same rewrap covers it.
+- diff-bug #1: `_README.md:468-470` says to put `save_png()` after the `site` chunk but never says outright to copy the chunk — fix now: say to copy the `site` chunk, the `figures` lines, and the function, fixed 8bf205f.
+- diff-bug #2: `_README.md:471` breaks a line early after "`figures`. It takes a" — fix now with #1, since the same rewrap covers it, fixed 8bf205f. After it, the README test and `test-create-supplement.R` (22 tests, 0 failed) pass.
 - diff-bug #3: "the variable is usually missing" is a hedge — reject, false: the T8 claim audit found the plain form overstated, since a shell or `.Renviron` can set the variable.
 - ripple #1: "usually" names no case where the variable is set — reject, false: same reason as diff-bug #3.
 - blame-history: no finding.
