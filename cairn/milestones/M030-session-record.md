@@ -158,3 +158,4 @@ The template's example report and each report that `add_report()` writes end wit
 - blame-history #2: older milestone-file lines name `R_PROFILE_USER` — reject: work-log lines are history, and the pass-3 evidence line replaces the AC1 evidence.
 - blame-history #3, prior-review #4, #5: no finding.
 - ripple: no ripple evidence.
+- conversation: PR #31 had no reviews, no comments, and no open threads (read 2026-10-21, pass 3).
