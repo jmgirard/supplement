@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-22 (M031 done and archived; M029 row pruned; one le
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M032 | write_dockerfile() writes a container recipe from renv.lock | in-progress | M031 | normal | milestones/M032-dockerfile.md |
+| M032 | write_dockerfile() writes a container recipe from renv.lock | review | M031 | normal | milestones/M032-dockerfile.md |
 | M031 | An author can record and restore a site's R packages with renv | done | M030 | normal | milestones/archive/M031-renv-guide.md |
 | M033 | Each CI job runs the tests once, in parallel | done | — | normal | milestones/archive/M033-ci-test-time.md |
 | M030 | Each report shows the R setup that made its stored output | done | — | normal | milestones/archive/M030-session-record.md |

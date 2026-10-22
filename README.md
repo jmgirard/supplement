@@ -94,7 +94,8 @@ supplement does not call renv.
 `write_dockerfile()` reads `renv.lock` and writes a `Dockerfile` and a
 `.dockerignore`. Docker builds an image from them. The image holds the R
 version and the R packages in `renv.lock`, and Quarto. A report can render
-in it on any machine that has Docker. The guide's "Running reports in a
+in it where Docker runs Linux containers on amd64, or on arm64 for R 4.1.0
+or later. The guide's "Running reports in a
 container" part shows how to build the image and render a report in it.
 
 ## Check a site before a release

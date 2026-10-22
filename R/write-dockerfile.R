@@ -5,23 +5,27 @@
 #' image that Docker builds from them holds the R version and the R
 #' packages that `renv.lock` records, and the Quarto version that you give.
 #' You can then render a report in the image with the site folder mounted,
-#' so that its code runs with those versions on any machine that has
-#' Docker. supplement never runs Docker itself.
+#' so that its code runs with those versions on another machine that runs
+#' Docker with Linux containers on an amd64 processor, or on arm64 for R
+#' 4.1.0 or later, the platforms of the Rocker images. supplement never
+#' runs Docker itself.
 #'
 #' The `Dockerfile` starts from the Rocker image `rocker/r-ver` with the R
 #' version in `renv.lock`, and installs Quarto with Rocker's
 #' `install_quarto.sh`. It copies `renv.lock` into the image. It installs
 #' the renv version that `renv.lock` records into a temporary library, uses
-#' it to install the Ubuntu packages that `renv::sysreqs()` lists for the R
-#' packages, and runs `renv::restore()`. The packages, renv included, go
+#' it to install the Ubuntu packages that `renv::sysreqs()` lists for the
+#' packages in `renv.lock`, and runs `renv::restore()`. renv reads those
+#' packages from `renv.lock` from version 1.3.1 on, so `renv.lock` must
+#' record renv 1.3.1 or later. The packages, renv included, go
 #' into a library in the image under `/opt/renv/library`, which
 #' `RENV_PATHS_LIBRARY` names. renv's package cache is off, so the library
 #' holds the packages and not links into a cache. When the site folder is
 #' mounted at `/site`, the site's `renv/activate.R` loads renv from that
 #' library, with no download.
 #'
-#' The `.dockerignore` holds the two lines `*` and `!renv.lock`, so Docker
-#' sends only `renv.lock` from the site folder to the build. The image
+#' The `.dockerignore` holds the two lines `*` and `!renv.lock`, so of the
+#' site's files only `renv.lock` can be copied into the image. The image
 #' holds no other site file and no data. Both files are written with LF
 #' line endings on every system.
 #'
@@ -41,8 +45,9 @@
 #' ```
 #'
 #' `--network none` shows that the render needs nothing from the network.
-#' `--user` runs the render as you, so the files that it writes into the
-#' site folder are yours, and `HOME=/tmp` gives that user a home folder in
+#' `--user` runs the render as you. On Linux it makes you the owner of the
+#' files that the render writes into the site folder; Docker Desktop on
+#' macOS does that without it. `HOME=/tmp` gives that user a home folder in
 #' the container.
 #'
 #' @section Versions that can change:
@@ -84,9 +89,11 @@
 #'   invisibly.
 #'
 #' @section Errors:
-#' The function checks everything before it writes a file, so after an
-#' error the site folder is as it was. The errors have the class
-#' `supplement_error` and one of these classes:
+#' The function checks the arguments, `renv.lock`, and both target paths
+#' before it writes a file, so after any error but a failed write the site
+#' folder is as it was. A failed write can leave the `Dockerfile` written,
+#' and either file empty or cut short. A file that cannot be opened for writing gives R's own error. The
+#' other errors have the class `supplement_error` and one of these classes:
 #'
 #' * `supplement_error_argument`: `path` is not a single non-missing,
 #'   non-empty string, or it is not a folder. `quarto` is missing or is not
@@ -100,7 +107,7 @@
 #'   under `Packages`, or one of the two versions is not one string of three
 #'   whole numbers joined by `.`. A development version such as
 #'   `1.1.5.9000` is such an error, because the build installs released
-#'   versions.
+#'   versions. A renv version older than 1.3.1 is also this error.
 #' * `supplement_error_file_exists`: `Dockerfile` or `.dockerignore`
 #'   exists and `overwrite` is `FALSE`. A folder or a link at either path is
 #'   this error even when `overwrite` is `TRUE`, because a write would
@@ -208,6 +215,16 @@ read_lockfile_versions <- function(path, call = parent.frame()) {
   renv <- if (is_map(packages) && is_map(packages[["renv"]])) packages[["renv"]][["Version"]]
   if (!is_version_string(renv)) {
     lockfile_error("has no renv version of three whole numbers in {.field Packages.renv.Version}.")
+  }
+  # Before 1.3.1, renv::sysreqs() reads the packages from the project's
+  # code, which the build does not have, and before 1.1.2 it does not exist.
+  if (numeric_version(renv) < "1.3.1") {
+    cli::cli_abort(
+      c("{.path {file}} records renv {renv}, and the Dockerfile needs renv 1.3.1 or later.",
+        "i" = "Update renv, then run {.code renv::snapshot()} in the site."),
+      class = c("supplement_error_lockfile", "supplement_error"),
+      call = call
+    )
   }
   list(r = r, renv = renv)
 }

@@ -1,6 +1,6 @@
 # M032: write_dockerfile() writes a container recipe from renv.lock
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** M031
 - **Driving RR:** —
@@ -85,7 +85,13 @@
 - 2026-10-22: T4: the AC5 test ran on the Mac with `SUPPLEMENT_TEST_DOCKER=true` (Docker 29.9.1, R 4.6.1, Quarto 1.10.19): 11 expectations, 0 failed, 11.6 s with Docker's layer cache from the T3 builds; its image is removed after. Without the variable it skips with "SUPPLEMENT_TEST_DOCKER is not true", which is not on the CI missing-tool list. It also skips on Windows (`id -u`). Beyond AC5 it checks that the section names `/opt/renv/library/`: with the render replaced by `true`, the R version check passed on the host-rendered page and that check failed.
 - 2026-10-22: T5: guide part "Running reports in a container" after the renv part, two README edits (the guide summary and a `write_dockerfile()` paragraph after the renv one), and one NEWS bullet after the renv bullet. The guide adds one fact beyond AC6, from the Dockerfile text: after `renv::snapshot()`, build again, and write the recipe again when the R or renv version changed. `devtools::test()`: 330 tests, 0 failed, 8 skipped (the Docker test is the new skip).
 - 2026-10-22: T6: `devtools::check()` 0 errors, 0 warnings, 0 notes on the Mac. The R-CMD-check workflow runs at the PR.
+- 2026-10-22: claim audit: 64 claims read, 14 corrected — R/write-dockerfile.R, man/write_dockerfile.Rd, inst/template/_README.md, README.md, NEWS.md. Corrections: platforms (amd64, arm64 only for R 4.1.0 or later), renv 1.3.1 floor, `.dockerignore` limits what can be copied into the image, `--user` ownership on Linux only, failed writes and R's own open error, and a new digest after the R version changes. The re-read found the platform and failed-write wording still short; both fixed with the reader's wording, no further pass.
+- 2026-10-22: minor amendment from the claim audit: `write_dockerfile()` refuses a lockfile renv older than 1.3.1 (`supplement_error_lockfile`), with a test for 1.3.0 and 1.2.0; the version-source test moved to renv 1.10.0. No AC wording changed (AC4 lists the refusal shapes its tests must cover; this adds one). See Decisions.
+- 2026-10-22: verify after the audit: `devtools::test()` 331 tests, 0 failed, 8 skipped; the last edits were help and guide wording, and the new file's 17 tests pass after them.
+- 2026-10-22: status review; handed to /milestone-review.
 
 ## Decisions
+
+- 2026-10-22: `write_dockerfile()` refuses a `renv.lock` that records renv older than 1.3.1. Before 1.3.1, `renv::sysreqs()` reads the packages from the project's code, which the build does not have: with renv 1.3.0 it listed no system packages for the template site, and renv 1.1.1 has no `sysreqs()`, so the build fails at restore. A fixed renv for the build was not taken, because its library path could differ from the one that an older renv's `activate.R` looks in.
 
 ## Review

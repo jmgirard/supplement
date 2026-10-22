@@ -63,13 +63,13 @@ test_that("the Dockerfile and .dockerignore have the expected bytes", {
 })
 
 test_that("the R, renv, and Quarto versions come from renv.lock and the quarto argument", {
-  site <- lock_site(lock_json(r = '{"Version": "4.5.2"}', renv = '{"Version": "1.2.0"}'))
+  site <- lock_site(lock_json(r = '{"Version": "4.5.2"}', renv = '{"Version": "1.10.0"}'))
   write_dockerfile(site, quarto = "1.9.37")
   lines <- readLines(file.path(site, "Dockerfile"))
   expect_identical(lines[[3]], "FROM rocker/r-ver:4.5.2")
   expect_identical(grep("install_quarto", lines, value = TRUE), "RUN /rocker_scripts/install_quarto.sh 1.9.37")
-  expect_match(lines, "/renv_1.2.0.tar.gz", fixed = TRUE, all = FALSE)
-  expect_match(lines, "copy of renv 1.2.0 ", fixed = TRUE, all = FALSE)
+  expect_match(lines, "/renv_1.10.0.tar.gz", fixed = TRUE, all = FALSE)
+  expect_match(lines, "copy of renv 1.10.0 ", fixed = TRUE, all = FALSE)
   expect_false(any(grepl("4.6.1|1.3.1|1.10.19", lines)))
 })
 
@@ -141,6 +141,13 @@ test_that("a lockfile R or renv version that is not three whole numbers is refus
     expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19", info = info)
     site <- lock_site(lock_json(renv = sprintf('{"Version": %s}', json)))
     expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19", info = info)
+  }
+})
+
+test_that("a lockfile renv older than 1.3.1 is refused", {
+  for (version in c("1.3.0", "1.2.0")) {
+    site <- lock_site(lock_json(renv = sprintf('{"Version": "%s"}', version)))
+    expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19", info = version)
   }
 })
 

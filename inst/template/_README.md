@@ -355,8 +355,10 @@ next `renv::snapshot()`.
 Docker runs a program in a container, an isolated system built from an
 image. After you set up renv, supplement can write the recipe for an image.
 The image holds the R version and the R packages in `renv.lock`, and Quarto. A
-report that you render in that image runs with those versions on any
-machine that has Docker.
+report that you render in that image runs with those versions. This works
+on a machine that runs Docker with Linux containers on an amd64 processor,
+or on arm64 for R 4.1.0 or later.
+`renv.lock` must record renv 1.3.1 or later.
 
 1. Write the recipe. In R, in this folder, run:
 
@@ -374,10 +376,10 @@ machine that has Docker.
    ```
 
    The image starts from `rocker/r-ver` with the R version in
-   `renv.lock`. The build installs Quarto, the Ubuntu packages that the R
-   packages need, and the R packages, renv included. `.dockerignore` lets
-   only `renv.lock` into the build, so the image holds no other file from
-   this folder and no data.
+   `renv.lock`. The build installs Quarto, the Ubuntu packages that renv
+   lists for the R packages, and the R packages, renv included.
+   `.dockerignore` lets only `renv.lock` of this folder's files into the
+   image, so the image holds no other file from this folder and no data.
 3. Render one report in the image, with this folder mounted at `/site`. On
    macOS and Linux, run:
 
@@ -388,13 +390,15 @@ machine that has Docker.
 
    The render reads the data in this folder and writes the stored output
    and the page here. `--network none` shows that the render needs nothing
-   from the network. `--user` makes you the owner of the files that it
-   writes. The report's Computing environment section then shows the R
+   from the network. On Linux, `--user` makes you the owner of the files
+   that it writes. Docker Desktop on macOS does that without it. The report's Computing environment section then shows the R
    version and the packages of the image.
 
 After `renv::snapshot()` changes `renv.lock`, build the image again. If the
 R version or the renv version in `renv.lock` changed, first run
-`write_dockerfile()` again with `overwrite = TRUE`.
+`write_dockerfile()` again with `overwrite = TRUE`. If you pinned the base
+image as below, show the digest of the new tag and give that digest. The
+old digest names the old image, whatever the tag says.
 
 A tag such as `rocker/r-ver:4.6.1` can move to a newer image, so a later
 build can get newer system libraries. To pin the base image, show the
