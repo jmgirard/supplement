@@ -9,7 +9,8 @@ missing_tool <- c(
   "On CRAN", "quarto is not on PATH", "git is not on PATH",
   "git is not on the PATH", "git --version fails", "knitr cannot be loaded",
   "rmarkdown cannot be loaded", "cannot make a symbolic link here",
-  "R has no png device",
+  "R has no png device", "renv is not installed for Rscript",
+  "renv::init() would download packages",
   # skip_if_not_installed() names the package in braces.
   "{knitr}", "{rmarkdown}", "{sessioninfo}"
 )

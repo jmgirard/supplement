@@ -298,6 +298,58 @@ never committed, so its download link breaks. `check_supplement()`
 reports the copy in `docs/data/` as a file that git ignores. Remove the
 file from `data/` and render the whole site again.
 
+## Recording R packages with renv
+
+renv is an R package that records the version of each package that a
+project uses. It keeps those packages in a library inside the project
+folder, so another machine can install the same versions. Install renv,
+then run these commands in R from this folder.
+
+1. Set up renv once:
+
+   ```r
+   renv::init()
+   ```
+
+   It finds the packages that the reports use and adds them to a library
+   in `renv/library/`. It writes `renv.lock`, `.Rprofile`, and the files in
+   `renv/`. Commit these files. The file `renv/.gitignore` keeps
+   `renv/library/` out of git. Later, to add a package that a report
+   needs, start R in this folder and run `install.packages()`. R installs
+   the package in `renv/library/`.
+2. After you render a report, record the packages that the reports use:
+
+   ```r
+   renv::snapshot()
+   ```
+
+   It writes the version of each package that the reports use, with the
+   packages that those need, to `renv.lock`. Commit `renv.lock` with the
+   stored output of the render. If you follow "Rendering on the machine
+   with the private data", add `renv.lock` to its `git add` command.
+3. On another machine, clone the repository and start R in this folder.
+   `.Rprofile` loads renv from `renv/library/`. If renv is not in that
+   library, `.Rprofile` first copies it from renv's cache or downloads it.
+   Install the versions that `renv.lock` records:
+
+   ```r
+   renv::restore()
+   ```
+
+   Then render one report by name, for example `quarto render
+   analyses/example.qmd`. Its code runs with the packages in
+   `renv/library/`.
+
+When every report holds stored output in `_freeze/`, a full render runs
+no R. It then needs neither renv nor the packages. Only a report with no
+stored output runs its code in a full render.
+
+`renv.lock` shows the packages at the last snapshot. Each report's
+Computing environment section shows the packages of its own last render.
+The two can differ. A report that you render by name after the last
+snapshot shows the packages of that render. `renv.lock` shows them only after the
+next `renv::snapshot()`.
+
 ## Stable figures
 
 Call `set.seed(` with a fixed number before each random draw, for example

@@ -54,7 +54,7 @@ already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. If
 both files exist, no guide is written. The template ships these files as `_gitignore` and `_README.md`, because
 `quarto use template` does not copy those file names. The guide explains how
 the site renders, how to render on the machine that holds private data, and
-how to publish.
+how to publish. It also shows how to record R packages with renv.
 
 Put the paper title, citation, Zenodo DOIs, and data files in
 `_supplement.yml`. The home page reads them from that file. The guide
@@ -84,6 +84,11 @@ Every file in `data/` is published on the site.
 Both functions add lines to these files as text, so the other lines and
 the comments stay as they are. If a function cannot find the menu or the
 list, it stops, writes nothing, and shows the lines to add by hand.
+
+To record the version of each R package that the reports use, so that
+another machine can install the same versions, use the renv package. The
+guide's "Recording R packages with renv" part shows the three commands.
+supplement does not call renv.
 
 ## Check a site before a release
 

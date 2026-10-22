@@ -187,6 +187,58 @@ git_site <- function(env = parent.frame()) {
   site
 }
 
+# A git_site() that is rendered and committed, in which renv::init() then
+# ran. renv runs in an Rscript process with its cache and sandbox in
+# temporary folders, so a test never activates renv in its own session or
+# writes to the user's renv folders. renv::init() needs a network only to
+# install a package that the site uses and that Rscript does not have, so
+# the test skips then.
+renv_site <- function(env = parent.frame()) {
+  skip_if_no_quarto()
+  skip_if_no_git()
+  scripts <- withr::local_tempdir("renv-scripts-", .local_envir = env)
+  # renv itself and the packages that renv::dependencies() finds in the
+  # template's reports. Each line names a missing one, so a message that
+  # R prints on stderr is not read as a package.
+  writeLines(
+    c('pkgs <- c("renv", "knitr", "rmarkdown", "sessioninfo")',
+      "for (p in pkgs) if (!requireNamespace(p, quietly = TRUE)) cat(\"missing:\", p, \"\\n\")"),
+    file.path(scripts, "missing.R")
+  )
+  writeLines("renv::init()", file.path(scripts, "init.R"))
+  missing <- run_in(scripts, home_rscript(), c("--no-init-file", "missing.R"))
+  expect_status(missing)
+  pkgs <- trimws(sub("^missing: ", "", grep("^missing: ", missing$output, value = TRUE)))
+  skip_if("renv" %in% pkgs, "renv is not installed for Rscript")
+  skip_if(length(pkgs) > 0,
+          paste("renv::init() would download packages that Rscript does not have:",
+                paste(pkgs, collapse = ", ")))
+
+  site <- git_site(env)
+  expect_status(run_in(site, "quarto", "render"))
+  expect_status(git_in(site, c("add", "-A")))
+  expect_status(git_in(site, c("-c", "user.name=Test", "-c", "user.email=test@example.com",
+                               "-c", "commit.gpgsign=false", "commit", "-q", "-m", "Site")))
+
+  renv_env <- c(
+    RENV_PATHS_ROOT = long_dir(withr::local_tempdir("renv-root-", .local_envir = env)),
+    RENV_PATHS_SANDBOX = long_dir(withr::local_tempdir("renv-sandbox-", .local_envir = env)),
+    # renv makes its sandbox read-only, and withr then cannot delete it.
+    RENV_SANDBOX_LOCKING_ENABLED = "FALSE",
+    # Each of these would move renv's cache, library, or lockfile away from
+    # the folders above and the site.
+    RENV_PATHS_CACHE = NA, RENV_PATHS_LIBRARY = NA, RENV_PATHS_LIBRARY_ROOT = NA, RENV_PROFILE = NA,
+    # Under testthat, renv prints little when it fails.
+    RENV_VERBOSE = "TRUE"
+  )
+  init <- file.path(long_dir(scripts), "init.R")
+  expect_status(withr::with_envvar(
+    renv_env,
+    run_in(site, home_rscript(), c("--no-init-file", shQuote(init)))
+  ))
+  site
+}
+
 # Make a new folder from the template without rendering it.
 use_template <- function(dir) {
   run_in(dir, "quarto", c("use", "template", shQuote(template_dir()), "--no-prompt"))

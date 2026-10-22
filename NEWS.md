@@ -22,6 +22,11 @@
   Both refuse names that Windows reserves for a device, such as `con`, in
   any letter case. `add_data()` also refuses such a name with an
   extension, such as `con.csv`, and a file name that ends in `.`.
+* The template guide has a part on recording a site's R packages with
+  renv: `renv::init()`, `renv::snapshot()` after a render, and
+  `renv::restore()` on another machine. In a site set up with renv, a full
+  render from stored output still runs no R. `check_supplement()` finds
+  no problem in it, and git keeps `renv/library/` out.
 * `check_supplement()` lists the problems in a site before a release, and
   changes no file. It finds files larger than 100 MiB, and saved R
   objects that git tracks or does not ignore. It finds reports with code
