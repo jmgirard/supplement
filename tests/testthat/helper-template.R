@@ -219,8 +219,8 @@ renv_site <- function(env = parent.frame()) {
                                "-c", "commit.gpgsign=false", "commit", "-q", "-m", "Site")))
 
   renv_dirs <- c(
-    RENV_PATHS_ROOT = withr::local_tempdir("renv-root-", .local_envir = env),
-    RENV_PATHS_SANDBOX = withr::local_tempdir("renv-sandbox-", .local_envir = env)
+    RENV_PATHS_ROOT = long_dir(withr::local_tempdir("renv-root-", .local_envir = env)),
+    RENV_PATHS_SANDBOX = long_dir(withr::local_tempdir("renv-sandbox-", .local_envir = env))
   )
   init <- file.path(long_dir(scripts), "init.R")
   expect_status(withr::with_envvar(
