@@ -80,6 +80,7 @@ The template guide shows how to record and restore a site's R packages with renv
 - 2026-10-22: claim audit: 23 claims read, 1 corrected — inst/template/_README.md (renv's start-up script uses only the project library, so it copies renv from renv's cache or downloads it); the test-renv.R header comment's loose "commits" wording was also tightened; the same reader re-read both and found them holding.
 - 2026-10-22: after the corrections, test-create-supplement.R, test-template.R, and test-renv.R pass; status review.
 - 2026-10-22: review pass 1: four lenses spawned; 25 findings settled (15 fix now, 1 follow-up, 9 reject); fix-now commits 6706945, c8c7f26, 29a5ce4; full suite re-run after them, 0 failures. No snapshot files changed; open-PR feature cap read: 0 open PRs.
+- step-7 approval: m031-renv-guide approved for merge
 
 ## Decisions
 
