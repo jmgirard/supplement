@@ -26,7 +26,8 @@
   renv: `renv::init()`, `renv::snapshot()` after a render, and
   `renv::restore()` on another machine. In a site set up with renv, a full
   render from stored output still runs no R. `check_supplement()` finds
-  no problem in it, and git keeps `renv/library/` out.
+  no problem in the files that renv adds, and git keeps `renv/library/`
+  out.
 * `write_dockerfile()` reads the R and renv versions in `renv.lock` and
   writes a `Dockerfile` that builds an image with that R, the packages in
   `renv.lock`, and a given Quarto version. `renv.lock` must record R 4.0.0
@@ -57,9 +58,9 @@
   the template's placeholder values that the author did not replace. These
   are the paper title, citation, contact, and authors in
   `_supplement.yml`, `OWNER/REPO` in the GitHub link, and `OWNER` and
-  `REPO` in the site address. They are also the "Before your first commit" box, the
-  `YEAR AUTHORS` copyright lines, and the example report and data while
-  they are unchanged. Each such row stops `release_supplement()`. It
+  `REPO` in the site address. They are also the "Before your first
+  commit" box, the `YEAR AUTHORS` copyright lines, and the example report
+  and data while they are unchanged. Each such row stops `release_supplement()`. It
   returns the problems as a data frame.
 * `release_supplement()` prepares a release. An empty `citation` is one
   value that stops `write_citation()` or `write_zenodo()`. If

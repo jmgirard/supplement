@@ -241,8 +241,6 @@ test_that("template placeholders from the real check stop the release", {
   expect_match(conditionMessage(err), "8 problems", fixed = TRUE)
   expect_identical(folder_state(site), before)
 
-  # With the placeholders replaced and the stored hash written again from
-  # the changed report, the same site releases.
   fill_placeholders(site)
   report <- file.path(site, "analyses", "example.qmd")
   stored <- file.path(site, "_freeze", "analyses", "example", "execute-results", "html.json")

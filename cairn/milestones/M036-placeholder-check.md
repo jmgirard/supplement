@@ -81,3 +81,22 @@ Evidence run 2026-10-22 on branch head eb334cf, level with origin/main 7d391d9. 
 - AC6: `devtools::test()` 349 tests, 0 failed (above); `devtools::check()` on eb334cf: 0 errors, 0 warnings, 0 notes (6m 47s).
 
 Consistency gate: `cairn_validate.py` exit 0, all checks passed. No principle changed, so `cairn_impact` was skipped. `devtools::document()` gives no diff, and `man/check_supplement.Rd` came only from it. No `README.Rmd` and no pkgdown site. The changelog has the edited unreleased `check_supplement()` bullet and no milestone number.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- ripple #1: NEWS.md renv bullet says `check_supplement()` "finds no problem" in a renv site, which a site with placeholders no longer meets — fix now (now "no problem in the files that renv adds").
+- ripple #2: the template guide's "It finds:" list in `inst/template/_README.md` lacks the placeholder check — fix now (one bullet added).
+- ripple #3: the same list in `README.md` lacks it — fix now (one bullet added).
+- prior-review: no regression of an archived review finding or lesson; PR comment probe empty.
+- diff-bug #1: an unreadable file (mode 000) gives no row and no message, while the help lists only missing, folder, or not UTF-8 — fix now (the help now names a file that cannot be read for both the line and the example checks; the check never stops on a read, by AC2 and AC3).
+- diff-bug #2: an unchanged example file with a BOM, a lost final newline, or CR-only ends gives no row, while the line check drops a BOM — follow-up ("Match example files after editor saves").
+- diff-bug #3: `report_hash()` reads and copies all of a large `data/example.csv` on each check — fix now (a file over twice the template's size is not read; a CR LF copy cannot be larger).
+- diff-bug #4: the `_quarto.yml` line matches only the exact line, not a quoted URL or a trailing comment — reject, planned change (AC2's whole-line rule, stated on the help page).
+- diff-bug #5: a one-item list title, `yes`, a single-map `authors`, and nulls give no row — reject, planned change (AC1: a value that is not one text value does not count).
+- diff-bug #6: links behave as other reads do — noted, no finding.
+- diff-bug #7: NEWS.md line 61 is 83 characters wide — fix now (rewrapped).
+- diff-bug #8: the `contact` list case repeats the `paper-title: 2024` code path — fix now (removed).
+- diff-bug #9: `expect_no_error()` around calls an exact expectation follows — reject, false (AC1 to AC3 promise no error, and the wrapper names that promise; the file uses the same form).
+- diff-bug #10: `expect_setequal(names(placeholder_lines), line_files)` checks a test list against the code — reject, false (it is the independent statement of the seven files that check discrimination asks for).
+- diff-bug #11: the release test comment restates the next lines — fix now (removed).
+- diff-bug #12: the per-file and per-field loops run one code path several times — reject, false (each pass pins a different list entry that AC1 and AC2 name).

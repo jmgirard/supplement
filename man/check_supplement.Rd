@@ -197,9 +197,11 @@ for the line \verb{Copyright (c) YEAR AUTHORS}, and \code{README.md},
 \code{SUPPLEMENT.md}, and \verb{_README.md} for the line
 \verb{Website: https://OWNER.github.io/REPO/}. Spaces, tabs, and a
 carriage return at the ends of a line are ignored. A file that is
-missing, a folder, or not UTF-8 text gives no row.
+missing, a folder, not UTF-8 text, or that cannot be read gives no
+row.
 \item \code{analyses/example.qmd} and \code{data/example.csv} each get a row when
-their text equals the template's copy, with each CR LF read as LF.
+their text equals the template's copy, with each CR LF read as LF. A
+file that cannot be read gives no row.
 }
 
 Only a whole value or a whole line counts, so a value that keeps part

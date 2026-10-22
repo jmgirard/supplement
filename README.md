@@ -132,6 +132,9 @@ finds:
   differs
 - DOIs in `CITATION.cff` or on the home page that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
+- template placeholders left in place, such as the paper title in
+  `_supplement.yml` or the unchanged example report
+  (`?check_supplement` lists them all)
 
 On pages, it checks only relative links, which point inside the site. It
 does not check links that start with `/` and requests no web address. For the

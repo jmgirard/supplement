@@ -178,9 +178,11 @@
 #'     `SUPPLEMENT.md`, and `_README.md` for the line
 #'     `Website: https://OWNER.github.io/REPO/`. Spaces, tabs, and a
 #'     carriage return at the ends of a line are ignored. A file that is
-#'     missing, a folder, or not UTF-8 text gives no row.
+#'     missing, a folder, not UTF-8 text, or that cannot be read gives no
+#'     row.
 #'   * `analyses/example.qmd` and `data/example.csv` each get a row when
-#'     their text equals the template's copy, with each CR LF read as LF.
+#'     their text equals the template's copy, with each CR LF read as LF. A
+#'     file that cannot be read gives no row.
 #'
 #'   Only a whole value or a whole line counts, so a value that keeps part
 #'   of a placeholder, such as a citation with `(Year)` in it, gives no row.
@@ -1027,18 +1029,21 @@ placeholder_example_problems <- c(
 )
 
 # A row for each example file whose text, with each CR LF read as LF,
-# equals the installed template's copy. A missing file or a folder gives no
-# row.
+# equals the installed template's copy. A missing file, a folder, or a
+# file that cannot be read gives no row. A CR LF copy is at most twice the
+# template's size, so a larger file is not read.
 placeholder_example_rows <- function(path) {
   files <- names(placeholder_example_problems)
   template <- system.file("template", package = "supplement", mustWork = TRUE)
   same <- vapply(files, function(file) {
     site_file <- file.path(path, file)
-    if (!file.exists(site_file) || dir.exists(site_file)) {
+    template_file <- file.path(template, file)
+    if (!file.exists(site_file) || dir.exists(site_file) ||
+        isTRUE(file.size(site_file) > 2 * file.size(template_file))) {
       return(FALSE)
     }
     hash <- report_hash(site_file)
-    !is.null(hash) && identical(hash, report_hash(file.path(template, file)))
+    !is.null(hash) && identical(hash, report_hash(template_file))
   }, logical(1))
   problem_rows("placeholder", files[same], placeholder_example_problems[files[same]])
 }

@@ -1303,10 +1303,9 @@ test_that("a value that is not text gives no placeholder row for it and no error
   expect_identical(fields, c("citation", "contact"))
 
   site <- new_site()
-  set_meta_line(site, "contact", "  contact: [Your Name, Your Institution]")
   set_authors(site, '  authors: "Author, A. A."')
   expect_no_error(fields <- placeholder_fields(site))
-  expect_identical(fields, c("paper-title", "citation"))
+  expect_identical(fields, c("paper-title", "citation", "contact"))
 })
 
 test_that("an empty template value never counts", {

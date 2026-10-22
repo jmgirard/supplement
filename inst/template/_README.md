@@ -189,6 +189,9 @@ data frame. It finds:
   differs (render the site again)
 - a DOI in `CITATION.cff` or on the home page's badge that differs from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
+- template placeholders left in place, such as the paper title in
+  `_supplement.yml` or the unchanged example report
+  (`?supplement::check_supplement` lists them all)
 
 The first three checks read the file list from git. When git cannot run or
 this folder is not in a git work tree, the function skips them and says
