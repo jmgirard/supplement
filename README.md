@@ -54,7 +54,7 @@ already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. If
 both files exist, no guide is written. The template ships these files as `_gitignore` and `_README.md`, because
 `quarto use template` does not copy those file names. The guide explains how
 the site renders, how to render on the machine that holds private data, and
-how to publish.
+how to publish. It also shows how to record R packages with renv.
 
 Put the paper title, citation, Zenodo DOIs, and data files in
 `_supplement.yml`. The home page reads them from that file. The guide
