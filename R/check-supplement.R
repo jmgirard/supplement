@@ -1,7 +1,8 @@
 #' Check a supplement site before a release
 #'
 #' `check_supplement()` looks for problems that can break a release of a
-#' site or publish files that must stay private. It changes no file. It
+#' site, publish files that must stay private, or publish the template's
+#' placeholder values in place of the author's. It changes no file. It
 #' prints each problem it finds and returns all of them as a data frame.
 #'
 #' The checks, by the value in the `check` column:
@@ -161,6 +162,32 @@
 #'   that cannot be read or is not a YAML map (a link to a missing file
 #'   included), and a DOI in `CITATION.cff` or on the badge that is not a
 #'   DOI.
+#' * `"placeholder"`: a template value that the author has not replaced, so
+#'   that a release would archive it. The check compares the site with the
+#'   template that the installed package holds:
+#'   * `_supplement.yml` gets one row when `paper-title`, `citation`, or
+#'     `contact` equals the template's value, or an `authors` entry has the
+#'     `family` and `given` of a template author. Values are compared with
+#'     each run of white space read as one space and the ends removed. A
+#'     value that is not one text value does not count. The row names the
+#'     fields.
+#'   * `_quarto.yml` gets a row for the line
+#'     `href: https://github.com/OWNER/REPO`, `index.qmd` for the line
+#'     `## Before your first commit`, `LICENSE.md` and `LICENSE-CC-BY.md`
+#'     for the line `Copyright (c) YEAR AUTHORS`, and `README.md`,
+#'     `SUPPLEMENT.md`, and `_README.md` for the line
+#'     `Website: https://OWNER.github.io/REPO/`. Spaces, tabs, and a
+#'     carriage return at the ends of a line are ignored. A file that is
+#'     missing, a folder, not UTF-8 text, or that cannot be read gives no
+#'     row.
+#'   * `analyses/example.qmd` and `data/example.csv` each get a row when
+#'     their text equals the template's copy, with each CR LF read as LF. A
+#'     file that cannot be read gives no row.
+#'
+#'   Only a whole value or a whole line counts, so a value that keeps part
+#'   of a placeholder, such as a citation with `(Year)` in it, gives no row.
+#'   A site made from an older version of the template, whose placeholders
+#'   differ from the installed ones, gives no row for them.
 #'
 #' The `"large-file"` and `"saved-object"` checks look at the files that git
 #' tracks or does not ignore, which
@@ -199,8 +226,8 @@
 #' @examples
 #' site <- file.path(tempdir(), "check-example")
 #' create_supplement(site)
-#' # A new site has not been rendered, and its example report has no
-#' # stored output yet.
+#' # A new site has not been rendered, its example report has no stored
+#' # output yet, and it still holds the template's placeholder values.
 #' problems <- check_supplement(site)
 #' problems$check
 #' unlink(site, recursive = TRUE)
@@ -217,7 +244,8 @@ check_supplement <- function(path = ".") {
     check_stale_output(path),
     check_links(path),
     check_unpublished_figures(path),
-    check_dois(path, meta, call = environment())
+    check_dois(path, meta, call = environment()),
+    check_placeholders(path, meta)
   )
   rows <- Filter(Negate(is.null), rows)
   result <- if (length(rows) > 0) do.call(rbind, rows) else problem_rows()
@@ -986,6 +1014,145 @@ plain_files <- function(dir) {
     queue <- c(queue, paths[plain & folder])
   }
   files
+}
+
+# Template placeholders -------------------------------------------------------
+
+# The rows for the template's placeholders that the site still holds.
+check_placeholders <- function(path, meta) {
+  rbind(placeholder_values(meta), placeholder_line_rows(path), placeholder_example_rows(path))
+}
+
+placeholder_example_problems <- c(
+  "analyses/example.qmd" = "This is the template's example report. Write your own report in it, or delete it and make the Analyses menu in _quarto.yml list your own reports.",
+  "data/example.csv" = "This is the template's example data. Put your own data in it, or delete it, its entry under data in _supplement.yml, and the example report, which reads it."
+)
+
+# A row for each example file whose text, with each CR LF read as LF,
+# equals the installed template's copy. A missing file, a folder, or a
+# file that cannot be read gives no row. A CR LF copy is at most twice the
+# template's size, so a larger file is not read.
+placeholder_example_rows <- function(path) {
+  files <- names(placeholder_example_problems)
+  template <- system.file("template", package = "supplement", mustWork = TRUE)
+  same <- vapply(files, function(file) {
+    site_file <- file.path(path, file)
+    template_file <- file.path(template, file)
+    if (!file.exists(site_file) || dir.exists(site_file) ||
+        isTRUE(file.size(site_file) > 2 * file.size(template_file))) {
+      return(FALSE)
+    }
+    hash <- report_hash(site_file)
+    !is.null(hash) && identical(hash, report_hash(template_file))
+  }, logical(1))
+  problem_rows("placeholder", files[same], placeholder_example_problems[files[same]])
+}
+
+# Lines of the template's files that the author replaces or deletes. The
+# guide is `_README.md` in the template and becomes `README.md`, or
+# `SUPPLEMENT.md` beside an existing README, at the first render.
+placeholder_lines <- list(
+  "_quarto.yml" = "href: https://github.com/OWNER/REPO",
+  "index.qmd" = "## Before your first commit",
+  "LICENSE.md" = "Copyright (c) YEAR AUTHORS",
+  "LICENSE-CC-BY.md" = "Copyright (c) YEAR AUTHORS",
+  "README.md" = "Website: https://OWNER.github.io/REPO/",
+  "SUPPLEMENT.md" = "Website: https://OWNER.github.io/REPO/",
+  "_README.md" = "Website: https://OWNER.github.io/REPO/"
+)
+
+placeholder_line_problems <- c(
+  "_quarto.yml" = "The GitHub link names OWNER/REPO. Write your GitHub repository in its place.",
+  "index.qmd" = "The \"Before your first commit\" box is still on the home page. Delete it.",
+  "LICENSE.md" = "The copyright line reads YEAR AUTHORS. Write the year and the authors in its place.",
+  "LICENSE-CC-BY.md" = "The copyright line reads YEAR AUTHORS. Write the year and the authors in its place.",
+  "README.md" = "The site address names OWNER and REPO. Write your GitHub account and repository in their place.",
+  "SUPPLEMENT.md" = "The site address names OWNER and REPO. Write your GitHub account and repository in their place.",
+  "_README.md" = "The site address names OWNER and REPO. Write your GitHub account and repository in their place."
+)
+
+# A row for each file of `placeholder_lines` that has its line, once
+# spaces, tabs, and a CR at the ends of each line are removed. A missing
+# file, a folder, or a file that is not UTF-8 text gives no row.
+placeholder_line_rows <- function(path) {
+  files <- names(placeholder_lines)
+  found <- vapply(files, function(file) {
+    lines <- plain_lines(file.path(path, file))
+    placeholder_lines[[file]] %in% gsub("^[ \t\r]+|[ \t\r]+$", "", lines)
+  }, logical(1))
+  problem_rows("placeholder", files[found], placeholder_line_problems[files[found]])
+}
+
+# The lines of a UTF-8 text file, or none when it is missing, a folder, or
+# cannot be read as UTF-8 text.
+plain_lines <- function(file) {
+  if (!file.exists(file) || dir.exists(file)) {
+    return(character())
+  }
+  tryCatch(read_text_lines(file)$lines, error = function(e) character(), warning = function(w) character())
+}
+
+# The `supplement:` map of the installed template's _supplement.yml.
+template_supplement <- function() {
+  read_supplement(system.file("template", package = "supplement", mustWork = TRUE))
+}
+
+# One row naming each of paper-title, citation, contact, and authors whose
+# value equals the installed template's. An author counts when its family
+# and given both equal those of one template author. A value that is not
+# one text value never counts, and neither does an empty template value.
+placeholder_values <- function(meta) {
+  template <- template_supplement()
+  fields <- c("paper-title", "citation", "contact")
+  left <- fields[vapply(fields, function(field) {
+    same_text(meta[[field]], template[[field]])
+  }, logical(1))]
+  template_authors <- lapply(list_entries(template[["authors"]]), author_key)
+  template_authors <- Filter(Negate(is.null), template_authors)
+  site_authors <- lapply(list_entries(meta[["authors"]]), author_key)
+  if (any(vapply(site_authors, function(key) {
+    !is.null(key) && any(vapply(template_authors, identical, logical(1), key))
+  }, logical(1)))) {
+    left <- c(left, "authors")
+  }
+  if (length(left) == 0) {
+    return(problem_rows())
+  }
+  problem_rows(
+    "placeholder", "_supplement.yml",
+    paste0("Template values left in place: ", paste(left, collapse = ", "),
+           ". Replace them before a release.")
+  )
+}
+
+# A value with its spaces cleaned, or NULL when it is not one non-empty
+# text value.
+plain_text <- function(x) {
+  if (!is.character(x) || length(x) != 1 || is.na(x)) {
+    return(NULL)
+  }
+  x <- clean_space(x)
+  if (nzchar(x)) x
+}
+
+same_text <- function(x, template) {
+  x <- plain_text(x)
+  !is.null(x) && identical(x, plain_text(template))
+}
+
+# The entries of a YAML sequence, or none when `x` is not one.
+list_entries <- function(x) {
+  if (is.list(x) && is.null(names(x))) x else list()
+}
+
+# The cleaned family and given of an author map, or NULL when the entry is
+# not a map or either is not one non-empty text value.
+author_key <- function(entry) {
+  if (!is_map(entry)) {
+    return(NULL)
+  }
+  key <- list(plain_text(entry[["family"]]), plain_text(entry[["given"]]))
+  if (any(vapply(key, is.null, logical(1)))) NULL else unlist(key)
 }
 
 # DOIs ------------------------------------------------------------------------

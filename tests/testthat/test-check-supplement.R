@@ -29,7 +29,7 @@ touch <- function(path) {
 test_that("a rendered site in a git repository has no problems", {
   skip_if_no_quarto()
   skip_if_no_git()
-  site <- new_site()
+  site <- fill_placeholders(new_site())
   # With both DOIs, the home page shows a Zenodo badge from Quarto's own
   # output, and CITATION.cff holds the concept DOI.
   yml <- file.path(site, "_supplement.yml")
@@ -1210,4 +1210,204 @@ test_that("a failed listing of ignored files skips the three git checks", {
   expect_identical(attr(result, "skipped"), c("large-file", "saved-object", "ignored-output"))
   expect_false(any(result$check %in% c("large-file", "saved-object", "ignored-output")))
   expect_match(gsub("\\s+", " ", paste(msgs, collapse = " ")), "`git ls-files` failed", fixed = TRUE)
+})
+
+# Template placeholders ---------------------------------------------------------
+
+placeholder_rows <- function(site) rows_of(check_quiet(site), "placeholder")
+
+# The fields that the _supplement.yml placeholder row names, in its order.
+placeholder_fields <- function(site) {
+  rows <- placeholder_rows(site)
+  rows <- rows[rows$file == "_supplement.yml", , drop = FALSE]
+  if (nrow(rows) == 0) {
+    return(character())
+  }
+  expect_identical(nrow(rows), 1L)
+  listed <- sub("^Template values left in place: ([^.]*)\\..*$", "\\1", rows$problem)
+  strsplit(listed, ", ", fixed = TRUE)[[1]]
+}
+
+# Put `lines` in place of the `authors:` list of a site's _supplement.yml.
+set_authors <- function(site, lines) {
+  yml <- file.path(site, "_supplement.yml")
+  old <- readLines(yml, encoding = "UTF-8")
+  from <- which(old == "  authors:")
+  to <- grep("^  # With Zenodo", old)
+  stopifnot(length(from) == 1, length(to) == 1)
+  new <- c(old[seq_len(from - 1)], lines, old[to:length(old)])
+  writeBin(charToRaw(enc2utf8(paste0(paste(new, collapse = "\n"), "\n"))), yml)
+}
+
+set_meta_line <- function(site, key, line) {
+  yml <- file.path(site, "_supplement.yml")
+  lines <- readLines(yml, encoding = "UTF-8")
+  i <- grep(paste0("^  ", key, ":"), lines)
+  stopifnot(length(i) == 1)
+  lines[i] <- line
+  writeBin(charToRaw(enc2utf8(paste0(paste(lines, collapse = "\n"), "\n"))), yml)
+}
+
+real_author <- c('    - family: "Doe"', '      given: "Jane"')
+
+change_meta <- list(
+  "paper-title" = function(site) set_meta_line(site, "paper-title", '  paper-title: "Effects of sleep"'),
+  citation = function(site) set_meta_line(site, "citation", '  citation: "Doe, J. (2026). Effects of sleep. *Sleep*."'),
+  contact = function(site) set_meta_line(site, "contact", '  contact: "Jane Doe, University A."'),
+  authors = function(site) set_authors(site, c("  authors:", real_author))
+)
+
+test_that("template values in _supplement.yml give one placeholder row that names them", {
+  site <- new_site()
+  expect_identical(placeholder_fields(site), names(change_meta))
+
+  for (kept in names(change_meta)) {
+    site <- new_site()
+    for (field in setdiff(names(change_meta), kept)) change_meta[[field]](site)
+    expect_identical(placeholder_fields(site), kept, info = kept)
+  }
+
+  site <- new_site()
+  for (field in names(change_meta)) change_meta[[field]](site)
+  expect_identical(placeholder_fields(site), character())
+})
+
+test_that("an author counts only when both family and given are a template author's", {
+  others <- function(env = parent.frame()) {
+    site <- new_site(env)
+    for (field in c("paper-title", "citation", "contact")) change_meta[[field]](site)
+    site
+  }
+  site <- others()
+  set_authors(site, c("  authors:", real_author, '    - family: "Author"', '      given: "B. B."'))
+  expect_identical(placeholder_fields(site), "authors")
+
+  for (author in list(c("Author", "Jane"), c("Smith", "A. A."))) {
+    site <- others()
+    set_authors(site, c("  authors:", sprintf('    - family: "%s"', author[1]), sprintf('      given: "%s"', author[2])))
+    expect_identical(placeholder_fields(site), character(), info = author)
+  }
+})
+
+test_that("a template value with other white space still counts", {
+  site <- new_site()
+  set_meta_line(site, "paper-title", '  paper-title: "  Title   of the\\tpaper "')
+  expect_contains(placeholder_fields(site), "paper-title")
+})
+
+test_that("a value that is not text gives no placeholder row for it and no error", {
+  site <- new_site()
+  set_meta_line(site, "paper-title", "  paper-title: 2024")
+  set_authors(site, c("  authors:", '    - "Author, A. A."'))
+  expect_no_error(fields <- placeholder_fields(site))
+  expect_identical(fields, c("citation", "contact"))
+
+  site <- new_site()
+  set_authors(site, '  authors: "Author, A. A."')
+  expect_no_error(fields <- placeholder_fields(site))
+  expect_identical(fields, c("paper-title", "citation", "contact"))
+})
+
+test_that("an empty template value never counts", {
+  site <- new_site()
+  set_meta_line(site, "paper-title", '  paper-title: ""')
+  template <- read_supplement(template_dir())
+  template[["paper-title"]] <- ""
+  local_mocked_bindings(template_supplement = function() template)
+  expect_identical(placeholder_fields(site), c("citation", "contact", "authors"))
+})
+
+line_files <- c("_quarto.yml", "index.qmd", "LICENSE.md", "LICENSE-CC-BY.md", "README.md", "SUPPLEMENT.md",
+                "_README.md")
+
+# The files other than _supplement.yml that give a placeholder row.
+placeholder_files <- function(site) {
+  rows <- placeholder_rows(site)
+  rows$file[rows$file %in% line_files]
+}
+
+test_that("a placeholder line gives a row for its file until it is changed", {
+  site <- new_site()
+  expect_setequal(placeholder_files(site), c("_quarto.yml", "index.qmd", "LICENSE.md", "LICENSE-CC-BY.md",
+                                             "_README.md"))
+  file.copy(file.path(site, "_README.md"), file.path(site, c("README.md", "SUPPLEMENT.md")))
+  expect_setequal(placeholder_files(site), line_files)
+
+  changes <- list(
+    "_quarto.yml" = c("OWNER/REPO", "jdoe/sleep"),
+    "index.qmd" = c("## Before your first commit", "## About"),
+    "LICENSE.md" = c("YEAR AUTHORS", "2026 Jane Doe"),
+    "LICENSE-CC-BY.md" = c("YEAR AUTHORS", "2026 Jane Doe"),
+    "README.md" = c("OWNER.github.io/REPO/", "jdoe.github.io/sleep/"),
+    "SUPPLEMENT.md" = c("OWNER.github.io/REPO/", "jdoe.github.io/sleep/"),
+    "_README.md" = c("OWNER.github.io/REPO/", "jdoe.github.io/sleep/")
+  )
+  left <- line_files
+  for (file in names(changes)) {
+    replace_in_file(file.path(site, file), changes[[file]][1], changes[[file]][2])
+    left <- setdiff(left, file)
+    expect_setequal(placeholder_files(site), left)
+  }
+})
+
+test_that("a placeholder line counts with spaces, tabs, and a CR at its ends", {
+  site <- new_site()
+  index <- file.path(site, "index.qmd")
+  replace_in_file(index, "\n", "\r\n")
+  replace_in_file(index, "## Before your first commit", " \t## Before your first commit\t ")
+  expect_contains(placeholder_files(site), "index.qmd")
+})
+
+test_that("a README that is a folder or not UTF-8 text gives no row and no error", {
+  line <- "Website: https://OWNER.github.io/REPO/"
+  forms <- list(
+    folder = function(file) dir.create(file),
+    utf16 = function(file) {
+      writeBin(c(as.raw(c(0xff, 0xfe)), iconv(paste0(line, "\n"), "UTF-8", "UTF-16LE", toRaw = TRUE)[[1]]), file)
+    },
+    latin1 = function(file) writeBin(c(charToRaw("Caf"), as.raw(0xe9), charToRaw(paste0("\n", line, "\n"))), file)
+  )
+  for (form in names(forms)) {
+    site <- new_site()
+    forms[[form]](file.path(site, "README.md"))
+    expect_no_error(files <- placeholder_files(site))
+    expect_false("README.md" %in% files, info = form)
+  }
+})
+
+test_that("a site made with repo gives no row for the GitHub address", {
+  site <- withr::local_tempdir("site-")
+  suppressMessages(create_supplement(site, repo = "owner/name"))
+  expect_setequal(placeholder_files(site), c("index.qmd", "LICENSE.md", "LICENSE-CC-BY.md"))
+})
+
+test_that("each placeholder line is a line of the template's file", {
+  for (file in names(placeholder_lines)) {
+    source <- if (file %in% c("README.md", "SUPPLEMENT.md")) "_README.md" else file
+    lines <- trimws(readLines(file.path(template_dir(), source), encoding = "UTF-8"))
+    expect_true(placeholder_lines[[file]] %in% lines, info = file)
+  }
+  expect_setequal(names(placeholder_lines), line_files)
+})
+
+test_that("an example file gives a row only while its text is the template's", {
+  for (file in c("analyses/example.qmd", "data/example.csv")) {
+    has_row <- function(site) file %in% placeholder_rows(site)$file
+    site <- new_site()
+    expect_true(has_row(site), info = file)
+
+    replace_in_file(file.path(site, file), "\n", "\r\n")
+    expect_true(has_row(site), info = file)
+
+    site <- new_site()
+    bytes <- readBin(file.path(site, file), "raw", file.size(file.path(site, file)))
+    writeBin(c(bytes, charToRaw("\n")), file.path(site, file))
+    expect_false(has_row(site), info = file)
+
+    site <- new_site()
+    file.remove(file.path(site, file))
+    expect_false(has_row(site), info = file)
+    dir.create(file.path(site, file))
+    expect_no_error(expect_false(has_row(site), info = file))
+  }
 })

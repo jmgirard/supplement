@@ -79,6 +79,39 @@ new_site <- function(env = parent.frame()) {
   site
 }
 
+# Replace each `from` with its `to` in a file, keeping its other bytes.
+replace_in_file <- function(file, from, to) {
+  text <- rawToChar(readBin(file, "raw", file.size(file)))
+  for (i in seq_along(from)) text <- gsub(from[i], to[i], text, fixed = TRUE, useBytes = TRUE)
+  writeBin(charToRaw(text), file)
+}
+
+# Replace the template placeholders that check_supplement() gives a
+# "placeholder" row for with values of a real site. A blank line at the end
+# of each example file keeps the example's results. Call it before a render
+# or a stored hash, since it changes the example report.
+fill_placeholders <- function(site) {
+  replace_in_file(
+    file.path(site, "_supplement.yml"),
+    c("Title of the paper", "Author, A. A., & Author, B. B.", "Your Name, Your Institution. Your email address.",
+      'family: "Author"', 'given: "A. A."', 'given: "B. B."'),
+    c("Effects of sleep", "Doe, J., & Roe, S.", "Jane Doe, University A.",
+      'family: "Doe"', 'given: "Jane"', 'given: "Sam"')
+  )
+  replace_in_file(file.path(site, "_quarto.yml"), "OWNER/REPO", "jdoe/sleep")
+  replace_in_file(file.path(site, "index.qmd"), "## Before your first commit", "## About this site")
+  for (file in c("LICENSE.md", "LICENSE-CC-BY.md")) {
+    replace_in_file(file.path(site, file), "YEAR AUTHORS", "2026 Jane Doe")
+  }
+  for (file in file.path(site, c("_README.md", "README.md", "SUPPLEMENT.md"))) {
+    if (file.exists(file)) replace_in_file(file, "OWNER.github.io/REPO/", "jdoe.github.io/sleep/")
+  }
+  for (file in file.path(site, c("analyses/example.qmd", "data/example.csv"))) {
+    writeBin(c(readBin(file, "raw", file.size(file)), charToRaw("\n")), file)
+  }
+  invisible(site)
+}
+
 # A path for a marker file in a new temporary folder, with `/` between
 # its parts, so that it can go in a double-quoted YAML string on Windows.
 expr_marker <- function(env = parent.frame()) {

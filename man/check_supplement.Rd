@@ -18,7 +18,8 @@ names the git checks (\code{"large-file"}, \code{"saved-object"}, and
 }
 \description{
 \code{check_supplement()} looks for problems that can break a release of a
-site or publish files that must stay private. It changes no file. It
+site, publish files that must stay private, or publish the template's
+placeholder values in place of the author's. It changes no file. It
 prints each problem it finds and returns all of them as a data frame.
 }
 \details{
@@ -179,6 +180,34 @@ them too.
 that cannot be read or is not a YAML map (a link to a missing file
 included), and a DOI in \code{CITATION.cff} or on the badge that is not a
 DOI.
+\item \code{"placeholder"}: a template value that the author has not replaced, so
+that a release would archive it. The check compares the site with the
+template that the installed package holds:
+\itemize{
+\item \verb{_supplement.yml} gets one row when \code{paper-title}, \code{citation}, or
+\code{contact} equals the template's value, or an \code{authors} entry has the
+\code{family} and \code{given} of a template author. Values are compared with
+each run of white space read as one space and the ends removed. A
+value that is not one text value does not count. The row names the
+fields.
+\item \verb{_quarto.yml} gets a row for the line
+\verb{href: https://github.com/OWNER/REPO}, \code{index.qmd} for the line
+\verb{## Before your first commit}, \code{LICENSE.md} and \code{LICENSE-CC-BY.md}
+for the line \verb{Copyright (c) YEAR AUTHORS}, and \code{README.md},
+\code{SUPPLEMENT.md}, and \verb{_README.md} for the line
+\verb{Website: https://OWNER.github.io/REPO/}. Spaces, tabs, and a
+carriage return at the ends of a line are ignored. A file that is
+missing, a folder, not UTF-8 text, or that cannot be read gives no
+row.
+\item \code{analyses/example.qmd} and \code{data/example.csv} each get a row when
+their text equals the template's copy, with each CR LF read as LF. A
+file that cannot be read gives no row.
+}
+
+Only a whole value or a whole line counts, so a value that keeps part
+of a placeholder, such as a citation with \code{(Year)} in it, gives no row.
+A site made from an older version of the template, whose placeholders
+differ from the installed ones, gives no row for them.
 }
 
 The \code{"large-file"} and \code{"saved-object"} checks look at the files that git
@@ -210,8 +239,8 @@ text value, or \code{zenodo} is not a map.
 \examples{
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-# A new site has not been rendered, and its example report has no
-# stored output yet.
+# A new site has not been rendered, its example report has no stored
+# output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 problems$check
 unlink(site, recursive = TRUE)
