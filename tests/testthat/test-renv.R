@@ -1,5 +1,5 @@
-# A site set up with renv, as the template guide shows, still renders,
-# checks, and commits as before.
+# A site set up with renv, as the template guide shows, still renders and
+# checks as before, and git keeps its package library out.
 
 # The [execProcess] lines of a Quarto debug log that name R, Rscript, or
 # Rterm, other than a line that looks R up. Quarto logs a command and its

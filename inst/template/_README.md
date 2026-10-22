@@ -325,8 +325,9 @@ then run these commands in R from this folder.
    packages that those need, to `renv.lock`. Commit `renv.lock` with the
    stored output of the render.
 3. On another machine, clone the repository and start R in this folder.
-   `.Rprofile` loads renv. If renv is not installed, `.Rprofile` downloads
-   it first. Install the versions that `renv.lock` records:
+   `.Rprofile` loads renv from `renv/library/`. If renv is not in that
+   library, `.Rprofile` first copies it from renv's cache or downloads it.
+   Install the versions that `renv.lock` records:
 
    ```r
    renv::restore()

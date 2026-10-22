@@ -1,6 +1,6 @@
 # M031: An author can record and restore a site's R packages with renv
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** M030
 - **Driving RR:** —
@@ -77,6 +77,8 @@ The template guide shows how to record and restore a site's R packages with renv
 - 2026-10-22: T4 probe: a clone of a committed renv site with an empty renv root bootstrapped renv by download, `renv::restore()` installed 26 packages in 7 s, and `quarto render analyses/example.qmd` ran R with the `renv/library/` packages.
 - 2026-10-22: T4: guide part "Recording R packages with renv" after "Rendering on the machine with the private data"; a README paragraph in "Add reports and data"; one NEWS bullet. `devtools::test()`: 0 failures, renv tests ran.
 - 2026-10-22: T5: `devtools::check()` 0 errors, 0 warnings, 0 notes on macOS. The R-CMD-check workflow runs at the PR.
+- 2026-10-22: claim audit: 23 claims read, 1 corrected — inst/template/_README.md (renv's start-up script uses only the project library, so it copies renv from renv's cache or downloads it); the test-renv.R header comment's loose "commits" wording was also tightened; the same reader re-read both and found them holding.
+- 2026-10-22: after the corrections, test-create-supplement.R, test-template.R, and test-renv.R pass; status review.
 
 ## Decisions
 
