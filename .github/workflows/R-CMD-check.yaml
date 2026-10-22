@@ -33,7 +33,7 @@ jobs:
       TESTTHAT_CPUS: ${{ matrix.config.cpus }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
