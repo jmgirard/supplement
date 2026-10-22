@@ -39,18 +39,32 @@ long_dir <- function(dir) normalizePath(dir, winslash = "/", mustWork = TRUE)
 # The variable is set with withr, because on Windows system2() passes `env`
 # only to commands such as R that read it from their command line.
 run_in <- function(dir, command, args, env = character()) {
-  is_quarto <- sub("\\.exe$", "", basename(command), ignore.case = TRUE) == "quarto"
+  is_quarto <- is_quarto_command(command)
   log_level <- if (is_quarto && Sys.getenv("QUARTO_LOG_LEVEL") == "") {
     c(QUARTO_LOG_LEVEL = "DEBUG")
   } else {
     character()
   }
-  withr::with_dir(long_dir(dir), withr::with_envvar(log_level, {
-    out <- suppressWarnings(
-      system2(command, args, stdout = TRUE, stderr = TRUE, env = env)
-    )
-  }))
+  run <- function() {
+    withr::with_dir(long_dir(dir), withr::with_envvar(log_level, {
+      suppressWarnings(system2(command, args, stdout = TRUE, stderr = TRUE, env = env))
+    }))
+  }
+  out <- run()
+  if (is_quarto && !is.null(attr(out, "status")) && sass_cache_locked(out)) out <- run()
   list(status = attr(out, "status") %||% 0L, output = out)
+}
+
+is_quarto_command <- function(command) {
+  sub("\\.exe$", "", basename(command), ignore.case = TRUE) == "quarto"
+}
+
+# Quarto 1.10 keeps the Sass it compiles in a database in the user's
+# cache. When test files run in parallel, two renders that write it at
+# once can make one stop with "ERROR: database is locked", so run_in() and
+# run_split() run such a render once more.
+sass_cache_locked <- function(output) {
+  any(grepl("database is locked", output, fixed = TRUE))
 }
 
 # Check the exit status of a result from run_in() or git_in(), and with
@@ -216,7 +230,11 @@ run_split <- function(dir, command, args) {
   out <- tempfile("stdout-")
   err <- tempfile("stderr-")
   on.exit(unlink(c(out, err)))
-  status <- withr::with_dir(long_dir(dir), suppressWarnings(system2(command, args, stdout = out, stderr = err)))
+  run <- function() {
+    withr::with_dir(long_dir(dir), suppressWarnings(system2(command, args, stdout = out, stderr = err)))
+  }
+  status <- run()
+  if (is_quarto_command(command) && status != 0L && sass_cache_locked(read_text(err))) status <- run()
   list(status = status, stdout = read_text(out), stderr = read_text(err))
 }
 
