@@ -41,7 +41,7 @@ The template guide shows how to record and restore a site's R packages with renv
 - [x] T2: Add a helper in `tests/testthat/helper-template.R` that makes the AC1 site. It runs `renv::init()` through `Rscript` in the site folder with `RENV_PATHS_ROOT` set to a temporary folder, so the test never activates renv in its own session. It skips when renv is not installed for that `Rscript` and when a network is needed and missing.
 - [x] T3: Add the AC1 to AC3 tests in a new `tests/testthat/test-renv.R`. Use `expect_status()` for each command. Show that the AC1 pattern finds an R call in each form, one log line per form (`Rscript`, `/usr/bin/R`, `"C:\Program Files\R\bin\Rscript.exe"` quoted and unquoted, `Rterm.exe`, `R.exe`, upper and lower case, short names, `.bat` and `.cmd`), and finds none in Quarto's own tool lines, the lookup lines, and near misses such as `Rscript.lua`. Make the R-CMD-check workflow's skip list count a skip for missing renv as a missing tool (`.github/workflows/R-CMD-check.yaml:86`). Add renv to Suggests in DESCRIPTION and write the D-entry.
 - [x] T4: Write the renv part of `inst/template/_README.md`, after "Rendering on the machine with the private data" (line 237), and a short pointer in `README.md`. Add a NEWS.md bullet.
-- [ ] T5: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
+- [x] T5: Run `devtools::test()` and `devtools::check()`. The R-CMD-check workflow runs at the PR.
 
 ## Work log
 
@@ -76,6 +76,7 @@ The template guide shows how to record and restore a site's R packages with renv
 - 2026-10-22: T3: `test-renv.R` holds the probe test and one test for AC1 to AC3 on one site, so the site renders once; it asserts a pandoc `[execProcess]` line is present and that `renv/library/` holds files. Both renv skip texts count as a missing tool in `check-skips.R`; planted skip logs failed the script for each and passed for "On Windows". renv added to Suggests; D-021 written.
 - 2026-10-22: T4 probe: a clone of a committed renv site with an empty renv root bootstrapped renv by download, `renv::restore()` installed 26 packages in 7 s, and `quarto render analyses/example.qmd` ran R with the `renv/library/` packages.
 - 2026-10-22: T4: guide part "Recording R packages with renv" after "Rendering on the machine with the private data"; a README paragraph in "Add reports and data"; one NEWS bullet. `devtools::test()`: 0 failures, renv tests ran.
+- 2026-10-22: T5: `devtools::check()` 0 errors, 0 warnings, 0 notes on macOS. The R-CMD-check workflow runs at the PR.
 
 ## Decisions
 
