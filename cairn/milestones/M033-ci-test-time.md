@@ -1,0 +1,70 @@
+# M033: Each CI job runs the tests once, in parallel
+
+- **Status:** planned
+- **Priority:** normal
+- **Depends on:** —
+- **Driving RR:** —
+- **Principles touched:** —
+- **Resolves:** —
+- **Surface tier:** internal — the CI workflow, test files, and a testthat field in DESCRIPTION; no package user calls them
+- **Branch/PR:** —
+
+## Goal
+
+Each R-CMD-check job takes at most 60% of its time on the PR #31 run, because the tests run once per job, test files run in parallel, and string-rule loops skip on Windows.
+
+## Scope
+
+**In:** a script that reads the skip section of R CMD check's test output, in place of the second test pass; a short step that runs the two source-reading tests from the checkout; parallel test files; Windows skips for six string-rule loop tests; a D-entry that amends D-016.
+
+**Out:** a coverage report (candidate row "Add a test coverage report to CI"). The render flake (row "template test flake"). Counting a missing renv as a missing tool (M031 T3, which edits the same list). A path filter that skips CI on tracking-only pushes (not asked).
+
+## Acceptance criteria
+
+- [ ] AC1: The skip-list step of `.github/workflows/R-CMD-check.yaml` runs no test. It reads `check/supplement.Rcheck/tests/testthat.Rout.fail` when that file exists, else `testthat.Rout` in the same folder, and prints each line of its "Skipped tests" section. It fails when neither file exists, when the file has no summary line of the form `[ FAIL n | WARN n | SKIP n | PASS n ]` or its last such line shows `PASS 0`, or when the counts in its skip lines do not add up to that line's SKIP count.
+- [ ] AC2: The step joins each skip bullet's wrapped lines into one reason, fails when that reason contains a missing-tool text that its list names, and passes on this milestone's CI `testthat.Rout`, which has none.
+- [ ] AC3: The two tests that skip under R CMD check with "the package source is not here" sit in `tests/testthat/test-source.R`. A workflow step runs that file from the checkout with `testthat::test_local()` and fails when one of its tests fails or skips, or when it runs no test.
+- [ ] AC4: On Windows, the tests "write_citation() and the license shortcode accept and refuse the same ids" and "write_citation() and the DOI badge accept and refuse the same DOIs" in `test-agreement.R`, and "the DOI badge removes a doi: or doi.org link prefix", "the license shortcode shows nothing for an empty value or no license map", "a license value that is not one SPDX id stops the render and names the field", and "the license shortcode stops unless its one argument is code or content" in `test-shortcodes.R`, skip with `skip_on_os("windows")`. No skip line in the macOS or Ubuntu job lists a location inside these six tests. For each shortcode that `inst/template/_extensions/supplement/supplement.lua` registers, at least one test that renders a page with it has no Windows skip, and no skip line in the Windows job lists a location inside that test.
+- [ ] AC5: DESCRIPTION sets `Config/testthat/parallel: true`, and in each CI job testthat runs the suite in at least 2 processes.
+- [ ] AC6: On the milestone's last CI run, each job takes at most 60% of its time in run 39704929580 (windows-latest 1,824 s, macos-latest 822 s, ubuntu-latest 1,017 s), counted from `startedAt` to `completedAt` in `gh run view <id> --json jobs`.
+- [ ] AC7: `devtools::test()` passes with no failures, `devtools::check()` gives 0 errors and 0 warnings, and the R-CMD-check workflow passes on Windows, macOS, and Ubuntu.
+
+## Coverage
+
+- AC1 → T1, T2
+- AC2 → T1, T6
+- AC3 → T2
+- AC4 → T4, T6
+- AC5 → T3, T6
+- AC6 → T6
+- AC7 → T6
+
+## Tasks
+
+- [ ] T1: Write `.github/scripts/check-skips.R`. It takes the folder of the check's tests, picks `testthat.Rout.fail` or `testthat.Rout`, prints the "Skipped tests" section, joins each bullet (`•` or `*`) with its continuation lines, and stops on each AC1 failure and on a reason that holds a text of the missing-tool list (moved from the workflow, `.github/workflows/R-CMD-check.yaml:81`). Run it on the `testthat.Rout` of a local `devtools::check()`, and on copies with one planted skip line for each list text, with each bullet, and with a reason split across two lines. Show each planted copy fails and the real file passes. Record the runs in the work log.
+- [ ] T2: Replace the "List skipped tests" step with a step that runs the T1 script (`if: always()`). Move the two source-reading tests (`test-release-supplement.R:1086`, `test-check-supplement.R:140`) to `tests/testthat/test-source.R`, and add a step that runs it with `testthat::test_local(filter = "^source$")` and stops on a failure, a skip, or no test.
+- [ ] T3: Read the helpers and test files for state that parallel workers share: the `rendered_site()` cache and its `teardown_env()` cleanup, fixed paths outside `tempdir()`, the size fixtures, and Quarto's cache. Fix what breaks. Add `Config/testthat/parallel: true` and `Config/testthat/start-first` for the three slowest files to DESCRIPTION, and set `TESTTHAT_CPUS` in the workflow to each runner's core count. Run `devtools::test()` three times in a row on the Mac and record each time and result in the work log.
+- [ ] T4: Add `skip_on_os("windows")` to the six AC4 tests, with a comment that the rules do not depend on the system. Find one test per shortcode (`supplement-doi`, `supplement-download`, `supplement-data-table`, `supplement-license`) that keeps a Windows render, and record them in the work log.
+- [ ] T5: Append a D-entry that amends D-016: the skip list reads R CMD check's own test output, the source-reading tests run in their own step, test files run in parallel, and the six string-rule loops skip on Windows.
+- [ ] T6: Run `devtools::test()` and `devtools::check()`. Push the branch to start CI. From that run, read each job's time with `gh run view --json jobs`, its "Starting N test processes" line, and its skip lines, and record them in the work log.
+
+## Work log
+
+- 2026-10-21: created by /milestone-plan.
+- 2026-10-21: tier check: milestone — three changes to CI and tests, with choices about Windows coverage and parallel tests.
+- 2026-10-21: idea vet: two concerns, both posed at the question set. Windows skips drop Windows coverage of about 80 renders of OS-independent string rules: skip, at the user's choice. Parallel tests could make the parked render flake show more often: run in parallel, at the user's choice. The skip parse depends on testthat's check reporter format, so AC1 fails on a missing summary line or a count mismatch.
+- 2026-10-21: question set: push the milestone branch during implement to measure CI before review — granted.
+- 2026-10-21: question set: time target — at most 60% of the PR #31 run per job.
+- 2026-10-21: promoted the candidate row "Cut the test time of each CI job" (added 2026-10-21) in full.
+- 2026-10-21: collision check: D-016 sets the second test pass ("The tests run twice in each job"); T5 amends it. M031 T3 edits the missing-tool list in the workflow; if M033 merges first, that list lives in `.github/scripts/check-skips.R`. No other row, archive, or D-entry overlaps.
+- 2026-10-21: inbox sweep: 0 open issues, 0 open PRs.
+- 2026-10-21: baseline, run 39704929580 (PR #31): job times Windows 1,824 s, macOS 822 s, Ubuntu 1,017 s; the second pass took 819 s, 337 s, and 454 s. testthat 3.3.2's check reporter cuts a skip message at its first line break and groups skips as `• reason (n): 'file:line:col', ...`, wrapped with a 2-space indent.
+- 2026-10-21: lessons surfaced: M019/M030 (a branch push restarts all six jobs; Windows jobs take about 30 minutes), M030 (R CMD check's stub `R` and `Rscript` on the PATH), M014 (count failures from `as.data.frame()` of the results).
+- 2026-10-21: criteria audit (reduced mode, fresh Opus reader): 3 findings, all taken. AC2 no longer names a plant matrix and states the reason join; the plants moved to T1. AC4 counts skip-line locations, since skip lines name no test. AC5 no longer names the log line or the Mac runs; those moved to T3 and T6. AC1, AC3, AC6, and AC7 had no finding.
+- 2026-10-21: plan gate chose parsing the check's `testthat.Rout` over keeping a second `test_local()` pass because the second pass took 45% of the Windows and Ubuntu jobs; falsified by a testthat release whose check reporter drops or reshapes the skip section.
+- 2026-10-21: plan gate chose moving the two source-reading tests to their own file over finding the source inside `supplement.Rcheck/00_pkg_src`, because that path belongs to R CMD check's layout; falsified by a third source-reading test that cannot move.
+- 2026-10-21: changelog: none, since the change touches only CI and tests.
+
+## Decisions
+
+## Review

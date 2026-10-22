@@ -58,6 +58,7 @@ The template guide shows how to record and restore a site's R packages with renv
 - 2026-10-21: lessons surfaced: M019 and M020 (match exact `[execProcess]` lines, because Quarto logs its own processes), M018 (`QUARTO_R` and the Windows runner's short folder names), M015 (git config in test repositories).
 - 2026-10-21: criteria audit (full mode, fresh Opus reader): 5 findings for M031, all taken. AC1 now states the deliverable (a full render runs no R), and it allows the Windows lookup line and every form of an R call. The test isolates renv's cache and skips offline (T2). AC4 now limits the no-R claim to reports with stored output. The skip check for renv in the subprocess moved to T2, and CI counting a renv skip as missing moved to T3. AC2 and AC3 had no finding.
 - 2026-10-21: changelog: one new bullet in NEWS.md under 0.0.0.9000.
+- 2026-10-21: cross-reference: M033 moves the workflow's missing-tool list into `.github/scripts/check-skips.R`. If M033 merges first, T3 adds the renv text there.
 
 ## Decisions
 
