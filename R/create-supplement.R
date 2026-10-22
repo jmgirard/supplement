@@ -18,6 +18,11 @@
 #' the render writes the guide to `SUPPLEMENT.md` instead. If `README.md`
 #' and `SUPPLEMENT.md` both exist, it writes no guide. Render the site once before your first commit.
 #'
+#' After it makes the site, the function runs the lookups of
+#' [check_tools()]. Its closing message names each tool that is missing,
+#' too old, or not on the system path. A tool never stops the function,
+#' and the site is the same whether the tools are found or not.
+#'
 #' Hidden files and folders in the template folder are not copied, and
 #' neither are `docs`, `_freeze`, or `_site` folders at its top level,
 #' which hold render output.
@@ -111,15 +116,40 @@ create_supplement <- function(path, repo = NULL) {
   }
   done <- TRUE
 
+  tools <- tool_problems()
   cli::cli_inform(c(
     "v" = "Made a supplement site in {.path {path}}.",
     if (is.null(repo)) {
       c("i" = "Replace {.code OWNER/REPO} in {.file _quarto.yml}, and {.code OWNER} and {.code REPO} in the site address in {.file _README.md}, with your GitHub repository.")
     },
     "i" = "Put the paper facts in {.file _supplement.yml}.",
-    "i" = "Run {.code quarto render} in {.path {path}} once before your first commit."
+    "i" = "Run {.code quarto render} in {.path {path}} once before your first commit.",
+    # Each line refers to an element of `tools`, so that cli reads the
+    # tool text as a value and not as markup.
+    named_all(sprintf("{tools[%d]}", seq_along(tools)), "!"),
+    if (length(tools) > 0L) {
+      c("i" = "Run {.code check_tools()} to see every tool that the site needs.")
+    }
   ))
   invisible(given)
+}
+
+# One line for each row of the check_tools() lookups whose status is
+# missing, too old, or not on path. A tool row never stops site setup, so
+# an error or a warning in the lookups gives no line.
+tool_problems <- function() {
+  rows <- tryCatch(tool_rows(), error = function(e) NULL, warning = function(w) NULL)
+  if (is.null(rows)) {
+    return(character())
+  }
+  rows <- rows[rows$status %in% c("missing", "too old", "not on path"), ]
+  sprintf("%s: %s. %s", rows$tool, rows$status, rows$detail)
+}
+
+# `x` with every element named `name`.
+named_all <- function(x, name) {
+  names(x) <- rep(name, length(x))
+  x
 }
 
 template_path <- function() {

@@ -39,6 +39,11 @@ the template's rules to an existing \code{.gitignore}. If \code{README.md} exist
 the render writes the guide to \code{SUPPLEMENT.md} instead. If \code{README.md}
 and \code{SUPPLEMENT.md} both exist, it writes no guide. Render the site once before your first commit.
 
+After it makes the site, the function runs the lookups of
+\code{\link[=check_tools]{check_tools()}}. Its closing message names each tool that is missing,
+too old, or not on the system path. A tool never stops the function,
+and the site is the same whether the tools are found or not.
+
 Hidden files and folders in the template folder are not copied, and
 neither are \code{docs}, \verb{_freeze}, or \verb{_site} folders at its top level,
 which hold render output.
