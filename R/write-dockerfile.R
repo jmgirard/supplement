@@ -114,11 +114,15 @@
 #'   whole numbers joined by `.`. A development version such as
 #'   `1.1.5.9000` is such an error, because the build installs released
 #'   versions. An R version older than 4.0.0 or a renv version older than
-#'   1.3.1 is also this error.
+#'   1.3.1 is also this error. So is a key that the function reads, given
+#'   twice in the same object: `R` or `Packages` at the top level,
+#'   `Version` in `R`, `renv` in `Packages`, or `Version` in that `renv`
+#'   entry. This check comes before the version checks.
 #' * `supplement_error_file_exists`: `Dockerfile` or `.dockerignore`
 #'   exists and `overwrite` is `FALSE`. A folder or a link at either path is
 #'   this error even when `overwrite` is `TRUE`, because a write would
-#'   follow the link.
+#'   follow the link. On Windows a file link to a missing file is not seen
+#'   as a link, so with `overwrite = TRUE` it is written through.
 #' * `supplement_error_write`: a file was opened, but writing it gave an
 #'   error or a warning, or the file then has another size than the text.
 #'

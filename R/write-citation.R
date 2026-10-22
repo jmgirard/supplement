@@ -72,9 +72,11 @@
 #'   `http://orcid.org/` in front,
 #'   or its last character is not the iD's check digit. The last character
 #'   can be `X`.
-#' * `supplement_error_file_exists`: the output file (or a link with its
-#'   name) exists and `overwrite` is `FALSE`, or a folder has the output
-#'   file's name.
+#' * `supplement_error_file_exists`: the output file exists and
+#'   `overwrite` is `FALSE`. A folder or a link at the output path is this
+#'   error even when `overwrite` is `TRUE`, because a write would follow
+#'   the link. On Windows a file link to a missing file is not seen as a
+#'   link, so with `overwrite = TRUE` it is written through.
 #' * `supplement_error_write`: the output file was opened, but writing it
 #'   gave an error or a warning (R warns when the disk is full), or the
 #'   file then has another size than the text.

@@ -58,6 +58,7 @@
 - 2026-10-22: T1 done: `devtools::test()` 336 tests, 0 failed, 8 skipped.
 - 2026-10-22: checkpoint (T2 not checked off): repeated-key check in `read_lockfile_versions()` before any value check; on main the new test failed with no error raised, and the dockerfile test file passes with the change. Full suite running.
 - 2026-10-22: T2 done: `devtools::test()` 338 tests, 0 failed, 8 skipped.
+- 2026-10-22: checkpoint (T3 not checked off): Errors sections, help pages, two NEWS bullets, and DESIGN Architecture and Known issue updated; the Windows sentence says a missing-target file link is written through only with `overwrite = TRUE`, since with `FALSE` it reads as an existing file (the `is_reparse_point()` comment). `devtools::check()` running.
 
 ## Decisions
 
