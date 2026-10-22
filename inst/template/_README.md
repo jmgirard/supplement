@@ -466,11 +466,10 @@ git does not keep empty folders. If `_quarto.yml` sets
 `execute-dir: project`, this path also works.
 
 The example report saves `figures/bootstrap-means.png` with its
-`save_png()` function. Copy that function into your own reports, after the
-`site` chunk and the `figures` lines above, because it saves into
-`figures`. It takes a
-function that draws the plot. For a ggplot `p`, pass
-`function() print(p)`. It draws into a temporary file in `figures/`. It
+`save_png()` function. To use it in your own reports, copy the `site`
+chunk, the `figures` lines above, and then the function, because it saves
+into `figures`. It takes a function that draws the plot. For a ggplot
+`p`, pass `function() print(p)`. It draws into a temporary file in `figures/`. It
 gives that file its name only after the plot succeeds, so a failed plot
 leaves no partial file there. `.gitignore` blocks the temporary files, in
 case R stops before it removes one. If `figures` is a file and not a
