@@ -441,11 +441,11 @@ figures change.
 
 Save each figure for the paper in `figures/`. During a render, Quarto sets
 `QUARTO_PROJECT_DIR` to the site folder. When you run a report's code by
-hand, it is not set. The code then looks for `_quarto.yml` in the current
-folder first, then in the folder above it, and uses the first folder that
-holds it. If neither holds it, the code
-stops and says to run it from the site folder or from `analyses/`. So a
-report finds `figures/` as:
+hand, the variable is missing. If it is missing or empty, the code looks
+for `_quarto.yml` in the current folder and then in the folder above it.
+It uses the first folder that holds the file. If neither holds it, the
+code stops and says to run it from the site folder or from `analyses/`.
+So a report finds `figures/` as:
 
 ```r
 site <- Sys.getenv("QUARTO_PROJECT_DIR")

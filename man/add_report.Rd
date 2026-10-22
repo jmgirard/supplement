@@ -34,11 +34,12 @@ there too.
 }
 \details{
 The first code chunk of the new report is the \code{site} chunk of the
-template's example report, which sets \code{site} to the site folder. If \code{QUARTO_PROJECT_DIR} is
-not empty, as in a render, \code{site} is its value. Otherwise \code{site} is \code{"."}
-or \code{".."}, the first of the two that holds \verb{_quarto.yml}, and the chunk
-stops with an error if neither holds it. The report's text says to read
-a data file as \code{file.path(site, "data", "<file name>")}.
+template's example report, which sets \code{site} to the site folder. If
+\code{QUARTO_PROJECT_DIR} is not empty, as in a render, \code{site} is its value.
+Otherwise \code{site} is \code{"."} or \code{".."}, the first of the two that holds
+\verb{_quarto.yml}, and the chunk stops with an error if neither holds it.
+The report's text says to read a data file as
+\code{file.path(site, "data", "<file name>")}.
 
 The new report ends with a "Computing environment" section, the same as
 the template's example report. It prints the R and package versions of

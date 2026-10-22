@@ -34,7 +34,7 @@ The example report and each report from `add_report()` find the site folder by o
 - AC2 → T1
 - AC3 → T3
 - AC4 → T4
-- AC5 → T5
+- AC5 → T5, T8
 - AC6 → T6
 
 ## Tasks
@@ -46,6 +46,7 @@ The example report and each report from `add_report()` find the site folder by o
 - [x] T5: Change `inst/template/_README.md` (around lines 268-272 and 440-455) for AC5, add the README comparison test, and run the AC5 grep.
 - [x] T6: Change the `NEWS.md` bullets (around line 130) for AC6 and the example rule in `cairn/DESIGN.md` Architecture (line 186). Run `devtools::test()` and `devtools::check()`.
 - [x] T7: Review return 1. In `inst/template/analyses/example.qmd`, make the prose before the `site` chunk state the stop and the empty-variable case. Describe the stub's first `site` chunk in the `add_report()` roxygen and run `devtools::document()`. Name `site_chunk()` in `cairn/DESIGN.md` Architecture, fix NEWS.md's fits sentence, and make the nested-site test comment say why.
+- [ ] T8: Review return 2. Make the "Paper figures" prose in `inst/template/_README.md` state that an empty `QUARTO_PROJECT_DIR` counts as unset. Remove the repeated "not set" from the example prose, and rewrap the long roxygen line in `R/add-report.R`, then run `devtools::document()`.
 
 ## Work log
 
@@ -73,6 +74,7 @@ The example report and each report from `add_report()` find the site folder by o
 - 2026-10-22: T7 (checkpoint): example.qmd prose states the empty-variable case and the stop; the `add_report()` roxygen and `man/add_report.Rd` describe the first `site` chunk; DESIGN names `site_chunk()`; NEWS fits sentence and the test comment fixed. Full `devtools::test()` (NOT_CRAN=true): 336 tests, 0 failed, 0 errors, 8 skipped. The claim audit of these lines was running at this commit.
 - 2026-10-22: claim audit: 14 claims read, 0 corrected — inst/template/analyses/example.qmd, R/add-report.R, man/add_report.Rd, NEWS.md, tests/testthat/test-template.R (T7 lines, 9a8b3b1..7419829).
 - 2026-10-22: review return 2: AC5 fails. The "Paper figures" prose in `inst/template/_README.md` (lines 443-445) omits that an empty `QUARTO_PROJECT_DIR` counts as unset. The same task carries the pass-2 fix-now items: the repeated "not set" in the example prose (lines 12-13) and the 94-character roxygen line in `R/add-report.R` (line 10).
+- 2026-10-22: T8 (checkpoint): the README "Paper figures" prose and the example prose now both say the variable is missing when code runs by hand and that a missing or empty value starts the `_quarto.yml` search; the roxygen paragraph is rewrapped (it held a 103-character line after the T7 edit), and `devtools::document()` rewrote `man/add_report.Rd`. Full `devtools::test()` (NOT_CRAN=true): 336 tests, 0 failed, 0 errors, 8 skipped. The claim audit was running at this commit.
 
 ## Decisions
 
