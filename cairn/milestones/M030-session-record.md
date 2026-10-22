@@ -75,6 +75,7 @@ The template's example report and each report that `add_report()` writes end wit
 - 2026-10-21: question set (implement stop, dependency change): sessioninfo in Suggests — the user chose to add it. DESCRIPTION lists it, the CI skip list counts `{sessioninfo}` as a missing tool, and D-019 records it. Checks after this change are still to run.
 - 2026-10-21: claim audit: 31 claims read, 1 corrected — cairn/DECISIONS.md D-019 Context (the CI skip-list step runs outside R CMD check and does not fail on a failed test). D-019 was corrected in place before it reached the default branch.
 - 2026-10-21: T7 done: with sessioninfo in Suggests, `devtools::check()` gave 0 errors, 0 warnings, 0 notes. The suite before that change gave 309 tests, 0 failed, 7 skipped.
+- 2026-10-21: step-7 approval: m030-session-record approved for merge
 
 ## Decisions
 
