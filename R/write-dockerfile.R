@@ -55,9 +55,9 @@
 #' ```
 #'
 #' and pass the `Digest:` value, such as `"sha256:bafb..."`, as `digest`.
-#' The Ubuntu packages that the build installs for R packages come from
-#' Ubuntu's package archive at build time, so they can be newer in a later
-#' build even with `digest`.
+#' The build also installs Ubuntu packages for the R packages. These come
+#' from Ubuntu's package archive at build time, so they can be newer in a
+#' later build even with `digest`.
 #'
 #' To keep the built image itself, write it to a file that you can archive:
 #'

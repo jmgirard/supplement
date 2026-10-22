@@ -82,9 +82,9 @@ pin the base image, read the digest of its multi-platform index:
 }\if{html}{\out{</div>}}
 
 and pass the \verb{Digest:} value, such as \code{"sha256:bafb..."}, as \code{digest}.
-The Ubuntu packages that the build installs for R packages come from
-Ubuntu's package archive at build time, so they can be newer in a later
-build even with \code{digest}.
+The build also installs Ubuntu packages for the R packages. These come
+from Ubuntu's package archive at build time, so they can be newer in a
+later build even with \code{digest}.
 
 To keep the built image itself, write it to a file that you can archive:
 

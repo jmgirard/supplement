@@ -27,6 +27,12 @@
   `renv::restore()` on another machine. In a site set up with renv, a full
   render from stored output still runs no R. `check_supplement()` finds
   no problem in it, and git keeps `renv/library/` out.
+* `write_dockerfile()` reads the R and renv versions in `renv.lock` and
+  writes a `Dockerfile` that builds an image with that R, the packages in
+  `renv.lock`, and a given Quarto version. It also writes a `.dockerignore`
+  that lets only `renv.lock` into the build. `digest` pins the base image.
+  The template guide shows how to build the image and render a report in
+  it.
 * `check_supplement()` lists the problems in a site before a release, and
   changes no file. It finds files larger than 100 MiB, and saved R
   objects that git tracks or does not ignore. It finds reports with code

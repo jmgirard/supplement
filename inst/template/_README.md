@@ -350,6 +350,81 @@ The two can differ. A report that you render by name after the last
 snapshot shows the packages of that render. `renv.lock` shows them only after the
 next `renv::snapshot()`.
 
+## Running reports in a container
+
+Docker runs a program in a container, an isolated system built from an
+image. After you set up renv, supplement can write the recipe for an image.
+The image holds the R version and the R packages in `renv.lock`, and Quarto. A
+report that you render in that image runs with those versions on any
+machine that has Docker.
+
+1. Write the recipe. In R, in this folder, run:
+
+   ```r
+   supplement::write_dockerfile(quarto = "1.10.19")
+   ```
+
+   Give the Quarto version that you render with. `quarto --version` in a
+   terminal shows it. The function writes `Dockerfile` and
+   `.dockerignore`. Commit both files.
+2. Build the image. In a terminal, in this folder, run:
+
+   ```
+   docker build -t my-supplement .
+   ```
+
+   The image starts from `rocker/r-ver` with the R version in
+   `renv.lock`. The build installs Quarto, the Ubuntu packages that the R
+   packages need, and the R packages, renv included. `.dockerignore` lets
+   only `renv.lock` into the build, so the image holds no other file from
+   this folder and no data.
+3. Render one report in the image, with this folder mounted at `/site`. On
+   macOS and Linux, run:
+
+   ```
+   docker run --rm --network none --user "$(id -u):$(id -g)" -e HOME=/tmp \
+     -v "$PWD":/site my-supplement quarto render analyses/example.qmd
+   ```
+
+   The render reads the data in this folder and writes the stored output
+   and the page here. `--network none` shows that the render needs nothing
+   from the network. `--user` makes you the owner of the files that it
+   writes. The report's Computing environment section then shows the R
+   version and the packages of the image.
+
+After `renv::snapshot()` changes `renv.lock`, build the image again. If the
+R version or the renv version in `renv.lock` changed, first run
+`write_dockerfile()` again with `overwrite = TRUE`.
+
+A tag such as `rocker/r-ver:4.6.1` can move to a newer image, so a later
+build can get newer system libraries. To pin the base image, show the
+digest of its multi-platform index:
+
+```
+docker buildx imagetools inspect rocker/r-ver:4.6.1
+```
+
+Copy the value after `Digest:` at the top of the output, and write the
+recipe again with it:
+
+```r
+supplement::write_dockerfile(quarto = "1.10.19", digest = "sha256:...", overwrite = TRUE)
+```
+
+The build also installs Ubuntu packages for the R packages. These come
+from Ubuntu's package archive at build time, so they can still be newer in
+a later build.
+
+To keep the built image, save it to a file and archive the file:
+
+```
+docker save -o my-supplement.tar my-supplement
+```
+
+`docker load -i my-supplement.tar` reads the image back. The Zenodo archive
+of a GitHub release holds the committed `Dockerfile` and `.dockerignore`,
+but not the image.
+
 ## Stable figures
 
 Call `set.seed(` with a fixed number before each random draw, for example
