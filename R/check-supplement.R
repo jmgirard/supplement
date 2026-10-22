@@ -993,7 +993,51 @@ plain_files <- function(dir) {
 
 # The rows for the template's placeholders that the site still holds.
 check_placeholders <- function(path, meta) {
-  rbind(placeholder_values(meta))
+  rbind(placeholder_values(meta), placeholder_line_rows(path))
+}
+
+# Lines of the template's files that the author replaces or deletes. The
+# guide is `_README.md` in the template and becomes `README.md`, or
+# `SUPPLEMENT.md` beside an existing README, at the first render.
+placeholder_lines <- list(
+  "_quarto.yml" = "href: https://github.com/OWNER/REPO",
+  "index.qmd" = "## Before your first commit",
+  "LICENSE.md" = "Copyright (c) YEAR AUTHORS",
+  "LICENSE-CC-BY.md" = "Copyright (c) YEAR AUTHORS",
+  "README.md" = "Website: https://OWNER.github.io/REPO/",
+  "SUPPLEMENT.md" = "Website: https://OWNER.github.io/REPO/",
+  "_README.md" = "Website: https://OWNER.github.io/REPO/"
+)
+
+placeholder_line_problems <- c(
+  "_quarto.yml" = "The GitHub link names OWNER/REPO. Write your GitHub repository in its place.",
+  "index.qmd" = "The \"Before your first commit\" box is still on the home page. Delete it.",
+  "LICENSE.md" = "The copyright line reads YEAR AUTHORS. Write the year and the authors in its place.",
+  "LICENSE-CC-BY.md" = "The copyright line reads YEAR AUTHORS. Write the year and the authors in its place.",
+  "README.md" = "The site address names OWNER and REPO. Write your GitHub account and repository in their place.",
+  "SUPPLEMENT.md" = "The site address names OWNER and REPO. Write your GitHub account and repository in their place.",
+  "_README.md" = "The site address names OWNER and REPO. Write your GitHub account and repository in their place."
+)
+
+# A row for each file of `placeholder_lines` that has its line, once
+# spaces, tabs, and a CR at the ends of each line are removed. A missing
+# file, a folder, or a file that is not UTF-8 text gives no row.
+placeholder_line_rows <- function(path) {
+  files <- names(placeholder_lines)
+  found <- vapply(files, function(file) {
+    lines <- plain_lines(file.path(path, file))
+    placeholder_lines[[file]] %in% gsub("^[ \t\r]+|[ \t\r]+$", "", lines)
+  }, logical(1))
+  problem_rows("placeholder", files[found], placeholder_line_problems[files[found]])
+}
+
+# The lines of a UTF-8 text file, or none when it is missing, a folder, or
+# cannot be read as UTF-8 text.
+plain_lines <- function(file) {
+  if (!file.exists(file) || dir.exists(file)) {
+    return(character())
+  }
+  tryCatch(read_text_lines(file)$lines, error = function(e) character(), warning = function(w) character())
 }
 
 # The `supplement:` map of the installed template's _supplement.yml.
