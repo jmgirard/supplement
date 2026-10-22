@@ -91,3 +91,5 @@ The template guide shows how to record and restore a site's R packages with renv
 - spawned: diff-bug, blame-history, prior-review, ripple
 - ripple #1: the ROADMAP row "Keep tests within the Suggests floors" lists the Suggests entries with no floor and omits the new renv entry — fix now (row corrected in place).
 - ripple #2: README.md's summary of the guide's topics omits the new renv part — fix now (one sentence added).
+- prior-review #1: the renv test adds a render and a `renv::init()` to each CI job, after M033 cut job times — reject (planned change: AC5 asks this test to pass in the workflow; the file took 6.9 s locally, and the workflow has three jobs, not six).
+- prior-review #2: `list.files()` on `renv/library/` omits `all.files = TRUE` (M006 lesson) — reject (false: the line only shows the library is not empty, and renv's platform folders there are not hidden names, so the result does not change).
