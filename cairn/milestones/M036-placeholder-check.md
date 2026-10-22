@@ -1,13 +1,13 @@
 # M036: The release stops on template placeholders
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — a new row of the exported `check_supplement()`, which stops `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m036-placeholder-check
 
 ## Goal
 
@@ -57,6 +57,8 @@
 - 2026-10-22: criteria audit (full mode, fresh Opus reader) returned 11 findings, all fixed: AC2 and AC3 now say that a folder or a file that cannot be read as UTF-8 gives no row and no stop, with probes, since `read_text_lines()` stops on such a file; AC4 gets `checked_site(placeholders = FALSE)` and a rewritten stored hash; T4 calls the helper inside `renv_site()` before its render; AC1 defines equality, an empty template value, and wrong types, with mixed-author probes; AC3 reads CR LF as LF for Windows clones; the Goal is narrowed to the listed placeholders; AC2's template-line sentence states a template property; AC5 covers the opening sentence and the example comment; two task line numbers corrected. A dangling-link probe was left out, because on Windows such a link reads as an existing file (LESSONS M018) and on other systems it reads as missing.
 - 2026-10-22: lessons applied: M011 (edit test files with `writeBin()`, since `writeLines()` writes CRLF on Windows), M018 (Windows link behavior), M001 and M027 (edit a report before its stored hash is written, or it gets a `stale-output` row).
 - 2026-10-22: changelog: AC5 edits the existing unreleased `check_supplement()` bullet in `NEWS.md` and adds none.
+- 2026-10-22: implement started on branch m036-placeholder-check, cut from main at 7d391d9.
+- 2026-10-22: T1 checkpoint: `check_placeholders()` and `placeholder_values()` in `R/check-supplement.R`, with five tests; the template is read through `template_supplement()`, so a test can mock it. The zero-row test "a rendered site in a git repository has no problems" now fails until T4's helper; T1 to T3 are ticked once the suite is clean.
 
 ## Decisions
 

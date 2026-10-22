@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-22 (M035 review: graduated "Refuse links in the cit
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M036 | The release stops on template placeholders | planned | — | normal | milestones/M036-placeholder-check.md |
+| M036 | The release stops on template placeholders | in-progress | — | normal | milestones/M036-placeholder-check.md |
 | M035 | The writers refuse links and repeated lockfile keys | done | — | normal | milestones/archive/M035-writer-refusals.md |
 | M034 | Reports find the site folder from any folder | done | — | normal | milestones/archive/M034-report-paths.md |
 | M033 | Each CI job runs the tests once, in parallel | done | — | normal | milestones/archive/M033-ci-test-time.md |

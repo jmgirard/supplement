@@ -217,7 +217,8 @@ check_supplement <- function(path = ".") {
     check_stale_output(path),
     check_links(path),
     check_unpublished_figures(path),
-    check_dois(path, meta, call = environment())
+    check_dois(path, meta, call = environment()),
+    check_placeholders(path, meta)
   )
   rows <- Filter(Negate(is.null), rows)
   result <- if (length(rows) > 0) do.call(rbind, rows) else problem_rows()
@@ -986,6 +987,76 @@ plain_files <- function(dir) {
     queue <- c(queue, paths[plain & folder])
   }
   files
+}
+
+# Template placeholders -------------------------------------------------------
+
+# The rows for the template's placeholders that the site still holds.
+check_placeholders <- function(path, meta) {
+  rbind(placeholder_values(meta))
+}
+
+# The `supplement:` map of the installed template's _supplement.yml.
+template_supplement <- function() {
+  read_supplement(system.file("template", package = "supplement", mustWork = TRUE))
+}
+
+# One row naming each of paper-title, citation, contact, and authors whose
+# value equals the installed template's. An author counts when its family
+# and given both equal those of one template author. A value that is not
+# one text value never counts, and neither does an empty template value.
+placeholder_values <- function(meta) {
+  template <- template_supplement()
+  fields <- c("paper-title", "citation", "contact")
+  left <- fields[vapply(fields, function(field) {
+    same_text(meta[[field]], template[[field]])
+  }, logical(1))]
+  template_authors <- lapply(list_entries(template[["authors"]]), author_key)
+  template_authors <- Filter(Negate(is.null), template_authors)
+  site_authors <- lapply(list_entries(meta[["authors"]]), author_key)
+  if (any(vapply(site_authors, function(key) {
+    !is.null(key) && any(vapply(template_authors, identical, logical(1), key))
+  }, logical(1)))) {
+    left <- c(left, "authors")
+  }
+  if (length(left) == 0) {
+    return(problem_rows())
+  }
+  problem_rows(
+    "placeholder", "_supplement.yml",
+    paste0("Template values left in place: ", paste(left, collapse = ", "),
+           ". Replace them before a release.")
+  )
+}
+
+# A value with its spaces cleaned, or NULL when it is not one non-empty
+# text value.
+plain_text <- function(x) {
+  if (!is.character(x) || length(x) != 1 || is.na(x)) {
+    return(NULL)
+  }
+  x <- clean_space(x)
+  if (nzchar(x)) x
+}
+
+same_text <- function(x, template) {
+  x <- plain_text(x)
+  !is.null(x) && identical(x, plain_text(template))
+}
+
+# The entries of a YAML sequence, or none when `x` is not one.
+list_entries <- function(x) {
+  if (is.list(x) && is.null(names(x))) x else list()
+}
+
+# The cleaned family and given of an author map, or NULL when the entry is
+# not a map or either is not one non-empty text value.
+author_key <- function(entry) {
+  if (!is_map(entry)) {
+    return(NULL)
+  }
+  key <- list(plain_text(entry[["family"]]), plain_text(entry[["given"]]))
+  if (any(vapply(key, is.null, logical(1)))) NULL else unlist(key)
 }
 
 # DOIs ------------------------------------------------------------------------

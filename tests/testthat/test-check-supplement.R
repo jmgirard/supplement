@@ -1211,3 +1211,109 @@ test_that("a failed listing of ignored files skips the three git checks", {
   expect_false(any(result$check %in% c("large-file", "saved-object", "ignored-output")))
   expect_match(gsub("\\s+", " ", paste(msgs, collapse = " ")), "`git ls-files` failed", fixed = TRUE)
 })
+
+# Template placeholders ---------------------------------------------------------
+
+placeholder_rows <- function(site) rows_of(check_quiet(site), "placeholder")
+
+# The fields that the _supplement.yml placeholder row names, in its order.
+placeholder_fields <- function(site) {
+  rows <- placeholder_rows(site)
+  rows <- rows[rows$file == "_supplement.yml", , drop = FALSE]
+  if (nrow(rows) == 0) {
+    return(character())
+  }
+  expect_identical(nrow(rows), 1L)
+  listed <- sub("^Template values left in place: ([^.]*)\\..*$", "\\1", rows$problem)
+  strsplit(listed, ", ", fixed = TRUE)[[1]]
+}
+
+# Put `lines` in place of the `authors:` list of a site's _supplement.yml.
+set_authors <- function(site, lines) {
+  yml <- file.path(site, "_supplement.yml")
+  old <- readLines(yml, encoding = "UTF-8")
+  from <- which(old == "  authors:")
+  to <- grep("^  # With Zenodo", old)
+  stopifnot(length(from) == 1, length(to) == 1)
+  new <- c(old[seq_len(from - 1)], lines, old[to:length(old)])
+  writeBin(charToRaw(enc2utf8(paste0(paste(new, collapse = "\n"), "\n"))), yml)
+}
+
+set_meta_line <- function(site, key, line) {
+  yml <- file.path(site, "_supplement.yml")
+  lines <- readLines(yml, encoding = "UTF-8")
+  i <- grep(paste0("^  ", key, ":"), lines)
+  stopifnot(length(i) == 1)
+  lines[i] <- line
+  writeBin(charToRaw(enc2utf8(paste0(paste(lines, collapse = "\n"), "\n"))), yml)
+}
+
+real_author <- c('    - family: "Doe"', '      given: "Jane"')
+
+change_meta <- list(
+  "paper-title" = function(site) set_meta_line(site, "paper-title", '  paper-title: "Effects of sleep"'),
+  citation = function(site) set_meta_line(site, "citation", '  citation: "Doe, J. (2026). Effects of sleep. *Sleep*."'),
+  contact = function(site) set_meta_line(site, "contact", '  contact: "Jane Doe, University A."'),
+  authors = function(site) set_authors(site, c("  authors:", real_author))
+)
+
+test_that("template values in _supplement.yml give one placeholder row that names them", {
+  site <- new_site()
+  expect_identical(placeholder_fields(site), names(change_meta))
+
+  for (kept in names(change_meta)) {
+    site <- new_site()
+    for (field in setdiff(names(change_meta), kept)) change_meta[[field]](site)
+    expect_identical(placeholder_fields(site), kept, info = kept)
+  }
+
+  site <- new_site()
+  for (field in names(change_meta)) change_meta[[field]](site)
+  expect_identical(placeholder_fields(site), character())
+})
+
+test_that("an author counts only when both family and given are a template author's", {
+  others <- function(env = parent.frame()) {
+    site <- new_site(env)
+    for (field in c("paper-title", "citation", "contact")) change_meta[[field]](site)
+    site
+  }
+  site <- others()
+  set_authors(site, c("  authors:", real_author, '    - family: "Author"', '      given: "B. B."'))
+  expect_identical(placeholder_fields(site), "authors")
+
+  for (author in list(c("Author", "Jane"), c("Smith", "A. A."))) {
+    site <- others()
+    set_authors(site, c("  authors:", sprintf('    - family: "%s"', author[1]), sprintf('      given: "%s"', author[2])))
+    expect_identical(placeholder_fields(site), character(), info = author)
+  }
+})
+
+test_that("a template value with other white space still counts", {
+  site <- new_site()
+  set_meta_line(site, "paper-title", '  paper-title: "  Title   of the\\tpaper "')
+  expect_contains(placeholder_fields(site), "paper-title")
+})
+
+test_that("a value that is not text gives no placeholder row for it and no error", {
+  site <- new_site()
+  set_meta_line(site, "paper-title", "  paper-title: 2024")
+  set_authors(site, c("  authors:", '    - "Author, A. A."'))
+  expect_no_error(fields <- placeholder_fields(site))
+  expect_identical(fields, c("citation", "contact"))
+
+  site <- new_site()
+  set_meta_line(site, "contact", "  contact: [Your Name, Your Institution]")
+  set_authors(site, '  authors: "Author, A. A."')
+  expect_no_error(fields <- placeholder_fields(site))
+  expect_identical(fields, c("paper-title", "citation"))
+})
+
+test_that("an empty template value never counts", {
+  site <- new_site()
+  set_meta_line(site, "paper-title", '  paper-title: ""')
+  template <- read_supplement(template_dir())
+  template[["paper-title"]] <- ""
+  local_mocked_bindings(template_supplement = function() template)
+  expect_identical(placeholder_fields(site), c("citation", "contact", "authors"))
+})
