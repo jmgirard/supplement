@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — template code that site authors run and copy into their reports
-- **Branch/PR:** m046-linked-figures
+- **Branch/PR:** m046-linked-figures, https://github.com/jmgirard/supplement/pull/47
 
 ## Goal
 
