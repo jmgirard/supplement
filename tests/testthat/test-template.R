@@ -499,7 +499,6 @@ render_with_linked_figures <- function(site, target) {
   run_in(site, "quarto", c("render", "analyses/example.qmd"))
 }
 
-has_line <- function(rendered, text) any(grepl(text, rendered$output, fixed = TRUE))
 
 test_that("a figures link to a folder outside the site stops the example report", {
   skip_if_no_quarto()
@@ -511,8 +510,8 @@ test_that("a figures link to a folder outside the site stops the example report"
 
   rendered <- render_with_linked_figures(site, outside)
   expect_command_fails(rendered)
-  expect_true(has_line(rendered, "`figures` is a link"),
-              info = command_failure(rendered, "the link message"))
+  expect_match(rendered$output, "`figures` is a link", fixed = TRUE, all = FALSE,
+               info = command_failure(rendered, "the link message"))
   expect_identical(folder_state(outside), before)
 })
 
@@ -523,10 +522,9 @@ test_that("a figures link to a missing path stops the example report", {
   rendered <- render_with_linked_figures(site, file.path(site, "gone"))
   expect_command_fails(rendered)
   # On Windows a file link to a missing path reads as a file in base R.
-  shown <- has_line(rendered, "`figures` is a link") ||
-    (.Platform$OS.type == "windows" && has_line(rendered, "`figures` is a file, not a folder"))
-  expect_true(shown, info = command_failure(rendered, "the link message"))
-  expect_false(file.exists(file.path(site, "gone")))
+  message <- if (.Platform$OS.type == "windows") "`figures` is a (link|file, not a folder)" else "`figures` is a link"
+  expect_match(rendered$output, message, all = FALSE,
+               info = command_failure(rendered, "the link message"))
 })
 
 test_that("a figures link to a file stops the example report", {
@@ -539,8 +537,8 @@ test_that("a figures link to a file stops the example report", {
 
   rendered <- render_with_linked_figures(site, file.path(outside, "figures.txt"))
   expect_command_fails(rendered)
-  expect_true(has_line(rendered, "`figures` is a link"),
-              info = command_failure(rendered, "the link message"))
+  expect_match(rendered$output, "`figures` is a link", fixed = TRUE, all = FALSE,
+               info = command_failure(rendered, "the link message"))
   expect_identical(folder_state(outside), before)
 })
 

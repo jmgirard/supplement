@@ -494,14 +494,15 @@ writes the same chunk as the first chunk of each new report. If
 
 To save figures in your own reports, copy the whole `save-figure` chunk
 of the example report. Put it after the `site` chunk and after the chunks
-that make your plot's data. Then replace its last
-`save_png()` call, which saves the example figure, with your own. The
-chunk sets `figures` to
-the `figures/` folder of the site. If `figures` is a link, or on Windows
-a junction, the chunk stops with a message. A link can send the figures
-outside the site, and git commits a symbolic link without the figures. If `figures` is a file
-and not a folder, the chunk also stops. Then it makes the folder in a
-clone where it is missing, because git does not keep empty folders.
+that make your plot's data. Then replace its last `save_png()` call,
+which saves the example figure, with your own.
+
+The chunk sets `figures` to the `figures/` folder of the site. If
+`figures` is a link, or on Windows a junction, the chunk stops with a
+message. A link can send the figures outside the site, and git commits a
+symbolic link without the figures. If `figures` is a file and not a
+folder, the chunk also stops. If the folder is missing, as in a new clone,
+the chunk makes it, because git does not keep empty folders.
 
 The chunk's `save_png()` function saves `figures/bootstrap-means.png` in
 the example. It takes a function that draws the plot. For a ggplot `p`,

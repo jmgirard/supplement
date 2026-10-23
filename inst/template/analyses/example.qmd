@@ -50,9 +50,11 @@ hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
 ## Paper Figures
 
 Save each figure for the paper in `figures/`, which git tracks and the site
-publishes. `save_png()` runs a function that draws the plot. It draws into a
-temporary file in `figures/` and gives that file its name only when the
-plot succeeds, so a failed plot leaves no partial file there.
+publishes. The chunk stops when `figures` is a link or a file. `save_png()`
+runs a function that draws the plot. It draws into a temporary file in
+`figures/`. It gives that file its name only when the plot succeeds and the
+file ends as a whole PNG file does. So a failed plot, or a file cut short,
+leaves no partial file there.
 
 ```{r}
 #| label: save-figure
