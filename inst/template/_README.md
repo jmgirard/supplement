@@ -247,9 +247,13 @@ analyses/example.qmd`, always runs that report's code. Use it to re-run one
 report after you change it. `quarto preview` also runs a report's code each
 time you save its file.
 
-After you delete or rename a report, run a full render. It clears `docs/`,
-so the old page does not stay on the site. Then commit the change with
-`_freeze/` and `docs/`.
+After you delete or rename a report, delete its folder in
+`_freeze/analyses/`. Also remove or change its item in the Analyses menu
+of `_quarto.yml`. Then run a full render. It clears `docs/`, so the old
+page does not stay on the site. A renamed report has no stored output
+under its new name. So the full render runs its code, which needs its
+data, its fit files, and R. Then commit the deleted or renamed report
+with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`.
 
 After you change a report, render it by name and then render the whole
 site. Then commit the report with `_freeze/`, `docs/`, and `figures/`. The

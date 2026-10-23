@@ -37,7 +37,7 @@ The template says what a full render runs and gives the steps after a report is 
 
 - [x] T1: In `tests/testthat/test-add-render.R`, add the test of AC3. Make a site with `create_supplement()`, add a report with `add_report()`, and run a full render. Rename the report file, delete its old folder in `_freeze/analyses/`, change the menu item's `href` in `_quarto.yml` to the new name, and run a full render. Assert facts 1 to 3 of AC3. Rename the report again and run a full render. Assert facts 4 and 5. Run `devtools::test(filter = "add-render")`.
 - [x] T2: Rewrite the comment above `render:` in `inst/template/_quarto.yml` (lines 4 to 8). Keep the steps that M040 set and the pointer to README.md or SUPPLEMENT.md. Run `devtools::test(filter = "template")`, because those tests render the template.
-- [ ] T3: Rewrite the paragraph at lines 250 to 252 of `inst/template/_README.md` to give AC2's steps.
+- [x] T3: Rewrite the paragraph at lines 250 to 252 of `inst/template/_README.md` to give AC2's steps.
 - [ ] T4: Run `grep -rn -i -E 'runs no (report )?code|delete or rename|rename a report' R inst/template vignettes README.md NEWS.md`. Read each hit outside the In list that repeats either wrong note, and record it as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`. If a template render fails because `_scripts/nojekyll.ts` exits 139, write a work-log line for the row "Trace the post-render crash on macOS".
 
 ## Work log
@@ -55,6 +55,7 @@ The template says what a full render runs and gives the steps after a report is 
 - 2026-10-23: set in-progress on branch m041-older-render-notes, cut from main at 09247c3.
 - 2026-10-23: T1 done: the test "the guide's steps after a rename give the page its new name and keep the menu link" in `tests/testthat/test-add-render.R` renames `models` to `comparison` with the guide's steps, then `comparison` to `results` alone; it uses `replace_in_file()` for the menu edit. Its control (facts 4 and 5) is the planted defect for fact 3: the same site without the menu edit gives a `broken-link` row naming the old `.qmd`. `devtools::test(filter = "add-render")`: 0 failures, 41 passes.
 - 2026-10-23: T2 done: the `_quarto.yml` comment now says a full render reuses `_freeze/` and runs the code of each report that has no stored output there; the changed-report steps and the README.md or SUPPLEMENT.md pointer are unchanged. `devtools::test(filter = "template")`: 0 failures, 201 passes.
+- 2026-10-23: T3 done: the paragraph in "How the site renders" now gives AC2's three steps as sentences in order and says a renamed report's code runs and needs its data, fit files, and R; two sentences were split after the simple-english lint hook flagged them over its length limit. `devtools::test(filter = "template|publishing")`: 0 failures, 219 passes (run before the split, which changed no test input).
 
 ## Decisions
 
