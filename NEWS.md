@@ -64,9 +64,8 @@
   such figures give the steps to render and commit the fix. The row for a
   report with no stored output also says: if you added the report to the
   Analyses menu, as `add_report()` does, commit `_quarto.yml` too. It
-  finds DOIs
-  that differ from
-  `_supplement.yml`, and a `CITATION.cff` that cannot be read. It finds
+  finds DOIs that differ from `_supplement.yml`, and a `CITATION.cff`
+  that cannot be read. It finds
   the template's placeholder values that the author did not replace. These
   are the paper title, citation, contact, and authors in
   `_supplement.yml`, `OWNER/REPO` in the GitHub link, and `OWNER` and

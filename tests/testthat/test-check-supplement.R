@@ -4,7 +4,8 @@ check_quiet <- function(path) suppressMessages(check_supplement(path))
 
 rows_of <- function(result, check) result[result$check == check, , drop = FALSE]
 
-# The last sentence of each row for a report with missing or old stored output.
+# The last sentence of each row for a report with old or unreadable stored
+# output, and the second-to-last of the row for a report with none.
 rerender_steps <- paste("Render the report by name, render the whole site, then commit the report with",
                         "_freeze/, docs/, and figures/.")
 # The sentence after it in the row for a report with no stored output.
