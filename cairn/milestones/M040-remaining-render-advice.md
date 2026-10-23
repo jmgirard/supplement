@@ -61,6 +61,7 @@ Each place that this milestone lists gives the guide's steps for its case: a cha
 - 2026-10-23: T5 done. The grep's hits outside the In list either give the full steps (the template guide's parts that M039 fixed, the vignette's last part) or advise on another task: the first publish, DOIs, the release, private files, renv, and the `figures` stop in the example. No new candidate row. `devtools::document()` left no diff. `devtools::test()`: 5021 tests, 0 failed, 8 skipped. `devtools::check()`: 0 errors, 0 warnings, 0 notes, with no exit 139 crash.
 - 2026-10-23: claim audit: 11 claims read, 1 corrected — NEWS.md, R/check-supplement.R, inst/template/_quarto.yml, tests/testthat/test-check-supplement.R. The `check_supplement()` NEWS sentence named a wider case than the row text. The one re-read found the first fix implied the row tests the menu, so the sentence now quotes the row's condition.
 - 2026-10-23: the NEWS correction landed after `devtools::check()` built its tarball; review's check covers the final text.
+- 2026-10-23: step-7 approval: m040-remaining-render-advice approved for merge
 
 ## Decisions
 
