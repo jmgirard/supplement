@@ -100,35 +100,23 @@ runs the guide's local steps.
 
 ## Tasks
 
-- [x] T1: Read, in the session, the GitHub Docs page on the Pages
-      publishing source and the Zenodo help pages on linking accounts and
-      enabling a repository; record each setting's label and page URL in
-      one work-log line. Where a page states a limit for private
-      repositories or for releases made before the switch, the guide
-      states it with the link; where none does, the guide claims none.
-- [x] T2: Test first. Write `tests/testthat/test-publishing.R`: skip on
-      CRAN or without Quarto or git (`skip_if_no_quarto()`,
-      `skip_if_no_git()`); `local_plain_git()`, `git init`, then
-      `create_supplement(site, repo = "owner/name")` in that folder (as in
-      a clone; no `_gitignore` copy, since the first render writes
-      `.gitignore`); run each step with the same commands, in the same
-      order, as the guide's local steps, through `run_in()` and `git_in()`
-      from `long_dir()` folders (LESSONS M018). Read the marker value back
-      from the page as LESSONS M028 shows and the badge with
-      `doi_badge_rx()`. Show the test red with the render by name left out
-      (expect the old value), then green. The test must not skip in CI.
-- [x] T3: Write `vignettes/publishing.Rmd` to AC1 to AC4, with plain
-      fenced blocks only; add `VignetteBuilder: knitr` to DESCRIPTION and
-      the ignore entries for built vignette output; every claim about the
-      package or the template is checked against a same-session read or
-      run (derived-claims rule). Build it with `devtools::build_vignettes()`.
-- [x] T4: Link the vignette from README.md's "Start a new site" part (the
-      GitHub URL and the `vignette()` call) and add one NEWS.md bullet that
-      names only what the guide and its test show.
-- [x] T5: Run `devtools::document()`, `devtools::test()`, and
-      `devtools::check()`; the R-CMD-check result on all three systems,
-      with the skip list showing the new test ran, is read at review's
-      merge step, which pushes the branch.
+- [x] T1: Read the GitHub Docs page on the Pages publishing source and the
+      Zenodo pages on linking accounts and enabling a repository; log each
+      setting's label and URL. The guide states a private-repository or
+      before-the-switch limit only where a page states one.
+- [x] T2: Test first: `tests/testthat/test-publishing.R` skips on CRAN or
+      without Quarto or git; `local_plain_git()`, `git init`, then
+      `create_supplement(site, repo =)` there (no `_gitignore` copy); the
+      guide's local commands in its order through `run_in()`/`git_in()` in
+      `long_dir()` folders (LESSONS M018, M028; `doi_badge_rx()`). Red with
+      the render by name left out, then green; it must not skip in CI.
+- [x] T3: Write `vignettes/publishing.Rmd` to AC1 to AC4 with plain fences;
+      `VignetteBuilder: knitr` and built-output ignores; each package or
+      template claim checked by a same-session read or run; build it.
+- [x] T4: README.md link (GitHub URL and `vignette()` call) and one NEWS.md
+      bullet naming only what the guide and its test show.
+- [x] T5: `devtools::document()`, `test()`, and `check()`; the three-system
+      CI result and skip list are read at review's merge step.
 
 ## Work log
 
@@ -150,6 +138,7 @@ runs the guide's local steps.
 - 2026-10-22: T4: README.md "Start a new site" opens with the GitHub link and the `vignette()` call (the call works only when vignettes were built at install, which the text says); one NEWS bullet naming the guide and its render rule, both covered by `test-publishing.R`.
 - 2026-10-22: claim audit: 50 claims read, 3 corrected — vignettes/publishing.Rmd (step 1 adds Quarto's not-on-path status; step 3 names where the repository and Pages address are written; step 8 separates the four items a release stops on from the example figure and a new README citation item). The re-read found the figure still under item 4, now its own item. Its scratch run of steps 3 to 9 rendered and checked clean.
 - 2026-10-22: T5: `devtools::document()` no diff; `devtools::test()` with NOT_CRAN=true: 19 files, 368 expectations, 0 failed, 0 errors, 8 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes (vignette built and re-built); the vignette rebuilt clean after the claim fixes. Minor amendment: T5's CI read moved to review's merge step, since the git model pushes the branch there.
+- 2026-10-22: Tasks section compressed in one rewrite (plan-owned body was 156 lines, cap 150); each task's content kept.
 
 ## Decisions
 
