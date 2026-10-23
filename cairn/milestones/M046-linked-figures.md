@@ -39,7 +39,7 @@ The example report stops with a message when `figures` is a link, and `save_png(
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-template.R`, after the file test (about line 431), add the AC1 link tests and the AC2 missing-folder test. Make links with `symlink_or_skip()` (`helper-files.R:150`), which makes a junction on Windows for an existing folder. Use `file.symlink()` with a skip for the missing-path and file shapes. Run the tests against `main`'s chunk and see the link tests fail. Confirm that the R error text reaches `rendered$output` for each shape, since Quarto lists `figures/**` at the start of a render.
+- [x] T1: In `tests/testthat/test-template.R`, after the file test (about line 431), add the AC1 link tests and the AC2 missing-folder test. Make links with `symlink_or_skip()` (`helper-files.R:150`), which makes a junction on Windows for an existing folder. Use `file.symlink()` with a skip for the missing-path and file shapes. Run the tests against `main`'s chunk and see the link tests fail. Confirm that the R error text reaches `rendered$output` for each shape, since Quarto lists `figures/**` at the start of a render.
 - [ ] T2: In `inst/template/analyses/example.qmd:59-63`, add the link stop before the file stop. On macOS and Linux, `Sys.readlink()` is not NA and not empty for a link. On Windows, a junction shows when `normalizePath(figures)` differs from `normalizePath(site)` plus `figures`. Read LESSONS M006 and M018 for the NA and junction rules. Run the T1 tests green.
 - [ ] T3: Add the AC3 test. Use `chunk_code()` (`helper-template.R:278`) and an environment with a wrapped `dev.off()` for each probe. See it fail against `main`'s `save_png()`.
 - [ ] T4: In `save_png()` (`example.qmd:66-80`), check that the temporary file exists and ends with the end chunk before `file.rename()`. Stop with a message that names the target. Keep `on.exit(unlink(tmp))`. Run the T3 test green.
@@ -57,6 +57,7 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - 2026-10-23: plan gate chose a base R link check in the chunk over `fs::is_link()` when fs is installed, because a site renders with only knitr and rmarkdown; falsified by a Windows file link to a missing path that writes outside the site or passes the chunk's checks.
 - 2026-10-23: plan gate chose to point the README at the whole `save-figure` chunk over a second copy of the stops in the README block, because two copies drift; falsified by authors who need the `figures` lines without `save_png()`.
 - 2026-10-23: plan gate chose the PNG end chunk over a file size check, because a cut-short file can still be large; falsified by a PNG device that writes a whole file with another ending.
+- 2026-10-23: T1: added the missing-folder test and three link tests (folder outside the site, missing path, file; the file shape skips on Windows). On macOS against `main`'s chunk the three link tests fail and the missing-folder test passes. A broken link render on `main` prints R's `dev.off()` error ("QuartzBitmap_Output - unable to open file"), so R's error text reaches `rendered$output`.
 
 ## Decisions
 
