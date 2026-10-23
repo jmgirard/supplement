@@ -23,10 +23,10 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 
 - [ ] AC1: Three row texts of `check_supplement()` (the `no-stored-output` text and the two `stale-output` texts) end with the same sentence. That sentence tells the author to render the report by name, render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`. A test in `tests/testthat/test-check-supplement.R` asserts, for each of the three texts, that it ends with that sentence.
 - [ ] AC2: The `unpublished-figure` row text tells the author to render the whole site, then commit `figures/`, `docs/`, and `_freeze/`. A test in `tests/testthat/test-check-supplement.R` asserts the whole text.
-- [ ] AC3: In `inst/template/_README.md`, step 2 of "Rendering on the machine with the private data" tells the author to render a changed report by name and then render the whole site. Step 3's `git add` command names `analyses/<name>.qmd`, `_freeze`, `docs`, and `figures`, and its lead-in names the same paths. A sentence beside the command tells the author to leave out `figures` for a site with no `figures/` folder.
-- [ ] AC4: In `vignettes/publishing.Rmd`, the `git add` command of "Render again after a report changes" names the report, `_freeze`, `docs`, and `figures`. A sentence beside it tells the author to leave out `figures` for a site with no `figures/` folder. Step 5 of "8. Replace the template placeholders" no longer says that the commands in the last part fail when `figures/` is missing.
-- [ ] AC5: In `inst/template/_README.md`, "Computing environment" and "How the site renders" tell the author to render a changed report by name, then render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`. "Paper figures" and the figures bullet of "Checks before a release" tell the author to render the whole site, then commit `figures/`, `docs/`, and `_freeze/`.
-- [ ] AC6: The `NEWS.md` bullet that describes the stored-output, stale-output, and unpublished-figure checks says that the rows for those problems give the steps to render and commit the fix.
+- [x] AC3: In `inst/template/_README.md`, step 2 of "Rendering on the machine with the private data" tells the author to render a changed report by name and then render the whole site. Step 3's `git add` command names `analyses/<name>.qmd`, `_freeze`, `docs`, and `figures`, and its lead-in names the same paths. A sentence beside the command tells the author to leave out `figures` for a site with no `figures/` folder.
+- [x] AC4: In `vignettes/publishing.Rmd`, the `git add` command of "Render again after a report changes" names the report, `_freeze`, `docs`, and `figures`. A sentence beside it tells the author to leave out `figures` for a site with no `figures/` folder. Step 5 of "8. Replace the template placeholders" no longer says that the commands in the last part fail when `figures/` is missing.
+- [x] AC5: In `inst/template/_README.md`, "Computing environment" and "How the site renders" tell the author to render a changed report by name, then render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`. "Paper figures" and the figures bullet of "Checks before a release" tell the author to render the whole site, then commit `figures/`, `docs/`, and `_freeze/`.
+- [x] AC6: The `NEWS.md` bullet that describes the stored-output, stale-output, and unpublished-figure checks says that the rows for those problems give the steps to render and commit the fix.
 
 ## Coverage
 
@@ -71,3 +71,31 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 ## Decisions
 
 ## Review
+
+- 2026-10-22: sync: branch level with origin/main (cd9509b); Copilot round off; no PR yet (route d).
+- AC3 evidence: `inst/template/_README.md` read at the review head. Step 2 of "Rendering on the machine with the private data" says to render a changed report with `quarto render analyses/<name>.qmd`, then the whole site with `quarto render`. Step 3's block holds `git add analyses/<name>.qmd _freeze docs figures`, its lead-in names the reports added or changed, `_freeze/`, `docs/`, and `figures/`, and the sentence after it says to leave out `figures` for a site with no `figures/` folder.
+- AC4 evidence: `vignettes/publishing.Rmd` read at the review head. The last part's block holds `git add analyses/models.qmd _freeze docs figures`, the sentence after it says to leave out `figures` for a site with no `figures/` folder, and step 5 of part 8 now says to delete the example figure and to leave out `figures`; it no longer says the commands fail.
+- AC5 evidence: `inst/template/_README.md` read at the review head. "Computing environment" (line 66) and "How the site renders" (line 255) say render by name, render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`. "Paper figures" (line 508) and the "Checks before a release" figures bullet (line 190) say render the whole site, then commit `figures/`, `docs/`, and `_freeze/`.
+- AC6 evidence: `NEWS.md` lines 63 to 64, inside the `check_supplement()` bullet of the unreleased section: "The rows for missing, old, or unreadable stored output and for such figures give the steps to render and commit the fix." No new bullet was added.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: step 3 of the private-data recipe and the `no-stored-output` row leave `_quarto.yml` out of the commit, though `add_report()` adds a menu item there — fix now in step 3 (a sentence to stage `_quarto.yml` for a report that `add_report()` made); the row's part goes to the new candidate row "Align the remaining render advice", because AC1 fixes one sentence for all three texts.
+- diff-bug #2: "names no file on disk and no file that git tracks" is false for an existing empty `figures/` folder, where `git add` exits 0 — fix now (both guides now say "is missing from disk and git tracks no file under it").
+- diff-bug #3: "copies into `docs/` the figures that the render by name saved" — fix now ("saved under new names"; DESIGN.md's `_quarto.yml` entry says a changed figure under an existing name reaches `docs/` in the same render).
+- diff-bug #4: vignette step 5 goes beyond AC4 by deleting the example figure — reject (false: not a defect; the change follows from the leave-out sentence, is logged as an implement choice, and D-018 covers only the first render).
+- diff-bug #5: the colon after "If there is no such report, leave it out:" introduces the command — fix now (the leave-out sentence moved after the block).
+- diff-bug #6: NEWS "missing or old stored output" leaves out the unreadable-hash text — fix now ("missing, old, or unreadable").
+- diff-bug #7: the two `stale-output` tests assert `endsWith()` once per row over one constant — fix now (one `all(endsWith(...))` after each loop).
+- diff-bug #8: new R lines of 103 to 107 characters — reject (style).
+- blame-history #1: "How the site renders" lost the commit step for a deleted or renamed report — fix now ("Then commit the change with `_freeze/` and `docs/`.").
+- blame-history #2: the private-data step 3 now stages the report — reject (planned change, AC3).
+- blame-history #3: vignette step 5 deletes the figure beyond AC4 — reject (false, as diff-bug #4).
+- blame-history #4: the `no-stored-output` row does not name the fit-file check — reject (false: that check applies only to reports with private fit files, which the row cannot know; the private-data recipe gives it).
+- prior-review #1: vignette step 5 reverses M038's keep-the-figure step — reject (false, as diff-bug #4).
+- prior-review #2: no test runs the `git add` leave-out claim — reject (a test would test git, a dependency; three reviewers checked it by experiment on git 2.54).
+- prior-review #3: step 3's path list omits `renv.lock`, which the renv part says to add — reject (false: the renv part tells the reader to add it to this command, so the two agree).
+- prior-review #4: line lengths — reject (style).
+- ripple #1: `inst/template/_quarto.yml` comment says to render one report by name only — follow-up, new candidate row "Align the remaining render advice" (outside the In list, per Scope Out).
+- ripple #2: `inst/template/_quarto.yml` comment says "render again" for a new figure name, with no commit — follow-up, the same row.
+- ripple #3: NEWS bullet for the publishing guide gives the rule without the commit step — follow-up, the same row.
+- ripple #4: the candidate row "Align render advice with the new guide" describes the old texts — reject (false: that row graduates at this milestone's post-merge hygiene).
+- gate: the first review `devtools::check()` had 1 test failure, a template render whose `_scripts/nojekyll.ts` exited 139 (the parked row "Trace the post-render crash on macOS", now recorded there); this diff changes no script or render code.

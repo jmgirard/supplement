@@ -437,8 +437,8 @@ test_that("stored output made from other report text gives a stale-output row", 
   expect_identical(nrow(rows), 2L)
   for (problem in rows$problem) {
     expect_match(problem, "made from other text than the report holds now", fixed = TRUE)
-    expect_true(endsWith(problem, rerender_steps))
   }
+  expect_true(all(endsWith(rows$problem, rerender_steps)))
 })
 
 test_that("a source hash that cannot be read gives a stale-output row that says so", {
@@ -467,8 +467,8 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
   expect_identical(nrow(rows), length(cases) + 1L)
   for (problem in rows$problem) {
     expect_match(problem, "The source hash of its stored output cannot be read", fixed = TRUE)
-    expect_true(endsWith(problem, rerender_steps))
   }
+  expect_true(all(endsWith(rows$problem, rerender_steps)))
 })
 
 test_that("a site with no docs folder gives one not-rendered row", {

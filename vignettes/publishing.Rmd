@@ -244,6 +244,6 @@ git commit -m "Update the models report"
 git push
 ```
 
-When a path names no file on disk and no file that git tracks, `git add`
-stops and stages nothing. So for a site with no `figures/` folder, leave
-out `figures`.
+When a path is missing from disk and git tracks no file under it,
+`git add` stops and stages nothing. So for a site with no `figures/`
+folder, leave out `figures`.

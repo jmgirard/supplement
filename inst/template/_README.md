@@ -248,11 +248,13 @@ report after you change it. `quarto preview` also runs a report's code each
 time you save its file.
 
 After you delete or rename a report, run a full render. It clears `docs/`,
-so the old page does not stay on the site.
+so the old page does not stay on the site. Then commit the change with
+`_freeze/` and `docs/`.
 
 After you change a report, render it by name and then render the whole
 site. Then commit the report with `_freeze/`, `docs/`, and `figures/`. The
-full render copies into `docs/` the figures that the render by name saved.
+full render copies into `docs/` the figures that the render by name saved
+under new names.
 
 ## Setup scripts
 
@@ -291,8 +293,7 @@ the site folder (see "Paper figures"), as
    `figures/`, run `quarto render` again (see "Paper figures").
 3. Stage only the reports that you added or changed, `_freeze/`, `docs/`,
    and `figures/`, commit, and push. Put the path of each such report in
-   place of `analyses/<name>.qmd`. If there is no such report, leave it
-   out:
+   place of `analyses/<name>.qmd`:
 
    ```
    git add analyses/<name>.qmd _freeze docs figures
@@ -300,9 +301,11 @@ the site folder (see "Paper figures"), as
    git push
    ```
 
-   When a path names no file on disk and no file that git tracks,
-   `git add` stops and stages nothing. So for a site with no `figures/`
-   folder, leave out `figures`.
+   If no report was added or changed, leave out `analyses/<name>.qmd`. If
+   you added a report with `add_report()`, also stage `_quarto.yml`, which
+   holds its menu item. When a path is missing from disk and git tracks no
+   file under it, `git add` stops and stages nothing. So for a site with
+   no `figures/` folder, leave out `figures`.
 
 Never publish a build that ran with the data deleted. It drops the data
 files from `docs/`, so the download links break.
