@@ -400,6 +400,20 @@ md5_of <- function(...) {
 
 stale_lf <- "---\ntitle: Fixture\n---\n\n```{r}\n1 + 1\n```\n"
 
+# The problem text of a stale-output row whose files `files` of report
+# `name` differ, with the format hint when `hint` is TRUE.
+stale_text <- function(name, files, hint = FALSE) {
+  paths <- paste(file.path("_freeze/analyses", name, "execute-results", files), collapse = ", ")
+  stale <- paste0("Its stored output was made from other text than the report holds now: ", paths, ".")
+  if (!hint) {
+    return(paste(stale, rerender_steps))
+  }
+  paste(stale,
+        "Other stored output of the report matches it, so these files can be from a format that the report",
+        "no longer renders. If so, delete them, render the whole site, and commit _freeze/ and docs/.",
+        "If not, take these steps.", rerender_steps)
+}
+
 test_that("stored output made from other report text gives a stale-output row", {
   site <- new_site()
   stored <- function(name, ..., file = "html.json", hash) {
@@ -438,11 +452,41 @@ test_that("stored output made from other report text gives a stale-output row", 
   expect_no_error(rows <- rows_of(check_quiet(site), "stale-output"))
   expect_setequal(rows$file, c("analyses/differs.qmd", "analyses/two-files.qmd"))
   expect_identical(nrow(rows), 2L)
-  for (problem in rows$problem) {
-    expect_match(problem, "made from other text than the report holds now", fixed = TRUE)
+  expect_identical(rows$problem[rows$file == "analyses/differs.qmd"], stale_text("differs", "html.json"))
+  expect_identical(rows$problem[rows$file == "analyses/two-files.qmd"],
+                   stale_text("two-files", "docx.json", hint = TRUE))
+})
+
+test_that("a stale-output row names each file that differs, with a format hint when another file matches", {
+  site <- new_site()
+  report <- function(name, matching = character(), differing = character()) {
+    report_bytes(site, name, stale_lf)
+    for (file in matching) stored_file(site, name, file, hash_json(md5_of(stale_lf)))
+    for (file in differing) stored_file(site, name, file, hash_json(md5_of(stale_lf, "x")))
   }
-  expect_true(all(endsWith(rows$problem, rerender_steps)))
-  expect_false(any(grepl("_quarto.yml", rows$problem, fixed = TRUE)))
+  report("only-html", differing = "html.json")
+  report("docx-differs", matching = "html.json", differing = "docx.json")
+  report("html-differs", matching = "docx.json", differing = "html.json")
+  report("two-differ", matching = "html.json", differing = c("pdf.json", "docx.json"))
+  report("none-match", differing = c("html.json", "docx.json"))
+  # A hidden file and a folder are not read, so they neither get named nor
+  # count as matching.
+  report("hidden", matching = "html.json", differing = ".docx.json")
+  dir.create(file.path(site, "_freeze", "analyses", "hidden", "execute-results", "old.json"))
+
+  rows <- rows_of(check_quiet(site), "stale-output")
+  expect_setequal(rows$file, paste0("analyses/", c("only-html", "docx-differs", "html-differs", "two-differ",
+                                                  "none-match"), ".qmd"))
+  text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
+  expect_identical(
+    text("only-html"),
+    paste("Its stored output was made from other text than the report holds now:",
+          "_freeze/analyses/only-html/execute-results/html.json.", rerender_steps)
+  )
+  expect_identical(text("docx-differs"), stale_text("docx-differs", "docx.json", hint = TRUE))
+  expect_identical(text("html-differs"), stale_text("html-differs", "html.json", hint = TRUE))
+  expect_identical(text("two-differ"), stale_text("two-differ", c("docx.json", "pdf.json"), hint = TRUE))
+  expect_identical(text("none-match"), stale_text("none-match", c("docx.json", "html.json")))
 })
 
 test_that("a source hash that cannot be read gives a stale-output row that says so", {
@@ -465,15 +509,37 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
   report_bytes(site, "both", stale_lf)
   stored_file(site, "both", "docx.json", "{")
   stored_file(site, "both", "html.json", hash_json(md5_of(stale_lf, "x")))
+  report_bytes(site, "two-unreadable", stale_lf)
+  stored_file(site, "two-unreadable", "html.json", "{")
+  stored_file(site, "two-unreadable", "docx.json", "[1]")
+  # A matching file gives no format hint in this text.
+  report_bytes(site, "beside-match", stale_lf)
+  stored_file(site, "beside-match", "docx.json", "{")
+  stored_file(site, "beside-match", "html.json", hash_json(md5_of(stale_lf)))
 
   expect_no_error(rows <- rows_of(check_quiet(site), "stale-output"))
-  expect_setequal(rows$file, file.path("analyses", paste0(c(names(cases), "both"), ".qmd")))
-  expect_identical(nrow(rows), length(cases) + 1L)
+  extra <- c("both", "two-unreadable", "beside-match")
+  expect_setequal(rows$file, file.path("analyses", paste0(c(names(cases), extra), ".qmd")))
+  expect_identical(nrow(rows), length(cases) + length(extra))
   for (problem in rows$problem) {
     expect_match(problem, "The source hash of its stored output cannot be read", fixed = TRUE)
   }
   expect_true(all(endsWith(rows$problem, rerender_steps)))
   expect_false(any(grepl("_quarto.yml", rows$problem, fixed = TRUE)))
+  text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
+  unreadable_text <- function(name, files) {
+    paste0("The source hash of its stored output cannot be read from ",
+           paste(file.path("_freeze/analyses", name, "execute-results", files), collapse = ", "), ". ",
+           rerender_steps)
+  }
+  expect_identical(
+    text("not-json"),
+    paste("The source hash of its stored output cannot be read from",
+          "_freeze/analyses/not-json/execute-results/html.json.", rerender_steps)
+  )
+  expect_identical(text("two-unreadable"), unreadable_text("two-unreadable", c("docx.json", "html.json")))
+  expect_identical(text("both"), unreadable_text("both", "docx.json"))
+  expect_identical(text("beside-match"), unreadable_text("beside-match", "docx.json"))
 })
 
 test_that("a folder in _freeze/analyses/ that nothing in analyses/ names gives a leftover-output row", {

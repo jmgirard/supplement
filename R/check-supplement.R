@@ -578,34 +578,41 @@ check_stored_output <- function(path) {
 # project's YAML files.
 check_stale_output <- function(path) {
   reports <- analysis_reports(path)
-  state <- vapply(reports, function(report) {
+  problem <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
-    dir <- file.path(path, "_freeze", "analyses", name, "execute-results")
-    files <- list.files(dir, pattern = "\\.json$", full.names = TRUE)
-    files <- files[!startsWith(basename(files), ".") & !dir.exists(files)]
+    dir <- file.path("_freeze", "analyses", name, "execute-results")
+    files <- list.files(file.path(path, dir), pattern = "\\.json$")
+    files <- files[!startsWith(files, ".") & !dir.exists(file.path(path, dir, files))]
     if (length(files) == 0) {
-      return("ok")
+      return(NA_character_)
     }
     hash <- report_hash(report)
     if (is.null(hash)) {
-      return("ok")
+      return(NA_character_)
     }
-    stored <- lapply(files, stored_hash)
-    if (any(vapply(stored, is.null, logical(1)))) {
-      "unreadable"
-    } else if (any(unlist(stored) != hash)) {
-      "stale"
-    } else {
-      "ok"
+    stored <- lapply(file.path(path, dir, files), stored_hash)
+    unreadable <- vapply(stored, is.null, logical(1))
+    named <- function(hit) paste(sort_bytes(file.path(dir, files[hit])), collapse = ", ")
+    if (any(unreadable)) {
+      return(paste0("The source hash of its stored output cannot be read from ", named(unreadable), ". ",
+                    rerender_steps))
     }
+    differs <- unlist(stored) != hash
+    if (!any(differs)) {
+      return(NA_character_)
+    }
+    stale <- paste0("Its stored output was made from other text than the report holds now: ", named(differs), ".")
+    if (all(differs)) {
+      return(paste(stale, rerender_steps))
+    }
+    # Quarto keeps the file of a format that the report no longer renders.
+    paste(stale,
+          "Other stored output of the report matches it, so these files can be from a format that the report",
+          "no longer renders. If so, delete them, render the whole site, and commit _freeze/ and docs/.",
+          "If not, take these steps.", rerender_steps)
   }, character(1), USE.NAMES = FALSE)
-  problem <- c(
-    stale = paste("Its stored output in _freeze/ was made from other text than the report holds now.",
-                  rerender_steps),
-    unreadable = paste("The source hash of its stored output cannot be read from _freeze/.", rerender_steps)
-  )
-  hit <- state != "ok"
-  problem_rows("stale-output", file.path("analyses", basename(reports[hit])), problem[state[hit]])
+  hit <- !is.na(problem)
+  problem_rows("stale-output", file.path("analyses", basename(reports[hit])), problem[hit])
 }
 
 # Quarto 1.10.19 keeps a report's folder in _freeze/analyses/ after the

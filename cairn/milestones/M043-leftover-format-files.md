@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M043: Name leftover format files in _freeze
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes the text of a `check_supplement()` row that authors read and that stops `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m043-leftover-format-files
 
 ## Goal
 
@@ -51,7 +51,7 @@ format. The help page and the `NEWS.md` bullet.
 
 ## Tasks
 
-- [ ] T1: In `check_stale_output()` (`R/check-supplement.R` ~line 579),
+- [x] T1: In `check_stale_output()` (`R/check-supplement.R` ~line 579),
       keep the state of each read file and build the row text from the
       sorted paths and the format hint. Add the AC1 and AC2 tests beside
       the stale-output tests (`test-check-supplement.R` ~lines 403-476),
@@ -81,6 +81,8 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: plan change after the audit: the format hint also says to render the whole site and commit `docs/`, so the old `.docx` leaves `docs/` (M017 lesson), and AC3 asserts it.
 - 2026-10-23: criteria re-check (same reader, changed text only; it probed that a full render removes the old `.docx` from `docs/` and keeps `docx.json` with its old hash): 3 findings, all fixed. (1) AC1's line 444 sentence bound a test, not the package: dropped, and T1 names the assertion by its text. (2) AC3's `.docx` assertion passed without the delete step: a full render before the delete now shows `docx.json` and the row remain. (3) AC4's NEWS bullet named by its opening words.
 - 2026-10-23: changelog: edit the `check_supplement()` bullet in NEWS.md (T3), no new entry, since the package has no release.
+- 2026-10-23: started on branch m043-leftover-format-files, cut from main at 3f8cf46.
+- 2026-10-23: T1 done: `check_stale_output()` builds each row's text from the read files' states. The row names files as `_freeze/analyses/<name>/execute-results/<file>` paths in `sort_bytes()` order, and the hint ends with "If not, take these steps." before `rerender_steps` (implementation choice). Tests: the AC1 cases (a)-(f) and AC2 cases (a)-(d) in `test-check-supplement.R`. The file passes.
 
 ## Decisions
 
