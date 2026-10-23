@@ -473,10 +473,11 @@ test_that("a stale-output row names each file that differs, with a format hint w
   # count as matching.
   report("hidden", matching = "html.json", differing = ".docx.json")
   dir.create(file.path(site, "_freeze", "analyses", "hidden", "execute-results", "old.json"))
+  report("hidden-match", matching = ".html.json", differing = "docx.json")
 
   rows <- rows_of(check_quiet(site), "stale-output")
   expect_setequal(rows$file, paste0("analyses/", c("only-html", "docx-differs", "html-differs", "two-differ",
-                                                  "none-match"), ".qmd"))
+                                                  "none-match", "hidden-match"), ".qmd"))
   text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
   expect_identical(
     text("only-html"),
@@ -487,6 +488,7 @@ test_that("a stale-output row names each file that differs, with a format hint w
   expect_identical(text("html-differs"), stale_text("html-differs", "html.json", hint = TRUE))
   expect_identical(text("two-differ"), stale_text("two-differ", c("docx.json", "pdf.json"), hint = TRUE))
   expect_identical(text("none-match"), stale_text("none-match", c("docx.json", "html.json")))
+  expect_identical(text("hidden-match"), stale_text("hidden-match", "docx.json"))
 })
 
 test_that("a source hash that cannot be read gives a stale-output row that says so", {

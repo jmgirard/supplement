@@ -55,12 +55,13 @@
   `r#`, or `{r}` and a space after the first backtick. From the source
   hash that Quarto stores, it finds reports whose stored output was made
   from other text than the report holds now. It also finds stored output
-  whose hash cannot be read. The row names each file whose hash differs or
-  cannot be read. Another file of the report's stored output can match.
-  Then the row also says that the files that differ can be from a format
-  that the report no longer renders, such as `docx`. If so, delete them,
-  render the whole site, and commit `_freeze/` and `docs/`. A change in a
-  file that the report includes does not count. It finds folders in
+  whose hash cannot be read. If a hash cannot be read, the row names each
+  such file. Otherwise it names each file whose hash differs. In that
+  case another file of the report's stored output can match. Then the row
+  also says that the files that differ can be from a dropped format, such
+  as `docx`. If so, delete them, render the whole site, and commit
+  `_freeze/` and `docs/`. A change in a file that the report includes
+  does not count. It finds folders in
   `_freeze/analyses/` that no file or folder in `analyses/` names, as
   after a report is deleted or renamed.
   It also finds relative links in `docs/` to files that are not in

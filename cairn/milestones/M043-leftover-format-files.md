@@ -85,6 +85,8 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: T1 done: `check_stale_output()` builds each row's text from the read files' states. The row names files as `_freeze/analyses/<name>/execute-results/<file>` paths in `sort_bytes()` order, and the hint ends with "If not, take these steps." before `rerender_steps` (implementation choice). Tests: the AC1 cases (a)-(f) and AC2 cases (a)-(d) in `test-check-supplement.R`. The file passes.
 - 2026-10-23: T2 done: the AC3 render test in `test-add-render.R` passes with Quarto 1.10.19 (17 expectations, run with `NOT_CRAN=true`). It also asserts that `docs/analyses/formats.docx` exists before `docx` is dropped, so the later absence comes from the full render after the delete.
 - 2026-10-23: T3 done: the help item states the naming rules and the format hint in place of the "so delete that file" sentence, `devtools::document()` rewrote `man/check_supplement.Rd`, and the NEWS.md bullet names the files and the hint's steps. A grep of `README.md`, `vignettes/`, and `inst/template/_README.md` for `docx` and "format that" found no advice on kept format files.
+- 2026-10-23: T4: `devtools::document()` left no diff, and `devtools::test()` passed (375 tests, 0 failed, 0 errors, 9 skipped) at 4f5cd59.
+- 2026-10-23: claim audit: 20 claims read, 5 corrected — R/check-supplement.R, man/check_supplement.Rd, NEWS.md, tests/testthat/test-check-supplement.R. The help text and its Rd copy now say the hint needs every hash to be readable. NEWS says only unreadable files are named when one cannot be read, with the same condition on the hint. A new case, "hidden-match", shows that a hidden matching file gives no hint. The check test file passes after the fixes.
 
 ## Decisions
 
