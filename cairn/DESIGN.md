@@ -180,7 +180,7 @@ prints the git and `gh` release commands, outside that guard; `git status`,
 only files under the site folder, the files that the git checks of
 `check_supplement()` read. It starts
 no process itself.
-Imports: cli, jsonlite, yaml (D-009). Roxygen writes Markdown help.
+Imports: cli, jsonlite, yaml (D-009), and fs (D-022, corrected M045). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in
 `inst/template/` (D-003), installed with `quarto use template

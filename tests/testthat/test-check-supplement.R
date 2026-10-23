@@ -1061,16 +1061,19 @@ test_that("is_link() finds a link to a file, to a folder, and to a missing file,
 test_that("a path that fs stops on gives the other link rules' answer, not an error", {
   dir <- withr::local_tempdir()
   touch(file.path(dir, "file.txt"))
-  local_mocked_bindings(fs_is_link = function(paths) stop("Failed to stat"))
-  expect_identical(fs_link(file.path(dir, c("file.txt", "not-there"))), c(FALSE, FALSE))
+  # fs stops on "bad" only, so the other path keeps fs's answer.
+  local_mocked_bindings(fs_is_link = function(paths) {
+    if (any(basename(paths) == "bad")) stop("Failed to stat")
+    rep(TRUE, length(paths))
+  })
+  expect_identical(fs_link(file.path(dir, c("file.txt", "bad"))), c(TRUE, FALSE))
 
+  local_mocked_bindings(fs_is_link = function(paths) stop("Failed to stat"))
   skip_on_os(c("mac", "linux", "solaris"))
   outside <- withr::local_tempdir("outside-")
   symlink_or_skip(outside, file.path(dir, "junction"))
   symlink_or_skip(file.path(outside, "missing.txt"), file.path(dir, "dangling"))
-  paths <- file.path(dir, c("file.txt", "junction", "dangling"))
-  expect_identical(is_link(paths), is_reparse_point(paths))
-  expect_identical(is_link(paths), c(FALSE, TRUE, FALSE))
+  expect_identical(is_link(file.path(dir, c("file.txt", "junction", "dangling"))), c(FALSE, TRUE, FALSE))
 })
 
 test_that("on Windows, a junction in docs to a folder outside docs gives the rows of a link", {

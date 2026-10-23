@@ -329,6 +329,7 @@ is_link <- function(paths) {
 # valid UTF-8, or that fs stops on, gives FALSE.
 fs_link <- function(paths) {
   found <- logical(length(paths))
+  paths <- enc2utf8(paths)
   ok <- which(validUTF8(paths))
   expanded <- path.expand(drop_trailing_sep(paths[ok]))
   link <- tryCatch(fs_is_link(expanded), error = function(e) NULL)
