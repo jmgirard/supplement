@@ -11,7 +11,9 @@
 #'
 #' * `Quarto`: the Quarto command-line interface, which renders the site.
 #' * `knitr` and `rmarkdown`: the R packages that Quarto uses to run the R
-#'   code in reports.
+#'   code in reports. They are looked for in the libraries of the R session
+#'   that runs `check_tools()`. Quarto can run another R installation, with
+#'   other libraries.
 #' * `git`: to commit the site and push it to GitHub.
 #' * `gh`: the GitHub command-line interface, for the
 #'   `gh release create` command that [release_supplement()] prints.

@@ -88,7 +88,7 @@ without loading), git, and gh, and lists two account reminders. It reads
 the Quarto version from `share/version` beside `bin/` after following a
 link, and compares it with `quarto_minimum` (1.4.0, the template
 extension's `quarto-required`). Program lookups use `Sys.which()`, which
-on Unix runs `which`; no looked-up tool is run.
+on Unix starts a shell that runs `which`; no looked-up tool is run.
 `R/add-report.R` and `R/add-data.R`: `add_report()` writes a report stub
 in `analyses/`, starting with the example report's `site` chunk
 (`site_chunk()`) and ending with its "Computing environment" section

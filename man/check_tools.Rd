@@ -26,7 +26,9 @@ The function looks for these tools, in this order:
 \itemize{
 \item \code{Quarto}: the Quarto command-line interface, which renders the site.
 \item \code{knitr} and \code{rmarkdown}: the R packages that Quarto uses to run the R
-code in reports.
+code in reports. They are looked for in the libraries of the R session
+that runs \code{check_tools()}. Quarto can run another R installation, with
+other libraries.
 \item \code{git}: to commit the site and push it to GitHub.
 \item \code{gh}: the GitHub command-line interface, for the
 \verb{gh release create} command that \code{\link[=release_supplement]{release_supplement()}} prints.

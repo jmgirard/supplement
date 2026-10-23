@@ -175,7 +175,7 @@ test_that("the version is compared as a version number", {
 
 test_that("a version part too big for an R integer is read as no version", {
   program <- fake_quarto(file.path(withr::local_tempdir(), "q"), "1.99999999999.0\n")
-  local_tools(which = list(quarto = program), packages = list(rmarkdown = "2.30"))
+  local_tools(which = list(quarto = program))
   expect_no_warning(row <- quarto_result())
   expect_identical(row$status, "found")
   expect_match(row$detail, "version unknown", fixed = TRUE)
@@ -202,10 +202,7 @@ test_that("a missing or unreadable version keeps the status and says so", {
 
 test_that("a version file with bytes that are not UTF-8 gives no warning", {
   bytes <- c(as.raw(c(0xe9, 0xff)), charToRaw("1.2\n"))
-  local_tools(
-    which = list(quarto = fake_quarto(file.path(withr::local_tempdir(), "q"), bytes)),
-    packages = list(rmarkdown = "2.30")
-  )
+  local_tools(which = list(quarto = fake_quarto(file.path(withr::local_tempdir(), "q"), bytes)))
   expect_no_warning(row <- quarto_result())
   expect_identical(row$status, "found")
   expect_match(row$detail, "version unknown", fixed = TRUE)
@@ -236,7 +233,6 @@ test_that("a link to a copy is resolved before the version is read", {
   expect_identical(row$status, "too old")
   expect_match(row$detail, "1.3.0", fixed = TRUE)
 
-  # A link to the install folder itself.
   file.symlink(file.path(dir, "install"), file.path(dir, "alias"))
   local_tools(which = list(quarto = file.path(dir, "alias", "bin", "quarto")))
   row <- quarto_result()
