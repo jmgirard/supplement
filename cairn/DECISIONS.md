@@ -128,3 +128,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** The template guide shows how to record and restore a site's R packages with renv. A test sets up renv in a temporary site, and D-007 says that packages the tests use belong in DESCRIPTION. The package's own functions never call renv.
 **Decision:** DESCRIPTION lists renv under Suggests, and the CI skip list counts a skip for missing renv as a missing tool. The user granted this at the M031 plan, which chose a guide and tests over a `renv` argument to `create_supplement()`.
 **Consequences:** Installing supplement installs nothing new. Authors install renv themselves to follow the guide. The test runs renv in a separate Rscript process, with renv's cache and sandbox in temporary folders, so a test never activates renv in its own session.
+
+### D-022 (2026-10-23): fs is an imported dependency (extends D-009)
+
+**Context:** On Windows, R's own file functions read a file symbolic link whose target is missing as an existing file, and `Sys.readlink()` gives `""` for every link, so `is_link()` misses such a link and the link refusals do not stop it. Base R can only infer the link, from a listed name that `file.info()` cannot read.
+**Decision:** DESCRIPTION lists fs under Imports, and on Windows `is_link()` also counts each path that `fs::is_link()` reports as a link. The user chose fs over the base R inference at the M045 plan, on the condition that fs is light; the measurements are in the M045 milestone file.
+**Consequences:** Installing supplement installs fs, which needs R 4.1 or later and compiled code; rmarkdown already brings it in through bslib and sass. D-017's choice of base R for the HTML link reader stands, since fs reads no HTML.
