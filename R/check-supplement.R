@@ -600,10 +600,14 @@ check_stale_output <- function(path) {
     }
     stored <- lapply(file.path(path, dir, files), stored_hash)
     unreadable <- vapply(stored, is.null, logical(1))
-    named <- function(hit) paste(show_text(sort_bytes(file.path(dir, files[hit]))), collapse = ", ")
+    named <- function(hit) paste(quote_path(show_text(sort_bytes(file.path(dir, files[hit])))), collapse = ", ")
     if (any(unreadable)) {
+      # Quarto keeps the file of a format that the report no longer
+      # renders, so no render rewrites such a file.
       return(paste0("The source hash of its stored output cannot be read from ", named(unreadable), ". ",
-                    rerender_steps))
+                    rerender_steps, " If the row stays after these steps, these files can be from a format",
+                    " that the report no longer renders, or damaged. Delete them, render the whole site,",
+                    " and commit the report with _freeze/, docs/, and figures/."))
     }
     differs <- unlist(stored) != hash
     if (!any(differs)) {
@@ -622,6 +626,12 @@ check_stale_output <- function(path) {
   }, character(1), USE.NAMES = FALSE)
   hit <- !is.na(problem)
   problem_rows("stale-output", file.path("analyses", basename(reports[hit])), problem[hit])
+}
+
+# A path between double quotes, with `\` before each `\` and `"` in it, so
+# that a name holding `, ` or `"` reads as one path in a list.
+quote_path <- function(x) {
+  paste0('"', gsub('(["\\\\])', "\\\\\\1", x), '"')
 }
 
 # Quarto 1.10.19 keeps a report's folder in _freeze/analyses/ after the
