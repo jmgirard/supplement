@@ -4,9 +4,12 @@ check_quiet <- function(path) suppressMessages(check_supplement(path))
 
 rows_of <- function(result, check) result[result$check == check, , drop = FALSE]
 
-# The last sentence of each row for a report with missing or old stored output.
+# The last sentence of each row for a report with old or unreadable stored
+# output, and the second-to-last of the row for a report with none.
 rerender_steps <- paste("Render the report by name, render the whole site, then commit the report with",
                         "_freeze/, docs/, and figures/.")
+# The sentence after it in the row for a report with no stored output.
+menu_step <- "If you added the report to the Analyses menu, as add_report() does, also commit _quarto.yml."
 
 # A file of `size` bytes that takes almost no disk space.
 sparse_file <- function(path, size) {
@@ -202,7 +205,7 @@ test_that("reports with code but no stored output give a no-stored-output row", 
   # example.qmd from the template has R chunks and no stored output yet.
   expect_setequal(rows$file, file.path("analyses", c("r-chunk.qmd", "python-chunk.qmd", "callout.qmd",
                                                       "rust-block.qmd", "hidden-only.qmd", "example.qmd")))
-  expect_true(all(endsWith(rows$problem, rerender_steps)))
+  expect_true(all(endsWith(rows$problem, paste(rerender_steps, menu_step))))
 })
 
 # Write a report from its lines, with no front matter added.
@@ -439,6 +442,7 @@ test_that("stored output made from other report text gives a stale-output row", 
     expect_match(problem, "made from other text than the report holds now", fixed = TRUE)
   }
   expect_true(all(endsWith(rows$problem, rerender_steps)))
+  expect_false(any(grepl("_quarto.yml", rows$problem, fixed = TRUE)))
 })
 
 test_that("a source hash that cannot be read gives a stale-output row that says so", {
@@ -469,6 +473,7 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
     expect_match(problem, "The source hash of its stored output cannot be read", fixed = TRUE)
   }
   expect_true(all(endsWith(rows$problem, rerender_steps)))
+  expect_false(any(grepl("_quarto.yml", rows$problem, fixed = TRUE)))
 })
 
 test_that("a site with no docs folder gives one not-rendered row", {
