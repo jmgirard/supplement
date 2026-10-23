@@ -76,24 +76,24 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - AC3 (macOS, 2026-10-23): "save_png() keeps its target as it was when the PNG file lacks its end chunk" 24/24 pass: 4 probes, each with `new.png` and `bootstrap-means.png`. The end bytes in `example.qmd` read `0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82`.
 - AC4 (2026-10-23): the "Paper figures" section's r block holds the `site` chunk alone, and "the README's figure code starts with the example's site chunk" 1/1 passes. The section says to copy the whole `save-figure` chunk after the `site` chunk. It names the link stop (and the Windows junction), the file stop, and the PNG end-chunk stop.
 - AC5 (2026-10-23): the `NEWS.md` figures bullet names the PNG end chunk and the stop for a file, a link, or a Windows junction. The `cairn/DESIGN.md` template entry describes the link test and the `IEND` check (M046).
-- gate (2026-10-23): `cairn_validate.py` passed. `devtools::document()` gave no diff. The repo has no README.Rmd and no `_pkgdown.yml`. NEWS has the entry, and the diff adds no top-level file. The fresh `devtools::check()` is running.
+- gate (2026-10-23): `cairn_validate.py` passed. `devtools::document()` gave no diff. The repo has no README.Rmd and no `_pkgdown.yml`. NEWS has the entry, and the diff adds no top-level file. The fresh `devtools::check()` on macOS gave 0 errors, 0 warnings, 0 notes. After the five fixes (b7c7033), the full `devtools::test()` gave 5131 passed, 10 skipped, 0 failed. No snapshot file changed. No open PR of mine on the repo, so the feature cap holds.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- ripple #1: the "Paper Figures" prose in `example.qmd` said `save_png()` names the file "only when the plot succeeds" and left out the link stop — fix now
+- ripple #1: the "Paper Figures" prose in `example.qmd` said `save_png()` names the file "only when the plot succeeds" and left out the link stop — fix now, fixed b7c7033
 - ripple #2: the candidate row "Stop the example at a linked figures" describes the state before the fix — reject (planned change: step 9 deletes the row)
 - blame-history #1: a Windows junction to a missing target is not found by the link check, so the chunk fails later with R's device error — reject (edge: a dangling junction is outside the documented and the common use; the effect is an error, and nothing is written outside the site)
 - blame-history #2: the README block lost the `figures` and `dir.create()` lines that M028 added — reject (planned change: the plan gate chose to point at the whole chunk)
 - blame-history #3: on Windows the chunk calls a file link to a missing path a file, while the package's `is_link()` calls it a link — reject (planned change: AC1 accepts either message there)
 - blame-history #4: Windows and Linux devices and shapes run only in CI — noted (AC1 and AC6 wait for CI at step 8)
-- blame-history #5: the README sentence "Then it makes the folder" read as if the folder were made after a stop, and the lines were wrapped unevenly — fix now
+- blame-history #5: the README sentence "Then it makes the folder" read as if the folder were made after a stop, and the lines were wrapped unevenly — fix now, fixed b7c7033
 - prior-review #1: on Windows a link to a missing path gets the file message, not the link message — reject (planned change: AC1 accepts either message on Windows)
 - prior-review #2: on Windows a symbolic link to a folder inside the site may pass — reject (false: `normalizePath()` resolves a link to `figs/` to `site/figs`, which differs from `site/figures`)
-- prior-review #3: the "Paper Figures" prose leaves out the new stops — fix now (same fix as ripple #1)
+- prior-review #3: the "Paper Figures" prose leaves out the new stops — fix now (same fix as ripple #1), fixed b7c7033
 - diff-bug #1: the Windows tests have run only on macOS — noted (AC1 and AC6 wait for CI at step 8)
 - diff-bug #2: the setup test failed once in the parallel full run and was not traced — follow-up (absorbed into the candidate row "template test flake"); it passed alone and in `devtools::check()`
 - diff-bug #3: a site at a filesystem root gives `//figures`, so a plain folder gets the link message — reject (edge: a site at `/` or `C:/` is outside the documented and the common use; the effect is an error)
 - diff-bug #4: if `normalizePath()` fails on one side, on a network or virtual drive, a plain folder gets the link message — reject (edge: a drive where `normalizePath()` fails is outside the common use; the effect is an error)
 - diff-bug #5: on Windows a file link to an existing file gets the file message, and no test runs that shape there — reject (planned change: AC1 names the link-to-file shape for macOS and Linux only)
-- diff-bug #6: `expect_false(file.exists(file.path(site, "gone")))` also passes on `main` — fix now (removed)
+- diff-bug #6: `expect_false(file.exists(file.path(site, "gone")))` also passes on `main` — fix now (removed), fixed b7c7033
 - diff-bug #7: the folder-state check in the link-to-file test cannot fail on `main` — reject (planned change: AC1 asks for it; the message check fails on `main`)
 - diff-bug #8: `readBin()` reads the whole PNG to get 12 bytes — reject (edge: only a figure far larger than a paper figure makes the memory matter, and the effect is slow running)
 - diff-bug #9: two lines in the copied chunk run to about 90 and 99 characters — reject (style)
@@ -101,4 +101,4 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - diff-bug #11: a plot that draws no file now gets "Could not write a whole PNG file" — reject (planned change: AC3's "no file" probe pins it)
 - diff-bug test-rule #1: the "0 bytes" probe takes the same branch as "no file" and "11 bytes" — reject (planned change: AC3 names the four probes)
 - diff-bug test-rule #2: the two targets run the same code — reject (planned change: AC3 asks for both)
-- diff-bug test-rule #3: `has_line()` does what `expect_match(all = FALSE)` does — fix now (helper removed)
+- diff-bug test-rule #3: `has_line()` does what `expect_match(all = FALSE)` does — fix now (helper removed), fixed b7c7033
