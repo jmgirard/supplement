@@ -242,6 +242,7 @@ check_supplement <- function(path = ".") {
     if (!is.null(git$files)) check_ignored_output(path, git$ignored),
     check_stored_output(path),
     check_stale_output(path),
+    check_leftover_output(path),
     check_links(path),
     check_unpublished_figures(path),
     check_dois(path, meta, call = environment()),
@@ -588,6 +589,35 @@ check_stale_output <- function(path) {
   )
   hit <- state != "ok"
   problem_rows("stale-output", file.path("analyses", basename(reports[hit])), problem[state[hit]])
+}
+
+# Quarto 1.10.19 keeps a report's folder in _freeze/analyses/ after the
+# report is deleted or renamed. A file or folder in analyses/ whose name,
+# cut before its last `.`, equals the folder's name with letter case
+# ignored keeps it: a report of any kind, or a folder of reports. Case is
+# ignored because on macOS and Windows a report renamed only in case still
+# writes to its old folder.
+check_leftover_output <- function(path) {
+  freeze <- file.path(path, "_freeze", "analyses")
+  folders <- list.files(freeze)
+  folders <- folders[!startsWith(folders, ".") & dir.exists(file.path(freeze, folders))]
+  entries <- list.files(file.path(path, "analyses"), all.files = TRUE, no.. = TRUE)
+  stems <- sub("\\.[^.]*$", "", entries)
+  leftover <- folders[!fold_case(folders) %in% fold_case(stems)]
+  problem_rows(
+    "leftover-output", file.path("_freeze", "analyses", leftover),
+    rep_len(paste("No report in analyses/ has this stored output, as after a report is deleted or renamed.",
+                  "Delete the folder, render the whole site, then commit _freeze/ and docs/."),
+            length(leftover))
+  )
+}
+
+# Lower case for names that are valid UTF-8; tolower() stops on others,
+# which stay as they are.
+fold_case <- function(x) {
+  ok <- validUTF8(x)
+  x[ok] <- tolower(x[ok])
+  x
 }
 
 # The MD5 of a report's bytes with each CR LF read as LF, or NULL when the

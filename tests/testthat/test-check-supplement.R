@@ -476,6 +476,35 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
   expect_false(any(grepl("_quarto.yml", rows$problem, fixed = TRUE)))
 })
 
+test_that("a folder in _freeze/analyses/ that nothing in analyses/ names gives a leftover-output row", {
+  site <- new_site()
+  expect_identical(nrow(rows_of(check_quiet(site), "leftover-output")), 0L)
+
+  stored <- function(name) stored_file(site, name, "html.json", hash_json(md5_of(stale_lf)))
+  stored("deleted")
+  # A report of the folder's name, of any kind, a folder of reports, or a
+  # report whose name differs only in letter case keeps the folder.
+  report_bytes(site, "kept", stale_lf)
+  stored("kept")
+  writeBin(charToRaw("{}"), file.path(site, "analyses", "notebook.ipynb"))
+  stored("notebook")
+  dir.create(file.path(site, "analyses", "sub"))
+  writeBin(charToRaw(stale_lf), file.path(site, "analyses", "sub", "inner.qmd"))
+  stored(file.path("sub", "inner"))
+  report_bytes(site, "Cased", stale_lf)
+  stored("cased")
+  # Hidden folders and files directly in _freeze/analyses/ are not read.
+  stored(".hidden")
+  writeBin(charToRaw("{}"), file.path(site, "_freeze", "analyses", "loose.json"))
+
+  rows <- rows_of(check_quiet(site), "leftover-output")
+  expect_identical(rows$file, "_freeze/analyses/deleted")
+  expect_identical(rows$problem, paste(
+    "No report in analyses/ has this stored output, as after a report is deleted or renamed.",
+    "Delete the folder, render the whole site, then commit _freeze/ and docs/."
+  ))
+})
+
 test_that("a site with no docs folder gives one not-rendered row", {
   site <- new_site()
   result <- check_quiet(site)

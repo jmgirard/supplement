@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M042: Flag stored output of deleted reports
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — adds a `check_supplement()` row that stops `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m042-deleted-report-output
 
 ## Goal
 
@@ -80,6 +80,8 @@ steps after a deleted report. The help page and a NEWS entry.
 - 2026-10-23: criteria audit (full mode, fresh Opus reader): 6 findings. (1) AC3 with example.qmd empties the menu and fails the render, and its figure ships with the template: fixed, the test adds its own report and renders twice. (2) a case-counted match flags a case-only rename's live output on macOS: fixed, case ignored, the Linux miss named in AC4. (3) the row text skipped the render step: fixed. (4) any extension hides leftovers: kept as the narrower promise, named in AC4. (5) AC3 bound Quarto's keeping of the folder: fixed, the row is asserted when the folder exists. (6) "no page" read two ways: fixed as `docs/analyses/<name>.html`; how a link to a folder reads is left unpromised.
 - 2026-10-23: plan gate chose an any-extension, case-ignoring name match over matching only `.qmd`, `.Rmd`, and `.ipynb` with case counted, because the chosen rule never tells an author to delete live output; falsified by a realistic site whose leftover folder a same-named file that is not a report hides.
 - 2026-10-23: changelog: one NEWS.md entry for the row (T4).
+- 2026-10-23: implement started on m042-deleted-report-output, cut from main at 45cbf0e.
+- 2026-10-23: T1 checkpoint: `check_leftover_output()` and `fold_case()` added and called after `check_stale_output()`; the new test failed before the code (2 failures) and passes after; planted defects (no case fold, no extension cut) each fail it; full suite still running, so T1 is not ticked.
 
 ## Decisions
 
