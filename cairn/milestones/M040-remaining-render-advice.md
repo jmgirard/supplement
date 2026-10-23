@@ -21,10 +21,10 @@ Each place that this milestone lists gives the guide's steps for its case: a cha
 
 ## Acceptance criteria
 
-- [ ] AC1: In `inst/template/_quarto.yml`, the comment above `render:` gives the steps for a changed report. The author renders it by name, then renders the whole site, then commits the report with `_freeze/`, `docs/`, and `figures/`. The comment above `resources:` gives the steps for a new figure name in `figures/`. The author renders the whole site again, then commits `figures/`, `docs/`, and `_freeze/`.
-- [ ] AC2: The `no-stored-output` row text of `check_supplement()` ends with two sentences. The first is "Render the report by name, render the whole site, then commit the report with _freeze/, docs/, and figures/." The second is "If you added the report to the Analyses menu, as add_report() does, also commit _quarto.yml." The two `stale-output` texts still end with the first sentence and do not name `_quarto.yml`.
-- [ ] AC3: In `NEWS.md`, the bullet for `vignette("publishing")` gives three steps. They are: render the report by name, render the whole site, then commit it with `_freeze/`, `docs/`, and `figures/`. The `check_supplement()` bullet says that the row for a report with no stored output also says to commit `_quarto.yml` for a report in the Analyses menu.
-- [ ] AC4: `devtools::document()` leaves no diff, and `devtools::test()` passes. `devtools::check()` gives 0 errors and 0 warnings, with each NOTE justified. If a template render fails because `_scripts/nojekyll.ts` exits 139, one re-run counts. The work log then notes the crash for the row "Trace the post-render crash on macOS".
+- [x] AC1: In `inst/template/_quarto.yml`, the comment above `render:` gives the steps for a changed report. The author renders it by name, then renders the whole site, then commits the report with `_freeze/`, `docs/`, and `figures/`. The comment above `resources:` gives the steps for a new figure name in `figures/`. The author renders the whole site again, then commits `figures/`, `docs/`, and `_freeze/`.
+- [x] AC2: The `no-stored-output` row text of `check_supplement()` ends with two sentences. The first is "Render the report by name, render the whole site, then commit the report with _freeze/, docs/, and figures/." The second is "If you added the report to the Analyses menu, as add_report() does, also commit _quarto.yml." The two `stale-output` texts still end with the first sentence and do not name `_quarto.yml`.
+- [x] AC3: In `NEWS.md`, the bullet for `vignette("publishing")` gives three steps. They are: render the report by name, render the whole site, then commit it with `_freeze/`, `docs/`, and `figures/`. The `check_supplement()` bullet says that the row for a report with no stored output also says to commit `_quarto.yml` for a report in the Analyses menu.
+- [x] AC4: `devtools::document()` leaves no diff, and `devtools::test()` passes. `devtools::check()` gives 0 errors and 0 warnings, with each NOTE justified. If a template render fails because `_scripts/nojekyll.ts` exits 139, one re-run counts. The work log then notes the crash for the row "Trace the post-render crash on macOS".
 
 ## Coverage
 
@@ -65,3 +65,27 @@ Each place that this milestone lists gives the guide's steps for its case: a cha
 ## Decisions
 
 ## Review
+
+- 2026-10-23 AC1: read at the branch head. `inst/template/_quarto.yml` lines 6 to 8, above `render:`, say: after you change a report, render it by name, then render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`, with the README.md or SUPPLEMENT.md pointer. Lines 12 to 14, above `resources:`, say: after a render saves a figure under a new name in `figures/`, render the whole site again, then commit `figures/`, `docs/`, and `_freeze/`. Holds.
+- 2026-10-23 AC2: `R/check-supplement.R` lines 551 to 552 build the `no-stored-output` text as the lead sentence, `rerender_steps` (line 533, the first sentence verbatim), and the second sentence verbatim. The `stale-output` texts (lines 585 to 587) end with `rerender_steps` and hold no `_quarto.yml`. In the fresh `devtools::test()` run, the `no-stored-output` test's `endsWith()` against both sentences and both `stale-output` absence checks pass. Holds.
+- 2026-10-23 AC3: read at the branch head. The `vignette("publishing")` bullet (`NEWS.md` lines 211 to 214) says: render the report by name, render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`. The `check_supplement()` bullet (lines 64 to 66) says the row for a report with no stored output also says: if you added the report to the Analyses menu, as `add_report()` does, commit `_quarto.yml` too. Holds.
+- 2026-10-23 AC4: fresh run at 96a16ab. `devtools::document()` left `git status` empty. `devtools::test()`: 5021 tests, 0 failed, 0 errors, 8 skipped. `devtools::check()`: 0 errors, 0 warnings, 0 notes. No template render crashed, so no re-run was used. Holds.
+- 2026-10-23 gate: `cairn_validate.py` all checks passed. Profile gate: `document()` no diff; no README.Rmd and no `_pkgdown.yml`, so those checks do not apply; NEWS.md carries the change; no new top-level file; `check()` clean. No snapshot files changed.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the menu sentence also reaches a report whose menu item was committed long ago — reject (planned change: the plan chose one conditional sentence for every such row; a commit of an unchanged `_quarto.yml` stages nothing).
+- diff-bug #2: the row gives no hint for a hand-made report that is not in the menu — reject (false: the sentence's condition is false for it, and the steps before it are complete).
+- diff-bug #3: `_quarto.yml` line 5 says a full render runs no report code, which is false for a report with no stored output — follow-up, new row "Correct two older render notes".
+- diff-bug #4: the two `_quarto.yml` absence checks pass on main, and the second nearly repeats the first — reject (planned change: T1 planned them as must-stay-silent guards for the two `stale-output` texts, which a change to the shared constant could break).
+- diff-bug #5: the NEWS insertion leaves ragged short lines — fix now.
+- blame-history #1: the new comments and the row text name `figures/` with no leave-out note — reject (planned change: the plan gate chose this, and the comments point to the guide that carries the note).
+- blame-history #2: the test comment above `rerender_steps` still calls it the last sentence of the missing-output row — fix now.
+- blame-history #3: "render the whole site again" is stricter than Quarto needs — reject (false: it matches "Paper figures" in `_README.md` and the `unpublished-figure` row text, which M039 set).
+- blame-history #4: ragged NEWS lines — fix now (same fix as diff-bug #5).
+- prior-review #1: no `figures/` leave-out note in the new comment or row text — reject (planned change, as blame-history #1).
+- prior-review #2: the publishing-guide NEWS bullet names `figures/` with no note — reject (false: the bullet gives no command; the note goes with `git add` commands, and the vignette carries it).
+- ripple #1: the stale test comment — fix now (same fix as blame-history #2).
+- ripple #2: "How the site renders" (`_README.md` line 250) says to commit `_freeze/` and `docs/` after a delete or rename, with no `_quarto.yml` for the menu item — follow-up, new row "Correct two older render notes".
+- ripple #3: the candidate row "Align the remaining render advice" describes the old text — reject (planned change: post-merge hygiene deletes the row).
+- ripple #4: `_README.md` says "stage `_quarto.yml`" where the row says "commit" — reject (false: that step stages and then commits).
+- ripple #5: ragged NEWS lines — fix now (same fix as diff-bug #5).
+- Return floor: no finding shows a criterion failing or a defect in what the package does for its users, so no return.
