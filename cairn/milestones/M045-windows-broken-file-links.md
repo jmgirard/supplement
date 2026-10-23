@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M045: Detect broken file links on Windows
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -49,7 +49,7 @@ On Windows, `is_link()` counts a file symbolic link whose target is missing as a
 - [x] T4: In `tests/testthat/test-release-supplement.R`, remove the `skip_on_os("windows")` and its comment from "a link to a missing output file is refused before any write" (about line 563). In `expect_link_refused()`, make the link with `symlink_or_skip()` so that a failed link skips with "cannot make a symbolic link here", which `.github/scripts/check-skips.R` fails on.
 - [x] T5: Remove `skip_on_os("windows")` from the AC3 tests (`test-write-metadata-errors.R` about line 373, `test-write-dockerfile.R` about line 293). Make each link with `symlink_or_skip()`, so the folder case is a junction on Windows (LESSONS M022).
 - [x] T6: Edit the roxygen in `R/write-citation.R` about line 78 and `R/write-dockerfile.R` about line 124, then run `devtools::document()`. Edit the NEWS.md bullet about lines 115 to 118. In DESIGN.md, correct the text about lines 65 to 76, and the "Release edge cases" known issue against the Windows results that T7 shows. In the "Figure check edge cases" known issue, mark the Windows `ignored-output` sentence as not checked since M045, because no test makes that case. Remove the candidate-row comments in the tests (`test-release-supplement.R` about line 561, `test-check-supplement.R` about line 1046).
-- [ ] T7: Push and read the three CI jobs and the skip list that the check-skips step prints, to see that the AC2 to AC4 tests ran on Windows. Run `devtools::test()` and `devtools::check()` on the Mac, and compare any note with a check of the default branch.
+- [x] T7: Push and read the three CI jobs and the skip list that the check-skips step prints, to see that the AC2 to AC4 tests ran on Windows. Run `devtools::test()` and `devtools::check()` on the Mac, and compare any note with a check of the default branch.
 
 ## Work log
 
@@ -69,6 +69,7 @@ On Windows, `is_link()` counts a file symbolic link whose target is missing as a
 - 2026-10-23: T6: roxygen of `write_citation()` and `write_dockerfile()` now says a link to a missing file is refused, man pages rebuilt; the NEWS.md bullet says Windows now refuses one and that fs is imported; DESIGN.md architecture text and the "Release edge cases" and "Figure check edge cases" known issues corrected or marked not checked; the test comment now names `fs_link()`. The AC5 grep shows no "not seen" line. These docs rest on the T1 probe and on the Windows CI run in T7.
 - 2026-10-23: claim audit: 22 claims read, 0 corrected — NEWS.md, R/supplement-yml.R, R/write-citation.R, R/write-dockerfile.R, man/write_citation.Rd, man/write_zenodo.Rd, man/write_dockerfile.Rd, tests/testthat/helper-files.R, tests/testthat/test-check-supplement.R (its one suggestion, renaming a test to say "or missing path", was not taken: the name is not wrong).
 - 2026-10-23: T7: Mac `devtools::check()` 0 errors, 0 warnings, 0 notes on the branch and on main. CI run 40026242213: macOS and Ubuntu passed; Windows failed 1 test, "a path that fs stops on gives the other link rules' answer, not an error", with "Error in `is_link(paths)`: Failed to stat": `local_mocked_bindings(is_link =, .package = "fs")` also replaced the package's own `is_link()` in that test under R CMD check. Fix: `fs_link()` calls a package wrapper `fs_is_link()`, which the test mocks with no `.package`; on the Mac a TRUE mock of it gave TRUE. The Windows skip list had no skip for the AC2 to AC4 tests.
+- 2026-10-23: T7: CI run 40029242224 on ddb495c passed on Windows, macOS, and Ubuntu; Windows `[ FAIL 0 | WARN 0 | SKIP 34 | PASS 4763 ]`, and its skip list names none of the AC2 to AC4 tests (release 560, check-supplement 650, write-metadata-errors 372, write-dockerfile 292) nor the two new `is_link()` tests; its release skips (571, 585, 638) are older tests. Status set to review.
 
 ## Decisions
 
