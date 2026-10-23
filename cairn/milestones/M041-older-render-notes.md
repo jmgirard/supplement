@@ -1,6 +1,6 @@
 # M041: Correct two older render notes
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -38,7 +38,7 @@ The template says what a full render runs and gives the steps after a report is 
 - [x] T1: In `tests/testthat/test-add-render.R`, add the test of AC3. Make a site with `create_supplement()`, add a report with `add_report()`, and run a full render. Rename the report file, delete its old folder in `_freeze/analyses/`, change the menu item's `href` in `_quarto.yml` to the new name, and run a full render. Assert facts 1 to 3 of AC3. Rename the report again and run a full render. Assert facts 4 and 5. Run `devtools::test(filter = "add-render")`.
 - [x] T2: Rewrite the comment above `render:` in `inst/template/_quarto.yml` (lines 4 to 8). Keep the steps that M040 set and the pointer to README.md or SUPPLEMENT.md. Run `devtools::test(filter = "template")`, because those tests render the template.
 - [x] T3: Rewrite the paragraph at lines 250 to 252 of `inst/template/_README.md` to give AC2's steps.
-- [ ] T4: Run `grep -rn -i -E 'runs no (report )?code|delete or rename|rename a report' R inst/template vignettes README.md NEWS.md`. Read each hit outside the In list that repeats either wrong note, and record it as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`. If a template render fails because `_scripts/nojekyll.ts` exits 139, write a work-log line for the row "Trace the post-render crash on macOS".
+- [x] T4: Run `grep -rn -i -E 'runs no (report )?code|delete or rename|rename a report' R inst/template vignettes README.md NEWS.md`. Read each hit outside the In list that repeats either wrong note, and record it as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`. If a template render fails because `_scripts/nojekyll.ts` exits 139, write a work-log line for the row "Trace the post-render crash on macOS".
 
 ## Work log
 
@@ -57,7 +57,8 @@ The template says what a full render runs and gives the steps after a report is 
 - 2026-10-23: T2 done: the `_quarto.yml` comment now says a full render reuses `_freeze/` and runs the code of each report that has no stored output there; the changed-report steps and the README.md or SUPPLEMENT.md pointer are unchanged. `devtools::test(filter = "template")`: 0 failures, 201 passes.
 - 2026-10-23: T3 done: the paragraph in "How the site renders" now gives AC2's three steps as sentences in order and says a renamed report's code runs and needs its data, fit files, and R; two sentences were split after the simple-english lint hook flagged them over its length limit. `devtools::test(filter = "template|publishing")`: 0 failures, 219 passes (run before the split, which changed no test input).
 - 2026-10-23: T4 search: `grep` gave two hits, `_README.md:240` (already limits "runs no code" to a report that holds stored output) and `_README.md:250` (the In-list paragraph); no new candidate row. `devtools::document()` left no diff.
-- 2026-10-23: claim audit: 10 claims read, 1 corrected — inst/template/_README.md, inst/template/_quarto.yml, tests/testthat/test-add-render.R. The commit step names `figures/` for a deleted report too, though its figures stay published; the paragraph now says so and points to "Paper figures". The reader's four probe cases (rename and delete, each with and without the steps) matched the other 9 claims.
+- 2026-10-23: claim audit: 10 claims read, 1 corrected — inst/template/_README.md, inst/template/_quarto.yml, tests/testthat/test-add-render.R. The commit step names `figures/` for a deleted report too, though its figures stay published; the paragraph now says so and points to "Paper figures". The reader's four probe cases (rename and delete, each with and without the steps) matched the other 9 claims. The same reader re-read the corrected claim once and found it correct.
+- 2026-10-23: T4 done: `devtools::test()` 0 failures, 0 errors, 8 skips, 5025 passes; `devtools::check()` 0 errors, 0 warnings, 0 notes; no nojekyll exit 139. Both ran at 7e2c72f, before the one-sentence guide fix in 6cfbcb0, which changed no code or test. Set status review.
 
 ## Decisions
 
