@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M043: Name leftover format files in _freeze
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -115,6 +115,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: T6 done: the code is the same as at c16dc44, `devtools::document()` left no diff, and `devtools::test()` passed (376 tests, 0 failed, 0 errors, 9 skipped). The first AC1 edit missed, because the old sentence also appears in the work log. d6f4077 wrote the criterion. Status review.
 - 2026-10-23: correction of the T2 line: the claim that `docs/analyses/formats.docx`'s later absence comes from the full render after the delete is false. Pass 3 diff-bug #1 saw the file gone after the full render before the delete.
 - 2026-10-23: review return 3: AC4 fails as written — the help item does not state the `, ` join of the named files (pass 3 diff-bug #2). This is the third defect return, so the thrash rule's stop goes to the user.
+- 2026-10-23: user decision at the thrash stop: descope, narrowing AC4 so that the help item states which files the row names, their path form, and their order, without the `, ` join. The row text shows the join. The remainder (stating the join on the help page) is dropped at the user's choice and gets no row. Fix-now items for the same round: pass 3 diff-bug #1 and #3, and ripple #1.
 
 ## Decisions
 
