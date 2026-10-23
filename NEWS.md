@@ -57,8 +57,9 @@
   from other text than the report holds now. It also finds stored output
   whose hash cannot be read. A change in a file that the report includes does
   not count. It finds folders in `_freeze/analyses/` that no file or
-  folder in `analyses/` names, as after a report is deleted or renamed. It also finds relative links in `docs/` to files that are not in `docs/`, and
-  pages there that cannot be read. It finds files in `figures/`, `docs/`,
+  folder in `analyses/` names, as after a report is deleted or renamed.
+  It also finds relative links in `docs/` to files that are not in
+  `docs/`, and pages there that cannot be read. It finds files in `figures/`, `docs/`,
   and `_freeze/` that git ignores, which a release leaves out. It finds
   figures in `figures/` whose copy in `docs/figures/` is missing or
   differs. The rows for missing, old, or unreadable stored output and for

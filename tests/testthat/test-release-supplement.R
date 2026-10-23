@@ -199,7 +199,7 @@ test_that("a problem from check_supplement() stops the release with the number o
 
 test_that("one problem of any other check stops the release", {
   checks <- c("large-file", "saved-object", "ignored-output", "no-stored-output", "stale-output",
-              "not-rendered", "broken-link", "unpublished-figure", "placeholder")
+              "leftover-output", "not-rendered", "broken-link", "unpublished-figure", "placeholder")
   for (check in checks) {
     mock_check(problem_rows(check, "x", "A problem."))
     dir <- release_site('  version: "1.2.3"')

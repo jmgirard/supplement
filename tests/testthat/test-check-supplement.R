@@ -501,7 +501,9 @@ test_that("a folder in _freeze/analyses/ that nothing in analyses/ names gives a
   expect_identical(rows$file, "_freeze/analyses/deleted")
   expect_identical(rows$problem, paste(
     "No report in analyses/ has this stored output, as after a report is deleted or renamed.",
-    "Delete the folder, render the whole site, then commit _freeze/ and docs/."
+    "Delete the folder, render the whole site, then commit _freeze/ and docs/.",
+    "If you deleted or renamed the report, also commit its old path and _quarto.yml,",
+    "which holds its menu item."
   ))
 })
 
@@ -510,7 +512,15 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
   upper <- rawToChar(as.raw(c(0x54, 0xe9)))
   lower <- rawToChar(as.raw(c(0x74, 0xe9)))
   expect_identical(fold_case(upper), lower)
-  expect_identical(fold_case(c("Trends", lower)), c("trends", lower))
+
+  # macOS and Windows refuse such a name, so this part runs on Linux.
+  site <- new_site()
+  made <- tryCatch(file.create(file.path(site, "analyses", paste0(upper, ".R"))), error = function(e) FALSE)
+  skip_if_not(isTRUE(made), "the file system refuses a name that is not valid UTF-8")
+  stored_file(site, lower, "html.json", hash_json(md5_of(stale_lf)))
+  stored_file(site, "deleted", "html.json", hash_json(md5_of(stale_lf)))
+  expect_no_error(rows <- rows_of(check_quiet(site), "leftover-output"))
+  expect_identical(rows$file, "_freeze/analyses/deleted")
 })
 
 test_that("a site with no docs folder gives one not-rendered row", {

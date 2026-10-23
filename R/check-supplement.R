@@ -77,10 +77,14 @@
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its
 #'   last `.` (the whole name when it holds no `.`), it equals the folder's
-#'   name with letter case ignored. In a name that is not valid UTF-8, only
-#'   the case of ASCII letters is ignored. Quarto 1.10.19 keeps a report's folder
+#'   name with letter case ignored: the case of ASCII letters always, and
+#'   the case of other letters as `tolower()` reads it in the session's
+#'   locale. In a name that is not valid UTF-8, only the case of ASCII
+#'   letters is ignored. A name stored in another Unicode form, composed or
+#'   decomposed, does not match. Quarto 1.10.19 keeps a report's folder
 #'   after the report is deleted or renamed. The row says to delete the
-#'   folder, render the whole site, and commit `_freeze/` and `docs/`.
+#'   folder, render the whole site, and commit `_freeze/` and `docs/`, and
+#'   for a deleted or renamed report also its old path and `_quarto.yml`.
 #'   Folders inside subfolders of `_freeze/analyses/` and folders directly
 #'   in `_freeze/` are not read. A file or folder in `analyses/` of the
 #'   same name, such as `<name>.R`, hides a leftover folder. So does a
@@ -612,24 +616,30 @@ check_stale_output <- function(path) {
 # default, a report renamed only in case still writes to its old folder.
 check_leftover_output <- function(path) {
   freeze <- file.path(path, "_freeze", "analyses")
+  # list.files() leaves out names that start with `.`.
   folders <- list.files(freeze)
-  folders <- folders[!startsWith(folders, ".") & dir.exists(file.path(freeze, folders))]
-  entries <- list.files(file.path(path, "analyses"), all.files = TRUE, no.. = TRUE)
-  stems <- sub("\\.[^.]*$", "", entries)
+  folders <- folders[dir.exists(file.path(freeze, folders))]
+  # useBytes keeps a name that is not valid UTF-8 in the match.
+  stems <- sub("\\.[^.]*$", "", list.files(file.path(path, "analyses")), useBytes = TRUE)
+  Encoding(stems) <- "unknown"
   leftover <- folders[!fold_case(folders) %in% fold_case(stems)]
   problem_rows(
     "leftover-output", file.path("_freeze", "analyses", leftover),
     rep_len(paste("No report in analyses/ has this stored output, as after a report is deleted or renamed.",
-                  "Delete the folder, render the whole site, then commit _freeze/ and docs/."),
+                  "Delete the folder, render the whole site, then commit _freeze/ and docs/.",
+                  "If you deleted or renamed the report, also commit its old path and _quarto.yml,",
+                  "which holds its menu item."),
             length(leftover))
   )
 }
 
-# Lower case for names that are valid UTF-8. tolower() stops on others, so
-# their ASCII capital letters are lowered byte by byte.
+# Lower case: ASCII letters first, with chartr(), since tolower() follows
+# the locale, where `I` need not lower to `i` (Turkish). tolower() stops on
+# a name that is not valid UTF-8, so only the ASCII capitals of such a name
+# are lowered, byte by byte.
 fold_case <- function(x) {
   ok <- validUTF8(x)
-  x[ok] <- tolower(x[ok])
+  x[ok] <- tolower(ascii_lower(x[ok]))
   x[!ok] <- vapply(x[!ok], function(name) {
     bytes <- charToRaw(name)
     upper <- bytes >= as.raw(0x41) & bytes <= as.raw(0x5a)
