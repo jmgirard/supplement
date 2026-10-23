@@ -90,3 +90,11 @@ The problem text of a `"stale-output"` row shows which stored output files it na
 - blame-history #3: a name with a line break still spans two lines — reject (false for the `problem` text: the break sits inside the path's quotes, so the path reads as one; how cli prints it is Out).
 - blame-history #4: NEWS lines 61-78 say the delete step twice and line 76 was stale — reject (false at 2c68438: ripple #1's fix made line 76 agree; the two sentences are the detail and the summary).
 - blame-history #5: new lines over 100 characters — reject (style).
+- diff-bug #1: `NEWS.md:77-78` "The hint above also gives a delete step" reads as incomplete — fix now, fixed 2c68438 (same fix as ripple #1; the reviewer read an earlier head).
+- diff-bug #2: the roxygen paragraph near `R/check-supplement.R:78-84` is not re-wrapped — reject (style; the Rd output is fine).
+- diff-bug #3: "or damaged" in the delete step is a hedge, since the render steps rewrite a live format's damaged file — reject (planned change: AC1 fixes this sentence; a damaged file of a dropped format is still in its reach).
+- diff-bug #4: the `q"r` report-name case runs the same `quote_path()` path as `d"e.json` — reject (planned change: AC2 names the case, from the criteria audit).
+- diff-bug #5: the test comments at `test-add-render.R:143` and `:150` describe the next expectations — reject (false: they state Quarto behavior the code cannot show, which the test-comment rule allows).
+- diff-bug #6: `quote_path(character(0))` returns `""` — reject (false as a defect: `named()` runs only when at least one file is hit, so no input reaches it).
+- diff-bug #7: `stale_text(paths = ...)` with no `name` or `files` relies on lazy evaluation — reject (style).
+- snapshot: no changed `_snaps` or `__snapshots__` files in `git diff --name-only origin/main...HEAD`.
