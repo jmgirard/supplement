@@ -1,13 +1,13 @@
 # M046: Stop the example at a linked figures folder
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — template code that site authors run and copy into their reports
-- **Branch/PR:** —
+- **Branch/PR:** m046-linked-figures
 
 ## Goal
 
