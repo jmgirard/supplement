@@ -84,6 +84,12 @@ save_png <- function(file, draw, dir = figures) {
     dev.off(device)
     if (old != 1) dev.set(old)
   })
+  # A whole PNG file ends with its IEND chunk. A full disk can cut it short.
+  size <- file.size(tmp)
+  end <- if (isTRUE(size >= 12)) readBin(tmp, "raw", size)[(size - 11):size] else raw(0)
+  if (!identical(end, as.raw(c(0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82)))) {
+    stop("Could not write a whole PNG file for ", target, ".")
+  }
   if (!file.rename(tmp, target)) stop("Could not write ", target, ".")
 }
 save_png("bootstrap-means.png", function() {
