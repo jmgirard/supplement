@@ -70,27 +70,31 @@ The template says what a full render runs and gives the steps after a report is 
 - AC3 evidence (fresh run at 7e4beb9, `devtools::test(reporter = "silent")`): `test-add-render.R` "the guide's steps after a rename give the page its new name and keep the menu link" ran 12 expectations, 0 failed, not skipped. Its asserts, in order: `comparison.html` present and `models.html` absent in `docs/analyses/` (fact 1), `_freeze/analyses/comparison` present (2), no `broken-link` problem (3); then after the second rename alone, `_freeze/analyses/comparison` still present (4) and a `broken-link` problem containing `analyses/comparison.qmd` (5). Pass.
 - AC4 evidence (fresh run at 7e4beb9): `devtools::document()` left `git status` empty; `devtools::test()` 0 failed, 0 errors, 8 skipped, 5025 passed; `devtools::check()` 0 errors, 0 warnings, 0 notes; no nojekyll exit 139. Pass.
 - spawned: diff-bug, blame-history, prior-review, ripple.
-- diff-bug #1: the private-data recipe's step 3 stages `_quarto.yml` only for an `add_report()` report and names no old path, so a rename's menu edit and old-file deletion go unstaged — fix now.
-- diff-bug #2: "commit the deleted or renamed report" does not say a rename has an old and a new path — fix now.
-- diff-bug #3: `_README.md:13`, `README.md:6`, and `cairn/DESIGN.md:16` still state the unconditional rebuild claim in other words — fix now.
+- diff-bug #1: the private-data recipe's step 3 stages `_quarto.yml` only for an `add_report()` report and names no old path, so a rename's menu edit and old-file deletion go unstaged — fix now, fixed 8b8930a.
+- diff-bug #2: "commit the deleted or renamed report" does not say a rename has an old and a new path — fix now, fixed 8b8930a.
+- diff-bug #3: `_README.md:13`, `README.md:6`, and `cairn/DESIGN.md:16` still state the unconditional rebuild claim in other words — fix now, fixed 8b8930a.
 - diff-bug #4: the delete path and the figures-stay claim have no test — follow-up, row "Test the guide's steps after a deletion".
 - diff-bug #5: facts 1 and 2 pass with or without the steps — reject (planned change): AC3 sets them to test the guide's claims that the page takes its new name and the code runs; fact 3 and the control discriminate the steps.
 - diff-bug #6: fact 4 has low power — reject (planned change): AC3 requires it as the reason for the folder step.
 - diff-bug #7: two test comments restate the code — reject (style).
 - diff-bug #8: the precondition `frozen("models")` tests unchanged behavior — reject (false): it pins the state the later `unlink()` step acts on, which the test relies on.
-- diff-bug #9: "its folder" is unclear for a rename — fix now.
+- diff-bug #9: "its folder" is unclear for a rename — fix now, fixed 8b8930a.
 - diff-bug #10: the commit list names `figures/` with no leave-out note — reject (false): the paragraph is prose, not a command; the guide's `git add` commands (private-data recipe, publishing guide) carry the note, as for the changed-report paragraph M039 wrote.
 - diff-bug #11: no step for other pages that link the old page — reject (false): `check_supplement()`, which "Checks before a release" runs, gives a `broken-link` row for each such link.
 - blame-history #1: same as diff-bug #10 — reject (false), same reason.
 - blame-history #2 to #4: no regression of M003, M017, M039, or M040 text; D-002 and D-018 hold — noted.
 - prior-review #1: the `figures/` leave-out note is missing (LESSONS M039) — reject (false), as diff-bug #10.
 - prior-review #2: M040's reason for no note in the YAML comment no longer holds — reject (false): the guide's command recipes still carry the note.
-- ripple #1: the private-data recipe stages `_quarto.yml` only after `add_report()` — fix now, with diff-bug #1.
+- ripple #1: the private-data recipe stages `_quarto.yml` only after `add_report()` — fix now, with diff-bug #1, fixed 8b8930a.
 - ripple #2: changed-report commit lists lack `_quarto.yml` — reject (false): a changed report does not change the menu (M040's choice).
 - ripple #3: the example-report `placeholder` row text omits `_freeze/analyses/example/` — follow-up, row "Name stored output in the example row".
-- ripple #4: `cairn/DESIGN.md:14-16` — fix now, with diff-bug #3.
-- ripple #5: `_README.md:13` — fix now, with diff-bug #3.
-- ripple #6: `README.md:6-7` — fix now, with diff-bug #3.
-- ripple #7: the test name at `test-template.R:123` overstates the rule — fix now.
+- ripple #4: `cairn/DESIGN.md:14-16` — fix now, with diff-bug #3, fixed 8b8930a.
+- ripple #5: `_README.md:13` — fix now, with diff-bug #3, fixed 8b8930a.
+- ripple #6: `README.md:6-7` — fix now, with diff-bug #3, fixed 8b8930a.
+- ripple #7: the test name at `test-template.R:123` overstates the rule — fix now, fixed 8b8930a.
+- fixes 8b8930a: `_README.md:13` and `README.md:6` now limit the rebuild claim to reports that hold stored output; `cairn/DESIGN.md` corrected in place (marked); the delete-or-rename paragraph names the folder under the old name and commits the report under its old path and any new path; the private-data recipe stages `_quarto.yml` and the old path for a deleted or renamed report (git 2.54 stages a rename from `git add <old> <new>`, probe 2026-10-23); the test-template name now says "of a report with stored output". AC1 to AC3 text and asserts are unchanged by it; AC2's three steps and sentence still read as recorded above.
+- re-run at 8b8930a: `devtools::document()` no diff; `devtools::test()` 0 failed, 0 errors, 8 skipped, 5025 passed; `devtools::check()` 0 errors, 0 warnings, 0 notes; no nojekyll exit 139.
+- consistency gate: `cairn_validate.py` all checks passed. No principle changed, so no `cairn_impact` run. Profile checks: `document()` no diff; no README.Rmd and no pkgdown site, so those checks do not apply; no new top-level file. Changelog: no `NEWS.md` entry, as the plan gate chose — the change corrects guide text and a test name, with no change in what any function or template file does, and NEWS lists features; the two NEWS lines on render reuse (34-35) already limit the claim to stored output.
+- conversation: no open PR, so no PR-conversation read. Snapshot files changed: none (`git diff --name-only main...HEAD` lists no `_snaps` path). Open-PR feature cap: 0 open PRs of 1.
 - ripple #8: `NEWS.md:34-35` and `_README.md:503` — reject (false): both limit the claim to a render from stored output.
 - ripple #9: the ROADMAP row still lists the two notes — reject (planned change): hygiene graduates it at merge.
