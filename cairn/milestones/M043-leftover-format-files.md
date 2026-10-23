@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M043: Name leftover format files in _freeze
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -65,7 +65,7 @@ format. The help page and the `NEWS.md` bullet.
       problems in a site" (line 47). Grep `README.md`, `vignettes/`,
       and `inst/template/_README.md` for advice on kept format files and
       update any that give it.
-- [ ] T4: Run `devtools::document()` and `devtools::test()`.
+- [x] T4: Run `devtools::document()` and `devtools::test()`.
 
 ## Work log
 
@@ -87,6 +87,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: T3 done: the help item states the naming rules and the format hint in place of the "so delete that file" sentence, `devtools::document()` rewrote `man/check_supplement.Rd`, and the NEWS.md bullet names the files and the hint's steps. A grep of `README.md`, `vignettes/`, and `inst/template/_README.md` for `docx` and "format that" found no advice on kept format files.
 - 2026-10-23: T4: `devtools::document()` left no diff, and `devtools::test()` passed (375 tests, 0 failed, 0 errors, 9 skipped) at 4f5cd59.
 - 2026-10-23: claim audit: 20 claims read, 5 corrected — R/check-supplement.R, man/check_supplement.Rd, NEWS.md, tests/testthat/test-check-supplement.R. The help text and its Rd copy now say the hint needs every hash to be readable. NEWS says only unreadable files are named when one cannot be read, with the same condition on the hint. A new case, "hidden-match", shows that a hidden matching file gives no hint. The check test file passes after the fixes.
+- 2026-10-23: claim audit re-read (same reader): the 5 corrected claims hold, 0 further corrections. T4 done, and the status is review. The full suite last ran at 4f5cd59, and 62b528e changed docs and one test file only, which passes.
 
 ## Decisions
 
