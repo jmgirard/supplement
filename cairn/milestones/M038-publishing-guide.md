@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M038: Write a first-time publishing guide
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — a guide that authors read to publish their sites
-- **Branch/PR:** —
+- **Branch/PR:** m038-publishing-guide
 
 ## Goal
 
@@ -100,13 +100,13 @@ runs the guide's local steps.
 
 ## Tasks
 
-- [ ] T1: Read, in the session, the GitHub Docs page on the Pages
+- [x] T1: Read, in the session, the GitHub Docs page on the Pages
       publishing source and the Zenodo help pages on linking accounts and
       enabling a repository; record each setting's label and page URL in
       one work-log line. Where a page states a limit for private
       repositories or for releases made before the switch, the guide
       states it with the link; where none does, the guide claims none.
-- [ ] T2: Test first. Write `tests/testthat/test-publishing.R`: skip on
+- [x] T2: Test first. Write `tests/testthat/test-publishing.R`: skip on
       CRAN or without Quarto or git (`skip_if_no_quarto()`,
       `skip_if_no_git()`); `local_plain_git()`, `git init`, then
       `create_supplement(site, repo = "owner/name")` in that folder (as in
@@ -143,6 +143,8 @@ runs the guide's local steps.
 - 2026-10-22: no dependency change: `VignetteBuilder: knitr` names a package already in Suggests (D-007); CI already sets up pandoc.
 - 2026-10-22: criteria audit (full mode, fresh Opus reader): 14 findings, all fixed. AC1 gained the placeholder step (the release stops on placeholder rows), "no README, .gitignore, or license", and the pushed branch in place of `main`. AC2 lists fences at any indent and bans tilde fences, indented code, and inline `r` code, and each step names its folder. AC3 commits the changed report and says "this rule". AC4 names its three steps; its private-repository clause was dropped because the GitHub Pages and Zenodo pages read on 2026-10-22 state no plan or private-repository limit, so it moved to T1. AC5 uses an added marker chunk, adds the full-render-alone control, and its test-to-guide match and no-skip rule moved to T2 as instrument properties. AC6 names both link forms. AC7 names local and three-OS CI and drops the repeated test clause.
 - 2026-10-22: release tripwire: not hit.
+- 2026-10-22: T1: read GitHub Docs "Configuring a publishing source" (Settings > Pages > Build and deployment > Source "Deploy from a branch", branch and folder menus, Save), Zenodo "Linking accounts" (profile menu > Linked accounts > Connect next to GitHub) and "Enable a repository" (profile menu > GitHub > Sync now > repository toggle); none states a private-repository limit or what happens to releases made before the toggle, so the guide claims neither.
+- 2026-10-22: T2: `test-publishing.R` passes (18 expectations, about 35 s on the Mac); a planted copy without the second render by name failed on "walk-new" missing and "walk-old" present, and was deleted. The marker is built with `paste0()` so the page holds it only in the chunk's output.
 
 ## Decisions
 
