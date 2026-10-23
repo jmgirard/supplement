@@ -127,3 +127,24 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - prior-review: no regression of a prior review point or lesson (M027 and M042 archives, LESSONS M008, M009, M012, M014, M027, M042; no PR review comments) — noted.
 - ripple #1: NEWS.md says the stored-output rows "give the steps to render and commit the fix", which leaves out the hint's delete step — fix now.
 - ripple #2: the candidate row "Name leftover format files in _freeze" says the help page says to delete the file — reject, planned change (the row graduates at merge).
+
+Pass 2 (head c80e88f). Tests from 0794217 (same code): 376 tests, 0 failed, 0 errors, 9 skipped. `devtools::check()`: 0 errors, 0 warnings, 0 notes. `cairn_validate.py` exit 0. No criterion is ticked in this pass.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: the named paths skip `show_text()`, which every other row that shows paths uses — fix now.
+- diff-bug #2: the hint says "these files" and "delete them" for one file — reject, style.
+- diff-bug #3: AC2 (b) says both files do not parse, but the `docx.json` fixture `[1]` parses — fix now, review return 2 (AC2 fails as written).
+- diff-bug #4: the help item's "has a `hash` that matches" names nothing to match — fix now.
+- diff-bug #5: the NEWS hint sentence reads as a possibility, not a rule — fix now.
+- diff-bug #6: a file name that holds `, ` reads as two files — follow-up, absorbed into "Advise deleting unreadable format files".
+- diff-bug #7: older first-test cases overlap AC1 (a), (b), and (f) — reject, planned change (the criteria name the new cases, and the older cases predate this milestone).
+- diff-bug #8: the byte-order test's locale guard is an expectation, not a skip — reject, planned change (it follows the repo's existing byte-order test).
+- diff-bug #9: the "Quarto 1.10.19 keeps …" comment restates its assertion — reject, false (the Quarto version is what the code cannot show).
+- blame-history #1: the hint leaves `figures/` out of its commit list. If the author deletes a live format's file, the full render runs the report's code, which can rewrite figures — needs a second amendment of AC1, so it goes to the user.
+- blame-history #2: NEWS "give the steps that fix them" drops the commit step M041 stated — fix now.
+- blame-history #3, #4: removed assertions are covered, and no past intent is reverted — noted.
+- prior-review #1: the hint can suggest deleting a live format's file after a `--to` render — reject, planned change (the hint says "can be" and gives the render steps for that case, the user's choice at the question set); named at the merge question.
+- prior-review #2: ragged NEWS wraps, which M040's review also fixed — fix now.
+- ripple #1: `figures/` missing from the hint's commit list — same as blame-history #1.
+- ripple #2: no guide covers a kept `docx.json` — reject, planned change (AC4 puts the advice in the help page and NEWS).
