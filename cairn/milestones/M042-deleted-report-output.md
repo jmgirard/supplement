@@ -60,13 +60,13 @@ steps after a deleted report. The help page and a NEWS entry.
 - [x] T2: Edit `placeholder_example_problems` (`R/check-supplement.R`
       ~line 1034) and assert the example row's full text in the placeholder
       tests (~line 1334).
-- [ ] T3: Add the AC3 render test in `test-add-render.R` after the rename
+- [x] T3: Add the AC3 render test in `test-add-render.R` after the rename
       test (~line 109), with its own report that saves a figure.
-- [ ] T4: Add the row's bullet to the roxygen of `check_supplement()`
+- [x] T4: Add the row's bullet to the roxygen of `check_supplement()`
       (~line 56), run `devtools::document()`, and add the NEWS.md entry.
       Grep `README.md`, `vignettes/`, and `inst/template/_README.md` for
       lists of check names and update any that list them.
-- [ ] T5: Run `devtools::document()` and `devtools::test()`.
+- [x] T5: Run `devtools::document()` and `devtools::test()`.
 
 ## Work log
 
@@ -87,6 +87,7 @@ steps after a deleted report. The help page and a NEWS entry.
 - 2026-10-23: T2 done: full suite 371 tests, 0 failed, 8 skipped.
 - 2026-10-23: T3 checkpoint: deletion render test added to `test-add-render.R`, with a report that writes `figures/trends.png` from a chunk; passes with `NOT_CRAN=true` (12 expectations); with `check_leftover_output()` planted to return no rows it fails, so Quarto 1.10.19 kept `_freeze/analyses/trends/`; the full suite runs with T4.
 - 2026-10-23: T4 checkpoint: help-page bullet for `"leftover-output"`, `man/check_supplement.Rd` regenerated, a sentence in the `check_supplement()` NEWS entry, and a DESIGN.md architecture note; no other doc lists check names (grep of README.md, vignettes/, inst/template/_README.md); full suite running.
+- 2026-10-23: T3, T4, T5 done: full suite 372 tests, 0 failed, 8 skipped; `devtools::document()` leaves no diff.
 
 ## Decisions
 
