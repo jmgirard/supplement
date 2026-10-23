@@ -1,7 +1,7 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-23 (M038 review: graduated "Write a first-time publishing guide"; added "Align render advice with the new guide" and "Trace the post-render crash on macOS"; pruned the M035 row; validate green)_
+_Last hygiene check: 2026-10-22 (lessons pass: dropped 2026-10-18 (M003) on `quarto use template`, ownership exit, D-004 and D-006 hold it; compressed 2026-10-18 (M004), (M005), (M012), 2026-10-19 (M013), (M017), the (M018) Windows runner lesson, (M018, M030, M031), (M019), and the 2026-10-20 (M024) `!expr` test lesson; no decision entry; validate green)_
 
 ## Milestones
 
