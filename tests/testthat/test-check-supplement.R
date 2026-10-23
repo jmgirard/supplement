@@ -903,15 +903,6 @@ outside_row <- function(link) {
   sprintf("docs/%s: It is a link to a place outside docs/, so the published site does not have its target.", link)
 }
 
-# A symbolic link at `link` to `target`, or a skip where none can be made.
-# On Windows a link to a folder is a junction, because unlink() cannot
-# remove a folder symbolic link there and the cleanup warns.
-symlink_or_skip <- function(target, link) {
-  make <- if (.Platform$OS.type == "windows" && dir.exists(target)) Sys.junction else file.symlink
-  made <- suppressWarnings(make(target, link))
-  skip_if_not(made, "cannot make a symbolic link here (Windows without developer mode)")
-}
-
 test_that("pages in hidden folders and hidden pages are read", {
   site <- new_site()
   write_page(site, ".hidden/page.html", '<a href="gone-1.csv">x</a>')
@@ -1051,6 +1042,35 @@ test_that("the Windows link test gives the rules' answer for each path of a fold
     c(FALSE, FALSE, TRUE, TRUE, dangling, FALSE, FALSE, FALSE, !ignores_case, TRUE)
   )
   expect_identical(is_reparse_point(character()), logical())
+})
+
+test_that("is_link() finds a link to a file, to a folder, and to a missing file, and no plain path", {
+  dir <- withr::local_tempdir()
+  outside <- withr::local_tempdir("outside-")
+  writeLines("x", file.path(outside, "target.txt"))
+  touch(file.path(dir, "file.txt"))
+  dir.create(file.path(dir, "folder"))
+  symlink_or_skip(file.path(outside, "target.txt"), file.path(dir, "file-link"))
+  symlink_or_skip(outside, file.path(dir, "folder-link"))
+  symlink_or_skip(file.path(outside, "missing.txt"), file.path(dir, "dangling"))
+  names <- c("file.txt", "folder", "not-there", "file-link", "folder-link", "dangling")
+  expect_identical(is_link(file.path(dir, names)), c(FALSE, FALSE, FALSE, TRUE, TRUE, TRUE))
+  expect_identical(is_link(character()), logical())
+})
+
+test_that("a path that fs stops on gives the other link rules' answer, not an error", {
+  dir <- withr::local_tempdir()
+  touch(file.path(dir, "file.txt"))
+  local_mocked_bindings(is_link = function(path) stop("Failed to stat"), .package = "fs")
+  expect_identical(fs_link(file.path(dir, c("file.txt", "not-there"))), c(FALSE, FALSE))
+
+  skip_on_os(c("mac", "linux", "solaris"))
+  outside <- withr::local_tempdir("outside-")
+  symlink_or_skip(outside, file.path(dir, "junction"))
+  symlink_or_skip(file.path(outside, "missing.txt"), file.path(dir, "dangling"))
+  paths <- file.path(dir, c("file.txt", "junction", "dangling"))
+  expect_identical(is_link(paths), is_reparse_point(paths))
+  expect_identical(is_link(paths), c(FALSE, TRUE, FALSE))
 })
 
 test_that("on Windows, a junction in docs to a folder outside docs gives the rows of a link", {

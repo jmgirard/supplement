@@ -273,9 +273,8 @@ license_id <- function(id, field, call = parent.frame()) {
 # Refuses, in this order, a link at any of `files`, a folder at any of
 # them, and, unless `overwrite` is TRUE, a file at any of them. A write
 # would follow a link, even one whose target is missing, maybe out of the
-# site, so a link is refused whatever `overwrite` is. On Windows,
-# is_link() misses a file link to a missing file, which then reads as an
-# existing file. `fn` names the function to run again.
+# site, so a link is refused whatever `overwrite` is. `fn` names the
+# function to run again.
 check_overwrite <- function(files, overwrite, fn, call = parent.frame()) {
   link <- files[is_link(files)]
   if (length(link) > 0) {
@@ -318,8 +317,25 @@ is_link <- function(paths) {
   link <- Sys.readlink(paths)
   found <- !is.na(link) & nzchar(link)
   if (.Platform$OS.type == "windows") {
-    found <- found | is_reparse_point(paths)
+    found <- found | fs_link(paths) | is_reparse_point(paths)
   }
+  found
+}
+
+# TRUE for each path that fs::is_link() reports as a link. On Windows fs
+# reads the link itself, so it finds a file link to a missing file, which
+# file.exists() reads as an existing file there. fs expands `~` from
+# USERPROFILE and R from R_USER, so R expands it first. A path that is not
+# valid UTF-8, or that fs stops on, gives FALSE.
+fs_link <- function(paths) {
+  found <- logical(length(paths))
+  ok <- which(validUTF8(paths))
+  expanded <- path.expand(drop_trailing_sep(paths[ok]))
+  link <- tryCatch(fs::is_link(expanded), error = function(e) NULL)
+  if (is.null(link)) {
+    link <- vapply(expanded, function(p) tryCatch(isTRUE(fs::is_link(p)), error = function(e) FALSE), logical(1))
+  }
+  found[ok] <- unname(link) %in% TRUE
   found
 }
 
@@ -327,7 +343,7 @@ is_link <- function(paths) {
 # link. So a path that its parent folder lists counts as a link when it
 # does not exist, or when it resolves to a place other than its parent
 # folder plus its own name, letter case ignored. A file link to a missing
-# file passes both tests there (candidate row "Windows file links").
+# file passes both tests there, and fs_link() finds it.
 # Each parent folder is listed and normalized once, so that the paths of
 # one folder take time that grows with their count, not its square.
 is_reparse_point <- function(paths) {
