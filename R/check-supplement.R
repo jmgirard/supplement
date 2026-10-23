@@ -71,8 +71,14 @@
 #'   the data gives no row. Reports in folders inside `analyses/` are not
 #'   read. Quarto reads a report as UTF-8 and hashes each byte that is not
 #'   valid UTF-8 as U+FFFD, so such a report gets a row after each render.
-#'   Quarto keeps the file of a format that the report no longer renders,
-#'   such as `docx.json`, with its old hash, so delete that file.
+#'   The row names, by their paths from the site folder in byte order, each
+#'   of these files whose `hash` differs, or in the "cannot be read" text
+#'   each file whose `hash` cannot be read. Quarto keeps the file of a
+#'   format that the report no longer renders, such as `docx.json`, with
+#'   its old hash. So when another of the report's files has a `hash` that
+#'   matches, the row whose files differ also says that they can be from a
+#'   format that the report no longer renders. If so, delete them, render
+#'   the whole site, and commit `_freeze/` and `docs/`.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its

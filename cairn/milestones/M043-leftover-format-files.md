@@ -59,7 +59,7 @@ format. The help page and the `NEWS.md` bullet.
       in the "made from other text" test to full texts.
 - [x] T2: Add the AC3 render test in `test-add-render.R` after the
       stale-output render test (~line 37), with its own report.
-- [ ] T3: Edit the `"stale-output"` item in the roxygen of
+- [x] T3: Edit the `"stale-output"` item in the roxygen of
       `check_supplement()` (~lines 56-75), run `devtools::document()`, and
       edit the NEWS.md bullet that opens "`check_supplement()` lists the
       problems in a site" (line 47). Grep `README.md`, `vignettes/`,
@@ -84,6 +84,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: started on branch m043-leftover-format-files, cut from main at 3f8cf46.
 - 2026-10-23: T1 done: `check_stale_output()` builds each row's text from the read files' states. The row names files as `_freeze/analyses/<name>/execute-results/<file>` paths in `sort_bytes()` order, and the hint ends with "If not, take these steps." before `rerender_steps` (implementation choice). Tests: the AC1 cases (a)-(f) and AC2 cases (a)-(d) in `test-check-supplement.R`. The file passes.
 - 2026-10-23: T2 done: the AC3 render test in `test-add-render.R` passes with Quarto 1.10.19 (17 expectations, run with `NOT_CRAN=true`). It also asserts that `docs/analyses/formats.docx` exists before `docx` is dropped, so the later absence comes from the full render after the delete.
+- 2026-10-23: T3 done: the help item states the naming rules and the format hint in place of the "so delete that file" sentence, `devtools::document()` rewrote `man/check_supplement.Rd`, and the NEWS.md bullet names the files and the hint's steps. A grep of `README.md`, `vignettes/`, and `inst/template/_README.md` for `docx` and "format that" found no advice on kept format files.
 
 ## Decisions
 
