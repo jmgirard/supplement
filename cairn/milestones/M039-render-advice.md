@@ -21,12 +21,12 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 
 ## Acceptance criteria
 
-- [ ] AC1: Three row texts of `check_supplement()` end with one sentence that gives the rule: the `no-stored-output` text and the two `stale-output` texts. Tests in `tests/testthat/test-check-supplement.R` assert that each of the three texts ends with that sentence, and the `no-stored-output` test is one of them.
-- [ ] AC2: The `unpublished-figure` row text tells the author to render the whole site, then commit `figures/` and `docs/`. A test in `tests/testthat/test-check-supplement.R` asserts the whole text.
+- [ ] AC1: Three row texts of `check_supplement()` (the `no-stored-output` text and the two `stale-output` texts) end with the same sentence. That sentence tells the author to render the report by name, render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`. A test in `tests/testthat/test-check-supplement.R` asserts, for each of the three texts, that it ends with that sentence.
+- [ ] AC2: The `unpublished-figure` row text tells the author to render the whole site, then commit `figures/`, `docs/`, and `_freeze/`. A test in `tests/testthat/test-check-supplement.R` asserts the whole text.
 - [ ] AC3: In `inst/template/_README.md`, step 2 of "Rendering on the machine with the private data" tells the author to render a changed report by name and then render the whole site. Step 3's `git add` command names `analyses/<name>.qmd`, `_freeze`, `docs`, and `figures`, and its lead-in names the same paths. A sentence beside the command tells the author to leave out `figures` for a site with no `figures/` folder.
-- [ ] AC4: In `vignettes/publishing.Rmd`, the `git add` command of "Render again after a report changes" names the report, `_freeze`, `docs`, and `figures`. A sentence beside it tells the author to leave out `figures` for a site with no `figures/` folder. Step 5 of "8. Replace the template placeholders" gives no reason for keeping the example figure that those commands contradict.
-- [ ] AC5: In `inst/template/_README.md`, "Computing environment" and "How the site renders" tell the author to render a changed report by name, then render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`. "Paper figures" and the figures bullet of "Checks before a release" tell the author to render the whole site, then commit `figures/` and `docs/`.
-- [ ] AC6: The `NEWS.md` bullet that describes the stored-output, stale-output, and unpublished-figure checks says that each of those rows names the render and commit steps.
+- [ ] AC4: In `vignettes/publishing.Rmd`, the `git add` command of "Render again after a report changes" names the report, `_freeze`, `docs`, and `figures`. A sentence beside it tells the author to leave out `figures` for a site with no `figures/` folder. Step 5 of "8. Replace the template placeholders" no longer says that the commands in the last part fail when `figures/` is missing.
+- [ ] AC5: In `inst/template/_README.md`, "Computing environment" and "How the site renders" tell the author to render a changed report by name, then render the whole site, then commit the report with `_freeze/`, `docs/`, and `figures/`. "Paper figures" and the figures bullet of "Checks before a release" tell the author to render the whole site, then commit `figures/`, `docs/`, and `_freeze/`.
+- [ ] AC6: The `NEWS.md` bullet that describes the stored-output, stale-output, and unpublished-figure checks says that the rows for those problems give the steps to render and commit the fix.
 
 ## Coverage
 
@@ -40,7 +40,7 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 ## Tasks
 
 - [ ] T1: In `R/check-supplement.R`, change the three report row texts (near lines 547 and 579) to end with one sentence of the rule, and the figure row text (near line 995) to the render-and-commit steps. In `tests/testthat/test-check-supplement.R`, assert with `endsWith()` in the two `stale-output` tests (near lines 435 and 465), add the assertion to the `no-stored-output` test (near line 178), and assert the whole text in the figure test (near line 1136). Show each new assertion red against the main copy of `R/check-supplement.R` first.
-- [ ] T2: Edit the five template guide parts that AC3 and AC5 name. Run the template tests that read `_README.md`, if any match the changed text.
+- [ ] T2: Edit the five template guide parts that AC3 and AC5 name. No test reads their advice text (the second criteria audit found only the `site`-chunk test in `tests/testthat/test-template.R`).
 - [ ] T3: Edit the vignette's last part and step 5. Run `tests/testthat/test-publishing.R`.
 - [ ] T4: Edit the `NEWS.md` bullet near lines 50 to 62. Add no new bullet, because the rows first appear in this unreleased version.
 - [ ] T5: Run `grep -rn -i -E 'by name|render the (whole )?site|git add|commit' R inst/template/_README.md vignettes/publishing.Rmd README.md` and read each hit that advises on a changed report outside the In list. Record such a hit as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
@@ -58,6 +58,7 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 - 2026-10-22: plan gate chose named paths with a leave-out note over `git add -A` in the vignette, because the part runs with the private data in place and `-A` stages what `.gitignore` misses; falsified by authors who stage private files through a named path, or who cannot follow the leave-out note.
 - 2026-10-22: plan gate chose the full steps in each row text over a pointer to the guide, because the author can act without opening the guide; falsified by row texts too long to read in the printed table.
 - 2026-10-22: plan gate chose a closed list of places over a grep-and-classify criterion, because the grep reads lines and missed wrapped advice; falsified by a listed place found to give no render or commit advice, or by advice that T5 finds in a part this list missed.
+- 2026-10-22: criteria re-audit (full mode, second fresh Opus reader, after the question set changed AC4): 6 findings, all taken. AC1 now states its sentence; AC2 and AC5 add `_freeze/` to the figure advice, because a changed figure usually comes from a render by name that also rewrote `_freeze/`, and "Paper figures" already names it; AC4's last clause names the claim to remove; AC6 is reworded; T2 drops a test run that matches nothing. AC3, the part list, and Coverage had no finding.
 
 ## Decisions
 
