@@ -91,7 +91,38 @@ steps after a deleted report. The help page and a NEWS entry.
 - 2026-10-23: claim-audit fixes (checkpoint): NEWS says "no file or folder in `analyses/` names"; the case comment names file systems that ignore case (macOS default) in place of an unshown Windows claim; `fold_case()` now lowers the ASCII capitals of a name that is not valid UTF-8, so AC1's case rule holds there too, with a direct test that failed before the change; the help bullet says only ASCII case is ignored in such a name; full suite and the auditor's re-read running.
 - 2026-10-23: claim audit: 43 claims read, 3 corrected — NEWS.md, R/check-supplement.R (case comment, help bullet), man/check_supplement.Rd; the re-read found all three true.
 - 2026-10-23: implement done: full suite 373 tests, 0 failed, 8 skipped; status set to review.
+- 2026-10-23: review: M041's plan gate chose a guide step over a `check_supplement()` row for a deleted report's stored output; M042 adds the row as well, from the candidate row M041's plan filed, and keeps the guide step.
+- 2026-10-23: review fixes committed at fbfd846 (diff-bug 1, 2, 3, 4, 5, 9, 10, 13; blame-history 1, 7; prior-review 1, 2; ripple 1, 2, 3); no finding met the return floor, so status stays review.
 
 ## Decisions
 
 ## Review
+
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: a name in `analyses/` that is not valid UTF-8 makes `sub()` stop `check_supplement()` — fix now (byte-mode cut, end-to-end test that runs where the file system allows such a name), fixed fbfd846
+- diff-bug #2: the help claim on such names failed for `analyses/` names because of #1 — fix now, fixed fbfd846
+- diff-bug #3: the `fold_case()` test's `"Trends"` expectation tests base `tolower()` — fix now (removed; end-to-end case added), fixed fbfd846
+- diff-bug #4: the `.`-name filter repeats what `list.files()` does — fix now (filter removed, comment added; the test keeps the contract), fixed fbfd846
+- diff-bug #5: `all.files = TRUE` on the `analyses/` listing could never match — fix now (removed), fixed fbfd846
+- diff-bug #6: AC1's test cases share one code path — reject: planned change (AC1 names each case)
+- diff-bug #7: AC3's render test checks Quarto's behavior — reject: planned change (AC3's shape, set at the criteria audit)
+- diff-bug #8: AC3's last no-row check is trivially true — reject: planned change (AC3 names it)
+- diff-bug #9: the row text left out committing the old report path and `_quarto.yml` — fix now (text and help page), fixed fbfd846
+- diff-bug #10: "letter case ignored" promised more than `tolower()` gives — fix now (help page states ASCII always, other letters as `tolower()` reads them in the locale), fixed fbfd846
+- diff-bug #11: names in another Unicode form do not match — follow-up: candidate row "Match folder names across Unicode forms" (help page states it)
+- diff-bug #12: the example row names a folder an unrendered site lacks — reject: planned change (AC2)
+- diff-bug #13: long NEWS and roxygen lines — fix now (rewrapped), fixed fbfd846
+- blame-history #1: `tolower()` follows the locale (Turkish `I`), against LESSONS M021 — fix now (`ascii_lower()` first), fixed fbfd846; no test, since this Mac's tr_TR `tolower("I")` gives `i` and CI has no such locale
+- blame-history #2: M041's plan gate chose a guide step over a row — fix now (work-log line records the change)
+- blame-history #3: a same-named helper file hides a leftover — reject: planned change (AC4)
+- blame-history #4: Linux case-only renames are missed — reject: planned change (AC4, criteria audit item 2)
+- blame-history #5: AC3's row assertion is conditional — reject: planned change (AC3)
+- blame-history #6: `fold_case()` repeats `utf8_lower()` — reject: style
+- blame-history #7: NEWS wrap — fix now (same as diff-bug #13), fixed fbfd846
+- prior-review #1: same defect as diff-bug #1 — fix now, fixed fbfd846; the older checks' `sub()` on report names goes to follow-up: candidate row "Read report names that are not UTF-8"
+- prior-review #2: NEWS line of 149 characters, a defect earlier reviews fixed — fix now, fixed fbfd846
+- prior-review #3: the M041 reversal is not recorded — fix now (same as blame-history #2)
+- ripple #1: README.md and the template guide list what the check finds without the new row — fix now (bullet added to both), fixed fbfd846
+- ripple #2: the row text left out steps the guide gives — fix now (same as diff-bug #9), fixed fbfd846
+- ripple #3: the release test's list of checks lacks `leftover-output` — fix now (added), fixed fbfd846
+- note: the simple-english lint hook reports one over-long sentence in the check lists of README.md and the template guide; `main`'s README.md gives the same hit, since the linter reads the bullet list as one sentence
