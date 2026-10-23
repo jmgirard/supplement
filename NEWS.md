@@ -59,8 +59,8 @@
   such file. Otherwise it names each file whose hash differs. In that
   case another file of the report's stored output can match. Then the row
   also says that the files that differ can be from a dropped format, such
-  as `docx`. If so, delete them, render the whole site, and commit
-  `_freeze/` and `docs/`. A change in a file that the report includes
+  as `docx`. If so, delete them, render the whole site, and commit the
+  report with `_freeze/` and `docs/`. A change in a file that the report includes
   does not count. It finds folders in
   `_freeze/analyses/` that no file or folder in `analyses/` names, as
   after a report is deleted or renamed.

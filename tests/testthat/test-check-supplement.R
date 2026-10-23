@@ -409,8 +409,9 @@ stale_text <- function(name, files, hint = FALSE) {
     return(paste(stale, rerender_steps))
   }
   paste(stale,
-        "Other stored output of the report matches it, so these files can be from a format that the report",
-        "no longer renders. If so, delete them, render the whole site, and commit _freeze/ and docs/.",
+        "Other stored output of the report matches the report, so these files can be from a format that the",
+        "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+        "_freeze/ and docs/.",
         "If not, take these steps.", rerender_steps)
 }
 
@@ -470,12 +471,10 @@ test_that("a stale-output row names each file that differs, with a format hint w
   report("hidden", matching = "html.json", differing = ".docx.json")
   dir.create(file.path(site, "_freeze", "analyses", "hidden", "execute-results", "old.json"))
   report("hidden-match", matching = ".html.json", differing = "docx.json")
-  # Byte order puts B before a, which most locales do not.
-  report("byte-order", differing = c("a.json", "B.json"))
 
   rows <- rows_of(check_quiet(site), "stale-output")
   expect_setequal(rows$file, paste0("analyses/", c("only-html", "docx-differs", "html-differs", "two-differ",
-                                                  "none-match", "hidden-match", "byte-order"), ".qmd"))
+                                                  "none-match", "hidden-match"), ".qmd"))
   text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
   expect_identical(
     text("only-html"),
@@ -487,7 +486,20 @@ test_that("a stale-output row names each file that differs, with a format hint w
   expect_identical(text("two-differ"), stale_text("two-differ", c("docx.json", "pdf.json"), hint = TRUE))
   expect_identical(text("none-match"), stale_text("none-match", c("docx.json", "html.json")))
   expect_identical(text("hidden-match"), stale_text("hidden-match", "docx.json"))
-  expect_identical(text("byte-order"), stale_text("byte-order", c("B.json", "a.json")))
+})
+
+test_that("the files a stale-output row names come in byte order, not the locale's order", {
+  site <- new_site()
+  report_bytes(site, "order", stale_lf)
+  for (file in c("a.json", "B.json")) stored_file(site, "order", file, hash_json(md5_of(stale_lf, "x")))
+  old <- Sys.getlocale("LC_COLLATE")
+  set <- suppressWarnings(Sys.setlocale("LC_COLLATE", "en_US.UTF-8"))
+  withr::defer(Sys.setlocale("LC_COLLATE", old))
+  skip_if(!nzchar(set), "the en_US.UTF-8 locale is not available")
+  # The locale's order differs, so the test can tell the two apart.
+  expect_false(identical(sort(c("B.json", "a.json")), c("B.json", "a.json")))
+  rows <- rows_of(check_quiet(site), "stale-output")
+  expect_identical(rows$problem, stale_text("order", c("B.json", "a.json")))
 })
 
 test_that("a source hash that cannot be read gives a stale-output row that says so", {

@@ -78,8 +78,9 @@
 #'   its old hash. So when every `hash` can be read and another of the
 #'   report's files has a `hash` that matches, the row also says that the
 #'   files that differ can be from a format that the report no longer
-#'   renders. If so, delete them, render the whole site, and commit
-#'   `_freeze/` and `docs/`.
+#'   renders. If so, delete them, render the whole site, and commit the
+#'   report with `_freeze/` and `docs/`. If not, follow the render steps
+#'   that the row gives after the hint.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its
@@ -614,8 +615,9 @@ check_stale_output <- function(path) {
     }
     # Quarto keeps the file of a format that the report no longer renders.
     paste(stale,
-          "Other stored output of the report matches it, so these files can be from a format that the report",
-          "no longer renders. If so, delete them, render the whole site, and commit _freeze/ and docs/.",
+          "Other stored output of the report matches the report, so these files can be from a format that the",
+          "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+          "_freeze/ and docs/.",
           "If not, take these steps.", rerender_steps)
   }, character(1), USE.NAMES = FALSE)
   hit <- !is.na(problem)
