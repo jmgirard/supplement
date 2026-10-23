@@ -70,6 +70,7 @@ On Windows, `is_link()` counts a file symbolic link whose target is missing as a
 - 2026-10-23: claim audit: 22 claims read, 0 corrected — NEWS.md, R/supplement-yml.R, R/write-citation.R, R/write-dockerfile.R, man/write_citation.Rd, man/write_zenodo.Rd, man/write_dockerfile.Rd, tests/testthat/helper-files.R, tests/testthat/test-check-supplement.R (its one suggestion, renaming a test to say "or missing path", was not taken: the name is not wrong).
 - 2026-10-23: T7: Mac `devtools::check()` 0 errors, 0 warnings, 0 notes on the branch and on main. CI run 40026242213: macOS and Ubuntu passed; Windows failed 1 test, "a path that fs stops on gives the other link rules' answer, not an error", with "Error in `is_link(paths)`: Failed to stat": `local_mocked_bindings(is_link =, .package = "fs")` also replaced the package's own `is_link()` in that test under R CMD check. Fix: `fs_link()` calls a package wrapper `fs_is_link()`, which the test mocks with no `.package`; on the Mac a TRUE mock of it gave TRUE. The Windows skip list had no skip for the AC2 to AC4 tests.
 - 2026-10-23: T7: CI run 40029242224 on ddb495c passed on Windows, macOS, and Ubuntu; Windows `[ FAIL 0 | WARN 0 | SKIP 34 | PASS 4763 ]`, and its skip list names none of the AC2 to AC4 tests (release 560, check-supplement 650, write-metadata-errors 372, write-dockerfile 292) nor the two new `is_link()` tests; its release skips (571, 585, 638) are older tests. Status set to review.
+- 2026-10-23: step-7 approval: m045-windows-broken-file-links approved for merge
 
 ## Decisions
 
