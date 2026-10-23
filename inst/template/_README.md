@@ -476,7 +476,7 @@ hand, the variable is usually missing. If it is missing or empty, the
 code looks for `_quarto.yml` in the current folder and then in the folder
 above it. It uses the first folder that holds the file. If neither holds
 it, the code stops and says to run it from the site folder or from
-`analyses/`. So a report finds `figures/` as:
+`analyses/`. So a report finds the site folder as:
 
 ```r
 site <- Sys.getenv("QUARTO_PROJECT_DIR")
@@ -486,26 +486,33 @@ if (!nzchar(site)) {
 if (is.null(site)) {
   stop("Run this code from the site folder or from its analyses/ folder.")
 }
-figures <- file.path(site, "figures")
-dir.create(figures, showWarnings = FALSE)
 ```
 
-The first lines are the `site` chunk of the example report.
-`add_report()` writes the same chunk as the first chunk of each new report. The
-`dir.create()` line makes the folder in a clone where it is empty, because
-git does not keep empty folders. If `_quarto.yml` sets
-`execute-dir: project`, this path also works.
+These lines are the `site` chunk of the example report. `add_report()`
+writes the same chunk as the first chunk of each new report. If
+`_quarto.yml` sets `execute-dir: project`, this path also works.
 
-The example report saves `figures/bootstrap-means.png` with its
-`save_png()` function. To use it in your own reports, copy the `site`
-chunk, the `figures` lines above, and then the function, because it saves
-into `figures`. It takes a function that draws the plot. For a ggplot
-`p`, pass `function() print(p)`. It draws into a temporary file in `figures/`. It
-gives that file its name only after the plot succeeds, so a failed plot
+To save figures in your own reports, copy the whole `save-figure` chunk
+of the example report after the `site` chunk. Then replace its last
+`save_png()` call, which saves the example figure, with your own. The
+chunk sets `figures` to
+the `figures/` folder of the site. If `figures` is a link, or on Windows
+a junction, the chunk stops with a message. A link puts the figures
+outside the site, and git commits only the link. If `figures` is a file
+and not a folder, the chunk also stops. Then it makes the folder in a
+clone where it is missing, because git does not keep empty folders.
+
+The chunk's `save_png()` function saves `figures/bootstrap-means.png` in
+the example. It takes a function that draws the plot. For a ggplot `p`,
+pass `function() print(p)`. It draws into a temporary file in `figures/`.
+Then it checks the end of the file. A whole PNG file ends with the PNG
+end chunk, its last 12 bytes. The function gives the file its name only
+after the plot succeeds and the file has that end. Otherwise it stops
+with a message. So a failed plot, or a file that a full disk cut short,
 leaves no partial file there. `.gitignore` blocks the temporary files, in
-case R stops before it removes one. If `figures` is a file and not a
-folder, the example report stops with a message that says so when its code
-runs. A full render that reuses `_freeze/` does not run the report's code.
+case R stops before it removes one. A full render that reuses `_freeze/`
+does not run the report's code, so these checks run only in a render
+that runs it.
 
 The template ships `figures/bootstrap-means.png`, so the first render of a
 new site publishes it. Quarto copies `figures/` into `docs/`, so each

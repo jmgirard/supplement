@@ -174,10 +174,12 @@
   folder that holds it. If neither holds it, the chunk stops with a
   message. So the example also works with `execute-dir: project` and with
   its code run by hand from the site folder or from `analyses/`. A failed
-  plot leaves no partial file in `figures/`. If a file named `figures` is
-  in place of the folder, the report stops with a message when its code
-  runs. The site's README
-  says how a report writes a figure to `figures/`. In new sites, git
+  plot leaves no partial file in `figures/`. A PNG file that does not end
+  with the PNG end chunk, such as one that a full disk cut short, also
+  leaves none. When its code runs, the report stops with a message if a
+  file named `figures` is in place of the folder. If `figures` is a link,
+  or on Windows a junction, the report also stops. The site's README says
+  how a report writes a figure to `figures/`. In new sites, git
   ignores `.png` and `.pdf` files saved directly in `analyses/` in any
   letter case.
 * The template's example report and each report that `add_report()` writes

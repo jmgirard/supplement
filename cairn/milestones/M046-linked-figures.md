@@ -43,7 +43,7 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - [x] T2: In `inst/template/analyses/example.qmd:59-63`, add the link stop before the file stop. On macOS and Linux, `Sys.readlink()` is not NA and not empty for a link. On Windows, a junction shows when `normalizePath(figures)` differs from `normalizePath(site)` plus `figures`. Read LESSONS M006 and M018 for the NA and junction rules. Run the T1 tests green.
 - [x] T3: Add the AC3 test. Use `chunk_code()` (`helper-template.R:278`) and an environment with a wrapped `dev.off()` for each probe. See it fail against `main`'s `save_png()`.
 - [x] T4: In `save_png()` (`example.qmd:66-80`), check that the temporary file exists and ends with the end chunk before `file.rename()`. Stop with a message that names the target. Keep `on.exit(unlink(tmp))`. Run the T3 test green.
-- [ ] T5: Rewrite the "Paper figures" section (`inst/template/_README.md:471-526`), the `dir.create()` paragraph included. Add the `NEWS.md` entry. Update the template entry in `cairn/DESIGN.md` (about line 224).
+- [x] T5: Rewrite the "Paper figures" section (`inst/template/_README.md:471-526`), the `dir.create()` paragraph included. Add the `NEWS.md` entry. Update the template entry in `cairn/DESIGN.md` (about line 224).
 - [ ] T6: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`. Read the CI jobs at review.
 
 ## Work log
@@ -61,6 +61,7 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - 2026-10-23: T2: the link stop compares `normalizePath()` results in lower case, because Windows returns the folder's stored case and macOS folders ignore case by default. The four T1 tests and the four nearby figure tests pass on macOS.
 - 2026-10-23: T3: added the end-chunk test with four probes and two targets. Against `main`'s `save_png()` it errors at the first probe (no file) with "Could not write ../figures/new.png.", the old rename message, not the new one.
 - 2026-10-23: T4: `save_png()` reads the temporary file's size and last 12 bytes before the rename. The T3 test (24 passes) and the four other `save_png()` and render tests pass on macOS with the quartz device. Linux cairo and Windows devices are read at CI.
+- 2026-10-23: T5: the README block now holds the `site` chunk only, and the section says to copy the whole `save-figure` chunk and replace its last `save_png()` call. The existing NEWS figures bullet gained the two stops, since NEWS has one dev section. The README test passes. A plain-English lint hook flags a long sentence at `_README.md:171`, outside this milestone's text; left as it is.
 
 ## Decisions
 
