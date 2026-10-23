@@ -505,6 +505,14 @@ test_that("a folder in _freeze/analyses/ that nothing in analyses/ names gives a
   ))
 })
 
+test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored", {
+  # "T" or "t", then a Latin-1 e with an acute accent.
+  upper <- rawToChar(as.raw(c(0x54, 0xe9)))
+  lower <- rawToChar(as.raw(c(0x74, 0xe9)))
+  expect_identical(fold_case(upper), lower)
+  expect_identical(fold_case(c("Trends", lower)), c("trends", lower))
+})
+
 test_that("a site with no docs folder gives one not-rendered row", {
   site <- new_site()
   result <- check_quiet(site)

@@ -95,7 +95,8 @@ such as \code{docx.json}, with its old hash, so delete that file.
 name does not start with \code{.}, that no file or folder in \verb{analyses/}
 names. A name in \verb{analyses/} names the folder when, cut before its
 last \code{.} (the whole name when it holds no \code{.}), it equals the folder's
-name with letter case ignored. Quarto 1.10.19 keeps a report's folder
+name with letter case ignored. In a name that is not valid UTF-8, only
+the case of ASCII letters is ignored. Quarto 1.10.19 keeps a report's folder
 after the report is deleted or renamed. The row says to delete the
 folder, render the whole site, and commit \verb{_freeze/} and \verb{docs/}.
 Folders inside subfolders of \verb{_freeze/analyses/} and folders directly

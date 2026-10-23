@@ -77,7 +77,8 @@
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its
 #'   last `.` (the whole name when it holds no `.`), it equals the folder's
-#'   name with letter case ignored. Quarto 1.10.19 keeps a report's folder
+#'   name with letter case ignored. In a name that is not valid UTF-8, only
+#'   the case of ASCII letters is ignored. Quarto 1.10.19 keeps a report's folder
 #'   after the report is deleted or renamed. The row says to delete the
 #'   folder, render the whole site, and commit `_freeze/` and `docs/`.
 #'   Folders inside subfolders of `_freeze/analyses/` and folders directly
@@ -607,8 +608,8 @@ check_stale_output <- function(path) {
 # report is deleted or renamed. A file or folder in analyses/ whose name,
 # cut before its last `.`, equals the folder's name with letter case
 # ignored keeps it: a report of any kind, or a folder of reports. Case is
-# ignored because on macOS and Windows a report renamed only in case still
-# writes to its old folder.
+# ignored because on a file system that ignores case, such as the macOS
+# default, a report renamed only in case still writes to its old folder.
 check_leftover_output <- function(path) {
   freeze <- file.path(path, "_freeze", "analyses")
   folders <- list.files(freeze)
@@ -624,11 +625,17 @@ check_leftover_output <- function(path) {
   )
 }
 
-# Lower case for names that are valid UTF-8; tolower() stops on others,
-# which stay as they are.
+# Lower case for names that are valid UTF-8. tolower() stops on others, so
+# their ASCII capital letters are lowered byte by byte.
 fold_case <- function(x) {
   ok <- validUTF8(x)
   x[ok] <- tolower(x[ok])
+  x[!ok] <- vapply(x[!ok], function(name) {
+    bytes <- charToRaw(name)
+    upper <- bytes >= as.raw(0x41) & bytes <= as.raw(0x5a)
+    bytes[upper] <- as.raw(as.integer(bytes[upper]) + 32L)
+    rawToChar(bytes)
+  }, character(1), USE.NAMES = FALSE)
   x
 }
 

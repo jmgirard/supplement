@@ -88,6 +88,7 @@ steps after a deleted report. The help page and a NEWS entry.
 - 2026-10-23: T3 checkpoint: deletion render test added to `test-add-render.R`, with a report that writes `figures/trends.png` from a chunk; passes with `NOT_CRAN=true` (12 expectations); with `check_leftover_output()` planted to return no rows it fails, so Quarto 1.10.19 kept `_freeze/analyses/trends/`; the full suite runs with T4.
 - 2026-10-23: T4 checkpoint: help-page bullet for `"leftover-output"`, `man/check_supplement.Rd` regenerated, a sentence in the `check_supplement()` NEWS entry, and a DESIGN.md architecture note; no other doc lists check names (grep of README.md, vignettes/, inst/template/_README.md); full suite running.
 - 2026-10-23: T3, T4, T5 done: full suite 372 tests, 0 failed, 8 skipped; `devtools::document()` leaves no diff.
+- 2026-10-23: claim-audit fixes (checkpoint): NEWS says "no file or folder in `analyses/` names"; the case comment names file systems that ignore case (macOS default) in place of an unshown Windows claim; `fold_case()` now lowers the ASCII capitals of a name that is not valid UTF-8, so AC1's case rule holds there too, with a direct test that failed before the change; the help bullet says only ASCII case is ignored in such a name; full suite and the auditor's re-read running.
 
 ## Decisions
 
