@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-22 (M036 review: graduated "Refuse placeholder valu
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M037 | Report missing tools before site setup | review | — | normal | milestones/M037-tool-check.md |
+| M037 | Report missing tools before site setup | in-progress | — | normal | milestones/M037-tool-check.md |
 | M036 | The release stops on template placeholders | done | — | normal | milestones/archive/M036-placeholder-check.md |
 | M035 | The writers refuse links and repeated lockfile keys | done | — | normal | milestones/archive/M035-writer-refusals.md |
 | M034 | Reports find the site folder from any folder | done | — | normal | milestones/archive/M034-report-paths.md |

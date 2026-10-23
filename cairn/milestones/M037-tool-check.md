@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M037: Report missing tools before site setup
 
-- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
@@ -131,3 +131,21 @@ Pass 1 (2026-10-22, head b324932). Sync: main at 33ebeba, branch up to date. No 
 - ripple #4: the candidate row "Report missing tools before site setup" still says nothing checks the tools — reject (planned: the row graduates at post-merge hygiene).
 - ripple #5: README says `check_tools()` reports which tools are missing, but it also reports too old and not on path — fix now (README wording).
 - ripple #6: "not on the PATH" in `check_supplement()` docs against the new "not on path" status — reject (style).
+
+Pass 2 (2026-10-22, head e63c4bb). Sync: branch up to date with main 33ebeba.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: a `share/version` part too big for an R integer (`1.99999999999.0`) passes the byte check, `numeric_version()` warns and gives `1.NA.0`, and the row reads `too old` (reproduced) — fix now; AC3 fails for a version not below 1.4.0, so review return 2.
+- diff-bug #2: when R's own path holds an editor's Quarto, the row is `found` while the help says "the copy is on the system path" — fix now (help wording: the system path that R sees).
+- diff-bug #3: the folder-link case passes without `normalizePath()` — reject (planned: AC3 names a link to a folder; the file-link case covers resolution).
+- diff-bug #4: the version-text check repeats for each of the three versions through the same code — fix now (keep the status check per version, the text check once).
+- diff-bug #5: the help page gives the accounts in prose but not the row labels `GitHub account` and `Zenodo account` — fix now; AC6 says the page lists the seven rows, so this joins review return 2.
+- diff-bug #6: a leading-zero part reads as the same version, and a BOM or a first line over 64 bytes reads as unknown — reject (false: the unknown cases follow AC3's rule, and `01.4.0` is the version 1.4.0).
+- diff-bug #7: CI on the PR head is not yet shown — reject (false: step 8 waits on CI before the merge).
+- blame-history #1: the one-place process rule was reworded instead of kept — reject (planned: AC4 was narrowed at the plan's criteria audit to "runs none of the tools", and `git_run()` has called `Sys.which()` since M008); the wording itself is fixed under ripple #2.
+- blame-history #2: DESIGN.md says `release_supplement()` "starts no process itself" — reject (false: the sentence is about its own code, which `test-source.R` pins).
+- blame-history #3: DESIGN.md places `tool_problems()` in `R/check-tools.R`, but it is in `R/create-supplement.R` — fix now.
+- blame-history #4: `Sys.which()` on Windows may start `where` — reject (false: `?Sys.which` says it uses an emulation on Windows).
+- prior-review #1: the link test skips on Windows, so junction links are untested there — reject (planned: AC3 says the test skips on Windows; the row "Report broken Quarto links on Windows" covers the Windows link cases).
+- ripple #1: the candidate row still says nothing checks the tools — reject (planned: it graduates at post-merge hygiene).
+- ripple #2: "the one place that runs a program itself" sits beside "`Sys.which()` starts `which`", which reads as a contradiction — fix now (name `git_run()` as the one `system2()` call).
+- ripple #3: `test-source.R` does not scan for `Sys.which()` — reject (planned: the test pins the one `system2()` site, and `Sys.which()` lookups are allowed by AC4).
