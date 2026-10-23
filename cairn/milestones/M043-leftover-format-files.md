@@ -126,6 +126,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: re-audit: AC4 (full) — every part met at 53b23e8. Two reading points, answered without new wording. (1) "These replace" is checked as the old sentence's absence at HEAD against `main`, and it is absent. (2) "Which files the row names" is met under both readings, since the help item names files ending in `.json` (a folder is not a file).
 - 2026-10-23: amendment return: AC4 — "states which files the row names under AC1 and AC2, their path form, and their order. It also states the format hint: its condition, that the named files can be from a format that the report no longer renders, its delete, render, and commit steps, and its "if not" branch."
 - 2026-10-23: T7 done at 32631d7: `devtools::document()` left no diff, `devtools::test()` passed (376 tests, 0 failed, 0 errors, 9 skipped), and `devtools::check()` gave 0 errors, 0 warnings, 0 notes. Status review.
+- 2026-10-23: step-7 approval: m043-leftover-format-files approved for merge
 
 ## Decisions
 
