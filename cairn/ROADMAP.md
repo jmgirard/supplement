@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-23 (triage pass: promoted to high "Detect broken fi
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M045 | Detect broken file links on Windows | planned | — | high | milestones/M045-windows-broken-file-links.md |
+| M045 | Detect broken file links on Windows | in-progress | — | high | milestones/M045-windows-broken-file-links.md |
 | M044 | Advise deleting unreadable format files | done | — | normal | milestones/archive/M044-unreadable-format-files.md |
 | M043 | Name leftover format files in _freeze | done | — | normal | milestones/archive/M043-leftover-format-files.md |
 | M042 | Flag stored output of deleted reports | done | — | normal | milestones/archive/M042-deleted-report-output.md |

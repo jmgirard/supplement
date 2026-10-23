@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M045: Detect broken file links on Windows
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes what `release_supplement()`, `write_citation()`, `write_zenodo()`, and `write_dockerfile()` refuse on Windows
-- **Branch/PR:** —
+- **Branch/PR:** m045-windows-broken-file-links
 
 ## Goal
 

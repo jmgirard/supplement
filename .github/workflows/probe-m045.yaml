@@ -1,0 +1,25 @@
+# Temporary probe for M045: removed before review.
+on:
+  push:
+    branches: [m045-windows-broken-file-links]
+
+name: probe-m045
+
+permissions: read-all
+
+jobs:
+  probe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+      - name: Install
+        run: |
+          install.packages(c("fs", "cli", "jsonlite", "yaml"))
+          install.packages(".", repos = NULL, type = "source")
+        shell: Rscript {0}
+      - name: Probe
+        run: Rscript .github/scripts/probe-m045.R
