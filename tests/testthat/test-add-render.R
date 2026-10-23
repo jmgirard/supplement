@@ -110,6 +110,7 @@ test_that("the stale-output row names the stored output of a dropped format unti
 
   render()
   expect_true(file.exists(file.path(site, docx_json)))
+  expect_false(file.exists(file.path(site, "docs", "analyses", "formats.docx")))
   expect_identical(rows()$file, "analyses/formats.qmd")
 
   expect_true(file.remove(file.path(site, docx_json)))

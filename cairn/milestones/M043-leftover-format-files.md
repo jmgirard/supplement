@@ -47,7 +47,7 @@ format. The help page and the `NEWS.md` bullet.
 - AC2 → T1
 - AC3 → T2
 - AC4 → T3
-- AC5 → T4, T5, T6
+- AC5 → T4, T5, T6, T7
 
 ## Tasks
 
@@ -78,6 +78,11 @@ format. The help page and the `NEWS.md` bullet.
       Fix now: `show_text()` on the named paths, the help's match
       wording, the NEWS hint sentence and steps sentence, and the NEWS
       wraps. Then run `devtools::document()` and `devtools::test()`.
+- [ ] T7: Review return 3 (descope): write the narrowed AC4 after its
+      re-audit. Fix now: assert in the AC3 render test that the `.docx`
+      is gone after the first full render, and fix the NEWS hint order
+      and the steps sentence. Then run `devtools::document()` and
+      `devtools::test()`.
 
 ## Work log
 
@@ -116,6 +121,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: correction of the T2 line: the claim that `docs/analyses/formats.docx`'s later absence comes from the full render after the delete is false. Pass 3 diff-bug #1 saw the file gone after the full render before the delete.
 - 2026-10-23: review return 3: AC4 fails as written — the help item does not state the `, ` join of the named files (pass 3 diff-bug #2). This is the third defect return, so the thrash rule's stop goes to the user.
 - 2026-10-23: user decision at the thrash stop: descope, narrowing AC4 so that the help item states which files the row names, their path form, and their order, without the `, ` join. The row text shows the join. The remainder (stating the join on the help page) is dropped at the user's choice and gets no row. Fix-now items for the same round: pass 3 diff-bug #1 and #3, and ripple #1.
+- 2026-10-23: T7 checkpoint: the AC3 render test asserts that `docs/analyses/formats.docx` is gone after the first full render too (18 expectations, pass). In NEWS the includes sentence sits by the hash rule, the hint is stated as what the row says, and the steps sentence adds the hint's delete step. The narrowed AC4 waits on its re-audit.
 
 ## Decisions
 
