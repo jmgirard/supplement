@@ -75,7 +75,8 @@
   figures in `figures/` whose copy in `docs/figures/` is missing or
   differs. The rows for missing, old, or unreadable stored output and for
   such figures give the steps to render and commit the fix. The hint above
-  also gives a delete step. The row for a report with no stored output
+  and the row for unreadable stored output also give a delete step. The
+  row for a report with no stored output
   also says: if you added the report to the Analyses menu, as
   `add_report()` does, commit `_quarto.yml` too. It
   finds DOIs that differ from `_supplement.yml`, and a `CITATION.cff`
