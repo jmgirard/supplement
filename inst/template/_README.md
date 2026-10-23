@@ -10,7 +10,7 @@ Website: https://OWNER.github.io/REPO/
 - `analyses/`: Quarto source files (`.qmd`), one per report
 - `data/`: shared data files
 - `figures/`: figures for the paper, saved by the reports and published on the site (the template ships the example's figure)
-- `_freeze/`: stored output of each report, so the site rebuilds without running report code
+- `_freeze/`: stored output of each report, so a full render runs no code for a report that holds stored output there
 - `_supplement.yml`: facts about the paper, such as its title, citation, DOIs, and data files
 - `index.qmd`, `_quarto.yml`: website source
 - `_extensions/supplement/`: the shortcodes that show the DOI badge, the download link, and the data table
@@ -247,13 +247,14 @@ analyses/example.qmd`, always runs that report's code. Use it to re-run one
 report after you change it. `quarto preview` also runs a report's code each
 time you save its file.
 
-After you delete or rename a report, delete its folder in
-`_freeze/analyses/`. Also remove or change its item in the Analyses menu
-of `_quarto.yml`. Then run a full render. It clears `docs/`, so the old
-page does not stay on the site. A renamed report has no stored output
+After you delete or rename a report, delete its folder under the old name
+in `_freeze/analyses/`. Also remove or change its item in the Analyses
+menu of `_quarto.yml`. Then run a full render. It clears `docs/`, so the
+old page does not stay on the site. A renamed report has no stored output
 under its new name. So the full render runs its code, which needs its
-data, its fit files, and R. Then commit the deleted or renamed report
-with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. The figures that
+data, its fit files, and R. Then commit the deleted or renamed report,
+under its old path and any new path, with `_quarto.yml`, `_freeze/`,
+`docs/`, and `figures/`. The figures that
 a deleted report saved stay in `figures/` and on the site. To take one off
 the site, see "Paper figures".
 
@@ -308,8 +309,10 @@ the site folder (see "Paper figures"), as
    ```
 
    If no report was added or changed, leave out `analyses/<name>.qmd`. If
-   you added a report with `add_report()`, also stage `_quarto.yml`, which
-   holds its menu item. When a path is missing from disk and git tracks no
+   you added a report with `add_report()`, or deleted or renamed a report,
+   also stage `_quarto.yml`, which holds its menu item. For a deleted or
+   renamed report, also stage its old path, so the commit records that the
+   old file is gone. When a path is missing from disk and git tracks no
    file under it, `git add` stops and stages nothing. So for a site with
    no `figures/` folder, leave out `figures`.
 

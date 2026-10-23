@@ -120,7 +120,7 @@ test_that("the project freezes output and renders into docs", {
   expect_match(json, '"output-dir":\\s*"docs"')
 })
 
-test_that("a full render with R unreachable runs no report code", {
+test_that("a full render with R unreachable runs no code of a report with stored output", {
   skip_if_no_quarto()
   site <- site_copy()
 
