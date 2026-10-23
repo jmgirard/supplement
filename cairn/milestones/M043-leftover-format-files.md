@@ -110,6 +110,8 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: review return 2: AC2 fails as written — case (b)'s `docx.json` fixture `[1]` parses as JSON, while AC2 (b) says both files do not parse (pass 2 diff-bug #3). Fix-now items for the same round: pass 2 diff-bug #1, #4, #5, blame-history #2, prior-review #2.
 - 2026-10-23: user decision at the stop for a second change to AC1 (blame-history #1, ripple #1): add `figures/` to the hint's commit list, so it reads "commit the report with _freeze/, docs/, and figures/". A fresh reader re-checks the new AC1 wording.
 - 2026-10-23: T6 checkpoint: AC2 (b)'s `docx.json` fixture is now `[1`, which does not parse. The row text, help, NEWS, and `stale_text()` list `_freeze/`, `docs/`, and `figures/`. Named paths go through `show_text()`, the help says "equal to the MD5 of the report", and the NEWS hint, steps, and wraps are fixed. The check test file and the AC3 render test (17 expectations) pass. The AC1 text in this file waits on the fresh reader.
+- 2026-10-23: re-audit: AC1 (full) — nothing on all six questions. A site with no `figures/` needs no note, since the row gives prose and `rerender_steps` already names `figures/`. AC3 and AC4 need no wording change.
+- 2026-10-23: amendment return: AC1 — "It says that if so, the author deletes them, renders the whole site, and commits the report with `_freeze/`, `docs/`, and `figures/`, and that if not, the author follows the render steps."
 
 ## Decisions
 
