@@ -62,8 +62,9 @@
   figures in `figures/` whose copy in `docs/figures/` is missing or
   differs. The rows for missing, old, or unreadable stored output and for
   such figures give the steps to render and commit the fix. The row for a
-  report with no stored output also says to commit `_quarto.yml` for a
-  report in the Analyses menu. It finds DOIs
+  report with no stored output also says: if you added the report to the
+  Analyses menu, as `add_report()` does, commit `_quarto.yml` too. It
+  finds DOIs
   that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It finds
   the template's placeholder values that the author did not replace. These

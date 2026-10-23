@@ -1,6 +1,6 @@
 # M040: Align the remaining render advice
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -39,7 +39,7 @@ Each place that this milestone lists gives the guide's steps for its case: a cha
 - [x] T2: In `R/check-supplement.R` (near line 551), add the second sentence after `rerender_steps` in the `no-stored-output` text only. Run `devtools::test(filter = "check-supplement")`.
 - [x] T3: Rewrite the two comments in `inst/template/_quarto.yml`. Keep the pointer to README.md or SUPPLEMENT.md. Run `devtools::test(filter = "template")`, because those tests render the template.
 - [x] T4: Edit the two `NEWS.md` bullets in place. Add no new bullet, because both features first appear in this unreleased version.
-- [ ] T5: Run `grep -rn -i -E 'by name|render the (whole )?site|render again|re-run|git add' R inst/template vignettes README.md NEWS.md`. Read each hit that advises on a changed or new report outside the In list, and record it as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
+- [x] T5: Run `grep -rn -i -E 'by name|render the (whole )?site|render again|re-run|git add' R inst/template vignettes README.md NEWS.md`. Read each hit that advises on a changed or new report outside the In list, and record it as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
 ## Work log
 
@@ -58,6 +58,9 @@ Each place that this milestone lists gives the guide's steps for its case: a cha
 - 2026-10-23: T1 and T2 done. The test states the new sentence as `menu_step` beside `rerender_steps`. Its `no-stored-output` assertion failed at line 207 on the old code and passes with the fix; the two `_quarto.yml` absence checks pass on both, as guards. The code adds the sentence inline in `check_stored_output()`, since only one row uses it. `devtools::test(filter = "check-supplement")` passes.
 - 2026-10-23: T3 done. The `render:` comment now gives the three steps for a changed report and keeps the README.md or SUPPLEMENT.md pointer. The `resources:` comment says to render the whole site again, then commit `figures/`, `docs/`, and `_freeze/`. `devtools::test(filter = "template")` passes with no failure.
 - 2026-10-23: T4 done. The `check_supplement()` bullet gains one sentence on the `_quarto.yml` step, and the publishing-guide bullet gains the commit step; no new bullet.
+- 2026-10-23: T5 done. The grep's hits outside the In list either give the full steps (the template guide's parts that M039 fixed, the vignette's last part) or advise on another task: the first publish, DOIs, the release, private files, renv, and the `figures` stop in the example. No new candidate row. `devtools::document()` left no diff. `devtools::test()`: 5021 tests, 0 failed, 8 skipped. `devtools::check()`: 0 errors, 0 warnings, 0 notes, with no exit 139 crash.
+- 2026-10-23: claim audit: 11 claims read, 1 corrected — NEWS.md, R/check-supplement.R, inst/template/_quarto.yml, tests/testthat/test-check-supplement.R. The `check_supplement()` NEWS sentence named a wider case than the row text. The one re-read found the first fix implied the row tests the menu, so the sentence now quotes the row's condition.
+- 2026-10-23: the NEWS correction landed after `devtools::check()` built its tarball; review's check covers the final text.
 
 ## Decisions
 
