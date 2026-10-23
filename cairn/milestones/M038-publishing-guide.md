@@ -122,7 +122,7 @@ runs the guide's local steps.
       the ignore entries for built vignette output; every claim about the
       package or the template is checked against a same-session read or
       run (derived-claims rule). Build it with `devtools::build_vignettes()`.
-- [ ] T4: Link the vignette from README.md's "Start a new site" part (the
+- [x] T4: Link the vignette from README.md's "Start a new site" part (the
       GitHub URL and the `vignette()` call) and add one NEWS.md bullet that
       names only what the guide and its test show.
 - [ ] T5: Run `devtools::document()`, `devtools::test()`, and
@@ -146,6 +146,7 @@ runs the guide's local steps.
 - 2026-10-22: T1: read GitHub Docs "Configuring a publishing source" (Settings > Pages > Build and deployment > Source "Deploy from a branch", branch and folder menus, Save), Zenodo "Linking accounts" (profile menu > Linked accounts > Connect next to GitHub) and "Enable a repository" (profile menu > GitHub > Sync now > repository toggle); none states a private-repository limit or what happens to releases made before the toggle, so the guide claims neither.
 - 2026-10-22: T2: `test-publishing.R` passes (18 expectations, about 35 s on the Mac); a planted copy without the second render by name failed on "walk-new" missing and "walk-old" present, and was deleted. The marker is built with `paste0()` so the page holds it only in the chunk's output.
 - 2026-10-22: T3: vignette written (10 numbered steps plus the render rule, 11 plain fences, no chunk); `VignetteBuilder: knitr` added, `/doc/` and `/Meta/` in `.gitignore`, `vignettes/.gitignore` for `*.html` and `*.R`, and `build_vignettes()` added `^doc$` and `^Meta$` to `.Rbuildignore`. Chose to have step 8 delete the example figure too and to name no place on Zenodo's record page for the concept DOI, since no page read states one. The empty-clone warning was observed with git 2.54.
+- 2026-10-22: T4: README.md "Start a new site" opens with the GitHub link and the `vignette()` call (the call works only when vignettes were built at install, which the text says); one NEWS bullet naming the guide and its render rule, both covered by `test-publishing.R`.
 
 ## Decisions
 
