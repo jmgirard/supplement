@@ -60,7 +60,9 @@
   pages there that cannot be read. It finds files in `figures/`, `docs/`,
   and `_freeze/` that git ignores, which a release leaves out. It finds
   figures in `figures/` whose copy in `docs/figures/` is missing or
-  differs. It finds DOIs that differ from
+  differs. The rows for missing, old, or unreadable stored output and for
+  such figures give the steps to render and commit the fix. It finds DOIs
+  that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It finds
   the template's placeholder values that the author did not replace. These
   are the paper title, citation, contact, and authors in

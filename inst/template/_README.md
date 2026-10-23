@@ -64,8 +64,10 @@ system.file("template", "analyses", "example.qmd", package = "supplement")
 ```
 
 Paste the lines at the end of the report. Then render the report by name,
-for example `quarto render analyses/models.qmd`. A full render reuses the
-old stored output, so it does not show the new section.
+for example `quarto render analyses/models.qmd`. Then render the whole
+site with `quarto render`, and commit the report with `_freeze/`, `docs/`,
+and `figures/`. A full render alone reuses the old stored output, so it
+does not show the new section.
 
 ## Paper facts in `_supplement.yml`
 
@@ -185,8 +187,8 @@ data frame. It finds:
 - symbolic links in `docs/` to existing files or folders outside `docs/`,
   and on Windows junctions to folders outside `docs/`
 - pages in `docs/` that cannot be read
-- figures in `figures/` whose copy in `docs/figures/` is missing or
-  differs (render the site again)
+- figures whose copy in `docs/figures/` is missing or differs (render the
+  whole site, then commit `figures/`, `docs/`, and `_freeze/`)
 - a DOI in `CITATION.cff` or on the home page's badge that differs from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
 - template placeholders left in place, such as the paper title in
@@ -246,9 +248,13 @@ report after you change it. `quarto preview` also runs a report's code each
 time you save its file.
 
 After you delete or rename a report, run a full render. It clears `docs/`,
-so the old page does not stay on the site.
+so the old page does not stay on the site. Then commit the change with
+`_freeze/` and `docs/`.
 
-Commit `_freeze/`, `docs/`, and `figures/` with the source files.
+After you change a report, render it by name and then render the whole
+site. Then commit the report with `_freeze/`, `docs/`, and `figures/`. The
+full render copies into `docs/` the figures that the render by name saved
+under new names.
 
 ## Setup scripts
 
@@ -279,16 +285,27 @@ the site folder (see "Paper figures"), as
    has no stored output in `_freeze/` yet. Before a render by name, check
    that report's fit files. A missing fit file can make a report refit its
    model, which can take hours and give new estimates.
-2. Run `quarto render`, or `quarto render analyses/<name>.qmd` to re-run
-   one report. If the render saved a figure under a new name in
+2. Run `quarto render`. It runs the code of each report that has no
+   stored output and reuses the stored output of the others. To re-run a
+   changed report, render it by name with
+   `quarto render analyses/<name>.qmd`, then render the whole site with
+   `quarto render`. If a full render saved a figure under a new name in
    `figures/`, run `quarto render` again (see "Paper figures").
-3. Stage only `_freeze/`, `docs/`, and `figures/`, commit, and push:
+3. Stage only the reports that you added or changed, `_freeze/`, `docs/`,
+   and `figures/`, commit, and push. Put the path of each such report in
+   place of `analyses/<name>.qmd`:
 
    ```
-   git add _freeze docs figures
+   git add analyses/<name>.qmd _freeze docs figures
    git commit -m "Render reports"
    git push
    ```
+
+   If no report was added or changed, leave out `analyses/<name>.qmd`. If
+   you added a report with `add_report()`, also stage `_quarto.yml`, which
+   holds its menu item. When a path is missing from disk and git tracks no
+   file under it, `git add` stops and stages nothing. So for a site with
+   no `figures/` folder, leave out `figures`.
 
 Never publish a build that ran with the data deleted. It drops the data
 files from `docs/`, so the download links break.
@@ -487,10 +504,10 @@ figure has a web address such as
 of it.
 
 Each render copies only the figures that were in `figures/` at its start.
-After a render saves a figure under a new name, run `quarto render` again,
-so that `docs/` holds it. Commit `figures/` with `_freeze/` and `docs/`. To
-take a figure off the site, delete it from `figures/` and run a full
-render.
+After a render saves a figure under a new name, render the whole site
+again with `quarto render`, so that `docs/` holds it. Then commit
+`figures/`, `docs/`, and `_freeze/`. To take a figure off the site, delete
+it from `figures/` and run a full render.
 
 PNG and PDF files saved directly in `analyses/` are not committed, because
 `.gitignore` blocks them there in any letter case, such as

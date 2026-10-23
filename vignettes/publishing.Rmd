@@ -153,10 +153,9 @@ visitors to the site or the repository see them. In the site folder:
    `analyses/example.qmd`, its stored output in `_freeze/analyses/example/`,
    and its item in the Analyses menu of `_quarto.yml`. Delete
    `data/example.csv` and its entry under `data` in `_supplement.yml`.
-5. Keep the example's figure, `figures/bootstrap-means.png`, until a
-   report saves its own figure in `figures/`. Then delete it. The commands
-   in the last part of this guide stage `figures/`, and git stops them
-   when that folder is missing in a clone.
+5. Delete the example's figure, `figures/bootstrap-means.png`. For a site
+   with no figures of its own, also leave out `figures` from the `git add`
+   command in the last part of this guide.
 6. In `README.md`, replace the example citation under the title with the
    paper's citation.
 
@@ -244,3 +243,7 @@ git add analyses/models.qmd _freeze docs figures
 git commit -m "Update the models report"
 git push
 ```
+
+When a path is missing from disk and git tracks no file under it,
+`git add` stops and stages nothing. So for a site with no `figures/`
+folder, leave out `figures`.

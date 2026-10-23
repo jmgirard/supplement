@@ -4,6 +4,10 @@ check_quiet <- function(path) suppressMessages(check_supplement(path))
 
 rows_of <- function(result, check) result[result$check == check, , drop = FALSE]
 
+# The last sentence of each row for a report with missing or old stored output.
+rerender_steps <- paste("Render the report by name, render the whole site, then commit the report with",
+                        "_freeze/, docs/, and figures/.")
+
 # A file of `size` bytes that takes almost no disk space.
 sparse_file <- function(path, size) {
   dir.create(dirname(path), showWarnings = FALSE, recursive = TRUE)
@@ -198,6 +202,7 @@ test_that("reports with code but no stored output give a no-stored-output row", 
   # example.qmd from the template has R chunks and no stored output yet.
   expect_setequal(rows$file, file.path("analyses", c("r-chunk.qmd", "python-chunk.qmd", "callout.qmd",
                                                       "rust-block.qmd", "hidden-only.qmd", "example.qmd")))
+  expect_true(all(endsWith(rows$problem, rerender_steps)))
 })
 
 # Write a report from its lines, with no front matter added.
@@ -432,8 +437,8 @@ test_that("stored output made from other report text gives a stale-output row", 
   expect_identical(nrow(rows), 2L)
   for (problem in rows$problem) {
     expect_match(problem, "made from other text than the report holds now", fixed = TRUE)
-    expect_match(problem, "Render the report by name, then commit _freeze/.", fixed = TRUE)
   }
+  expect_true(all(endsWith(rows$problem, rerender_steps)))
 })
 
 test_that("a source hash that cannot be read gives a stale-output row that says so", {
@@ -462,8 +467,8 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
   expect_identical(nrow(rows), length(cases) + 1L)
   for (problem in rows$problem) {
     expect_match(problem, "The source hash of its stored output cannot be read", fixed = TRUE)
-    expect_match(problem, "Render the report by name, then commit _freeze/.", fixed = TRUE)
   }
+  expect_true(all(endsWith(rows$problem, rerender_steps)))
 })
 
 test_that("a site with no docs folder gives one not-rendered row", {
@@ -1133,7 +1138,8 @@ test_that("a figure with no equal copy in docs/figures gives an unpublished-figu
   rows <- rows_of(check_quiet(site), "unpublished-figure")
   expect_identical(sort(rows$file), c("figures/bootstrap-means.png", "figures/new.png", "figures/sub/x.png",
                                       "figures/z.png"))
-  expect_match(rows$problem, "Render", fixed = TRUE)
+  expect_identical(unique(rows$problem), paste("The copy in docs/figures/ is missing or differs.",
+                                               "Render the whole site, then commit figures/, docs/, and _freeze/."))
 })
 
 test_that("a site with no figures folder, or a file named figures, gives no unpublished-figure row", {
