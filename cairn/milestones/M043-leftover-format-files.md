@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M043: Name leftover format files in _freeze
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -88,7 +88,31 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: T4: `devtools::document()` left no diff, and `devtools::test()` passed (375 tests, 0 failed, 0 errors, 9 skipped) at 4f5cd59.
 - 2026-10-23: claim audit: 20 claims read, 5 corrected — R/check-supplement.R, man/check_supplement.Rd, NEWS.md, tests/testthat/test-check-supplement.R. The help text and its Rd copy now say the hint needs every hash to be readable. NEWS says only unreadable files are named when one cannot be read, with the same condition on the hint. A new case, "hidden-match", shows that a hidden matching file gives no hint. The check test file passes after the fixes.
 - 2026-10-23: claim audit re-read (same reader): the 5 corrected claims hold, 0 further corrections. T4 done, and the status is review. The full suite last ran at 4f5cd59, and 62b528e changed docs and one test file only, which passes.
+- 2026-10-23: review return 1: AC4 fails — the help page's `"stale-output"` item leaves out the hint's "if not" branch that AC1's rules include (diff-bug #4). Fix-now items for the same round: diff-bug #1, #5, #7, #9 and ripple #1 (Review section).
+- 2026-10-23: amendment routed: AC1 — the hint's commit list leaves out the report, so an author can leave the front-matter edit uncommitted (diff-bug #2).
 
 ## Decisions
 
 ## Review
+
+Pass 1 (head 8128ca1). `devtools::test()`: 375 tests, 0 failed, 0 errors, 9 skipped. `devtools::check()` was stopped unfinished when the return came. `cairn_validate.py` exit 0. No criterion is ticked in this pass.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: no test needs byte order. Every fixture name sorts the same in the locale, so removing `sort_bytes()` passes every test — fix now (add `B.json` beside `a.json`).
+- diff-bug #2: the hint says to commit `_freeze/` and `docs/` but not the report, so the front-matter edit can stay uncommitted. It follows AC1's wording — amendment return (AC1).
+- diff-bug #3: an unreadable kept file of a dropped format gets only the render steps, which never clear its row — follow-up, row "Advise deleting unreadable format files".
+- diff-bug #4: the help page leaves out the hint's "if not" branch, which AC4 requires through AC1's rules — fix now, review return 1 (AC4 fails).
+- diff-bug #5: the first stale test's exact assertions for `differs` and `two-files` repeat the paths of cases (a) and (b) — fix now (drop them).
+- diff-bug #6: cases (b) and (c), AC2 (c) and (d), and AC1 (f) run shared paths — reject, planned change (the criteria name them).
+- diff-bug #7: three test comments restate their assertions (test-add-render.R full-render line, test-check-supplement.R "beside-match" line, the second clause of the hidden-file comment) — fix now.
+- diff-bug #8: the loop's weak checks overlap the exact ones — reject, false (the loop is what covers the five cases with no exact text, and it runs before them).
+- diff-bug #9: "matches it" can read as the named files — fix now ("matches the report").
+- blame-history #1: an unreadable dropped-format file gets no hint — follow-up, same row as diff-bug #3.
+- blame-history #2: the match test cannot tell a dropped format from a partial render — reject, planned change (the hint says "can be" and gives the render steps for the other case, the user's choice at the question set).
+- blame-history #3: "If not, take these steps." reads awkwardly — reject, style.
+- blame-history #4: `stale_text()` repeats the production prose — reject, false (the expected text is stated apart from the code on purpose).
+- blame-history #5: README lines still accurate — noted, no finding.
+- prior-review: no regression of a prior review point or lesson (M027 and M042 archives, LESSONS M008, M009, M012, M014, M027, M042; no PR review comments) — noted.
+- ripple #1: NEWS.md says the stored-output rows "give the steps to render and commit the fix", which leaves out the hint's delete step — fix now.
+- ripple #2: the candidate row "Name leftover format files in _freeze" says the help page says to delete the file — reject, planned change (the row graduates at merge).
