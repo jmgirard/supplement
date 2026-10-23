@@ -93,12 +93,12 @@ The row names, by their paths from the site folder in byte order, each
 of these files whose \code{hash} differs, or in the "cannot be read" text
 only each file whose \code{hash} cannot be read. Quarto keeps the file of a
 format that the report no longer renders, such as \code{docx.json}, with
-its old hash. So when every \code{hash} can be read and another of the
-report's files has a \code{hash} that matches, the row also says that the
-files that differ can be from a format that the report no longer
-renders. If so, delete them, render the whole site, and commit the
-report with \verb{_freeze/} and \verb{docs/}. If not, follow the render steps
-that the row gives after the hint.
+its old hash. So when every \code{hash} can be read and another of these
+files has a \code{hash} equal to the MD5 of the report, the row also says
+that the files that differ can be from a format that the report no
+longer renders. If so, delete them, render the whole site, and commit
+the report with \verb{_freeze/}, \verb{docs/}, and \verb{figures/}. If not, follow
+the render steps that the row gives after the hint.
 \item \code{"leftover-output"}: a folder directly in \verb{_freeze/analyses/}, whose
 name does not start with \code{.}, that no file or folder in \verb{analyses/}
 names. A name in \verb{analyses/} names the folder when, cut before its

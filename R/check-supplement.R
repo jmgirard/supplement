@@ -75,12 +75,12 @@
 #'   of these files whose `hash` differs, or in the "cannot be read" text
 #'   only each file whose `hash` cannot be read. Quarto keeps the file of a
 #'   format that the report no longer renders, such as `docx.json`, with
-#'   its old hash. So when every `hash` can be read and another of the
-#'   report's files has a `hash` that matches, the row also says that the
-#'   files that differ can be from a format that the report no longer
-#'   renders. If so, delete them, render the whole site, and commit the
-#'   report with `_freeze/` and `docs/`. If not, follow the render steps
-#'   that the row gives after the hint.
+#'   its old hash. So when every `hash` can be read and another of these
+#'   files has a `hash` equal to the MD5 of the report, the row also says
+#'   that the files that differ can be from a format that the report no
+#'   longer renders. If so, delete them, render the whole site, and commit
+#'   the report with `_freeze/`, `docs/`, and `figures/`. If not, follow
+#'   the render steps that the row gives after the hint.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its
@@ -600,7 +600,7 @@ check_stale_output <- function(path) {
     }
     stored <- lapply(file.path(path, dir, files), stored_hash)
     unreadable <- vapply(stored, is.null, logical(1))
-    named <- function(hit) paste(sort_bytes(file.path(dir, files[hit])), collapse = ", ")
+    named <- function(hit) paste(show_text(sort_bytes(file.path(dir, files[hit]))), collapse = ", ")
     if (any(unreadable)) {
       return(paste0("The source hash of its stored output cannot be read from ", named(unreadable), ". ",
                     rerender_steps))
@@ -617,7 +617,7 @@ check_stale_output <- function(path) {
     paste(stale,
           "Other stored output of the report matches the report, so these files can be from a format that the",
           "report no longer renders. If so, delete them, render the whole site, and commit the report with",
-          "_freeze/ and docs/.",
+          "_freeze/, docs/, and figures/.",
           "If not, take these steps.", rerender_steps)
   }, character(1), USE.NAMES = FALSE)
   hit <- !is.na(problem)

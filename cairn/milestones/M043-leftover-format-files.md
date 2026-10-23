@@ -47,7 +47,7 @@ format. The help page and the `NEWS.md` bullet.
 - AC2 → T1
 - AC3 → T2
 - AC4 → T3
-- AC5 → T4, T5
+- AC5 → T4, T5, T6
 
 ## Tasks
 
@@ -72,6 +72,12 @@ format. The help page and the `NEWS.md` bullet.
       repeated exact assertions, trim three test comments, "matches the
       report", and the NEWS sentence on the rows' steps. Then run
       `devtools::document()` and `devtools::test()`.
+- [ ] T6: Review return 2: make AC2 (b)'s `docx.json` fixture fail to
+      parse, and add `figures/` to the hint's commit list (AC1, the
+      user's decision) in the row text, help, NEWS, and `stale_text()`.
+      Fix now: `show_text()` on the named paths, the help's match
+      wording, the NEWS hint sentence and steps sentence, and the NEWS
+      wraps. Then run `devtools::document()` and `devtools::test()`.
 
 ## Work log
 
@@ -103,6 +109,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: T5 done at 0794217: `devtools::document()` left no diff, and `devtools::test()` passed (376 tests, 0 failed, 0 errors, 9 skipped). No second claim audit (its rule allows one pass), so review pass 2 reads the new lines. Status review.
 - 2026-10-23: review return 2: AC2 fails as written — case (b)'s `docx.json` fixture `[1]` parses as JSON, while AC2 (b) says both files do not parse (pass 2 diff-bug #3). Fix-now items for the same round: pass 2 diff-bug #1, #4, #5, blame-history #2, prior-review #2.
 - 2026-10-23: user decision at the stop for a second change to AC1 (blame-history #1, ripple #1): add `figures/` to the hint's commit list, so it reads "commit the report with _freeze/, docs/, and figures/". A fresh reader re-checks the new AC1 wording.
+- 2026-10-23: T6 checkpoint: AC2 (b)'s `docx.json` fixture is now `[1`, which does not parse. The row text, help, NEWS, and `stale_text()` list `_freeze/`, `docs/`, and `figures/`. Named paths go through `show_text()`, the help says "equal to the MD5 of the report", and the NEWS hint, steps, and wraps are fixed. The check test file and the AC3 render test (17 expectations) pass. The AC1 text in this file waits on the fresh reader.
 
 ## Decisions
 

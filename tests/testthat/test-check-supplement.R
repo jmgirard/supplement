@@ -411,7 +411,7 @@ stale_text <- function(name, files, hint = FALSE) {
   paste(stale,
         "Other stored output of the report matches the report, so these files can be from a format that the",
         "report no longer renders. If so, delete them, render the whole site, and commit the report with",
-        "_freeze/ and docs/.",
+        "_freeze/, docs/, and figures/.",
         "If not, take these steps.", rerender_steps)
 }
 
@@ -524,7 +524,7 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
   stored_file(site, "both", "html.json", hash_json(md5_of(stale_lf, "x")))
   report_bytes(site, "two-unreadable", stale_lf)
   stored_file(site, "two-unreadable", "html.json", "{")
-  stored_file(site, "two-unreadable", "docx.json", "[1]")
+  stored_file(site, "two-unreadable", "docx.json", "[1")
   report_bytes(site, "beside-match", stale_lf)
   stored_file(site, "beside-match", "docx.json", "{")
   stored_file(site, "beside-match", "html.json", hash_json(md5_of(stale_lf)))
