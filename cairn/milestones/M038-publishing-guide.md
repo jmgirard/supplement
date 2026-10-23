@@ -140,6 +140,7 @@ runs the guide's local steps.
 - 2026-10-22: T5: `devtools::document()` no diff; `devtools::test()` with NOT_CRAN=true: 19 files, 368 expectations, 0 failed, 0 errors, 8 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes (vignette built and re-built); the vignette rebuilt clean after the claim fixes. Minor amendment: T5's CI read moved to review's merge step, since the git model pushes the branch there.
 - 2026-10-22: Tasks section compressed in one rewrite (plan-owned body was 156 lines, cap 150); each task's content kept.
 - 2026-10-22: review: four-lens pass, 27 findings: 12 fixed in 6cd9971, 11 rejected, 4 to the new row "Align render advice with the new guide". Evidence was gathered on the fixed head (6cd9971) after the lenses ran. AC2 rewrapped (whitespace only) so no line starts with backticks, which the plan-body counter read as a code fence.
+- 2026-10-22: step-7 approval: m038-publishing-guide approved for merge
 
 ## Decisions
 
