@@ -147,6 +147,7 @@ runs the guide's local steps.
 - 2026-10-22: T2: `test-publishing.R` passes (18 expectations, about 35 s on the Mac); a planted copy without the second render by name failed on "walk-new" missing and "walk-old" present, and was deleted. The marker is built with `paste0()` so the page holds it only in the chunk's output.
 - 2026-10-22: T3: vignette written (10 numbered steps plus the render rule, 11 plain fences, no chunk); `VignetteBuilder: knitr` added, `/doc/` and `/Meta/` in `.gitignore`, `vignettes/.gitignore` for `*.html` and `*.R`, and `build_vignettes()` added `^doc$` and `^Meta$` to `.Rbuildignore`. Chose to have step 8 delete the example figure too and to name no place on Zenodo's record page for the concept DOI, since no page read states one. The empty-clone warning was observed with git 2.54.
 - 2026-10-22: T4: README.md "Start a new site" opens with the GitHub link and the `vignette()` call (the call works only when vignettes were built at install, which the text says); one NEWS bullet naming the guide and its render rule, both covered by `test-publishing.R`.
+- 2026-10-22: claim audit: 50 claims read, 3 corrected — vignettes/publishing.Rmd (step 1 adds Quarto's not-on-path status; step 3 names where the repository and Pages address are written; step 8 separates the four items a release stops on from the example figure and a new README citation item). The re-read found the figure still under item 4, now its own item. Its scratch run of steps 3 to 9 rendered and checked clean.
 
 ## Decisions
 

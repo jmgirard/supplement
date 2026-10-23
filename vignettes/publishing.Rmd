@@ -29,7 +29,8 @@ supplement::check_tools()
 
 `check_tools()` reports whether Quarto, knitr, rmarkdown, git, and the
 GitHub command-line tool (`gh`) are installed. Install each tool that it
-reports as missing or too old. It also reminds you of the two accounts that
+reports as missing or too old. If it reports Quarto as not on the system
+path, add Quarto's `bin` folder to the path. It also reminds you of the two accounts that
 you need: a GitHub account and a Zenodo account.
 
 ## 2. Make the GitHub repository and clone it
@@ -57,8 +58,9 @@ supplement::create_supplement("my-supplement", repo = "owner/name")
 ```
 
 The function copies the template into the clone. It writes the repository
-into the site's GitHub links and its GitHub Pages address,
-`https://owner.github.io/name/`. If the folder already holds a file that
+into the GitHub link in `_quarto.yml`. It also writes the site's GitHub
+Pages address, `https://owner.github.io/name/`, into the guide for
+authors. If the folder already holds a file that
 the template writes, the function stops and writes nothing.
 
 ## 4. Render the site
@@ -118,8 +120,9 @@ of a repository that has its switch on.
 
 ## 8. Replace the template placeholders
 
-The template holds example values. A release stops while any of them is
-in place, so replace them all. In the site folder:
+The template holds example values. A release stops while any value in
+items 1 to 4 is in place. Items 5 and 6 do not stop a release, but
+visitors to the site or the repository see them. In the site folder:
 
 1. In `_supplement.yml`, write the paper title, the citation, the contact,
    and the authors. Leave `version` and the values under `zenodo` empty.
@@ -130,8 +133,10 @@ in place, so replace them all. In the site folder:
    `supplement::add_report()` and `supplement::add_data()`. Then delete
    `analyses/example.qmd` and its item in the Analyses menu of
    `_quarto.yml`. Delete `data/example.csv` and its entry under `data` in
-   `_supplement.yml`. Delete the example's figure,
-   `figures/bootstrap-means.png`, too.
+   `_supplement.yml`.
+5. Delete the example's figure, `figures/bootstrap-means.png`.
+6. In `README.md`, replace the example citation under the title with the
+   paper's citation.
 
 Then, in a terminal in the site folder, render the whole site:
 
