@@ -67,6 +67,7 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - 2026-10-23: T6: `devtools::check()` on macOS gave 0 errors, 0 warnings, 0 notes, so its test run, the setup test included, passed. The Windows and Linux jobs are read at review. Status set to review.
 - 2026-10-23: step-7 approval: m046-linked-figures approved for merge
 - 2026-10-23: PR #47 opened and the merge marker written. CI had registered no checks yet. The session stopped before the CI wait, because the desktop app forbids watching CI with `gh` from the session; `/milestone-review M046` re-derives the check state and merges on green. AC1 and AC6 wait on that CI run.
+- 2026-10-23: resume: PR #47 open (route d). CI on head 3d186f8: Windows and macOS green, Ubuntu red from a full runner disk in tests the branch does not touch, as on `main` since dd1ed7b. Asked where the disk fix goes; the user chose a separate fix first (candidate row "Keep the Ubuntu CI job within its disk"). PR #47 stays open and approved, the merge marker stays, and AC6 waits for a green Ubuntu run.
 
 ## Decisions
 
