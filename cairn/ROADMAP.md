@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-23 (M041 done: graduated "Correct two older render 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M042 | Flag stored output of deleted reports | in-progress | — | normal | milestones/M042-deleted-report-output.md |
+| M042 | Flag stored output of deleted reports | review | — | normal | milestones/M042-deleted-report-output.md |
 | M041 | Correct two older render notes | done | — | normal | milestones/archive/M041-older-render-notes.md |
 | M040 | Align the remaining render advice | done | — | normal | milestones/archive/M040-remaining-render-advice.md |
 | M039 | Align render advice with the new guide | done | — | normal | milestones/archive/M039-render-advice.md |
