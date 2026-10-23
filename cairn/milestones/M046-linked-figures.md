@@ -62,6 +62,7 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - 2026-10-23: T3: added the end-chunk test with four probes and two targets. Against `main`'s `save_png()` it errors at the first probe (no file) with "Could not write ../figures/new.png.", the old rename message, not the new one.
 - 2026-10-23: T4: `save_png()` reads the temporary file's size and last 12 bytes before the rename. The T3 test (24 passes) and the four other `save_png()` and render tests pass on macOS with the quartz device. Linux cairo and Windows devices are read at CI.
 - 2026-10-23: T5: the README block now holds the `site` chunk only, and the section says to copy the whole `save-figure` chunk and replace its last `save_png()` call. The existing NEWS figures bullet gained the two stops, since NEWS has one dev section. The README test passes. A plain-English lint hook flags a long sentence at `_README.md:171`, outside this milestone's text; left as it is.
+- 2026-10-23: claim audit: 40 claims read, 4 corrected — inst/template/_README.md, inst/template/analyses/example.qmd. "A link puts the figures outside the site" became "can send", "git commits only the link" now names a symbolic link only (a Windows junction was not checked), and "only in a render" now covers code run by hand. The copy instruction now says to put the chunk after the chunks that make the plot's data.
 
 ## Decisions
 

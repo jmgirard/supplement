@@ -493,12 +493,13 @@ writes the same chunk as the first chunk of each new report. If
 `_quarto.yml` sets `execute-dir: project`, this path also works.
 
 To save figures in your own reports, copy the whole `save-figure` chunk
-of the example report after the `site` chunk. Then replace its last
+of the example report. Put it after the `site` chunk and after the chunks
+that make your plot's data. Then replace its last
 `save_png()` call, which saves the example figure, with your own. The
 chunk sets `figures` to
 the `figures/` folder of the site. If `figures` is a link, or on Windows
-a junction, the chunk stops with a message. A link puts the figures
-outside the site, and git commits only the link. If `figures` is a file
+a junction, the chunk stops with a message. A link can send the figures
+outside the site, and git commits a symbolic link without the figures. If `figures` is a file
 and not a folder, the chunk also stops. Then it makes the folder in a
 clone where it is missing, because git does not keep empty folders.
 
@@ -510,9 +511,8 @@ end chunk, its last 12 bytes. The function gives the file its name only
 after the plot succeeds and the file has that end. Otherwise it stops
 with a message. So a failed plot, or a file that a full disk cut short,
 leaves no partial file there. `.gitignore` blocks the temporary files, in
-case R stops before it removes one. A full render that reuses `_freeze/`
-does not run the report's code, so these checks run only in a render
-that runs it.
+case R stops before it removes one. When the report's code does not
+run, these checks do not run. A full render that reuses `_freeze/` does not run it.
 
 The template ships `figures/bootstrap-means.png`, so the first render of a
 new site publishes it. Quarto copies `figures/` into `docs/`, so each

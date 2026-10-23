@@ -57,8 +57,8 @@ plot succeeds, so a failed plot leaves no partial file there.
 ```{r}
 #| label: save-figure
 figures <- file.path(site, "figures")
-# A link, or on Windows a junction, would save the figures outside the
-# site, and git would commit only the link.
+# A link, or on Windows a junction, can send the figures outside the
+# site, and git commits a symbolic link without the figures.
 link <- Sys.readlink(figures)
 inside <- file.path(normalizePath(site, winslash = "/"), "figures")
 if ((!is.na(link) && nzchar(link)) || (dir.exists(figures) &&
