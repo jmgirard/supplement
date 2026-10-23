@@ -108,7 +108,6 @@ test_that("the stale-output row names the stored output of a dropped format unti
   expect_match(stale$problem, paste0(": ", docx_json, ". "), fixed = TRUE)
   expect_match(stale$problem, hint, fixed = TRUE)
 
-  # A full render alone does not clear the row.
   render()
   expect_true(file.exists(file.path(site, docx_json)))
   expect_identical(rows()$file, "analyses/formats.qmd")

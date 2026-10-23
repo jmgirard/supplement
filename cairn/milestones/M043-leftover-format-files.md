@@ -47,7 +47,7 @@ format. The help page and the `NEWS.md` bullet.
 - AC2 → T1
 - AC3 → T2
 - AC4 → T3
-- AC5 → T4
+- AC5 → T4, T5
 
 ## Tasks
 
@@ -66,6 +66,12 @@ format. The help page and the `NEWS.md` bullet.
       and `inst/template/_README.md` for advice on kept format files and
       update any that give it.
 - [x] T4: Run `devtools::document()` and `devtools::test()`.
+- [ ] T5: Review return 1: add the hint's "if not" branch to the help
+      item (AC4), and take the AC1 amendment into the row text, help, and
+      NEWS. Fix now: a byte-order test case, drop the first stale test's
+      repeated exact assertions, trim three test comments, "matches the
+      report", and the NEWS sentence on the rows' steps. Then run
+      `devtools::document()` and `devtools::test()`.
 
 ## Work log
 
@@ -90,6 +96,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: claim audit re-read (same reader): the 5 corrected claims hold, 0 further corrections. T4 done, and the status is review. The full suite last ran at 4f5cd59, and 62b528e changed docs and one test file only, which passes.
 - 2026-10-23: review return 1: AC4 fails — the help page's `"stale-output"` item leaves out the hint's "if not" branch that AC1's rules include (diff-bug #4). Fix-now items for the same round: diff-bug #1, #5, #7, #9 and ripple #1 (Review section).
 - 2026-10-23: amendment routed: AC1 — the hint's commit list leaves out the report, so an author can leave the front-matter edit uncommitted (diff-bug #2).
+- 2026-10-23: T5 checkpoint, half done: the byte-order case, the dropped exact assertions, the trimmed test comments, and the NEWS steps sentence are in. The AC1 amendment, "matches the report", and the AC4 help fix wait on the fresh reader's re-audit of AC1.
 
 ## Decisions
 

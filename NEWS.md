@@ -69,7 +69,7 @@
   and `_freeze/` that git ignores, which a release leaves out. It finds
   figures in `figures/` whose copy in `docs/figures/` is missing or
   differs. The rows for missing, old, or unreadable stored output and for
-  such figures give the steps to render and commit the fix. The row for a
+  such figures give the steps that fix them. The row for a
   report with no stored output also says: if you added the report to the
   Analyses menu, as `add_report()` does, commit `_quarto.yml` too. It
   finds DOIs that differ from `_supplement.yml`, and a `CITATION.cff`

@@ -452,9 +452,6 @@ test_that("stored output made from other report text gives a stale-output row", 
   expect_no_error(rows <- rows_of(check_quiet(site), "stale-output"))
   expect_setequal(rows$file, c("analyses/differs.qmd", "analyses/two-files.qmd"))
   expect_identical(nrow(rows), 2L)
-  expect_identical(rows$problem[rows$file == "analyses/differs.qmd"], stale_text("differs", "html.json"))
-  expect_identical(rows$problem[rows$file == "analyses/two-files.qmd"],
-                   stale_text("two-files", "docx.json", hint = TRUE))
 })
 
 test_that("a stale-output row names each file that differs, with a format hint when another file matches", {
@@ -469,15 +466,16 @@ test_that("a stale-output row names each file that differs, with a format hint w
   report("html-differs", matching = "docx.json", differing = "html.json")
   report("two-differ", matching = "html.json", differing = c("pdf.json", "docx.json"))
   report("none-match", differing = c("html.json", "docx.json"))
-  # A hidden file and a folder are not read, so they neither get named nor
-  # count as matching.
+  # A hidden file and a folder are not read.
   report("hidden", matching = "html.json", differing = ".docx.json")
   dir.create(file.path(site, "_freeze", "analyses", "hidden", "execute-results", "old.json"))
   report("hidden-match", matching = ".html.json", differing = "docx.json")
+  # Byte order puts B before a, which most locales do not.
+  report("byte-order", differing = c("a.json", "B.json"))
 
   rows <- rows_of(check_quiet(site), "stale-output")
   expect_setequal(rows$file, paste0("analyses/", c("only-html", "docx-differs", "html-differs", "two-differ",
-                                                  "none-match", "hidden-match"), ".qmd"))
+                                                  "none-match", "hidden-match", "byte-order"), ".qmd"))
   text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
   expect_identical(
     text("only-html"),
@@ -489,6 +487,7 @@ test_that("a stale-output row names each file that differs, with a format hint w
   expect_identical(text("two-differ"), stale_text("two-differ", c("docx.json", "pdf.json"), hint = TRUE))
   expect_identical(text("none-match"), stale_text("none-match", c("docx.json", "html.json")))
   expect_identical(text("hidden-match"), stale_text("hidden-match", "docx.json"))
+  expect_identical(text("byte-order"), stale_text("byte-order", c("B.json", "a.json")))
 })
 
 test_that("a source hash that cannot be read gives a stale-output row that says so", {
@@ -514,7 +513,6 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
   report_bytes(site, "two-unreadable", stale_lf)
   stored_file(site, "two-unreadable", "html.json", "{")
   stored_file(site, "two-unreadable", "docx.json", "[1]")
-  # A matching file gives no format hint in this text.
   report_bytes(site, "beside-match", stale_lf)
   stored_file(site, "beside-match", "docx.json", "{")
   stored_file(site, "beside-match", "html.json", hash_json(md5_of(stale_lf)))
