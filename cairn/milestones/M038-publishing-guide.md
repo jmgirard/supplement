@@ -40,7 +40,7 @@ runs the guide's local steps.
 
 ## Acceptance criteria
 
-- [ ] AC1: `vignettes/publishing.Rmd` walks a first-time author, in
+- [x] AC1: `vignettes/publishing.Rmd` walks a first-time author, in
       numbered steps in this order, through: checking the tools with
       `check_tools()`; making a public GitHub repository with no README,
       `.gitignore`, or license, and cloning it; making the site in the
@@ -54,7 +54,7 @@ runs the guide's local steps.
       `check_supplement()` finds no problem; the first release with
       `release_supplement()` and the commands it prints; and adding the
       Zenodo DOIs to `_supplement.yml`, rendering again, and pushing.
-- [ ] AC2: Every fenced block in `vignettes/publishing.Rmd` opens with
+- [x] AC2: Every fenced block in `vignettes/publishing.Rmd` opens with
       ```` ```r ```` or ```` ```sh ````, at any indent; the vignette has no
       tilde fence, no code block indented by four spaces, no line that
       matches `^\s*```\s*\{`, and no inline `` `r `` code, so a build runs
@@ -62,15 +62,15 @@ runs the guide's local steps.
       in the R console and `sh` blocks in a terminal, and each step names
       the folder its commands run in. `grep -nE '^\s*(```|~~~)'
       vignettes/publishing.Rmd` lists the fences.
-- [ ] AC3: The vignette states this rule for rendering again after a report
+- [x] AC3: The vignette states this rule for rendering again after a report
       changes: render that report by name, then render the whole site, then
       commit the changed report with `_freeze/`, `docs/`, and `figures/`,
       and push.
-- [ ] AC4: The vignette's steps for the GitHub Pages source (branch and
+- [x] AC4: The vignette's steps for the GitHub Pages source (branch and
       folder), for linking Zenodo to GitHub, and for the repository's
       switch on Zenodo each name the setting and link the GitHub Docs or
       Zenodo help page that describes it.
-- [ ] AC5: The guide's local steps, run by `tests/testthat/test-publishing.R`
+- [x] AC5: The guide's local steps, run by `tests/testthat/test-publishing.R`
       in a temporary git repository, give: after `create_supplement()` with
       `repo`, `quarto render`, and a commit, a commit whose tree holds
       `docs/index.html` and `docs/.nojekyll`; after a chunk that prints a
@@ -80,7 +80,7 @@ runs the guide's local steps.
       followed by a full render shows the new value; and after a version
       DOI is set in `_supplement.yml` and a full render, a
       `docs/index.html` that holds the DOI badge for that DOI.
-- [ ] AC6: README.md's "Start a new site" part links
+- [x] AC6: README.md's "Start a new site" part links
       `vignettes/publishing.Rmd` on GitHub and names
       `vignette("publishing", package = "supplement")`, and NEWS.md has one
       bullet for the guide.
@@ -143,3 +143,45 @@ runs the guide's local steps.
 ## Decisions
 
 ## Review
+
+Evidence (2026-10-22, branch head 6cd9971 for the guide and test; main had not moved).
+
+- AC1: `vignettes/publishing.Rmd` steps 1 to 10 in order: find missing tools (`check_tools()`); make a public repository with no README, `.gitignore`, or license, and clone it; `create_supplement("my-supplement", repo = "owner/name")`; `quarto render`; commit and `git push -u origin HEAD`; Pages from the pushed branch and `/docs`; Zenodo linked accounts and repository switch; replace placeholders until `check_supplement()` finds none; `release_supplement("major")` and its printed commands; DOIs into `_supplement.yml`, render, push. Read by heading and text.
+- AC2: `grep -nE '^\s*(```|~~~)'` lists 14 fences (5 ```` ```r ````, 9 ```` ```sh ````, 14 closing), none tilde; 0 lines match `^\s*```\s*\{`, 0 inline `` `r `` code; no 4-space indented code (only 3-space list text). Lines 15-19 say where `r` and `sh` blocks run; every step with commands names its folder (steps 6 and 7 are web settings with no commands). A scratch render by the diff-bug lens ran no code.
+- AC3: "Render again after a report changes": render that report by name, render the whole site, commit the changed report with `_freeze/`, `docs/`, and `figures/`, and push, with the commands.
+- AC4: step 6 names Settings > Pages > Build and deployment > Source "Deploy from a branch", branch, `/docs`, Save, and links GitHub Docs "Configuring a publishing source"; step 7 item 1 names Linked accounts > Connect and links Zenodo "Linking accounts"; item 2 names GitHub > Sync now > switch and links "Enable a repository".
+- AC5: `test-publishing.R` run fresh with NOT_CRAN=true: 18 expectations, 0 failed, 0 skipped, no error (before and after the review fixes). Implement's planted run without the render by name failed on the new value.
+- AC6: README.md "Start a new site" links `vignettes/publishing.Rmd` on GitHub and names `vignette("publishing", package = "supplement")`; NEWS.md has one bullet for the guide.
+- AC7 (local half): `devtools::check()` 0 errors, 0 warnings, 0 notes, vignette created and re-built; the vignette rebuilt clean after the review fixes. The three-system CI half is read at step 8.
+
+Consistency gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; no README.Rmd, no pkgdown site; NEWS.md bullet present with no milestone number; new top-level paths `doc`/`Meta` are in `.Rbuildignore` and check gave no NOTE; no principle changed (`cairn_impact` skipped).
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: after step 10, `CITATION.cff` has no DOI and `check_supplement()` gives a doi-mismatch row — fix now (step 10 runs `write_citation(overwrite = TRUE)`; a scratch run then gave 0 doi rows), fixed 6cd9971
+- diff-bug #2: `pak::pak()` builds no vignettes, so `vignette("publishing")` can be missing — reject, planned change: AC6 names both forms and the README states the condition beside the GitHub link
+- diff-bug #3: a first HTTPS push asks for a password that GitHub refuses — fix now (step 5 gives `gh auth login` and `gh auth setup-git`), fixed 6cd9971
+- diff-bug #4: `git commit` stops when `user.name`/`user.email` are unset — fix now (step 5 gives the two `git config --global` lines), fixed 6cd9971
+- diff-bug #5: `git add ... figures` stops with "pathspec 'figures' did not match" on a clone with no `figures/` after the example figure is deleted — fix now (step 8 keeps the figure until a report saves its own), fixed 6cd9971
+- diff-bug #6: step 1 assumes pak is installed — fix now (`install.packages("pak")`), fixed 6cd9971
+- diff-bug #7: deleting the example report leaves `_freeze/analyses/example/` committed — fix now (step 8 deletes it), fixed 6cd9971
+- diff-bug #8: the site address is wrong for a repository named `owner.github.io` — fix now (step 6 gives `https://owner.github.io/`), fixed 6cd9971
+- diff-bug #9: the badge check repeats `test-shortcodes.R` — reject, planned change: AC5 names it as part of the walk
+- diff-bug #10: the test does not run steps 8 and 9 — reject, planned change: AC5's scope
+- diff-bug #11: two lines past the wrap width — reject, style
+- diff-bug #12: the CI half of AC7 is not yet verified — reject, planned change: T5 reads it at the merge step
+- blame-history #1: same as diff-bug #5 — fix now, fixed 6cd9971
+- blame-history #2: the guide serves the pushed branch where D-001 and the row said `main` — reject, planned change: AC1 wording from the criteria audit; a fresh clone is on the default branch
+- blame-history #3: seven renders add CI time, unlike D-020's Windows cuts — reject, planned change: AC5 and T2 require the test to run in CI (about 35 s on the Mac)
+- blame-history #4: same as diff-bug #1 — fix now, fixed 6cd9971
+- blame-history #5: same as diff-bug #2 — reject, planned change
+- prior-review #1: same as diff-bug #5 — fix now, fixed 6cd9971
+- prior-review #2: same as diff-bug #7 — fix now, fixed 6cd9971
+- prior-review #3: the test commit sets no `core.hooksPath` (LESSONS M015) — fix now, fixed 6cd9971
+- prior-review #4: `writeLines()` writes CRLF on Windows (LESSONS M011) — reject, false: the test reads rendered output values, which line ends do not change
+- ripple #1: `check_supplement()` stale-output and no-stored-output rows say "render by name, then commit `_freeze/`" — follow-up, row "Align render advice with the new guide"
+- ripple #2: the template guide's private-data recipe stages `_freeze docs figures` without the changed report — follow-up, same row
+- ripple #3: that recipe offers either render, not both in order — follow-up, same row
+- ripple #4: the unpublished-figure row says to commit `docs/` only — follow-up, same row
+- ripple #5: the `_quarto.yml` and README "Website:" placeholders are not in step 8 — reject, false: step 3's `repo` fills both lines, and the claim reader's scratch walk gave only the six rows step 8 covers
+- ripple #6: the guide uses `git add -A`, not `git add -A -- .` — reject, planned change: the clone is the site folder
