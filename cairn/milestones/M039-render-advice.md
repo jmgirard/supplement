@@ -67,6 +67,7 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 - 2026-10-22: verify: `devtools::test()` 368 tests, 0 failed, 8 skipped; `devtools::document()` changed no file; `devtools::check()` 0 errors, 0 warnings, 0 notes; `test-publishing.R` with `NOT_CRAN=true` passes on the final guide text.
 - 2026-10-22: claim audit: 23 claims read, 3 corrected — inst/template/_README.md, vignettes/publishing.Rmd (the `git add` sentence now says a path git still tracks is staged, step 2 says what a full render runs, step 3 covers added reports; the re-read confirmed all three and added "If there is no such report, leave it out").
 - 2026-10-22: T1 to T5 done; status review.
+- 2026-10-22: step-7 approval: m039-render-advice approved for merge
 
 ## Decisions
 
