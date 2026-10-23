@@ -117,7 +117,7 @@ runs the guide's local steps.
       from the page as LESSONS M028 shows and the badge with
       `doi_badge_rx()`. Show the test red with the render by name left out
       (expect the old value), then green. The test must not skip in CI.
-- [ ] T3: Write `vignettes/publishing.Rmd` to AC1 to AC4, with plain
+- [x] T3: Write `vignettes/publishing.Rmd` to AC1 to AC4, with plain
       fenced blocks only; add `VignetteBuilder: knitr` to DESCRIPTION and
       the ignore entries for built vignette output; every claim about the
       package or the template is checked against a same-session read or
@@ -145,6 +145,7 @@ runs the guide's local steps.
 - 2026-10-22: release tripwire: not hit.
 - 2026-10-22: T1: read GitHub Docs "Configuring a publishing source" (Settings > Pages > Build and deployment > Source "Deploy from a branch", branch and folder menus, Save), Zenodo "Linking accounts" (profile menu > Linked accounts > Connect next to GitHub) and "Enable a repository" (profile menu > GitHub > Sync now > repository toggle); none states a private-repository limit or what happens to releases made before the toggle, so the guide claims neither.
 - 2026-10-22: T2: `test-publishing.R` passes (18 expectations, about 35 s on the Mac); a planted copy without the second render by name failed on "walk-new" missing and "walk-old" present, and was deleted. The marker is built with `paste0()` so the page holds it only in the chunk's output.
+- 2026-10-22: T3: vignette written (10 numbered steps plus the render rule, 11 plain fences, no chunk); `VignetteBuilder: knitr` added, `/doc/` and `/Meta/` in `.gitignore`, `vignettes/.gitignore` for `*.html` and `*.R`, and `build_vignettes()` added `^doc$` and `^Meta$` to `.Rbuildignore`. Chose to have step 8 delete the example figure too and to name no place on Zenodo's record page for the concept DOI, since no page read states one. The empty-clone warning was observed with git 2.54.
 
 ## Decisions
 

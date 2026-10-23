@@ -1,0 +1,213 @@
+---
+title: "Publish a supplement site"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Publish a supplement site}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+This guide takes you from an empty folder to a published site. GitHub
+Pages serves the site, and Zenodo archives each GitHub release with a DOI.
+You do each step once, in this order. The last part gives the rule for
+rendering again after you change a report.
+
+The code blocks run in two places. Run each `r` block in the R console.
+Run each `sh` block in a terminal, such as the Terminal tab of RStudio or
+Positron. Each step names the folder to run its commands in. To run R in
+the site folder, start R there or open the folder as a project. You can
+also run `setwd()` with the path of the folder.
+
+## 1. Find missing tools
+
+In the R console, in any folder, install the package and list the tools:
+
+```r
+pak::pak("jmgirard/supplement")
+supplement::check_tools()
+```
+
+`check_tools()` reports whether Quarto, knitr, rmarkdown, git, and the
+GitHub command-line tool (`gh`) are installed. Install each tool that it
+reports as missing or too old. It also reminds you of the two accounts that
+you need: a GitHub account and a Zenodo account.
+
+## 2. Make the GitHub repository and clone it
+
+On GitHub, make a new public repository. Do not add a README, a
+`.gitignore`, or a license. The template writes those files.
+
+In a terminal, in the folder that will hold the site folder, clone the
+repository. Use your GitHub user name for `owner` and the repository's
+name for `name`:
+
+```sh
+git clone https://github.com/owner/name.git my-supplement
+```
+
+git says that you cloned an empty repository. The new folder,
+`my-supplement`, is the site folder.
+
+## 3. Make the site
+
+In the R console, in the folder that holds `my-supplement`, run:
+
+```r
+supplement::create_supplement("my-supplement", repo = "owner/name")
+```
+
+The function copies the template into the clone. It writes the repository
+into the site's GitHub links and its GitHub Pages address,
+`https://owner.github.io/name/`. If the folder already holds a file that
+the template writes, the function stops and writes nothing.
+
+## 4. Render the site
+
+In a terminal, in the site folder, run:
+
+```sh
+quarto render
+```
+
+The first render writes `.gitignore` and the guide for authors,
+`README.md`. It also renders the site into `docs/`, the folder that GitHub
+Pages serves.
+
+## 5. Commit and push
+
+In a terminal, in the site folder, run:
+
+```sh
+git add -A
+git commit -m "Start the site"
+git push -u origin HEAD
+```
+
+`HEAD` pushes the branch that you are on. To see its name, run
+`git branch --show-current`. You need that name in the next step.
+
+## 6. Serve the site with GitHub Pages
+
+On GitHub, open the repository's **Settings** tab and click **Pages**.
+Under **Build and deployment**, set **Source** to **Deploy from a branch**.
+Select the branch that you pushed and the `/docs` folder, and click
+**Save**. GitHub's page [Configuring a publishing source for your GitHub
+Pages
+site](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+shows these settings.
+
+The site is at `https://owner.github.io/name/`, with the owner in
+lowercase.
+
+## 7. Turn on Zenodo for the repository
+
+Do this step before your first release. Zenodo archives the new releases
+of a repository that has its switch on.
+
+1. Link your Zenodo account to GitHub. On Zenodo, open the profile menu,
+   choose **Linked accounts**, and click **Connect** next to GitHub. If you
+   signed up for Zenodo with GitHub, the accounts are already linked.
+   Zenodo's page [Linking
+   accounts](https://help.zenodo.org/docs/profile/linking-accounts/) shows
+   these settings.
+2. Turn on the switch for the repository. On Zenodo, open the profile menu
+   and choose **GitHub**. Click **Sync now**, find the repository, and turn
+   on its switch. Zenodo's page [Enable a
+   repository](https://help.zenodo.org/docs/github/enable-repository/)
+   shows these settings.
+
+## 8. Replace the template placeholders
+
+The template holds example values. A release stops while any of them is
+in place, so replace them all. In the site folder:
+
+1. In `_supplement.yml`, write the paper title, the citation, the contact,
+   and the authors. Leave `version` and the values under `zenodo` empty.
+2. In `index.qmd`, delete the box "Before your first commit".
+3. In `LICENSE.md` and `LICENSE-CC-BY.md`, replace `YEAR AUTHORS` with the
+   year and the authors.
+4. Replace the example report and data. Add your own with
+   `supplement::add_report()` and `supplement::add_data()`. Then delete
+   `analyses/example.qmd` and its item in the Analyses menu of
+   `_quarto.yml`. Delete `data/example.csv` and its entry under `data` in
+   `_supplement.yml`. Delete the example's figure,
+   `figures/bootstrap-means.png`, too.
+
+Then, in a terminal in the site folder, render the whole site:
+
+```sh
+quarto render
+```
+
+In the R console, in the site folder, look for problems:
+
+```r
+supplement::check_supplement()
+```
+
+Fix each problem that it prints, render again, and run it again. When it
+finds no problem, commit and push in a terminal in the site folder:
+
+```sh
+git add -A
+git commit -m "Add the paper and the reports"
+git push
+```
+
+## 9. Make the first release
+
+In the R console, in the site folder, run:
+
+```r
+supplement::release_supplement("major")
+```
+
+The function runs `check_supplement()` and stops if it finds a problem.
+Then it sets the site version to `1.0.0`, writes `CITATION.cff` and
+`.zenodo.json`, and prints the commands that make the release. It runs
+none of them. Run the printed commands in a terminal in the site folder.
+The last command, `gh release create`, makes the GitHub release. If `gh`
+asks you to run `gh auth login`, run it, then run `gh release create`
+again.
+
+## 10. Add the DOIs and render again
+
+After Zenodo archives the release, its Zenodo record has a DOI. In
+`_supplement.yml`, under `zenodo`, write that DOI as `version-doi` and the
+address of the record page as `archive-url`. Zenodo also gives a concept
+DOI, which names every release of the repository. If you write it as
+`concept-doi`, the badge uses it when `version-doi` is empty. Write each
+DOI in the form `10.5281/zenodo.1234567`.
+
+Then, in a terminal in the site folder, render the site and push it:
+
+```sh
+quarto render
+git add -A
+git commit -m "Add the Zenodo DOIs"
+git push
+```
+
+The home page now shows the DOI badge and the download link.
+
+## Render again after a report changes
+
+Quarto stores the output of each report in `_freeze/`, and a full render
+reuses that output. A full render does not run a report again after you
+change it. So after a report changes, do these steps in a terminal in the
+site folder, with the report's data in place:
+
+1. Render that report by name. This runs its code again.
+2. Render the whole site.
+3. Commit the changed report with `_freeze/`, `docs/`, and `figures/`, and
+   push.
+
+For a report in `analyses/models.qmd`, the commands are:
+
+```sh
+quarto render analyses/models.qmd
+quarto render
+git add analyses/models.qmd _freeze docs figures
+git commit -m "Update the models report"
+git push
+```
