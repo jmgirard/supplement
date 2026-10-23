@@ -57,7 +57,7 @@ format. The help page and the `NEWS.md` bullet.
       the stale-output tests (`test-check-supplement.R` ~lines 403-476),
       and change the `endsWith(rows$problem, rerender_steps)` assertion
       in the "made from other text" test to full texts.
-- [ ] T2: Add the AC3 render test in `test-add-render.R` after the
+- [x] T2: Add the AC3 render test in `test-add-render.R` after the
       stale-output render test (~line 37), with its own report.
 - [ ] T3: Edit the `"stale-output"` item in the roxygen of
       `check_supplement()` (~lines 56-75), run `devtools::document()`, and
@@ -83,6 +83,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: changelog: edit the `check_supplement()` bullet in NEWS.md (T3), no new entry, since the package has no release.
 - 2026-10-23: started on branch m043-leftover-format-files, cut from main at 3f8cf46.
 - 2026-10-23: T1 done: `check_stale_output()` builds each row's text from the read files' states. The row names files as `_freeze/analyses/<name>/execute-results/<file>` paths in `sort_bytes()` order, and the hint ends with "If not, take these steps." before `rerender_steps` (implementation choice). Tests: the AC1 cases (a)-(f) and AC2 cases (a)-(d) in `test-check-supplement.R`. The file passes.
+- 2026-10-23: T2 done: the AC3 render test in `test-add-render.R` passes with Quarto 1.10.19 (17 expectations, run with `NOT_CRAN=true`). It also asserts that `docs/analyses/formats.docx` exists before `docx` is dropped, so the later absence comes from the full render after the delete.
 
 ## Decisions
 
