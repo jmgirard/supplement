@@ -1,23 +1,21 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-22 (M036 review: graduated "Refuse placeholder values at release"; added "Match example files after editor saves"; pruned the M033 row; validate green)_
+_Last hygiene check: 2026-10-23 (M037 review: graduated "Report missing tools before site setup"; added "Report broken Quarto links on Windows"; pruned the M034 row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M037 | Report missing tools before site setup | review | — | normal | milestones/M037-tool-check.md |
+| M037 | Report missing tools before site setup | done | — | normal | milestones/archive/M037-tool-check.md |
 | M036 | The release stops on template placeholders | done | — | normal | milestones/archive/M036-placeholder-check.md |
 | M035 | The writers refuse links and repeated lockfile keys | done | — | normal | milestones/archive/M035-writer-refusals.md |
-| M034 | Reports find the site folder from any folder | done | — | normal | milestones/archive/M034-report-paths.md |
 
 ## Candidates
 
 - Build a package site with pkgdown: a package site built with the toolkit itself. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review), `write_dockerfile()` (from the M032 review), and `check_tools()` (from M037). — added 2026-10-18, split 2026-10-19
 - Write a first-time publishing guide: a first-time guide to GitHub Pages and Zenodo. From the ease-of-use review: a short walk from an empty folder to a published site with a DOI. It covers making and pushing the GitHub repository, setting Pages to serve `main` and `/docs`, linking a Zenodo account and turning on the repository's switch before the first release, then adding the DOIs and rendering again. It says which commands run in the R console and which in a terminal, and gives one rule for rendering again after a report changes. Neither `README.md` nor the template guide has these steps (observed 2026-10-22). See also "Split the template guide by reader". — added 2026-10-18, split 2026-10-19, widened 2026-10-22
 - Split the template guide by reader: from the ease-of-use review. `README.md` (198 lines) and `inst/template/_README.md` (519 lines) put edge cases, such as Windows device names, the SPDX id syntax, and `--` read as an en dash, beside the main steps. The first render makes the template guide the site repository's `README.md`, so visitors on GitHub read author instructions under a placeholder citation. A short guide for the main steps, the edge cases in help pages or a reference part, and a public README for the site's readers would fix both. See also "Write a first-time publishing guide". — added 2026-10-22
-- Report missing tools before site setup: from the ease-of-use review. A site needs R with knitr and rmarkdown, the Quarto CLI, git, a GitHub account, `gh` for the last release command, and a Zenodo account. Nothing checks for them, and `create_supplement()` does not look for Quarto. A function that names the missing tools, or a check in `create_supplement()`, would report the problem before the first render fails. — added 2026-10-22 — started M037
 - Shorten the setup code in new reports: from the ease-of-use review. `add_report()` writes about 50 lines, about 30 of them the Computing environment block that hides the home folder with regular expressions. The example report has 123 lines, and the template guide asks authors to copy `save_png()` by hand. Package functions for that code would shorten reports, but a render by name would then need supplement installed, which is a design choice. See also "Stop the example at a linked figures". — added 2026-10-22
 - Check web links on the rendered site: web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
 - Detect broken file links on Windows: Windows file links: from the M018 implement. On Windows a file symbolic link to a missing file reads as a file that exists, with `file.access()` 0 and `normalizePath()` giving the link's own path, so `is_link()` misses it and `release_supplement()` stops with "Could not read" (`supplement_error_write`) in place of the link refusal; that stop comes in `read_outputs()`, before the writes, and no Windows test checks that nothing is written. The test "a link to a missing output file is refused before any write" skips on Windows for it. A fix needs a check outside base R's file functions, such as `dir /AL`. Making such a link needs admin rights or developer mode. From the M018 review: the same rule counts as a link any name that the folder lists but `file.exists()` cannot read, such as a name that ends in a space or `.` or a path over 260 characters. — added 2026-10-19
