@@ -76,16 +76,17 @@ Each place that this milestone lists gives the guide's steps for its case: a cha
 - diff-bug #2: the row gives no hint for a hand-made report that is not in the menu — reject (false: the sentence's condition is false for it, and the steps before it are complete).
 - diff-bug #3: `_quarto.yml` line 5 says a full render runs no report code, which is false for a report with no stored output — follow-up, new row "Correct two older render notes".
 - diff-bug #4: the two `_quarto.yml` absence checks pass on main, and the second nearly repeats the first — reject (planned change: T1 planned them as must-stay-silent guards for the two `stale-output` texts, which a change to the shared constant could break).
-- diff-bug #5: the NEWS insertion leaves ragged short lines — fix now.
+- diff-bug #5: the NEWS insertion leaves ragged short lines — fix now, fixed eaf6374.
 - blame-history #1: the new comments and the row text name `figures/` with no leave-out note — reject (planned change: the plan gate chose this, and the comments point to the guide that carries the note).
-- blame-history #2: the test comment above `rerender_steps` still calls it the last sentence of the missing-output row — fix now.
+- blame-history #2: the test comment above `rerender_steps` still calls it the last sentence of the missing-output row — fix now, fixed eaf6374.
 - blame-history #3: "render the whole site again" is stricter than Quarto needs — reject (false: it matches "Paper figures" in `_README.md` and the `unpublished-figure` row text, which M039 set).
-- blame-history #4: ragged NEWS lines — fix now (same fix as diff-bug #5).
+- blame-history #4: ragged NEWS lines — fix now (same fix as diff-bug #5), fixed eaf6374.
 - prior-review #1: no `figures/` leave-out note in the new comment or row text — reject (planned change, as blame-history #1).
 - prior-review #2: the publishing-guide NEWS bullet names `figures/` with no note — reject (false: the bullet gives no command; the note goes with `git add` commands, and the vignette carries it).
-- ripple #1: the stale test comment — fix now (same fix as blame-history #2).
+- ripple #1: the stale test comment — fix now (same fix as blame-history #2), fixed eaf6374.
 - ripple #2: "How the site renders" (`_README.md` line 250) says to commit `_freeze/` and `docs/` after a delete or rename, with no `_quarto.yml` for the menu item — follow-up, new row "Correct two older render notes".
 - ripple #3: the candidate row "Align the remaining render advice" describes the old text — reject (planned change: post-merge hygiene deletes the row).
 - ripple #4: `_README.md` says "stage `_quarto.yml`" where the row says "commit" — reject (false: that step stages and then commits).
-- ripple #5: ragged NEWS lines — fix now (same fix as diff-bug #5).
+- ripple #5: ragged NEWS lines — fix now (same fix as diff-bug #5), fixed eaf6374.
+- 2026-10-23 after the fix: `devtools::test(filter = "check-supplement")` passes. The fix changes a test comment and NEWS line breaks only.
 - Return floor: no finding shows a criterion failing or a defect in what the package does for its users, so no return.
