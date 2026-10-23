@@ -370,7 +370,6 @@ test_that("a folder with the output file's name is refused", {
 })
 
 test_that("a link at the output path is refused, with overwrite TRUE and FALSE", {
-  skip_on_os("windows")
   outside <- withr::local_tempdir("outside-")
   writeBin(charToRaw("target\n"), file.path(outside, "target.txt"))
   targets <- c(
@@ -385,7 +384,7 @@ test_that("a link at the output path is refused, with overwrite TRUE and FALSE",
         info <- paste(file, overwrite, shape)
         dir <- local_site(full_supplement())
         writeBin(charToRaw("readme\n"), file.path(dir, "README.md"))
-        skip_if_not(file.symlink(targets[[shape]], file.path(dir, file)), "cannot make a symbolic link here")
+        symlink_or_skip(targets[[shape]], file.path(dir, file))
         before <- folder_md5(dir)
         outside_before <- folder_md5(outside)
         err <- expect_error(writers[[file]](dir, overwrite = overwrite),

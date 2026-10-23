@@ -543,7 +543,7 @@ expect_link_refused <- function(name, target) {
   dir <- release_site('  version: "1.2.3"')
   outside <- withr::local_tempfile()
   if (target == "present") writeLines("outside", outside)
-  skip_if_not(file.symlink(outside, file.path(dir, name)), "cannot make a link")
+  symlink_or_skip(outside, file.path(dir, name))
   # folder_state() cannot read a link to a missing file, so compare the
   # names, the links, and _supplement.yml.
   state <- function() {
@@ -558,9 +558,6 @@ expect_link_refused <- function(name, target) {
 }
 
 test_that("a link to a missing output file is refused before any write", {
-  # On Windows such a link reads as a file that exists and cannot be read
-  # (candidate row "Windows file links").
-  skip_on_os("windows")
   calls <- mock_check()
   for (name in c("CITATION.cff", ".zenodo.json")) expect_link_refused(name, "missing")
   expect_identical(calls$n, 0L)
