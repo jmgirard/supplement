@@ -113,6 +113,8 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: re-audit: AC1 (full) — nothing on all six questions. A site with no `figures/` needs no note, since the row gives prose and `rerender_steps` already names `figures/`. AC3 and AC4 need no wording change.
 - 2026-10-23: amendment return: AC1 — "It says that if so, the author deletes them, renders the whole site, and commits the report with `_freeze/`, `docs/`, and `figures/`, and that if not, the author follows the render steps."
 - 2026-10-23: T6 done: the code is the same as at c16dc44, `devtools::document()` left no diff, and `devtools::test()` passed (376 tests, 0 failed, 0 errors, 9 skipped). The first AC1 edit missed, because the old sentence also appears in the work log. d6f4077 wrote the criterion. Status review.
+- 2026-10-23: correction of the T2 line: the claim that `docs/analyses/formats.docx`'s later absence comes from the full render after the delete is false. Pass 3 diff-bug #1 saw the file gone after the full render before the delete.
+- 2026-10-23: review return 3: AC4 fails as written — the help item does not state the `, ` join of the named files (pass 3 diff-bug #2). This is the third defect return, so the thrash rule's stop goes to the user.
 
 ## Decisions
 
@@ -160,3 +162,14 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - prior-review #2: ragged NEWS wraps, which M040's review also fixed — fix now.
 - ripple #1: `figures/` missing from the hint's commit list — same as blame-history #1.
 - ripple #2: no guide covers a kept `docx.json` — reject, planned change (AC4 puts the advice in the help page and NEWS).
+
+Pass 3 (head bdaadc8). Tests from d6f4077 (same code): 376 tests, 0 failed, 0 errors, 9 skipped. `cairn_validate.py` exit 0. No criterion is ticked in this pass.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: AC3's final `.docx` check passes without the delete, because the full render before the delete already removes `docs/analyses/formats.docx` (seen with Quarto 1.10.19). The T2 work-log claim is false. AC3 is still met as written — fix now (assert the `.docx` is gone after the first full render).
+- diff-bug #2: the help item does not state the `, ` join that AC1 and AC2 give for the named files, which AC4 asks it to state — review return 3 (AC4 fails as written).
+- diff-bug #3: the NEWS hint reads as NEWS's own advice, and the includes sentence now follows the hint — fix now.
+- blame-history: no finding — noted.
+- prior-review #1: the AC3 render test adds four renders to CI time — reject, planned change (AC3 names the renders).
+- ripple #1: NEWS "give the steps to render and commit the fix" leaves out the hint's delete step (pass 1 ripple #1 and pass 2 blame-history #2 pulled this sentence two ways) — fix now, with a sentence that keeps "render and commit" and adds the delete step.
