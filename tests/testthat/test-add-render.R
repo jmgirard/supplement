@@ -105,7 +105,7 @@ test_that("the stale-output row names the stored output of a dropped format unti
   hint <- "so these files can be from a format that the report no longer renders"
   stale <- rows()
   expect_identical(stale$file, "analyses/formats.qmd")
-  expect_match(stale$problem, paste0(": ", docx_json, ". "), fixed = TRUE)
+  expect_match(stale$problem, paste0(': "', docx_json, '". '), fixed = TRUE)
   expect_match(stale$problem, hint, fixed = TRUE)
 
   render()
@@ -117,6 +117,49 @@ test_that("the stale-output row names the stored output of a dropped format unti
   render()
   expect_false(file.exists(file.path(site, "docs", "analyses", "formats.docx")))
   expect_identical(nrow(rows()), 0L)
+})
+
+test_that("the render steps or the delete step clear a stale-output row whose source hash cannot be read", {
+  skip_if_no_quarto()
+  site <- new_site()
+  render <- function(...) {
+    rendered <- run_in(site, "quarto", c("render", ...))
+    expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  }
+  rows <- function() {
+    result <- suppressMessages(check_supplement(site))
+    result[result$check == "stale-output", , drop = FALSE]
+  }
+  unreadable <- "The source hash of its stored output cannot be read"
+  report <- file.path(site, "analyses", "formats.qmd")
+  body <- "---\n\n```{r}\n1 + 1\n```\n"
+  writeBin(charToRaw(paste0("---\ntitle: Formats\nformat:\n  html: default\n  docx: default\n", body)), report)
+  render("analyses/formats.qmd")
+  render()
+  html_json <- file.path(site, "_freeze/analyses/formats/execute-results/html.json")
+  docx_json <- file.path(site, "_freeze/analyses/formats/execute-results/docx.json")
+  expect_identical(nrow(rows()), 0L)
+
+  # The render steps rewrite the file of a format that the report renders.
+  writeBin(charToRaw("{"), html_json)
+  expect_true(startsWith(rows()$problem, unreadable))
+  render("analyses/formats.qmd")
+  render()
+  expect_identical(nrow(rows()), 0L)
+
+  # They do not rewrite the file of a format that the report dropped.
+  writeBin(charToRaw(paste0("---\ntitle: Formats\nformat: html\n", body)), report)
+  writeBin(charToRaw("{"), docx_json)
+  render("analyses/formats.qmd")
+  render()
+  stale <- rows()
+  expect_identical(stale$file, "analyses/formats.qmd")
+  expect_true(startsWith(stale$problem, unreadable))
+
+  expect_true(file.remove(docx_json))
+  render()
+  expect_identical(nrow(rows()), 0L)
+  expect_true(file.exists(html_json))
 })
 
 test_that("a render by name or a full render clears the unpublished-figure row of a new figure", {

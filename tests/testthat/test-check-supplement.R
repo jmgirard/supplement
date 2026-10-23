@@ -400,10 +400,21 @@ md5_of <- function(...) {
 
 stale_lf <- "---\ntitle: Fixture\n---\n\n```{r}\n1 + 1\n```\n"
 
+# The paths of files `files` of report `name` as a stale-output row names
+# them, for names that hold no `\` or `"`.
+quoted_paths <- function(name, files) {
+  paste0('"', file.path("_freeze/analyses", name, "execute-results", files), '"', collapse = ", ")
+}
+
+# The step that a stale-output row adds after the render steps when a
+# source hash cannot be read.
+delete_step <- paste("If the row stays after these steps, these files can be from a format that the report",
+                     "no longer renders, or damaged. Delete them, render the whole site, and commit the report",
+                     "with _freeze/, docs/, and figures/.")
+
 # The problem text of a stale-output row whose files `files` of report
 # `name` differ, with the format hint when `hint` is TRUE.
-stale_text <- function(name, files, hint = FALSE) {
-  paths <- paste(file.path("_freeze/analyses", name, "execute-results", files), collapse = ", ")
+stale_text <- function(name, files, hint = FALSE, paths = quoted_paths(name, files)) {
   stale <- paste0("Its stored output was made from other text than the report holds now: ", paths, ".")
   if (!hint) {
     return(paste(stale, rerender_steps))
@@ -413,6 +424,13 @@ stale_text <- function(name, files, hint = FALSE) {
         "report no longer renders. If so, delete them, render the whole site, and commit the report with",
         "_freeze/, docs/, and figures/.",
         "If not, take these steps.", rerender_steps)
+}
+
+# The problem text of a stale-output row whose source hash cannot be read
+# from files `files` of report `name`.
+unreadable_text <- function(name, files, paths = quoted_paths(name, files)) {
+  paste0("The source hash of its stored output cannot be read from ", paths, ". ", rerender_steps, " ",
+         delete_step)
 }
 
 test_that("stored output made from other report text gives a stale-output row", {
@@ -479,7 +497,7 @@ test_that("a stale-output row names each file that differs, with a format hint w
   expect_identical(
     text("only-html"),
     paste("Its stored output was made from other text than the report holds now:",
-          "_freeze/analyses/only-html/execute-results/html.json.", rerender_steps)
+          '"_freeze/analyses/only-html/execute-results/html.json".', rerender_steps)
   )
   expect_identical(text("docx-differs"), stale_text("docx-differs", "docx.json", hint = TRUE))
   expect_identical(text("html-differs"), stale_text("html-differs", "html.json", hint = TRUE))
@@ -534,22 +552,45 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
   for (problem in rows$problem) {
     expect_match(problem, "The source hash of its stored output cannot be read", fixed = TRUE)
   }
-  expect_true(all(endsWith(rows$problem, rerender_steps)))
+  expect_true(all(endsWith(rows$problem, paste(rerender_steps, delete_step))))
   expect_false(any(grepl("_quarto.yml", rows$problem, fixed = TRUE)))
   text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
-  unreadable_text <- function(name, files) {
-    paste0("The source hash of its stored output cannot be read from ",
-           paste(file.path("_freeze/analyses", name, "execute-results", files), collapse = ", "), ". ",
-           rerender_steps)
-  }
   expect_identical(
     text("not-json"),
     paste("The source hash of its stored output cannot be read from",
-          "_freeze/analyses/not-json/execute-results/html.json.", rerender_steps)
+          '"_freeze/analyses/not-json/execute-results/html.json".', rerender_steps, delete_step)
   )
   expect_identical(text("two-unreadable"), unreadable_text("two-unreadable", c("docx.json", "html.json")))
   expect_identical(text("both"), unreadable_text("both", "docx.json"))
   expect_identical(text("beside-match"), unreadable_text("beside-match", "docx.json"))
+})
+
+test_that("a stale-output row puts each file it names in double quotes", {
+  site <- new_site()
+  differs <- hash_json(md5_of(stale_lf, "x"))
+  report_bytes(site, "comma", stale_lf)
+  stored_file(site, "comma", "a, b.json", differs)
+  stored_file(site, "comma", "c.json", differs)
+  report_bytes(site, "comma-unreadable", stale_lf)
+  stored_file(site, "comma-unreadable", "x, y.json", "{")
+  rows <- rows_of(check_quiet(site), "stale-output")
+  text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
+  expect_identical(text("comma"), stale_text("comma", c("a, b.json", "c.json")))
+  expect_identical(text("comma-unreadable"), unreadable_text("comma-unreadable", "x, y.json"))
+
+  # Windows file names cannot hold `"` or `\`.
+  skip_on_os("windows")
+  report_bytes(site, "quote", stale_lf)
+  stored_file(site, "quote", 'd"e.json', differs)
+  report_bytes(site, "backslash", stale_lf)
+  stored_file(site, "backslash", "f\\g.json", differs)
+  report_bytes(site, 'q"r', stale_lf)
+  stored_file(site, 'q"r', "html.json", differs)
+  rows <- rows_of(check_quiet(site), "stale-output")
+  expect_identical(text("quote"), stale_text(paths = '"_freeze/analyses/quote/execute-results/d\\"e.json"'))
+  expect_identical(text("backslash"),
+                   stale_text(paths = '"_freeze/analyses/backslash/execute-results/f\\\\g.json"'))
+  expect_identical(text('q"r'), stale_text(paths = '"_freeze/analyses/q\\"r/execute-results/html.json"'))
 })
 
 test_that("a folder in _freeze/analyses/ that nothing in analyses/ names gives a leftover-output row", {

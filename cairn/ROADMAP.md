@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-23 (M043 done: graduated "Name leftover format file
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M044 | Advise deleting unreadable format files | planned | — | normal | milestones/M044-unreadable-format-files.md |
+| M044 | Advise deleting unreadable format files | review | — | normal | milestones/M044-unreadable-format-files.md |
 | M043 | Name leftover format files in _freeze | done | — | normal | milestones/archive/M043-leftover-format-files.md |
 | M042 | Flag stored output of deleted reports | done | — | normal | milestones/archive/M042-deleted-report-output.md |
 | M041 | Correct two older render notes | done | — | normal | milestones/archive/M041-older-render-notes.md |
