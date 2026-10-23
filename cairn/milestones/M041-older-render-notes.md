@@ -1,13 +1,13 @@
 # M041: Correct two older render notes
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — site authors read the template's `_quarto.yml` comments and its guide
-- **Branch/PR:** —
+- **Branch/PR:** m041-older-render-notes
 
 ## Goal
 
@@ -35,7 +35,7 @@ The template says what a full render runs and gives the steps after a report is 
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-add-render.R`, add the test of AC3. Make a site with `create_supplement()`, add a report with `add_report()`, and run a full render. Rename the report file, delete its old folder in `_freeze/analyses/`, change the menu item's `href` in `_quarto.yml` to the new name, and run a full render. Assert facts 1 to 3 of AC3. Rename the report again and run a full render. Assert facts 4 and 5. Run `devtools::test(filter = "add-render")`.
+- [x] T1: In `tests/testthat/test-add-render.R`, add the test of AC3. Make a site with `create_supplement()`, add a report with `add_report()`, and run a full render. Rename the report file, delete its old folder in `_freeze/analyses/`, change the menu item's `href` in `_quarto.yml` to the new name, and run a full render. Assert facts 1 to 3 of AC3. Rename the report again and run a full render. Assert facts 4 and 5. Run `devtools::test(filter = "add-render")`.
 - [ ] T2: Rewrite the comment above `render:` in `inst/template/_quarto.yml` (lines 4 to 8). Keep the steps that M040 set and the pointer to README.md or SUPPLEMENT.md. Run `devtools::test(filter = "template")`, because those tests render the template.
 - [ ] T3: Rewrite the paragraph at lines 250 to 252 of `inst/template/_README.md` to give AC2's steps.
 - [ ] T4: Run `grep -rn -i -E 'runs no (report )?code|delete or rename|rename a report' R inst/template vignettes README.md NEWS.md`. Read each hit outside the In list that repeats either wrong note, and record it as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`. If a template render fails because `_scripts/nojekyll.ts` exits 139, write a work-log line for the row "Trace the post-render crash on macOS".
@@ -52,6 +52,8 @@ The template says what a full render runs and gives the steps after a report is 
 - 2026-10-23: criteria audit (full mode, fresh Opus reader): 8 findings, all taken. AC1 now names the kept steps and their order. AC2 numbers its steps, commits the deleted or renamed report, and says the render needs the report's data, fit files, and R. AC3 covers a rename only, tests AC2's path with no render between the rename and the steps, numbers its five facts, and drops the absent-old-folder fact, which only checked the test's own deletion; the rename-alone control now runs after the steps on the same site. AC4 says where NOTEs are justified, and its crash note moved to T4. No principle or D-entry blocks a criterion; no factual contradiction found.
 - 2026-10-23: plan gate chose a guide step to delete the old `_freeze/` folder over a `check_supplement()` row for it, because the guide already gives that step for the example report; the row becomes the candidate "Flag stored output of deleted reports"; falsified by authors who skip the step and publish stale stored output.
 - 2026-10-23: plan gate chose no `NEWS.md` change over a bullet for the corrected guide, because NEWS lists features and the guide's parts are not listed there (M039 changed four guide parts with no NEWS bullet for them); falsified by a NEWS bullet that repeats either wrong note.
+- 2026-10-23: set in-progress on branch m041-older-render-notes, cut from main at 09247c3.
+- 2026-10-23: T1 done: the test "the guide's steps after a rename give the page its new name and keep the menu link" in `tests/testthat/test-add-render.R` renames `models` to `comparison` with the guide's steps, then `comparison` to `results` alone; it uses `replace_in_file()` for the menu edit. Its control (facts 4 and 5) is the planted defect for fact 3: the same site without the menu edit gives a `broken-link` row naming the old `.qmd`. `devtools::test(filter = "add-render")`: 0 failures, 41 passes.
 
 ## Decisions
 

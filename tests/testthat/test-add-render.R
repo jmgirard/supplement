@@ -105,3 +105,42 @@ test_that("a render by name or a full render clears the unpublished-figure row o
   expect_identical(unpublished(), character())
   expect_true(file.exists(file.path(site, "docs", "figures", ".hidden.png")))
 })
+
+test_that("the guide's steps after a rename give the page its new name and keep the menu link", {
+  skip_if_no_quarto()
+  site <- new_site()
+  suppressMessages(add_report("models", "Models", path = site))
+  render <- function() {
+    rendered <- run_in(site, "quarto", "render")
+    expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  }
+  broken <- function() {
+    result <- suppressMessages(check_supplement(site))
+    result$problem[result$check == "broken-link"]
+  }
+  rename <- function(from, to) {
+    file.rename(file.path(site, "analyses", paste0(from, ".qmd")),
+                file.path(site, "analyses", paste0(to, ".qmd")))
+  }
+  frozen <- function(name) dir.exists(file.path(site, "_freeze", "analyses", name))
+  render()
+  expect_true(frozen("models"))
+
+  # The steps of "How the site renders", with no render before them.
+  expect_true(rename("models", "comparison"))
+  unlink(file.path(site, "_freeze", "analyses", "models"), recursive = TRUE, expand = FALSE)
+  replace_in_file(file.path(site, "_quarto.yml"), "analyses/models.qmd", "analyses/comparison.qmd")
+  render()
+  pages <- list.files(file.path(site, "docs", "analyses"))
+  expect_contains(pages, "comparison.html")
+  expect_false("models.html" %in% pages)
+  expect_true(frozen("comparison"))
+  expect_identical(broken(), character())
+
+  # A rename alone keeps the old stored output and leaves the menu item
+  # linking the old file.
+  expect_true(rename("comparison", "results"))
+  render()
+  expect_true(frozen("comparison"))
+  expect_true(any(grepl("analyses/comparison.qmd", broken(), fixed = TRUE)))
+})
