@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M037: Report missing tools before site setup
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
@@ -93,6 +93,7 @@ Authors can see which tools a supplement site needs are missing before a first r
 - 2026-10-22: T7: `quarto_version()` checks that the first line's bytes are ASCII digits, dots, spaces, tabs, or CR before `rawToChar()`, so other bytes read as no version with no warning. A new test covers `check_tools()` and `create_supplement()` with such a file; a plant that dropped the byte check failed it.
 - 2026-10-22: T8: `expect_invisible(suppressMessages(check_tools()))`; a folder-link case in the link test; `tool_lines()` formats rows for both functions; test helper renamed `quarto_result()`; two repeated expectations removed; DESIGN.md and the `git_run()` comment say "runs a program itself" and that `Sys.which()` starts `which` on Unix; README names missing, too old, and not on path. `devtools::test(filter = "check-tools|create-supplement|source")` clean (256 pass, 2 skips that predate the change).
 - 2026-10-22: claim audit: 11 claims read, 2 corrected — R/check-supplement.R (the `git_run()` comment names `create_supplement()` and the shell that `Sys.which()` starts), R/check-tools.R (the byte-check comment names the `trimws()` error as well as the `grepl()` warning). The reader also noted that the folder-link case passes without `normalizePath()`; the file-link case is the one that fails without it (pass 1 plant).
+- 2026-10-22: verify at bdb6a0d (9d462e6 changes comments only): `devtools::document()` no change; full `devtools::test()` FAIL 0, ERR 0, SKIP 8, PASS 4999; `devtools::check()` 0 errors, 0 warnings, 0 notes. Status set to review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local -->
