@@ -1,0 +1,11 @@
+# M042: Flag stored output of deleted reports
+
+**Status:** done (2026-10-23, PR #43 https://github.com/jmgirard/supplement/pull/43)
+
+**Goal:** Authors who delete or rename a report learn from `check_supplement()` that its stored output is left in `_freeze/analyses/`.
+
+**Outcome:** `check_leftover_output()` in `R/check-supplement.R` gives a `"leftover-output"` row for each folder directly in `_freeze/analyses/` that no file or folder in `analyses/` names. Each name in `analyses/` is cut before its last `.` with `useBytes = TRUE`, and the two sides are compared through `fold_case()`, which lowers ASCII letters with `ascii_lower()` before `tolower()` and lowers only the ASCII capitals of a name that is not valid UTF-8. The row says to delete the folder, render the whole site, commit `_freeze/` and `docs/`, and for a deleted or renamed report its old path and `_quarto.yml`. Like every row it stops `release_supplement()` (the user's choice at the question set). The example report's `placeholder` row names `_freeze/analyses/example/`. A render test in `test-add-render.R` deletes a report that saved `figures/trends.png` and follows the guide's steps; the help page, NEWS, README.md, and the template guide's check list describe the row.
+
+**Decisions:** Supersedes M041's plan-gate choice of a guide step in place of a `check_supplement()` row: the guide step stays and the row is added. Plan gate: an any-extension, case-ignoring name match over matching only report extensions with case counted, so the row never tells an author to delete live output; the leftovers it misses are on the help page and in DESIGN.md Known issues.
+
+**Review:** Criteria audit at plan (full mode): 6 findings, 5 fixed, 1 kept as the narrower promise. Claim audit: 43 claims, 3 corrected. One four-lens pass, 26 findings: 17 fixed (fbfd846), 1 to a new row, 8 rejected; a remainder of one fix went to a second new row. `devtools::check()` 0/0/0, and CI passed on all six jobs. Graduated "Flag stored output of deleted reports", "Name stored output in the example row", and "Test the guide's steps after a deletion". New rows: "Match folder names across Unicode forms" and "Read report names that are not UTF-8". One lesson extended (M008 line: `sub()` on a name that is not valid UTF-8).
