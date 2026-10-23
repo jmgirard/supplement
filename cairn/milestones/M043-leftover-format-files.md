@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M043: Name leftover format files in _freeze
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -66,7 +66,7 @@ format. The help page and the `NEWS.md` bullet.
       and `inst/template/_README.md` for advice on kept format files and
       update any that give it.
 - [x] T4: Run `devtools::document()` and `devtools::test()`.
-- [ ] T5: Review return 1: add the hint's "if not" branch to the help
+- [x] T5: Review return 1: add the hint's "if not" branch to the help
       item (AC4), and take the AC1 amendment into the row text, help, and
       NEWS. Fix now: a byte-order test case, drop the first stale test's
       repeated exact assertions, trim three test comments, "matches the
@@ -100,6 +100,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: re-audit: AC1 (full) — nothing on satisfiability, reachability, bounds, probes, instrument, or tier. One optional point: add `figures/` to the hint's commit list to match `rerender_steps`. Not taken: the hint's step (delete, then render in full) changes no figure, and new wording would need a second re-audit of AC1.
 - 2026-10-23: amendment return: AC1 — "It says that if so, the author deletes them, renders the whole site, and commits the report with `_freeze/` and `docs/`, and that if not, the author follows the render steps."
 - 2026-10-23: T5: the row text, help, NEWS, and `stale_text()` now say "commit the report with _freeze/ and docs/", and the row says "matches the report". The help item adds the "if not" branch (review return 1). The byte-order case moved to its own test, which sets `en_US.UTF-8` the way the "rows of the new checks come in byte order" test does, because testthat sets the collation to C inside a test and so the first version could not fail. With `sort_bytes()` removed in a scratch copy, the test fails 1 of 2 expectations, and it passes on the branch.
+- 2026-10-23: T5 done at 0794217: `devtools::document()` left no diff, and `devtools::test()` passed (376 tests, 0 failed, 0 errors, 9 skipped). No second claim audit (its rule allows one pass), so review pass 2 reads the new lines. Status review.
 
 ## Decisions
 
