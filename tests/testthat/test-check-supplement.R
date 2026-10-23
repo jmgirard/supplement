@@ -1034,8 +1034,8 @@ test_that("the Windows link test gives the rules' answer for each path of a fold
   # disk that does not, it does not exist, so the rules count it as a link,
   # as they count "FILE-LINK" on both.
   ignores_case <- file.exists(file.path(dir, "FILE.TXT"))
-  # On Windows, a file link to a missing file reads as a plain file
-  # (candidate row "Detect broken file links on Windows").
+  # On Windows, a file link to a missing file reads as a plain file to
+  # these rules; is_link() finds it with fs_link().
   dangling <- .Platform$OS.type != "windows"
   expect_identical(
     is_reparse_point(file.path(dir, names)),

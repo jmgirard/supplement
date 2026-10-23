@@ -134,9 +134,8 @@ twice in the same object: \code{R} or \code{Packages} at the top level,
 entry. This check comes before the version checks.
 \item \code{supplement_error_file_exists}: \code{Dockerfile} or \code{.dockerignore}
 exists and \code{overwrite} is \code{FALSE}. A folder at either path is this
-error even when \code{overwrite} is \code{TRUE}. So is a link, because a write
-would follow it. On Windows a file link to a missing file is not seen
-as a link, so with \code{overwrite = TRUE} it is written through.
+error even when \code{overwrite} is \code{TRUE}. So is a link, also a link to a
+missing file, because a write would follow it.
 \item \code{supplement_error_write}: a file was opened, but writing it gave an
 error or a warning, or the file then has another size than the text.
 }
