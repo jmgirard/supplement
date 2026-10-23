@@ -1,13 +1,13 @@
 # M039: Align render advice with the new guide
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — authors read the row texts and the guide text
-- **Branch/PR:** —
+- **Branch/PR:** m039-render-advice
 
 ## Goal
 
@@ -59,6 +59,11 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 - 2026-10-22: plan gate chose the full steps in each row text over a pointer to the guide, because the author can act without opening the guide; falsified by row texts too long to read in the printed table.
 - 2026-10-22: plan gate chose a closed list of places over a grep-and-classify criterion, because the grep reads lines and missed wrapped advice; falsified by a listed place found to give no render or commit advice, or by advice that T5 finds in a part this list missed.
 - 2026-10-22: criteria re-audit (full mode, second fresh Opus reader, after the question set changed AC4): 6 findings, all taken. AC1 now states its sentence; AC2 and AC5 add `_freeze/` to the figure advice, because a changed figure usually comes from a render by name that also rewrote `_freeze/`, and "Paper figures" already names it; AC4's last clause names the claim to remove; AC6 is reworded; T2 drops a test run that matches nothing. AC3, the part list, and Coverage had no finding.
+- 2026-10-22: implement started on branch m039-render-advice, cut from main at cd9509b.
+- 2026-10-22: T1 tests written first: the four changed tests failed against the old row texts (1, 2, 7, and 1 failures) and no other test failed; with the new texts `test-check-supplement.R` passes 63 of 63. The rule's sentence is one constant, `rerender_steps`, in `R/check-supplement.R`, and the test file states it again on its own.
+- 2026-10-22: implement choice: vignette step 5 now says to delete the example figure and to leave out `figures` from the last part's `git add` for a site with no figures, in place of keeping the figure as a guard against the failing command.
+- 2026-10-22: T5 sweep: no hit outside the In list advises on publishing a changed report (the container part runs a render with no commit steps; the release, DOI, renv, and Docker hits are other tasks), so no candidate row.
+- 2026-10-22: checkpoint: T1 to T5 edits written; tasks not ticked until the full suite and `devtools::check()` pass.
 
 ## Decisions
 

@@ -529,6 +529,10 @@ analysis_reports <- function(path) {
   reports[!dir.exists(reports)]
 }
 
+# The steps that publish a changed report, as the publishing guide gives them.
+rerender_steps <- paste("Render the report by name, render the whole site, then commit the report with",
+                        "_freeze/, docs/, and figures/.")
+
 check_stored_output <- function(path) {
   reports <- analysis_reports(path)
   missing <- vapply(reports, function(report) {
@@ -544,7 +548,7 @@ check_stored_output <- function(path) {
   files <- file.path("analyses", basename(reports[missing]))
   problem_rows(
     "no-stored-output", files,
-    rep_len("The report has code and no stored output in _freeze/. Render it by name, then commit _freeze/.",
+    rep_len(paste("The report has code and no stored output in _freeze/.", rerender_steps),
             length(files))
   )
 }
@@ -576,10 +580,10 @@ check_stale_output <- function(path) {
       "ok"
     }
   }, character(1), USE.NAMES = FALSE)
-  rerender <- "Render the report by name, then commit _freeze/."
   problem <- c(
-    stale = paste("Its stored output in _freeze/ was made from other text than the report holds now.", rerender),
-    unreadable = paste("The source hash of its stored output cannot be read from _freeze/.", rerender)
+    stale = paste("Its stored output in _freeze/ was made from other text than the report holds now.",
+                  rerender_steps),
+    unreadable = paste("The source hash of its stored output cannot be read from _freeze/.", rerender_steps)
   )
   hit <- state != "ok"
   problem_rows("stale-output", file.path("analyses", basename(reports[hit])), problem[state[hit]])
@@ -992,7 +996,8 @@ check_unpublished_figures <- function(path) {
   shown <- show_text(sort_bytes(file.path("figures", files[!same])))
   problem_rows(
     "unpublished-figure", shown,
-    rep_len("The copy in docs/figures/ is missing or differs. Render the site again, then commit docs/.",
+    rep_len(paste("The copy in docs/figures/ is missing or differs.",
+                  "Render the whole site, then commit figures/, docs/, and _freeze/."),
             length(shown))
   )
 }
