@@ -289,8 +289,9 @@ report_problems <- function(result, path, skip_reason) {
 
 # Run git in `dir` and return its exit status and its standard output as
 # raw bytes, or NULL when git is not on the PATH. This is the one place
-# where the package runs a program itself. Sys.which(), here and in
-# check_tools(), starts `which` on Unix.
+# where the package runs a program itself. Sys.which(), here and in the
+# check_tools() lookups that create_supplement() also runs, starts a shell
+# that runs `which` on Unix.
 git_run <- function(args, dir) {
   if (!nzchar(Sys.which("git"))) {
     return(NULL)

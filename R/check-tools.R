@@ -212,8 +212,8 @@ quarto_version <- function(path) {
   end <- match(as.raw(10L), bytes, nomatch = length(bytes) + 1L)
   line <- bytes[seq_len(end - 1L)]
   # A version is ASCII digits and dots, so check the bytes before they
-  # become text: other bytes can be invalid in the locale, and grepl()
-  # warns on such text.
+  # become text: other bytes can be invalid in the locale, and trimws()
+  # then stops with an error and grepl() warns.
   if (!all(line %in% as.raw(c(9L, 13L, 32L, 46L, 48:57)))) {
     return(NULL)
   }

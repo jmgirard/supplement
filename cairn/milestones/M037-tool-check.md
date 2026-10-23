@@ -92,6 +92,7 @@ Authors can see which tools a supplement site needs are missing before a first r
 - 2026-10-22: minor amendment: tasks T7 (review return 1) and T8 (pass 1 fix-now items) added; Coverage AC1 → T8, AC3 → T7, T8.
 - 2026-10-22: T7: `quarto_version()` checks that the first line's bytes are ASCII digits, dots, spaces, tabs, or CR before `rawToChar()`, so other bytes read as no version with no warning. A new test covers `check_tools()` and `create_supplement()` with such a file; a plant that dropped the byte check failed it.
 - 2026-10-22: T8: `expect_invisible(suppressMessages(check_tools()))`; a folder-link case in the link test; `tool_lines()` formats rows for both functions; test helper renamed `quarto_result()`; two repeated expectations removed; DESIGN.md and the `git_run()` comment say "runs a program itself" and that `Sys.which()` starts `which` on Unix; README names missing, too old, and not on path. `devtools::test(filter = "check-tools|create-supplement|source")` clean (256 pass, 2 skips that predate the change).
+- 2026-10-22: claim audit: 11 claims read, 2 corrected — R/check-supplement.R (the `git_run()` comment names `create_supplement()` and the shell that `Sys.which()` starts), R/check-tools.R (the byte-check comment names the `trimws()` error as well as the `grepl()` warning). The reader also noted that the folder-link case passes without `normalizePath()`; the file-link case is the one that fails without it (pass 1 plant).
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local -->
