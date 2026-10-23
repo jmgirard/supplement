@@ -114,8 +114,9 @@
 * `write_citation()` and `write_zenodo()` write `CITATION.cff` and
   `.zenodo.json` from `_supplement.yml`. Like `write_dockerfile()`, they
   refuse a link at the output path even with `overwrite = TRUE`, because
-  a write follows the link. On Windows a file link to a missing file is
-  not seen as a link.
+  a write follows the link. On Windows they also refuse a file link to a
+  missing file, and so does `release_supplement()`. supplement now
+  imports the fs package to find such a link there.
 * The template's page footer shows the licenses in `license.code` and
   `license.content` of `_supplement.yml`, in place of a fixed MIT and
   CC BY 4.0. A new `supplement-license` shortcode shows a readable name

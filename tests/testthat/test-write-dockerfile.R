@@ -290,7 +290,6 @@ test_that("the image renders a report offline as the user, with the lockfile's R
 })
 
 test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
-  skip_on_os("windows")
   outside <- withr::local_tempdir("docker-outside-")
   writeBin(charToRaw("target\n"), file.path(outside, "target.txt"))
   targets <- c(
@@ -302,7 +301,7 @@ test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
     for (overwrite in c(FALSE, TRUE)) {
       for (shape in names(targets)) {
         site <- lock_site()
-        skip_if_not(file.symlink(targets[[shape]], file.path(site, file)), "cannot make a symbolic link here")
+        symlink_or_skip(targets[[shape]], file.path(site, file))
         info <- paste(file, overwrite, shape)
         err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19",
                               overwrite = overwrite, info = info)
@@ -313,8 +312,7 @@ test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
   # Links at both targets are checked before any existing file.
   site <- lock_site()
   writeBin(charToRaw("old\n"), file.path(site, "Dockerfile"))
-  skip_if_not(file.symlink(targets[["a link to a file"]], file.path(site, ".dockerignore")),
-              "cannot make a symbolic link here")
+  symlink_or_skip(targets[["a link to a file"]], file.path(site, ".dockerignore"))
   err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19")
   expect_link_message(err, "write_dockerfile")
   expect_match(conditionMessage(err), ".dockerignore", fixed = TRUE)

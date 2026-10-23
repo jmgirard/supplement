@@ -74,9 +74,8 @@
 #'   can be `X`.
 #' * `supplement_error_file_exists`: the output file exists and
 #'   `overwrite` is `FALSE`. A folder at the output path is this error
-#'   even when `overwrite` is `TRUE`. So is a link, because a write would
-#'   follow it. On Windows a file link to a missing file is not seen as a
-#'   link, so with `overwrite = TRUE` it is written through.
+#'   even when `overwrite` is `TRUE`. So is a link, also a link to a missing
+#'   file, because a write would follow it.
 #' * `supplement_error_write`: the output file was opened, but writing it
 #'   gave an error or a warning (R warns when the disk is full), or the
 #'   file then has another size than the text.

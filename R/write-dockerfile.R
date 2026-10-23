@@ -120,9 +120,8 @@
 #'   entry. This check comes before the version checks.
 #' * `supplement_error_file_exists`: `Dockerfile` or `.dockerignore`
 #'   exists and `overwrite` is `FALSE`. A folder at either path is this
-#'   error even when `overwrite` is `TRUE`. So is a link, because a write
-#'   would follow it. On Windows a file link to a missing file is not seen
-#'   as a link, so with `overwrite = TRUE` it is written through.
+#'   error even when `overwrite` is `TRUE`. So is a link, also a link to a
+#'   missing file, because a write would follow it.
 #' * `supplement_error_write`: a file was opened, but writing it gave an
 #'   error or a warning, or the file then has another size than the text.
 #'

@@ -903,15 +903,6 @@ outside_row <- function(link) {
   sprintf("docs/%s: It is a link to a place outside docs/, so the published site does not have its target.", link)
 }
 
-# A symbolic link at `link` to `target`, or a skip where none can be made.
-# On Windows a link to a folder is a junction, because unlink() cannot
-# remove a folder symbolic link there and the cleanup warns.
-symlink_or_skip <- function(target, link) {
-  make <- if (.Platform$OS.type == "windows" && dir.exists(target)) Sys.junction else file.symlink
-  made <- suppressWarnings(make(target, link))
-  skip_if_not(made, "cannot make a symbolic link here (Windows without developer mode)")
-}
-
 test_that("pages in hidden folders and hidden pages are read", {
   site <- new_site()
   write_page(site, ".hidden/page.html", '<a href="gone-1.csv">x</a>')
@@ -1043,14 +1034,46 @@ test_that("the Windows link test gives the rules' answer for each path of a fold
   # disk that does not, it does not exist, so the rules count it as a link,
   # as they count "FILE-LINK" on both.
   ignores_case <- file.exists(file.path(dir, "FILE.TXT"))
-  # On Windows, a file link to a missing file reads as a plain file
-  # (candidate row "Detect broken file links on Windows").
+  # On Windows, a file link to a missing file reads as a plain file to
+  # these rules; is_link() finds it with fs_link().
   dangling <- .Platform$OS.type != "windows"
   expect_identical(
     is_reparse_point(file.path(dir, names)),
     c(FALSE, FALSE, TRUE, TRUE, dangling, FALSE, FALSE, FALSE, !ignores_case, TRUE)
   )
   expect_identical(is_reparse_point(character()), logical())
+})
+
+test_that("is_link() finds a link to a file, to a folder, and to a missing file, and no plain path", {
+  dir <- withr::local_tempdir()
+  outside <- withr::local_tempdir("outside-")
+  writeLines("x", file.path(outside, "target.txt"))
+  touch(file.path(dir, "file.txt"))
+  dir.create(file.path(dir, "folder"))
+  symlink_or_skip(file.path(outside, "target.txt"), file.path(dir, "file-link"))
+  symlink_or_skip(outside, file.path(dir, "folder-link"))
+  symlink_or_skip(file.path(outside, "missing.txt"), file.path(dir, "dangling"))
+  names <- c("file.txt", "folder", "not-there", "file-link", "folder-link", "dangling")
+  expect_identical(is_link(file.path(dir, names)), c(FALSE, FALSE, FALSE, TRUE, TRUE, TRUE))
+  expect_identical(is_link(character()), logical())
+})
+
+test_that("a path that fs stops on gives the other link rules' answer, not an error", {
+  dir <- withr::local_tempdir()
+  touch(file.path(dir, "file.txt"))
+  # fs stops on "bad" only, so the other path keeps fs's answer.
+  local_mocked_bindings(fs_is_link = function(paths) {
+    if (any(basename(paths) == "bad")) stop("Failed to stat")
+    rep(TRUE, length(paths))
+  })
+  expect_identical(fs_link(file.path(dir, c("file.txt", "bad"))), c(TRUE, FALSE))
+
+  local_mocked_bindings(fs_is_link = function(paths) stop("Failed to stat"))
+  skip_on_os(c("mac", "linux", "solaris"))
+  outside <- withr::local_tempdir("outside-")
+  symlink_or_skip(outside, file.path(dir, "junction"))
+  symlink_or_skip(file.path(outside, "missing.txt"), file.path(dir, "dangling"))
+  expect_identical(is_link(file.path(dir, c("file.txt", "junction", "dangling"))), c(FALSE, TRUE, FALSE))
 })
 
 test_that("on Windows, a junction in docs to a folder outside docs gives the rows of a link", {

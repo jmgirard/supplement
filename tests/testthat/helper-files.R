@@ -142,3 +142,13 @@ probe_values <- c(
 )
 
 lines_utf8 <- function(path) readLines(path, encoding = "UTF-8", warn = FALSE)
+
+# A symbolic link at `link` to `target`, or a skip where none can be made.
+# On Windows a link to a folder is a junction, because unlink() cannot
+# remove a folder symbolic link there and the cleanup warns. The CI skip
+# list fails on this reason.
+symlink_or_skip <- function(target, link) {
+  make <- if (.Platform$OS.type == "windows" && dir.exists(target)) Sys.junction else file.symlink
+  made <- suppressWarnings(make(target, link))
+  skip_if_not(made, "cannot make a symbolic link here (Windows without developer mode)")
+}
