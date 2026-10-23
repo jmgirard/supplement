@@ -53,7 +53,7 @@ steps after a deleted report. The help page and a NEWS entry.
 
 ## Tasks
 
-- [ ] T1: Add `check_leftover_output()` to `R/check-supplement.R` beside
+- [x] T1: Add `check_leftover_output()` to `R/check-supplement.R` beside
       `check_stale_output()` (~line 561), call it from `check_supplement()`
       (~line 244), and add the AC1 tests in `test-check-supplement.R` near
       the stale-output tests (~line 403).
@@ -82,6 +82,8 @@ steps after a deleted report. The help page and a NEWS entry.
 - 2026-10-23: changelog: one NEWS.md entry for the row (T4).
 - 2026-10-23: implement started on m042-deleted-report-output, cut from main at 45cbf0e.
 - 2026-10-23: T1 checkpoint: `check_leftover_output()` and `fold_case()` added and called after `check_stale_output()`; the new test failed before the code (2 failures) and passes after; planted defects (no case fold, no extension cut) each fail it; full suite still running, so T1 is not ticked.
+- 2026-10-23: T1 done: full suite 370 tests, 0 failed, 8 skipped.
+- 2026-10-23: T2 checkpoint: the example report's placeholder row names `_freeze/analyses/example/`; its full-text test failed on the old text and passes; full suite running, so T2 is not ticked.
 
 ## Decisions
 

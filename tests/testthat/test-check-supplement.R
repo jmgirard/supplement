@@ -1451,3 +1451,11 @@ test_that("an example file gives a row only while its text is the template's", {
     expect_no_error(expect_false(has_row(site), info = file))
   }
 })
+
+test_that("the example report's row names its stored output", {
+  rows <- placeholder_rows(new_site())
+  expect_identical(rows$problem[rows$file == "analyses/example.qmd"], paste(
+    "This is the template's example report. Write your own report in it, or delete it and its stored output",
+    "in _freeze/analyses/example/, and make the Analyses menu in _quarto.yml list your own reports."
+  ))
+})

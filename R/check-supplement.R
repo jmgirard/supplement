@@ -1062,7 +1062,7 @@ check_placeholders <- function(path, meta) {
 }
 
 placeholder_example_problems <- c(
-  "analyses/example.qmd" = "This is the template's example report. Write your own report in it, or delete it and make the Analyses menu in _quarto.yml list your own reports.",
+  "analyses/example.qmd" = "This is the template's example report. Write your own report in it, or delete it and its stored output in _freeze/analyses/example/, and make the Analyses menu in _quarto.yml list your own reports.",
   "data/example.csv" = "This is the template's example data. Put your own data in it, or delete it, its entry under data in _supplement.yml, and the example report, which reads it."
 )
 
