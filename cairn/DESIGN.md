@@ -13,7 +13,8 @@ The package replaces hand work that the first two sites
 (`jmgirard/llm-depression-assessment`, `jmgirard/pilot-ptsd-markers`) repeat
 almost line for line. Each analysis report renders as a page of the website,
 so every page shows the site navbar. Quarto freeze stores the computed output
-in `_freeze/`, so the site rebuilds without the private data and without R.
+in `_freeze/`, so the site rebuilds without the private data and without R
+once each report holds stored output (corrected M041).
 
 Planned deliverables:
 

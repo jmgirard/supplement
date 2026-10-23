@@ -3,8 +3,8 @@
 supplement helps you share the supplemental materials of a research paper
 as a website: analysis reports, code, and open data. Each report is a page
 of one Quarto site, so every page has the site navigation. Quarto stores
-each report's computed output in `_freeze/`, so the site rebuilds without
-the data. GitHub Pages serves the site, and Zenodo's GitHub integration
+each report's computed output in `_freeze/`. So once each report holds
+stored output, the site rebuilds without the data. GitHub Pages serves the site, and Zenodo's GitHub integration
 can archive each GitHub release with a DOI.
 
 The package is in early development.
