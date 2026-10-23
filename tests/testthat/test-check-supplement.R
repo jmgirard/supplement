@@ -1061,7 +1061,7 @@ test_that("is_link() finds a link to a file, to a folder, and to a missing file,
 test_that("a path that fs stops on gives the other link rules' answer, not an error", {
   dir <- withr::local_tempdir()
   touch(file.path(dir, "file.txt"))
-  local_mocked_bindings(is_link = function(path) stop("Failed to stat"), .package = "fs")
+  local_mocked_bindings(fs_is_link = function(paths) stop("Failed to stat"))
   expect_identical(fs_link(file.path(dir, c("file.txt", "not-there"))), c(FALSE, FALSE))
 
   skip_on_os(c("mac", "linux", "solaris"))

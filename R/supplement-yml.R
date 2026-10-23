@@ -331,13 +331,16 @@ fs_link <- function(paths) {
   found <- logical(length(paths))
   ok <- which(validUTF8(paths))
   expanded <- path.expand(drop_trailing_sep(paths[ok]))
-  link <- tryCatch(fs::is_link(expanded), error = function(e) NULL)
+  link <- tryCatch(fs_is_link(expanded), error = function(e) NULL)
   if (is.null(link)) {
-    link <- vapply(expanded, function(p) tryCatch(isTRUE(fs::is_link(p)), error = function(e) FALSE), logical(1))
+    link <- vapply(expanded, function(p) tryCatch(isTRUE(fs_is_link(p)), error = function(e) FALSE), logical(1))
   }
   found[ok] <- unname(link) %in% TRUE
   found
 }
+
+# fs::is_link() under a name of its own, so that a test can make it stop.
+fs_is_link <- function(paths) fs::is_link(paths)
 
 # On Windows, Sys.readlink() gives "" for a junction and for a symbolic
 # link. So a path that its parent folder lists counts as a link when it
