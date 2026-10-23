@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-23 (M039 done: graduated "Align render advice with 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M040 | Align the remaining render advice | planned | — | normal | milestones/M040-remaining-render-advice.md |
+| M040 | Align the remaining render advice | in-progress | — | normal | milestones/M040-remaining-render-advice.md |
 | M039 | Align render advice with the new guide | done | — | normal | milestones/archive/M039-render-advice.md |
 | M038 | Write a first-time publishing guide | done | — | normal | milestones/archive/M038-publishing-guide.md |
 | M037 | Report missing tools before site setup | done | — | normal | milestones/archive/M037-tool-check.md |

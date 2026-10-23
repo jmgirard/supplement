@@ -548,7 +548,8 @@ check_stored_output <- function(path) {
   files <- file.path("analyses", basename(reports[missing]))
   problem_rows(
     "no-stored-output", files,
-    rep_len(paste("The report has code and no stored output in _freeze/.", rerender_steps),
+    rep_len(paste("The report has code and no stored output in _freeze/.", rerender_steps,
+                  "If you added the report to the Analyses menu, as add_report() does, also commit _quarto.yml."),
             length(files))
   )
 }

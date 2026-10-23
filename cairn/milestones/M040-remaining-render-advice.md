@@ -1,13 +1,13 @@
 # M040: Align the remaining render advice
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — authors read the template comments, the row text, and NEWS
-- **Branch/PR:** —
+- **Branch/PR:** m040-remaining-render-advice
 
 ## Goal
 
@@ -35,8 +35,8 @@ Each place that this milestone lists gives the guide's steps for its case: a cha
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-check-supplement.R`, change the `no-stored-output` test's ending assertion (near line 205). Assert with `endsWith()` against the two sentences of AC2, stated in the test. In both `stale-output` tests (near lines 441 and 471), assert that no problem text contains `_quarto.yml`. Show the `no-stored-output` assertion red against the main copy of `R/check-supplement.R` first.
-- [ ] T2: In `R/check-supplement.R` (near line 551), add the second sentence after `rerender_steps` in the `no-stored-output` text only. Run `devtools::test(filter = "check-supplement")`.
+- [x] T1: In `tests/testthat/test-check-supplement.R`, change the `no-stored-output` test's ending assertion (near line 205). Assert with `endsWith()` against the two sentences of AC2, stated in the test. In both `stale-output` tests (near lines 441 and 471), assert that no problem text contains `_quarto.yml`. Show the `no-stored-output` assertion red against the main copy of `R/check-supplement.R` first.
+- [x] T2: In `R/check-supplement.R` (near line 551), add the second sentence after `rerender_steps` in the `no-stored-output` text only. Run `devtools::test(filter = "check-supplement")`.
 - [ ] T3: Rewrite the two comments in `inst/template/_quarto.yml`. Keep the pointer to README.md or SUPPLEMENT.md. Run `devtools::test(filter = "template")`, because those tests render the template.
 - [ ] T4: Edit the two `NEWS.md` bullets in place. Add no new bullet, because both features first appear in this unreleased version.
 - [ ] T5: Run `grep -rn -i -E 'by name|render the (whole )?site|render again|re-run|git add' R inst/template vignettes README.md NEWS.md`. Read each hit that advises on a changed or new report outside the In list, and record it as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
@@ -54,6 +54,8 @@ Each place that this milestone lists gives the guide's steps for its case: a cha
 - 2026-10-23: plan gate chose no leave-out note for `figures/` in the `_quarto.yml` comment over adding one, because the comment points to the guide that carries the note, as the M039 row texts do; falsified by an author who runs `git add` with `figures` from the comment on a site with no such folder.
 - 2026-10-23: plan gate chose a `_quarto.yml` sentence in the `no-stored-output` row only over one in all three report rows, because only a new report changes the menu; falsified by a stale report whose menu item was never committed.
 - 2026-10-23: plan gate chose a grep in T5 that files new rows over a grep-and-classify criterion, as M039's audit did, because the grep reads lines and misses wrapped advice; falsified by advice that T5's grep misses in a part this list leaves out.
+- 2026-10-23: implement started on branch m040-remaining-render-advice, cut from main at 2a6379c.
+- 2026-10-23: T1 and T2 done. The test states the new sentence as `menu_step` beside `rerender_steps`. Its `no-stored-output` assertion failed at line 207 on the old code and passes with the fix; the two `_quarto.yml` absence checks pass on both, as guards. The code adds the sentence inline in `check_stored_output()`, since only one row uses it. `devtools::test(filter = "check-supplement")` passes.
 
 ## Decisions
 
