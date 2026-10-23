@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-23 (M045 done: graduated "Detect broken file links 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M046 | Stop the example at a linked figures folder | in-progress | — | high | milestones/M046-linked-figures.md |
+| M046 | Stop the example at a linked figures folder | review | — | high | milestones/M046-linked-figures.md |
 | M045 | Detect broken file links on Windows | done | — | high | milestones/archive/M045-windows-broken-file-links.md |
 | M044 | Advise deleting unreadable format files | done | — | normal | milestones/archive/M044-unreadable-format-files.md |
 | M043 | Name leftover format files in _freeze | done | — | normal | milestones/archive/M043-leftover-format-files.md |
