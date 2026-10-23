@@ -66,6 +66,7 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - 2026-10-23: T6: `devtools::document()` gave no diff. Full `devtools::test()` (2 processes, macOS): 5131 passed, 10 skipped, 1 failed, "setup keeps an existing README.md and writes the guide beside it", whose message the silent reporter did not keep. Run alone it passes (5 of 5). The branch changes neither that test nor the setup scripts. `devtools::check()` is running as the second full run.
 - 2026-10-23: T6: `devtools::check()` on macOS gave 0 errors, 0 warnings, 0 notes, so its test run, the setup test included, passed. The Windows and Linux jobs are read at review. Status set to review.
 - 2026-10-23: step-7 approval: m046-linked-figures approved for merge
+- 2026-10-23: PR #47 opened and the merge marker written. CI had registered no checks yet. The session stopped before the CI wait, because the desktop app forbids watching CI with `gh` from the session; `/milestone-review M046` re-derives the check state and merges on green. AC1 and AC6 wait on that CI run.
 
 ## Decisions
 
