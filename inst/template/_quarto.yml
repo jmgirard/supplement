@@ -3,14 +3,15 @@ project:
   output-dir: docs
   # Every report renders as a page of this site. Computed output is stored in
   # _freeze/ (commit it), so a full render reuses it and runs no report code.
-  # To re-run one report, render it by name; see README.md (or SUPPLEMENT.md
-  # when the folder already had a README.md).
+  # After you change a report, render it by name, then render the whole site,
+  # then commit the report with _freeze/, docs/, and figures/. See README.md
+  # (or SUPPLEMENT.md when the folder already had a README.md).
   render:
     - index.qmd
     - "analyses/*.qmd"
   # Data files and paper figures are published as they are. After a render
-  # saves a figure under a new name in figures/, render again to copy it
-  # into docs/.
+  # saves a figure under a new name in figures/, render the whole site again
+  # to copy it into docs/. Then commit figures/, docs/, and _freeze/.
   resources:
     - "data/**"
     - "figures/**"
