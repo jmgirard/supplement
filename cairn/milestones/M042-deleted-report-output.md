@@ -93,6 +93,7 @@ steps after a deleted report. The help page and a NEWS entry.
 - 2026-10-23: implement done: full suite 373 tests, 0 failed, 8 skipped; status set to review.
 - 2026-10-23: review: M041's plan gate chose a guide step over a `check_supplement()` row for a deleted report's stored output; M042 adds the row as well, from the candidate row M041's plan filed, and keeps the guide step.
 - 2026-10-23: review fixes committed at fbfd846 (diff-bug 1, 2, 3, 4, 5, 9, 10, 13; blame-history 1, 7; prior-review 1, 2; ripple 1, 2, 3); no finding met the return floor, so status stays review.
+- 2026-10-23: step-7 approval: m042-deleted-report-output approved for merge
 
 ## Decisions
 
