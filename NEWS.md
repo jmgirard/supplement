@@ -54,18 +54,25 @@
   matter sets `engine: knitr`, inline R code also counts: `r` and a space,
   `r#`, or `{r}` and a space after the first backtick. From the source
   hash that Quarto stores, it finds reports whose stored output was made
-  from other text than the report holds now. It also finds stored output
-  whose hash cannot be read. A change in a file that the report includes does
-  not count. It finds folders in `_freeze/analyses/` that no file or
-  folder in `analyses/` names, as after a report is deleted or renamed.
+  from other text than the report holds now. A change in a file that the
+  report includes does not count. It also finds stored output whose hash
+  cannot be read. If a hash cannot be read, the row names each such file.
+  Otherwise it names each file whose hash differs. If another file's hash
+  then matches the report, the row adds a hint. The hint says that the
+  files that differ can be from a dropped format, such as `docx`. If so,
+  the author deletes them, renders the whole site, and commits the report
+  with `_freeze/`, `docs/`, and `figures/`. It finds folders in
+  `_freeze/analyses/` that no file or folder in `analyses/` names, as
+  after a report is deleted or renamed.
   It also finds relative links in `docs/` to files that are not in
   `docs/`, and pages there that cannot be read. It finds files in `figures/`, `docs/`,
   and `_freeze/` that git ignores, which a release leaves out. It finds
   figures in `figures/` whose copy in `docs/figures/` is missing or
   differs. The rows for missing, old, or unreadable stored output and for
-  such figures give the steps to render and commit the fix. The row for a
-  report with no stored output also says: if you added the report to the
-  Analyses menu, as `add_report()` does, commit `_quarto.yml` too. It
+  such figures give the steps to render and commit the fix. The hint above
+  also gives a delete step. The row for a report with no stored output
+  also says: if you added the report to the Analyses menu, as
+  `add_report()` does, commit `_quarto.yml` too. It
   finds DOIs that differ from `_supplement.yml`, and a `CITATION.cff`
   that cannot be read. It finds
   the template's placeholder values that the author did not replace. These

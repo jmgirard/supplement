@@ -76,6 +76,49 @@ test_that("a render by name clears the stale-output row that a changed report gi
   expect_identical(stale(), character())
 })
 
+test_that("the stale-output row names the stored output of a dropped format until it is deleted", {
+  skip_if_no_quarto()
+  site <- new_site()
+  render <- function(...) {
+    rendered <- run_in(site, "quarto", c("render", ...))
+    expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  }
+  rows <- function() {
+    result <- suppressMessages(check_supplement(site))
+    result[result$check == "stale-output", , drop = FALSE]
+  }
+  report <- file.path(site, "analyses", "formats.qmd")
+  body <- "---\n\n```{r}\n1 + 1\n```\n"
+  writeBin(charToRaw(paste0("---\ntitle: Formats\nformat:\n  html: default\n  docx: default\n", body)), report)
+  render("analyses/formats.qmd")
+  render()
+  docx_json <- "_freeze/analyses/formats/execute-results/docx.json"
+  expect_true(file.exists(file.path(site, docx_json)))
+  expect_true(file.exists(file.path(site, "docs", "analyses", "formats.docx")))
+  expect_identical(nrow(rows()), 0L)
+
+  writeBin(charToRaw(paste0("---\ntitle: Formats\nformat: html\n", body)), report)
+  render("analyses/formats.qmd")
+  # Quarto 1.10.19 keeps the stored output of a format that the report no
+  # longer renders.
+  expect_true(file.exists(file.path(site, docx_json)))
+  hint <- "so these files can be from a format that the report no longer renders"
+  stale <- rows()
+  expect_identical(stale$file, "analyses/formats.qmd")
+  expect_match(stale$problem, paste0(": ", docx_json, ". "), fixed = TRUE)
+  expect_match(stale$problem, hint, fixed = TRUE)
+
+  render()
+  expect_true(file.exists(file.path(site, docx_json)))
+  expect_false(file.exists(file.path(site, "docs", "analyses", "formats.docx")))
+  expect_identical(rows()$file, "analyses/formats.qmd")
+
+  expect_true(file.remove(file.path(site, docx_json)))
+  render()
+  expect_false(file.exists(file.path(site, "docs", "analyses", "formats.docx")))
+  expect_identical(nrow(rows()), 0L)
+})
+
 test_that("a render by name or a full render clears the unpublished-figure row of a new figure", {
   skip_if_no_quarto()
   site <- new_site()
