@@ -402,7 +402,6 @@ test_that("the closing message names each missing, old, or off-path tool", {
   expect_match(noted$message, "Quarto: not on path. detail of Quarto", fixed = TRUE)
   expect_match(noted$message, "knitr: missing. detail of knitr", fixed = TRUE)
   expect_match(noted$message, "gh: too old. detail of gh", fixed = TRUE)
-  expect_no_match(noted$message, "detail of git", fixed = TRUE)
   expect_match(noted$message, "check_tools()", fixed = TRUE)
   expect_identical(noted$files, clean$files)
 })

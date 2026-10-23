@@ -73,16 +73,21 @@
 #' check_tools()
 check_tools <- function() {
   rows <- tool_rows()
+  lines <- tool_lines(rows)
   for (i in seq_len(nrow(rows))) {
-    tool <- rows$tool[i]
-    status <- rows$status[i]
-    detail <- rows$detail[i]
-    mark <- switch(status, found = "v", `not on path` = "!", reminder = "i", "x")
-    bullet <- "{tool}: {status}. {detail}"
+    line <- lines[i]
+    mark <- switch(rows$status[i], found = "v", `not on path` = "!", reminder = "i", "x")
+    bullet <- "{line}"
     names(bullet) <- mark
     cli::cli_bullets(bullet)
   }
   invisible(rows)
+}
+
+# One line of text per row, as check_tools() and create_supplement() print
+# them.
+tool_lines <- function(rows) {
+  sprintf("%s: %s. %s", rows$tool, rows$status, rows$detail)
 }
 
 # The oldest Quarto that the template supports: the `quarto-required` value
@@ -203,9 +208,17 @@ quarto_version <- function(path) {
     return(NULL)
   }
   # readBin(), so that a file with no final line break gives no warning.
-  text <- tryCatch(rawToChar(readBin(file, "raw", 64L)), error = function(e) "")
-  text <- trimws(strsplit(text, "\n", fixed = TRUE)[[1]][1])
-  if (is.na(text) || !grepl("^[0-9]+(\\.[0-9]+)+$", text)) {
+  bytes <- tryCatch(readBin(file, "raw", 64L), error = function(e) raw())
+  end <- match(as.raw(10L), bytes, nomatch = length(bytes) + 1L)
+  line <- bytes[seq_len(end - 1L)]
+  # A version is ASCII digits and dots, so check the bytes before they
+  # become text: other bytes can be invalid in the locale, and grepl()
+  # warns on such text.
+  if (!all(line %in% as.raw(c(9L, 13L, 32L, 46L, 48:57)))) {
+    return(NULL)
+  }
+  text <- trimws(rawToChar(line))
+  if (!grepl("^[0-9]+(\\.[0-9]+)+$", text)) {
     return(NULL)
   }
   numeric_version(text)

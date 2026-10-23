@@ -39,9 +39,9 @@ Authors can see which tools a supplement site needs are missing before a first r
 ## Coverage
 <!-- owner: plan · create/amend-via-gate -->
 
-- AC1 → T2, T3
+- AC1 → T2, T3, T8
 - AC2 → T1, T2, T3
-- AC3 → T2, T3
+- AC3 → T2, T3, T7, T8
 - AC4 → T3, T6
 - AC5 → T4
 - AC6 → T5
@@ -56,6 +56,8 @@ Authors can see which tools a supplement site needs are missing before a first r
 - [x] T4: Write the AC5 tests in `tests/testthat/test-create-supplement.R` first, then add the lookups to the closing message at `R/create-supplement.R:113-121`, inside `tryCatch()` for errors and warnings. Existing tests match "Made a supplement site", so they keep passing.
 - [x] T5: Update `README.md` ("Start a new site", line 14), `NEWS.md`, and `cairn/DESIGN.md` (Function Families, Architecture). Widen the candidate row "Record the Python setup of reports" to say that `check_tools()` does not look for Python or Jupyter, and add `check_tools()` to the reference list of "Build a package site with pkgdown".
 - [x] T6: Run the verify slot, `devtools::check()`, and `tests/testthat/test-source.R` from the source tree.
+- [x] T7: Review return 1: make `quarto_version()` read a `share/version` with bytes that are not valid in the locale as no version, with no warning, and add a test for it in `check_tools()` and in `create_supplement()`.
+- [x] T8: Pass 1 fix-now items: a real invisibility test, a folder-link case, one line formatter, rename the test helper `quarto_row()`, remove two repeated expectations, the process-start wording in DESIGN.md and the `git_run()` comment, and the README wording.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -87,6 +89,9 @@ Authors can see which tools a supplement site needs are missing before a first r
 - 2026-10-22: re-audit: AC2 (full) — fixed wording cleared on questions 2, 3, 5, 6; noted "names the place" could mean the category or the path (the tests assert both) and that one precedence pair was tested. Answered with a second precedence test (`QUARTO_PATH` over an editor entry) and no wording change, so no further re-entry.
 - 2026-10-22: T6 at 50470ab: `devtools::document()` left no change; full `devtools::test()` FAIL 0, ERR 0, SKIP 8, PASS 4994 (test-source.R ran from the source tree); `devtools::check()` 0 errors, 0 warnings, 0 notes. Status set to review.
 - 2026-10-22: review return 1: AC3 fails for a `share/version` whose bytes are not valid in the locale: `grepl()` in `quarto_version()` warns ("input string 1 is invalid in this locale") instead of the row reading "version unknown", and `create_supplement()` then drops every tool line (diff-bug #2). The same pass settled these fix-now items for the return to carry: diff-bug #1 (a real invisibility test), #4 (add a folder-link case), #10 (one line formatter), #11 (rename the test helper `quarto_row()`), #12 and #14 (remove two repeated expectations), blame-history #1/#2 and ripple #1/#2 (DESIGN.md and the `git_run()` comment: the one place the package runs a program itself; `Sys.which()` starts `which` on Unix), ripple #5 (README: missing, too old, or not on path). Follow-up row "Report broken Quarto links on Windows" added.
+- 2026-10-22: minor amendment: tasks T7 (review return 1) and T8 (pass 1 fix-now items) added; Coverage AC1 → T8, AC3 → T7, T8.
+- 2026-10-22: T7: `quarto_version()` checks that the first line's bytes are ASCII digits, dots, spaces, tabs, or CR before `rawToChar()`, so other bytes read as no version with no warning. A new test covers `check_tools()` and `create_supplement()` with such a file; a plant that dropped the byte check failed it.
+- 2026-10-22: T8: `expect_invisible(suppressMessages(check_tools()))`; a folder-link case in the link test; `tool_lines()` formats rows for both functions; test helper renamed `quarto_result()`; two repeated expectations removed; DESIGN.md and the `git_run()` comment say "runs a program itself" and that `Sys.which()` starts `which` on Unix; README names missing, too old, and not on path. `devtools::test(filter = "check-tools|create-supplement|source")` clean (256 pass, 2 skips that predate the change).
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local -->

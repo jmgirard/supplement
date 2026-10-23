@@ -14,8 +14,8 @@ The package is in early development.
 You need the [Quarto](https://quarto.org) command-line interface, and R
 with the knitr and rmarkdown packages, to render the site. You can make
 the site folder from R or from Quarto. In R, `supplement::check_tools()`
-reports which of these tools are missing, and also checks for git and the
-GitHub CLI (`gh`).
+reports which of these tools are missing, too old, or not on the system
+path. It also checks for git and the GitHub CLI (`gh`).
 
 From R, install the package from GitHub with `pak::pak("jmgirard/supplement")`.
 Then run:

@@ -142,8 +142,7 @@ tool_problems <- function() {
   if (is.null(rows)) {
     return(character())
   }
-  rows <- rows[rows$status %in% c("missing", "too old", "not on path"), ]
-  sprintf("%s: %s. %s", rows$tool, rows$status, rows$detail)
+  tool_lines(rows[rows$status %in% c("missing", "too old", "not on path"), ])
 }
 
 # `x` with every element named `name`.

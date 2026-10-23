@@ -127,7 +127,8 @@ its problems as a data frame (`check`, `file`, `problem`), with a
 ls-files -z --cached --others --exclude-standard`, and its ignored-output
 check reads `git ls-files -z --others --ignored --exclude-standard` over
 `figures/`, `docs/`, and `_freeze/`, both through `git_run()`, the
-package's one place that starts a process. Its unpublished-figure check
+package's one place that runs a program itself (its `Sys.which()` check,
+like those of `check_tools()`, starts `which` on Unix). Its unpublished-figure check
 compares the MD5 of each file in `figures/` with its copy in
 `docs/figures/`, walking with `plain_files()`, which skips hidden names
 and links. Its link check lists `docs/`
