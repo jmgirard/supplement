@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M043: Name leftover format files in _freeze
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -101,6 +101,8 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: amendment return: AC1 — "It says that if so, the author deletes them, renders the whole site, and commits the report with `_freeze/` and `docs/`, and that if not, the author follows the render steps."
 - 2026-10-23: T5: the row text, help, NEWS, and `stale_text()` now say "commit the report with _freeze/ and docs/", and the row says "matches the report". The help item adds the "if not" branch (review return 1). The byte-order case moved to its own test, which sets `en_US.UTF-8` the way the "rows of the new checks come in byte order" test does, because testthat sets the collation to C inside a test and so the first version could not fail. With `sort_bytes()` removed in a scratch copy, the test fails 1 of 2 expectations, and it passes on the branch.
 - 2026-10-23: T5 done at 0794217: `devtools::document()` left no diff, and `devtools::test()` passed (376 tests, 0 failed, 0 errors, 9 skipped). No second claim audit (its rule allows one pass), so review pass 2 reads the new lines. Status review.
+- 2026-10-23: review return 2: AC2 fails as written — case (b)'s `docx.json` fixture `[1]` parses as JSON, while AC2 (b) says both files do not parse (pass 2 diff-bug #3). Fix-now items for the same round: pass 2 diff-bug #1, #4, #5, blame-history #2, prior-review #2.
+- 2026-10-23: user decision at the stop for a second change to AC1 (blame-history #1, ripple #1): add `figures/` to the hint's commit list, so it reads "commit the report with _freeze/, docs/, and figures/". A fresh reader re-checks the new AC1 wording.
 
 ## Decisions
 
