@@ -66,6 +66,7 @@ The problem text of a `"stale-output"` row shows which stored output files it na
 - 2026-10-23: T4: the `"stale-output"` help item states the quoting rule and the delete step; the NEWS.md bullet adds both after the format hint. `devtools::document()` rewrote `man/check_supplement.Rd`. Full suite with `NOT_CRAN=true`: 378 tests, 0 failed, 9 skipped.
 - 2026-10-23: claim audit: 18 claims read, 1 corrected — R/check-supplement.R, man/check_supplement.Rd (the help said "If so" before the delete step, a condition the row does not state; now "Then it says to delete them"; the same reader re-read it as correct).
 - 2026-10-23: T5: `devtools::check()` on 8209c6e (macOS): 0 errors, 0 warnings, 0 notes, so no note needed a comparison with main. 712c6e4 after it changed only help wording; review re-runs the check fresh. Status set to review.
+- 2026-10-23: step-7 approval: m044-unreadable-format-files approved for merge
 
 ## Decisions
 
