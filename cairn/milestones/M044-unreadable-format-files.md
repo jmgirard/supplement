@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M044: Advise deleting unreadable format files
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -45,7 +45,7 @@ The problem text of a `"stale-output"` row shows which stored output files it na
 - [x] T2: In `check_stale_output()` (`R/check-supplement.R` about lines 603 to 606), quote each path in `named()` with a small helper and add the delete step after `rerender_steps` in the "cannot be read" text.
 - [x] T3: In `tests/testthat/test-add-render.R`, add the AC3 render test beside "the stale-output row names the stored output of a dropped format until it is deleted", and change that test's match on `docx_json` (about line 104) to the quoted form.
 - [x] T4: Update the `"stale-output"` roxygen item (`R/check-supplement.R` about lines 74 to 83) and the `check_supplement()` bullet in `NEWS.md` (about lines 56 to 73), then run `devtools::document()`.
-- [ ] T5: Run `devtools::test()` and `devtools::check()`, and compare any note with a check of the default branch on the same machine.
+- [x] T5: Run `devtools::test()` and `devtools::check()`, and compare any note with a check of the default branch on the same machine.
 
 ## Work log
 
@@ -65,6 +65,7 @@ The problem text of a `"stale-output"` row shows which stored output files it na
 - 2026-10-23: T3: render test "the render steps or the delete step clear a stale-output row whose source hash cannot be read" added; the dropped-format test's `docx_json` match quoted. With `NOT_CRAN=true`, `test-add-render.R`: 7 tests, 0 failed. T1 to T3 share one commit because the T1 tests pass only with T2's code.
 - 2026-10-23: T4: the `"stale-output"` help item states the quoting rule and the delete step; the NEWS.md bullet adds both after the format hint. `devtools::document()` rewrote `man/check_supplement.Rd`. Full suite with `NOT_CRAN=true`: 378 tests, 0 failed, 9 skipped.
 - 2026-10-23: claim audit: 18 claims read, 1 corrected — R/check-supplement.R, man/check_supplement.Rd (the help said "If so" before the delete step, a condition the row does not state; now "Then it says to delete them"; the same reader re-read it as correct).
+- 2026-10-23: T5: `devtools::check()` on 8209c6e (macOS): 0 errors, 0 warnings, 0 notes, so no note needed a comparison with main. 712c6e4 after it changed only help wording; review re-runs the check fresh. Status set to review.
 
 ## Decisions
 
