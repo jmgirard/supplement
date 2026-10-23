@@ -80,3 +80,28 @@ On Windows, `is_link()` counts a file symbolic link whose target is missing as a
 - AC3: in the same run the Windows skip list names neither "a link at the output path is refused, with overwrite TRUE and FALSE" (test-write-metadata-errors.R:372) nor "a link at either path is refused, with overwrite TRUE and FALSE" (test-write-dockerfile.R:292), and the job has 0 failures; their links come from `symlink_or_skip()`, a junction for the folder target on Windows, and a failed link would skip with a reason `.github/scripts/check-skips.R` fails on.
 - AC4: in the same run the Windows skip list does not name "links to files missing from the site give a broken-link row" (test-check-supplement.R:650), and the job has 0 failures.
 - AC5: `grep -n -A1 'Windows' R/write-citation.R R/write-dockerfile.R man/write_citation.Rd man/write_zenodo.Rd man/write_dockerfile.Rd NEWS.md` on the review head shows 0 lines with "not seen"; NEWS.md:117-118 reads "On Windows they also refuse a file link to a missing file, and so does `release_supplement()`."
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the per-path fallback in `fs_link()` was untested; a version giving FALSE for every path when the whole call stops would pass — fix now (test mocks `fs_is_link()` to stop only on "bad" and expects `c(TRUE, FALSE)`)
+- diff-bug #2: DESIGN.md:183 still listed Imports as cli, jsonlite, yaml — fix now
+- diff-bug #3: `fs_link()` dropped a latin1-marked path before asking fs, so such a link was never checked on Windows — fix now (`enc2utf8()` first; a latin1 "café" then passes `validUTF8()`, a string with byte 0xff still does not)
+- diff-bug #4: test-release-supplement.R:797 makes its link with `file.symlink()` and a skip reason CI does not fail on — follow-up, new row "Use the link helper in the release test" (unmodified line)
+- diff-bug #5: a file link to a missing file in `docs/` now counts as a link on Windows in `docs_entries()` and the `ignored-output` check, and no test pins it — follow-up, absorbed into "Read odd-named folders on Windows"
+- diff-bug #6: one access-denied entry makes `fs_link()` redo a folder one path at a time — reject, edge: an entry fs cannot stat in `docs/` is outside documented and common use, and the effect is slower running
+- diff-bug #7: `fs_link()` expands `~` and the other rules get the raw path — reject, false: the lens itself found all three use R's expansion
+- diff-bug #8: DESCRIPTION has no R floor though fs needs R 4.1 — reject, edge: R before 4.1 is outside common use, and the effect is an install error from fs's own floor
+- diff-bug (c)1: `expect_identical(is_link(paths), is_reparse_point(paths))` repeated the exact check after it — fix now (removed)
+- diff-bug (c)2: "not-there" ran the same mocked path as "file.txt" — fix now (that expectation was replaced by the per-path test)
+- diff-bug (c)3: the helper comment on the CI skip list is narrative — reject, style
+- diff-bug (c)4: the rules-test comment names `fs_link()`, which that test does not run — reject, style
+- blame-history #1: NEWS.md names only the writers and the release, though `add_data()`, `add_report()`, `create_supplement()`, and `check_supplement()` also change on Windows — reject, planned change: the plan limited the bullet (AC5, T6) to behavior a Windows test enforces, as the changelog rule asks
+- blame-history #2: DESIGN.md:183 Imports — fix now (same as diff-bug #2)
+- blame-history #3: test-release-supplement.R:800 skip reason — follow-up (same row as diff-bug #4)
+- blame-history #4: no R floor — reject, edge (same as diff-bug #8)
+- blame-history #5: `symlink_or_skip()` reads a relative target against the working folder — reject, edge: no test passes a relative folder target, and the effect would be a cleanup warning
+- prior-review #1: `folder_md5()` may fail on a dangling link on Windows — reject, false: that test ran unskipped and passed in Windows run 40029242224
+- ripple #1: the "Detect broken file links on Windows" row still describes the bug — reject, planned change: hygiene deletes the row at merge
+- ripple #2: the "Test the link refusals on Windows" row still says the tests skip — reject, planned change: hygiene deletes the row at merge
+- ripple #3: DESIGN.md:183 Imports — fix now (same as diff-bug #2)
+- ripple #4: the "Read odd-named folders on Windows" row's page-link claim may be stale — follow-up, the row now says so (same as diff-bug #5)
+- ripple #5: test-release-supplement.R:797 skip reason — follow-up (same row as diff-bug #4)
+- ripple #6: "Report broken Quarto links on Windows" points at a row this merge deletes — follow-up: hygiene points it at M045
