@@ -59,6 +59,7 @@ The template says what a full render runs and gives the steps after a report is 
 - 2026-10-23: T4 search: `grep` gave two hits, `_README.md:240` (already limits "runs no code" to a report that holds stored output) and `_README.md:250` (the In-list paragraph); no new candidate row. `devtools::document()` left no diff.
 - 2026-10-23: claim audit: 10 claims read, 1 corrected — inst/template/_README.md, inst/template/_quarto.yml, tests/testthat/test-add-render.R. The commit step names `figures/` for a deleted report too, though its figures stay published; the paragraph now says so and points to "Paper figures". The reader's four probe cases (rename and delete, each with and without the steps) matched the other 9 claims. The same reader re-read the corrected claim once and found it correct.
 - 2026-10-23: T4 done: `devtools::test()` 0 failures, 0 errors, 8 skips, 5025 passes; `devtools::check()` 0 errors, 0 warnings, 0 notes; no nojekyll exit 139. Both ran at 7e2c72f, before the one-sentence guide fix in 6cfbcb0, which changed no code or test. Set status review.
+- 2026-10-23: step-7 approval: m041-older-render-notes approved for merge.
 
 ## Decisions
 
