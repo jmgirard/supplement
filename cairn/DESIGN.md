@@ -32,6 +32,7 @@ Zenodo API, Python helper functions, and migration of existing sites.
 - metadata writers: `write_citation()`, `write_zenodo()`
 - scaffolding: `create_supplement()`, `add_report()`, `add_data()`
 - release steps: `check_supplement()`, `release_supplement()`
+- tool report: `check_tools()`
 - container recipe: `write_dockerfile()`
 
 Status and order live in `ROADMAP.md`.
@@ -76,7 +77,18 @@ cases").
 `R/create-supplement.R`: `create_supplement()` copies the installed
 template into a folder, refuses any file, folder, or link in its way
 before it writes, removes what it made when a write fails, and with
-`repo` fills the GitHub placeholders. It never runs git.
+`repo` fills the GitHub placeholders. It never runs git. After the copy
+it runs the lookups of `R/check-tools.R` (through `tool_problems()`) and names
+each missing, too old, or off-path tool in its closing message; an error
+or a warning in the lookups gives no line.
+`R/check-tools.R`: `check_tools()` looks for Quarto (system path, then
+`QUARTO_PATH`, then `editor_quarto_paths()`, the RStudio and Positron
+copies), knitr and rmarkdown (`package_version_text()` reads DESCRIPTION
+without loading), git, and gh, and lists two account reminders. It reads
+the Quarto version from `share/version` beside `bin/` after following a
+link, and compares it with `quarto_minimum` (1.4.0, the template
+extension's `quarto-required`). Program lookups use `Sys.which()`, which
+on Unix starts a shell that runs `which`; no looked-up tool is run.
 `R/add-report.R` and `R/add-data.R`: `add_report()` writes a report stub
 in `analyses/`, starting with the example report's `site` chunk
 (`site_chunk()`) and ending with its "Computing environment" section
@@ -115,7 +127,8 @@ its problems as a data frame (`check`, `file`, `problem`), with a
 ls-files -z --cached --others --exclude-standard`, and its ignored-output
 check reads `git ls-files -z --others --ignored --exclude-standard` over
 `figures/`, `docs/`, and `_freeze/`, both through `git_run()`, the
-package's one place that starts a process. Its unpublished-figure check
+package's one `system2()` call. Its `Sys.which()` check, like the
+lookups of `check_tools()`, starts a shell that runs `which` on Unix. Its unpublished-figure check
 compares the MD5 of each file in `figures/` with its copy in
 `docs/figures/`, walking with `plain_files()`, which skips hidden names
 and links. Its link check lists `docs/`

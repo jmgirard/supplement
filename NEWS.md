@@ -12,6 +12,13 @@
   the Quarto command-line interface. With `repo = "owner/name"`, it also
   writes the GitHub repository into the site's links. If the folder already
   holds a file that the template writes, it stops and writes nothing.
+* `check_tools()` reports whether Quarto, knitr, rmarkdown, git, and gh
+  are installed, and lists the GitHub and Zenodo accounts that a site
+  needs. It finds Quarto on the system path, in `QUARTO_PATH`, or in the
+  copy that RStudio or Positron installs. It reports a copy that is not
+  on the system path or is older than Quarto 1.4.0. It runs none of
+  the tools. `create_supplement()` names each tool that is missing, too
+  old, or not on the system path in its closing message.
 * The template's home page lists the reports in `analyses/` through a
   Quarto listing, with the title and the description from the front
   matter of each report, in place of a hand-written table.

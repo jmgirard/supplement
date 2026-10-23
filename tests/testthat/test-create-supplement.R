@@ -361,3 +361,66 @@ test_that("a site made with repo renders", {
     "https://github.com/jdoe/my-supplement", fixed = TRUE
   )
 })
+
+# check_tools() rows whose statuses are `found` and `reminder`, with the
+# statuses in `changed` (named by tool) in their place.
+mock_tool_rows <- function(changed = character(), env = parent.frame()) {
+  rows <- data.frame(
+    tool = c("Quarto", "knitr", "rmarkdown", "git", "gh", "GitHub account", "Zenodo account"),
+    status = c(rep("found", 5), "reminder", "reminder"),
+    detail = paste("detail of", c("Quarto", "knitr", "rmarkdown", "git", "gh", "GitHub", "Zenodo")),
+    stringsAsFactors = FALSE
+  )
+  rows$status[match(names(changed), rows$tool)] <- changed
+  local_mocked_bindings(tool_rows = function() rows, .env = env)
+}
+
+# The message of create_supplement(site), and the site's files and bytes.
+made_site <- function(site) {
+  withr::local_options(cli.width = 500)
+  expect_no_warning(msgs <- capture_messages(out <- create_supplement(site)))
+  expect_identical(out, site)
+  files <- sort(list.files(site, recursive = TRUE, all.files = TRUE, no.. = TRUE))
+  list(
+    message = paste(msgs, collapse = ""),
+    files = lapply(stats::setNames(files, files), function(f) read_bytes(file.path(site, f)))
+  )
+}
+
+test_that("the closing message names each missing, old, or off-path tool", {
+  dir <- withr::local_tempdir()
+  mock_tool_rows()
+  clean <- made_site(file.path(dir, "clean"))
+  expect_match(clean$message, "Made a supplement site", fixed = TRUE)
+  expect_no_match(clean$message, "check_tools", fixed = TRUE)
+  expect_no_match(clean$message, "detail of", fixed = TRUE)
+
+  mock_tool_rows(c(Quarto = "not on path", knitr = "missing", gh = "too old"))
+  noted <- made_site(file.path(dir, "noted"))
+  lines <- strsplit(noted$message, "\n", fixed = TRUE)[[1]]
+  expect_length(grep("detail of", lines, fixed = TRUE), 3L)
+  expect_match(noted$message, "Quarto: not on path. detail of Quarto", fixed = TRUE)
+  expect_match(noted$message, "knitr: missing. detail of knitr", fixed = TRUE)
+  expect_match(noted$message, "gh: too old. detail of gh", fixed = TRUE)
+  expect_match(noted$message, "check_tools()", fixed = TRUE)
+  expect_identical(noted$files, clean$files)
+})
+
+test_that("an error or a warning in the lookups leaves the site and the message as they were", {
+  dir <- withr::local_tempdir()
+  mock_tool_rows()
+  clean <- made_site(file.path(dir, "clean"))
+
+  local_mocked_bindings(tool_rows = function() stop("planted lookup error"))
+  failed <- made_site(file.path(dir, "error"))
+  expect_identical(failed$message, gsub(file.path(dir, "clean"), file.path(dir, "error"), clean$message, fixed = TRUE))
+  expect_identical(failed$files, clean$files)
+
+  local_mocked_bindings(tool_rows = function() {
+    warning("planted lookup warning")
+    data.frame(tool = "git", status = "missing", detail = "detail of git", stringsAsFactors = FALSE)
+  })
+  warned <- made_site(file.path(dir, "warning"))
+  expect_identical(warned$message, gsub(file.path(dir, "clean"), file.path(dir, "warning"), clean$message, fixed = TRUE))
+  expect_identical(warned$files, clean$files)
+})

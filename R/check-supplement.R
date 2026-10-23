@@ -288,8 +288,10 @@ report_problems <- function(result, path, skip_reason) {
 # Git -----------------------------------------------------------------------
 
 # Run git in `dir` and return its exit status and its standard output as
-# raw bytes, or NULL when git is not on the PATH. This is the one place
-# where the package starts a process.
+# raw bytes, or NULL when git is not on the PATH. This holds the package's
+# one call of system2. Sys.which(), here and in the check_tools() lookups
+# that create_supplement() also runs, starts a shell that runs `which` on
+# Unix.
 git_run <- function(args, dir) {
   if (!nzchar(Sys.which("git"))) {
     return(NULL)
