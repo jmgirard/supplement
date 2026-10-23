@@ -1,0 +1,11 @@
+# M041: Correct two older render notes
+
+**Status:** done (2026-10-23, PR #42 https://github.com/jmgirard/supplement/pull/42)
+
+**Goal:** The template says what a full render runs and gives the steps after a report is deleted or renamed.
+
+**Outcome:** The comment above `render:` in `inst/template/_quarto.yml` says a full render reuses `_freeze/` and runs the code of each report that has no stored output there. In `inst/template/_README.md`, "How the site renders" says that after a delete or rename you delete the report's folder under the old name in `_freeze/analyses/`, remove or change its Analyses menu item in `_quarto.yml`, and run a full render. That render runs a renamed report's code, so it needs the data, fit files, and R. You then commit the report under its old path and any new path with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. The paragraph also says that a deleted report's figures stay on the site and points to "Paper figures". The private-data recipe stages `_quarto.yml` and the old path for a deleted or renamed report. The guide's folder list, `README.md`, and `cairn/DESIGN.md` (corrected in place) limit the rebuild claim to reports that hold stored output. The test "a full render with R unreachable runs no code of a report with stored output" is renamed. A new test in `test-add-render.R` renames an `add_report()` report with the steps, then renames it again without them as a control.
+
+**Decisions:** none cross-cutting. Plan gate: a guide step to delete the old `_freeze/` folder rather than a `check_supplement()` row for it, and no `NEWS.md` entry for corrected guide text. A probe render (Quarto 1.10.19) showed that a full render after a rename runs the new report, keeps the old `_freeze/analyses/<name>/`, and leaves the menu item as a broken link.
+
+**Review:** Criteria audit at plan (full mode): 8 findings, all taken. Claim audit: 10 claims, 1 corrected (a deleted report's figures stay published). One four-lens pass, 26 items: 9 fixed (8b8930a), 2 to new rows, 12 rejected, 3 noted. `devtools::check()` 0/0/0 with 5025 tests passing, and CI passed on all six jobs. Graduated "Correct two older render notes". New rows: "Flag stored output of deleted reports" (plan), "Test the guide's steps after a deletion", and "Name stored output in the example row". No lesson added.
