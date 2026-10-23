@@ -94,7 +94,7 @@ of these files whose \code{hash} differs, or in the "cannot be read" text
 only each file whose \code{hash} cannot be read. Quarto keeps the file of a
 format that the report no longer renders, such as \code{docx.json}, with
 its old hash. So when every \code{hash} can be read and another of these
-files has a \code{hash} equal to the MD5 of the report, the row also says
+files has a \code{hash} equal to that MD5 of the report, the row also says
 that the files that differ can be from a format that the report no
 longer renders. If so, delete them, render the whole site, and commit
 the report with \verb{_freeze/}, \verb{docs/}, and \verb{figures/}. If not, follow

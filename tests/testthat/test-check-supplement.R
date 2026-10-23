@@ -517,8 +517,6 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
     report_bytes(site, name, stale_lf)
     stored_file(site, name, "html.json", cases[[name]])
   }
-  # One file that cannot be read and one that differs give one row, with
-  # the text for a hash that cannot be read.
   report_bytes(site, "both", stale_lf)
   stored_file(site, "both", "docx.json", "{")
   stored_file(site, "both", "html.json", hash_json(md5_of(stale_lf, "x")))
