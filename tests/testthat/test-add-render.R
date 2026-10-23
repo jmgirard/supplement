@@ -144,3 +144,44 @@ test_that("the guide's steps after a rename give the page its new name and keep 
   expect_true(frozen("comparison"))
   expect_true(any(grepl("analyses/comparison.qmd", broken(), fixed = TRUE)))
 })
+
+test_that("the guide's steps after a deletion remove the page and keep the report's figure", {
+  skip_if_no_quarto()
+  site <- new_site()
+  suppressMessages(add_report("trends", "Trends", path = site))
+  report <- file.path(site, "analyses", "trends.qmd")
+  replace_in_file(report, "set.seed(2026)\n```\n", paste0(
+    "set.seed(2026)\n```\n\n```{r}\n",
+    "writeBin(as.raw(1:8), file.path(site, \"figures\", \"trends.png\"))\n```\n"
+  ))
+  render <- function() {
+    rendered <- run_in(site, "quarto", "render")
+    expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  }
+  rows <- function(check) {
+    result <- suppressMessages(check_supplement(site))
+    result$file[result$check == check]
+  }
+  frozen <- file.path(site, "_freeze", "analyses", "trends")
+  # The figure is new to the first render, so the second publishes it.
+  render()
+  render()
+  expect_true(file.exists(file.path(site, "docs", "figures", "trends.png")))
+
+  # A deletion without the guide's step for _freeze/ keeps the folder in
+  # Quarto 1.10.19.
+  expect_true(file.remove(report))
+  replace_in_file(file.path(site, "_quarto.yml"),
+                  '          - href: "analyses/trends.qmd"\n            text: "Trends"\n', "")
+  render()
+  expect_identical(rows("leftover-output"),
+                   if (dir.exists(frozen)) "_freeze/analyses/trends" else character())
+
+  unlink(frozen, recursive = TRUE, expand = FALSE)
+  render()
+  expect_false(file.exists(file.path(site, "docs", "analyses", "trends.html")))
+  expect_true(file.exists(file.path(site, "figures", "trends.png")))
+  expect_true(file.exists(file.path(site, "docs", "figures", "trends.png")))
+  expect_identical(rows("broken-link"), character())
+  expect_identical(rows("leftover-output"), character())
+})

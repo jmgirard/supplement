@@ -57,7 +57,7 @@ steps after a deleted report. The help page and a NEWS entry.
       `check_stale_output()` (~line 561), call it from `check_supplement()`
       (~line 244), and add the AC1 tests in `test-check-supplement.R` near
       the stale-output tests (~line 403).
-- [ ] T2: Edit `placeholder_example_problems` (`R/check-supplement.R`
+- [x] T2: Edit `placeholder_example_problems` (`R/check-supplement.R`
       ~line 1034) and assert the example row's full text in the placeholder
       tests (~line 1334).
 - [ ] T3: Add the AC3 render test in `test-add-render.R` after the rename
@@ -84,6 +84,8 @@ steps after a deleted report. The help page and a NEWS entry.
 - 2026-10-23: T1 checkpoint: `check_leftover_output()` and `fold_case()` added and called after `check_stale_output()`; the new test failed before the code (2 failures) and passes after; planted defects (no case fold, no extension cut) each fail it; full suite still running, so T1 is not ticked.
 - 2026-10-23: T1 done: full suite 370 tests, 0 failed, 8 skipped.
 - 2026-10-23: T2 checkpoint: the example report's placeholder row names `_freeze/analyses/example/`; its full-text test failed on the old text and passes; full suite running, so T2 is not ticked.
+- 2026-10-23: T2 done: full suite 371 tests, 0 failed, 8 skipped.
+- 2026-10-23: T3 checkpoint: deletion render test added to `test-add-render.R`, with a report that writes `figures/trends.png` from a chunk; passes with `NOT_CRAN=true` (12 expectations); with `check_leftover_output()` planted to return no rows it fails, so Quarto 1.10.19 kept `_freeze/analyses/trends/`; the full suite runs with T4.
 
 ## Decisions
 
