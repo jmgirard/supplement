@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-23 (M039 done: graduated "Align render advice with the new guide", unparked "Trace the post-render crash on macOS", pruned the M036 row; validate green)_
+_Last hygiene check: 2026-10-23 (M040 done: graduated "Align the remaining render advice", added "Correct two older render notes", pruned the M037 row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M040 | Align the remaining render advice | review | — | normal | milestones/M040-remaining-render-advice.md |
+| M040 | Align the remaining render advice | done | — | normal | milestones/archive/M040-remaining-render-advice.md |
 | M039 | Align render advice with the new guide | done | — | normal | milestones/archive/M039-render-advice.md |
 | M038 | Write a first-time publishing guide | done | — | normal | milestones/archive/M038-publishing-guide.md |
-| M037 | Report missing tools before site setup | done | — | normal | milestones/archive/M037-tool-check.md |
 
 ## Candidates
 
@@ -40,7 +39,6 @@ _Last hygiene check: 2026-10-23 (M039 done: graduated "Align render advice with 
 - Test the link refusals on Windows: from the M035 review. The link tests in `test-write-metadata-errors.R` and `test-write-dockerfile.R` skip on Windows, so `is_reparse_point()` behind `check_overwrite()` is not tested there; a folder link can be made with `Sys.junction()` (LESSONS, M022). On Windows a file link to a missing file reads as an existing file, so `write_citation()`, `write_zenodo()`, and `write_dockerfile()` say "Use overwrite = TRUE" with `overwrite = FALSE` and write through it with `TRUE`. See also "Detect broken file links on Windows". — added 2026-10-22
 - Match example files after editor saves: from the M036 review. `placeholder_example_rows()` in `R/check-supplement.R` compares the example report and data through `report_hash()`, so an unchanged copy that an editor saved with a UTF-8 BOM, without its final line break, or with CR-only line ends gives no `placeholder` row, while the line check of the same milestone drops a BOM. `report_hash()` keeps the BOM because Quarto's hash does (LESSONS M027), so a fix needs its own reader. — added 2026-10-22
 - Report broken Quarto links on Windows: from the M037 review. On Windows a file link to a missing file reads as an existing file (LESSONS M018), so `check_tools()` gives a broken Quarto link in `QUARTO_PATH` or an editor folder the status `found` or `not on path` with "version unknown", not `missing`; the link test in `test-check-tools.R` skips on Windows. See also "Detect broken file links on Windows". — added 2026-10-22
-- Align the remaining render advice: from the M039 review. The comments in `inst/template/_quarto.yml` (near lines 5 and 11) say to render one report by name, or to render again after a new figure name, with no whole-site render or commit. The NEWS bullet for the publishing guide (near line 209) gives the rule without its commit step. The `no-stored-output` row of `check_supplement()` says to commit the report, but a report that `add_report()` made also changed `_quarto.yml`. See also "Split the template guide by reader". — added 2026-10-22 — started M040
 - Trace the post-render crash on macOS: from the M038 review. On the macOS CI runner, PR #39's run 39891081546 failed at `test-template.R:449` (a test M038 did not change) when Quarto's post-render script `_scripts/nojekyll.ts` exited with code 139 (a segmentation fault) and Quarto printed only "Error:"; the same commit passed in the other run, and a re-run of the job passed. It is the first exit code read for such a failure. Promote when the crash comes again or can be reproduced. It came again on the Mac in the M039 review's `devtools::check()` (2026-10-22): one template render's `_scripts/nojekyll.ts` exited 139, and the failing test was not named in the kept output. See also "template test flake". — added 2026-10-23
 - Correct two older render notes: from the M040 review. `inst/template/_quarto.yml` line 5 says a full render reuses `_freeze/` and runs no report code. A full render still runs each report that has no stored output. "How the site renders" in `inst/template/_README.md` (near line 250) says to commit `_freeze/` and `docs/` after you delete or rename a report. The report's Analyses menu item in `_quarto.yml` also changes then, and the text leaves it out. — added 2026-10-23
 - [low] Keep tests within the Suggests floors: Suggests floor guard: nothing stops a new test from calling a testthat function newer than the DESCRIPTION floor, and the withr, knitr, renv, rmarkdown, and sessioninfo entries in Suggests have no floor (renv corrected M031). A CI job on the floor versions, or a test that compares the functions the tests call with the floor's exports, would catch it. From the M013 plan. From the M025 review: yaml in Imports has no floor either, and the code needs its `eval.expr` argument. — added 2026-10-18
