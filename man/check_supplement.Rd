@@ -96,8 +96,9 @@ double quotes, with a \verb{\\} before each \verb{\\} and \verb{"} in it, so tha
 that holds a comma and a space reads as one file. The "cannot be read" text ends with
 the render steps and then a delete step. It says that if the row stays
 after the render steps, the files can be from a format that the report
-no longer renders, or damaged. If so, delete them, render the whole
-site, and commit the report with \verb{_freeze/}, \verb{docs/}, and \verb{figures/}.
+no longer renders, or damaged. Then it says to delete them, render the
+whole site, and commit the report with \verb{_freeze/}, \verb{docs/}, and
+\verb{figures/}.
 Quarto keeps the file of a
 format that the report no longer renders, such as \code{docx.json}, with
 its old hash. So when every \code{hash} can be read and another of these

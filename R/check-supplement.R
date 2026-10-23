@@ -78,8 +78,9 @@
 #'   that holds a comma and a space reads as one file. The "cannot be read" text ends with
 #'   the render steps and then a delete step. It says that if the row stays
 #'   after the render steps, the files can be from a format that the report
-#'   no longer renders, or damaged. If so, delete them, render the whole
-#'   site, and commit the report with `_freeze/`, `docs/`, and `figures/`.
+#'   no longer renders, or damaged. Then it says to delete them, render the
+#'   whole site, and commit the report with `_freeze/`, `docs/`, and
+#'   `figures/`.
 #'   Quarto keeps the file of a
 #'   format that the report no longer renders, such as `docx.json`, with
 #'   its old hash. So when every `hash` can be read and another of these

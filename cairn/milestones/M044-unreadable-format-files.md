@@ -64,6 +64,7 @@ The problem text of a `"stale-output"` row shows which stored output files it na
 - 2026-10-23: T2: `quote_path()` added beside `check_stale_output()`, which wraps each path in `"` and puts `\` before `\` and `"`; `named()` uses it, and the "cannot be read" text adds the delete step. `test-check-supplement.R`: 263 expectations, 0 failed.
 - 2026-10-23: T3: render test "the render steps or the delete step clear a stale-output row whose source hash cannot be read" added; the dropped-format test's `docx_json` match quoted. With `NOT_CRAN=true`, `test-add-render.R`: 7 tests, 0 failed. T1 to T3 share one commit because the T1 tests pass only with T2's code.
 - 2026-10-23: T4: the `"stale-output"` help item states the quoting rule and the delete step; the NEWS.md bullet adds both after the format hint. `devtools::document()` rewrote `man/check_supplement.Rd`. Full suite with `NOT_CRAN=true`: 378 tests, 0 failed, 9 skipped.
+- 2026-10-23: claim audit: 18 claims read, 1 corrected — R/check-supplement.R, man/check_supplement.Rd (the help said "If so" before the delete step, a condition the row does not state; now "Then it says to delete them"; the same reader re-read it as correct).
 
 ## Decisions
 
