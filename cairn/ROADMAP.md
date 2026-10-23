@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-23 (M042 done: graduated "Flag stored output of del
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M043 | Name leftover format files in _freeze | in-progress | — | normal | milestones/M043-leftover-format-files.md |
+| M043 | Name leftover format files in _freeze | review | — | normal | milestones/M043-leftover-format-files.md |
 | M042 | Flag stored output of deleted reports | done | — | normal | milestones/archive/M042-deleted-report-output.md |
 | M041 | Correct two older render notes | done | — | normal | milestones/archive/M041-older-render-notes.md |
 | M040 | Align the remaining render advice | done | — | normal | milestones/archive/M040-remaining-render-advice.md |

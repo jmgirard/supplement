@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M043: Name leftover format files in _freeze
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -72,7 +72,7 @@ format. The help page and the `NEWS.md` bullet.
       repeated exact assertions, trim three test comments, "matches the
       report", and the NEWS sentence on the rows' steps. Then run
       `devtools::document()` and `devtools::test()`.
-- [ ] T6: Review return 2: make AC2 (b)'s `docx.json` fixture fail to
+- [x] T6: Review return 2: make AC2 (b)'s `docx.json` fixture fail to
       parse, and add `figures/` to the hint's commit list (AC1, the
       user's decision) in the row text, help, NEWS, and `stale_text()`.
       Fix now: `show_text()` on the named paths, the help's match
@@ -112,6 +112,7 @@ format. The help page and the `NEWS.md` bullet.
 - 2026-10-23: T6 checkpoint: AC2 (b)'s `docx.json` fixture is now `[1`, which does not parse. The row text, help, NEWS, and `stale_text()` list `_freeze/`, `docs/`, and `figures/`. Named paths go through `show_text()`, the help says "equal to the MD5 of the report", and the NEWS hint, steps, and wraps are fixed. The check test file and the AC3 render test (17 expectations) pass. The AC1 text in this file waits on the fresh reader.
 - 2026-10-23: re-audit: AC1 (full) — nothing on all six questions. A site with no `figures/` needs no note, since the row gives prose and `rerender_steps` already names `figures/`. AC3 and AC4 need no wording change.
 - 2026-10-23: amendment return: AC1 — "It says that if so, the author deletes them, renders the whole site, and commits the report with `_freeze/`, `docs/`, and `figures/`, and that if not, the author follows the render steps."
+- 2026-10-23: T6 done: the code is the same as at c16dc44, `devtools::document()` left no diff, and `devtools::test()` passed (376 tests, 0 failed, 0 errors, 9 skipped). The first AC1 edit missed, because the old sentence also appears in the work log. d6f4077 wrote the criterion. Status review.
 
 ## Decisions
 
