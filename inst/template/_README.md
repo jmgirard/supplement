@@ -253,7 +253,9 @@ of `_quarto.yml`. Then run a full render. It clears `docs/`, so the old
 page does not stay on the site. A renamed report has no stored output
 under its new name. So the full render runs its code, which needs its
 data, its fit files, and R. Then commit the deleted or renamed report
-with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`.
+with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. The figures that
+a deleted report saved stay in `figures/` and on the site. To take one off
+the site, see "Paper figures".
 
 After you change a report, render it by name and then render the whole
 site. Then commit the report with `_freeze/`, `docs/`, and `figures/`. The
