@@ -283,13 +283,16 @@ the site folder (see "Paper figures"), as
    has no stored output in `_freeze/` yet. Before a render by name, check
    that report's fit files. A missing fit file can make a report refit its
    model, which can take hours and give new estimates.
-2. Run `quarto render` to render the reports that have no stored output.
-   To re-run a changed report, render it by name with
+2. Run `quarto render`. It runs the code of each report that has no
+   stored output and reuses the stored output of the others. To re-run a
+   changed report, render it by name with
    `quarto render analyses/<name>.qmd`, then render the whole site with
    `quarto render`. If a full render saved a figure under a new name in
    `figures/`, run `quarto render` again (see "Paper figures").
-3. Stage only the changed report, `_freeze/`, `docs/`, and `figures/`,
-   commit, and push:
+3. Stage only the reports that you added or changed, `_freeze/`, `docs/`,
+   and `figures/`, commit, and push. Put the path of each such report in
+   place of `analyses/<name>.qmd`. If there is no such report, leave it
+   out:
 
    ```
    git add analyses/<name>.qmd _freeze docs figures
@@ -297,8 +300,9 @@ the site folder (see "Paper figures"), as
    git push
    ```
 
-   When a path does not exist, `git add` stops and stages nothing. So for
-   a site with no `figures/` folder, leave out `figures`.
+   When a path names no file on disk and no file that git tracks,
+   `git add` stops and stages nothing. So for a site with no `figures/`
+   folder, leave out `figures`.
 
 Never publish a build that ran with the data deleted. It drops the data
 files from `docs/`, so the download links break.

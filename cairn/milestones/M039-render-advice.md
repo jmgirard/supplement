@@ -1,6 +1,6 @@
 # M039: Align render advice with the new guide
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -39,11 +39,11 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 
 ## Tasks
 
-- [ ] T1: In `R/check-supplement.R`, change the three report row texts (near lines 547 and 579) to end with one sentence of the rule, and the figure row text (near line 995) to the render-and-commit steps. In `tests/testthat/test-check-supplement.R`, assert with `endsWith()` in the two `stale-output` tests (near lines 435 and 465), add the assertion to the `no-stored-output` test (near line 178), and assert the whole text in the figure test (near line 1136). Show each new assertion red against the main copy of `R/check-supplement.R` first.
-- [ ] T2: Edit the five template guide parts that AC3 and AC5 name. No test reads their advice text (the second criteria audit found only the `site`-chunk test in `tests/testthat/test-template.R`).
-- [ ] T3: Edit the vignette's last part and step 5. Run `tests/testthat/test-publishing.R`.
-- [ ] T4: Edit the `NEWS.md` bullet near lines 50 to 62. Add no new bullet, because the rows first appear in this unreleased version.
-- [ ] T5: Run `grep -rn -i -E 'by name|render the (whole )?site|git add|commit' R inst/template/_README.md vignettes/publishing.Rmd README.md` and read each hit that advises on a changed report outside the In list. Record such a hit as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
+- [x] T1: In `R/check-supplement.R`, change the three report row texts (near lines 547 and 579) to end with one sentence of the rule, and the figure row text (near line 995) to the render-and-commit steps. In `tests/testthat/test-check-supplement.R`, assert with `endsWith()` in the two `stale-output` tests (near lines 435 and 465), add the assertion to the `no-stored-output` test (near line 178), and assert the whole text in the figure test (near line 1136). Show each new assertion red against the main copy of `R/check-supplement.R` first.
+- [x] T2: Edit the five template guide parts that AC3 and AC5 name. No test reads their advice text (the second criteria audit found only the `site`-chunk test in `tests/testthat/test-template.R`).
+- [x] T3: Edit the vignette's last part and step 5. Run `tests/testthat/test-publishing.R`.
+- [x] T4: Edit the `NEWS.md` bullet near lines 50 to 62. Add no new bullet, because the rows first appear in this unreleased version.
+- [x] T5: Run `grep -rn -i -E 'by name|render the (whole )?site|git add|commit' R inst/template/_README.md vignettes/publishing.Rmd README.md` and read each hit that advises on a changed report outside the In list. Record such a hit as a new candidate row. Then run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
 ## Work log
 
@@ -64,6 +64,9 @@ Each place that this milestone lists gives the publishing guide's rule for a cha
 - 2026-10-22: implement choice: vignette step 5 now says to delete the example figure and to leave out `figures` from the last part's `git add` for a site with no figures, in place of keeping the figure as a guard against the failing command.
 - 2026-10-22: T5 sweep: no hit outside the In list advises on publishing a changed report (the container part runs a render with no commit steps; the release, DOI, renv, and Docker hits are other tasks), so no candidate row.
 - 2026-10-22: checkpoint: T1 to T5 edits written; tasks not ticked until the full suite and `devtools::check()` pass.
+- 2026-10-22: verify: `devtools::test()` 368 tests, 0 failed, 8 skipped; `devtools::document()` changed no file; `devtools::check()` 0 errors, 0 warnings, 0 notes; `test-publishing.R` with `NOT_CRAN=true` passes on the final guide text.
+- 2026-10-22: claim audit: 23 claims read, 3 corrected — inst/template/_README.md, vignettes/publishing.Rmd (the `git add` sentence now says a path git still tracks is staged, step 2 says what a full render runs, step 3 covers added reports; the re-read confirmed all three and added "If there is no such report, leave it out").
+- 2026-10-22: T1 to T5 done; status review.
 
 ## Decisions
 
