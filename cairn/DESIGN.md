@@ -152,6 +152,11 @@ Its placeholder check (`check_placeholders()`, M036) compares four
 `placeholder_lines` in seven site files and compares the two example
 files with the template's copies through `report_hash()`. A file that it
 cannot read as UTF-8 text gives no row and does not stop the check.
+Its leftover-output check (`check_leftover_output()`, M042) lists the
+folders directly in `_freeze/analyses/` and the names in `analyses/`,
+cuts each name before its last `.`, and compares them with letter case
+folded by `fold_case()`, which leaves a name that is not valid UTF-8 as
+it is.
 `R/release-supplement.R`: `release_supplement()` checks `bump`, reads
 `_supplement.yml` once, and from that read checks the current
 `supplement.version` and the `version:` line. It builds the new

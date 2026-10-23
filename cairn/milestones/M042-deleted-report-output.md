@@ -86,6 +86,7 @@ steps after a deleted report. The help page and a NEWS entry.
 - 2026-10-23: T2 checkpoint: the example report's placeholder row names `_freeze/analyses/example/`; its full-text test failed on the old text and passes; full suite running, so T2 is not ticked.
 - 2026-10-23: T2 done: full suite 371 tests, 0 failed, 8 skipped.
 - 2026-10-23: T3 checkpoint: deletion render test added to `test-add-render.R`, with a report that writes `figures/trends.png` from a chunk; passes with `NOT_CRAN=true` (12 expectations); with `check_leftover_output()` planted to return no rows it fails, so Quarto 1.10.19 kept `_freeze/analyses/trends/`; the full suite runs with T4.
+- 2026-10-23: T4 checkpoint: help-page bullet for `"leftover-output"`, `man/check_supplement.Rd` regenerated, a sentence in the `check_supplement()` NEWS entry, and a DESIGN.md architecture note; no other doc lists check names (grep of README.md, vignettes/, inst/template/_README.md); full suite running.
 
 ## Decisions
 

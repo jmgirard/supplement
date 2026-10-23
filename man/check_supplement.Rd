@@ -91,6 +91,18 @@ read. Quarto reads a report as UTF-8 and hashes each byte that is not
 valid UTF-8 as U+FFFD, so such a report gets a row after each render.
 Quarto keeps the file of a format that the report no longer renders,
 such as \code{docx.json}, with its old hash, so delete that file.
+\item \code{"leftover-output"}: a folder directly in \verb{_freeze/analyses/}, whose
+name does not start with \code{.}, that no file or folder in \verb{analyses/}
+names. A name in \verb{analyses/} names the folder when, cut before its
+last \code{.} (the whole name when it holds no \code{.}), it equals the folder's
+name with letter case ignored. Quarto 1.10.19 keeps a report's folder
+after the report is deleted or renamed. The row says to delete the
+folder, render the whole site, and commit \verb{_freeze/} and \verb{docs/}.
+Folders inside subfolders of \verb{_freeze/analyses/} and folders directly
+in \verb{_freeze/} are not read. A file or folder in \verb{analyses/} of the
+same name, such as \verb{<name>.R}, hides a leftover folder. So does a
+report whose name differs only in letter case, as after a report is
+renamed only in letter case on Linux.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
 \item \code{"broken-link"}: an \code{href}, \code{src}, or \code{xlink:href} link on a page in
 \verb{docs/} to a file that is not in \verb{docs/}, or to a folder there with no

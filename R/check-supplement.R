@@ -73,6 +73,18 @@
 #'   valid UTF-8 as U+FFFD, so such a report gets a row after each render.
 #'   Quarto keeps the file of a format that the report no longer renders,
 #'   such as `docx.json`, with its old hash, so delete that file.
+#' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
+#'   name does not start with `.`, that no file or folder in `analyses/`
+#'   names. A name in `analyses/` names the folder when, cut before its
+#'   last `.` (the whole name when it holds no `.`), it equals the folder's
+#'   name with letter case ignored. Quarto 1.10.19 keeps a report's folder
+#'   after the report is deleted or renamed. The row says to delete the
+#'   folder, render the whole site, and commit `_freeze/` and `docs/`.
+#'   Folders inside subfolders of `_freeze/analyses/` and folders directly
+#'   in `_freeze/` are not read. A file or folder in `analyses/` of the
+#'   same name, such as `<name>.R`, hides a leftover folder. So does a
+#'   report whose name differs only in letter case, as after a report is
+#'   renamed only in letter case on Linux.
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no
