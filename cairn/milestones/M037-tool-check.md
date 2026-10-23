@@ -155,3 +155,20 @@ Pass 2 (2026-10-22, head e63c4bb). Sync: branch up to date with main 33ebeba.
 - ripple #1: the candidate row still says nothing checks the tools — reject (planned: it graduates at post-merge hygiene).
 - ripple #2: "the one place that runs a program itself" sits beside "`Sys.which()` starts `which`", which reads as a contradiction — fix now (name `git_run()` as the one `system2()` call).
 - ripple #3: `test-source.R` does not scan for `Sys.which()` — reject (planned: the test pins the one `system2()` site, and `Sys.which()` lookups are allowed by AC4).
+
+Pass 3 (2026-10-22, head 4a404bf; code as at 42aa102). Sync: branch up to date with main 33ebeba.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the Windows editor entries try only `quarto.exe`, while `Sys.which()` also accepts `.cmd` and `.bat` — reject (false: the RStudio and Positron copies are `quarto.exe`, per the T1 sources).
+- diff-bug #2: knitr and rmarkdown are looked for in the session's libraries, while Quarto can run another R — fix now (help says so), fixed ca6cd52.
+- diff-bug #3: DESIGN.md says `Sys.which()` "runs `which`" in one place and "starts a shell that runs `which`" in another — fix now, fixed ca6cd52.
+- diff-bug #4: `check_tools()` sits in a new "tool report" family though the name was chosen to join the `check_` family — reject (style: the family list groups by purpose).
+- diff-bug #5: one NEWS bullet covers both `check_tools()` and the `create_supplement()` message — reject (false: AC6 asks for an entry for both, and the bullet names both).
+- diff-bug #6: `packages = list(rmarkdown = "2.30")` serves no assertion in two tests — fix now (removed), fixed ca6cd52.
+- diff-bug #7: two test comments say what the code shows — fix now for "# A link to the install folder itself." (removed), fixed ca6cd52; the file header stays, since it gives the reason for the mocks.
+- diff-bug #8: the error and warning test builds its own clean site — reject (style).
+- diff-bug #9: a place-label check after an exact path match — reject (false: it checks the label, a different property).
+- blame-history #1: AC4 was narrowed after the plan gate — reject (false: "runs none of the tools" is in the plan commit 33ebeba, from the plan's criteria audit).
+- blame-history #2: the Quarto version rule accepts any number of parts while `is_version()` asks for three — reject (false: `is_version()` checks the site's own versions; Quarto writes its own version form).
+- blame-history #3: `create_supplement()` help says it never follows a link, while `quarto_version()` resolves a link — reject (false: the sentence is about the site files it writes).
+- prior-review #1: a `QUARTO_PATH` that ends in `/` is passed over on macOS — reject (false: a path ending in `/` names a folder, and on Linux `stat()` fails for a file named with a trailing `/` too, so the value names no Quarto program).
+- ripple: no ripple evidence.
