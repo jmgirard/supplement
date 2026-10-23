@@ -100,6 +100,7 @@ Authors can see which tools a supplement site needs are missing before a first r
 - 2026-10-22: T9: `quarto_version()` wraps `numeric_version()` in `tryCatch()` for warnings, so a part too big for an integer reads as no version; a new test covers it, and a plant of the old call failed 3 tests. The help page lists the `GitHub account` and `Zenodo account` rows as items and says `found` means the system path that R sees. One version-text check removed from the loop. DESIGN.md and the `git_run()` comment name it as the one call of `system2` (the comment avoids `system2(` so `test-source.R` still counts one site). `devtools::test(filter = "check-tools|create-supplement|source")` clean (256 pass, 2 skips that predate the change).
 - 2026-10-22: claim audit: 11 claims read, 0 corrected — R/check-tools.R, R/check-supplement.R, man/check_tools.Rd, tests/testthat/test-check-tools.R (commit 42aa102).
 - 2026-10-22: verify at 42aa102: `devtools::document()` no change; full `devtools::test()` FAIL 0, ERR 0, SKIP 8, PASS 4999 (`test-check-tools.R` 16 tests, none skipped; `test-create-supplement.R` 24 tests, 2 Windows-only skips; `test-source.R` 2 tests); `devtools::check()` 0 errors, 0 warnings, 0 notes. Status set to review.
+- 2026-10-22: step-7 approval: m037-tool-check approved for merge
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local -->
