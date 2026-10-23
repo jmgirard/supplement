@@ -61,7 +61,12 @@
   then matches the report, the row adds a hint. The hint says that the
   files that differ can be from a dropped format, such as `docx`. If so,
   the author deletes them, renders the whole site, and commits the report
-  with `_freeze/`, `docs/`, and `figures/`. It finds folders in
+  with `_freeze/`, `docs/`, and `figures/`. The row for a hash that cannot
+  be read adds a delete step. If the row stays after the render steps,
+  the author deletes the named files and renders the whole site. Then the
+  author commits the report with `_freeze/`, `docs/`, and `figures/`. Each
+  named file stands between double quotes, so a name that holds `, `
+  reads as one file. It finds folders in
   `_freeze/analyses/` that no file or folder in `analyses/` names, as
   after a report is deleted or renamed.
   It also finds relative links in `docs/` to files that are not in

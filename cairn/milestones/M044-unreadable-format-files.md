@@ -44,7 +44,7 @@ The problem text of a `"stale-output"` row shows which stored output files it na
 - [x] T1: Tests first in `tests/testthat/test-check-supplement.R`: change the `stale_text()` helper (about line 405) and the `unreadable_text()` helper (about line 537) to the quoted form, add the delete step to `unreadable_text()`, change the `endsWith(rows$problem, rerender_steps)` expectation (about line 529) to the AC1 ending, and add the AC1 and AC2 cases. Put the `"` and `\` cases after the `, ` cases, behind `skip_on_os("windows")`, so the other cases still run there (LESSONS M023). See them fail on the default branch's code.
 - [x] T2: In `check_stale_output()` (`R/check-supplement.R` about lines 603 to 606), quote each path in `named()` with a small helper and add the delete step after `rerender_steps` in the "cannot be read" text.
 - [x] T3: In `tests/testthat/test-add-render.R`, add the AC3 render test beside "the stale-output row names the stored output of a dropped format until it is deleted", and change that test's match on `docx_json` (about line 104) to the quoted form.
-- [ ] T4: Update the `"stale-output"` roxygen item (`R/check-supplement.R` about lines 74 to 83) and the `check_supplement()` bullet in `NEWS.md` (about lines 56 to 73), then run `devtools::document()`.
+- [x] T4: Update the `"stale-output"` roxygen item (`R/check-supplement.R` about lines 74 to 83) and the `check_supplement()` bullet in `NEWS.md` (about lines 56 to 73), then run `devtools::document()`.
 - [ ] T5: Run `devtools::test()` and `devtools::check()`, and compare any note with a check of the default branch on the same machine.
 
 ## Work log
@@ -63,6 +63,7 @@ The problem text of a `"stale-output"` row shows which stored output files it na
 - 2026-10-23: T1: test helpers `quoted_paths()`, `delete_step`, and `unreadable_text()` moved to file level in `test-check-supplement.R`; new test "a stale-output row puts each file it names in double quotes". 17 expectations failed in 4 tests on the old code.
 - 2026-10-23: T2: `quote_path()` added beside `check_stale_output()`, which wraps each path in `"` and puts `\` before `\` and `"`; `named()` uses it, and the "cannot be read" text adds the delete step. `test-check-supplement.R`: 263 expectations, 0 failed.
 - 2026-10-23: T3: render test "the render steps or the delete step clear a stale-output row whose source hash cannot be read" added; the dropped-format test's `docx_json` match quoted. With `NOT_CRAN=true`, `test-add-render.R`: 7 tests, 0 failed. T1 to T3 share one commit because the T1 tests pass only with T2's code.
+- 2026-10-23: T4: the `"stale-output"` help item states the quoting rule and the delete step; the NEWS.md bullet adds both after the format hint. `devtools::document()` rewrote `man/check_supplement.Rd`. Full suite with `NOT_CRAN=true`: 378 tests, 0 failed, 9 skipped.
 
 ## Decisions
 

@@ -73,7 +73,14 @@
 #'   valid UTF-8 as U+FFFD, so such a report gets a row after each render.
 #'   The row names, by their paths from the site folder in byte order, each
 #'   of these files whose `hash` differs, or in the "cannot be read" text
-#'   only each file whose `hash` cannot be read. Quarto keeps the file of a
+#'   only each file whose `hash` cannot be read. Each path stands between
+#'   double quotes, with a `\` before each `\` and `"` in it, so that a name
+#'   that holds a comma and a space reads as one file. The "cannot be read" text ends with
+#'   the render steps and then a delete step. It says that if the row stays
+#'   after the render steps, the files can be from a format that the report
+#'   no longer renders, or damaged. If so, delete them, render the whole
+#'   site, and commit the report with `_freeze/`, `docs/`, and `figures/`.
+#'   Quarto keeps the file of a
 #'   format that the report no longer renders, such as `docx.json`, with
 #'   its old hash. So when every `hash` can be read and another of these
 #'   files has a `hash` equal to that MD5 of the report, the row also says
