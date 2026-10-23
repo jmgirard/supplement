@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-23 (M037 review: graduated "Report missing tools be
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M038 | Write a first-time publishing guide | in-progress | — | normal | milestones/M038-publishing-guide.md |
+| M038 | Write a first-time publishing guide | review | — | normal | milestones/M038-publishing-guide.md |
 | M037 | Report missing tools before site setup | done | — | normal | milestones/archive/M037-tool-check.md |
 | M036 | The release stops on template placeholders | done | — | normal | milestones/archive/M036-placeholder-check.md |
 | M035 | The writers refuse links and repeated lockfile keys | done | — | normal | milestones/archive/M035-writer-refusals.md |

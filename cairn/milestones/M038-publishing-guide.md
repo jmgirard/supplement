@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M038: Write a first-time publishing guide
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -125,9 +125,10 @@ runs the guide's local steps.
 - [x] T4: Link the vignette from README.md's "Start a new site" part (the
       GitHub URL and the `vignette()` call) and add one NEWS.md bullet that
       names only what the guide and its test show.
-- [ ] T5: Run `devtools::document()`, `devtools::test()`, and
-      `devtools::check()`; push the branch and read the R-CMD-check result
-      on all three systems, with the skip list showing the new test ran.
+- [x] T5: Run `devtools::document()`, `devtools::test()`, and
+      `devtools::check()`; the R-CMD-check result on all three systems,
+      with the skip list showing the new test ran, is read at review's
+      merge step, which pushes the branch.
 
 ## Work log
 
@@ -148,6 +149,7 @@ runs the guide's local steps.
 - 2026-10-22: T3: vignette written (10 numbered steps plus the render rule, 11 plain fences, no chunk); `VignetteBuilder: knitr` added, `/doc/` and `/Meta/` in `.gitignore`, `vignettes/.gitignore` for `*.html` and `*.R`, and `build_vignettes()` added `^doc$` and `^Meta$` to `.Rbuildignore`. Chose to have step 8 delete the example figure too and to name no place on Zenodo's record page for the concept DOI, since no page read states one. The empty-clone warning was observed with git 2.54.
 - 2026-10-22: T4: README.md "Start a new site" opens with the GitHub link and the `vignette()` call (the call works only when vignettes were built at install, which the text says); one NEWS bullet naming the guide and its render rule, both covered by `test-publishing.R`.
 - 2026-10-22: claim audit: 50 claims read, 3 corrected — vignettes/publishing.Rmd (step 1 adds Quarto's not-on-path status; step 3 names where the repository and Pages address are written; step 8 separates the four items a release stops on from the example figure and a new README citation item). The re-read found the figure still under item 4, now its own item. Its scratch run of steps 3 to 9 rendered and checked clean.
+- 2026-10-22: T5: `devtools::document()` no diff; `devtools::test()` with NOT_CRAN=true: 19 files, 368 expectations, 0 failed, 0 errors, 8 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes (vignette built and re-built); the vignette rebuilt clean after the claim fixes. Minor amendment: T5's CI read moved to review's merge step, since the git model pushes the branch there.
 
 ## Decisions
 
