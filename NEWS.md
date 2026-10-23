@@ -61,7 +61,9 @@
   and `_freeze/` that git ignores, which a release leaves out. It finds
   figures in `figures/` whose copy in `docs/figures/` is missing or
   differs. The rows for missing, old, or unreadable stored output and for
-  such figures give the steps to render and commit the fix. It finds DOIs
+  such figures give the steps to render and commit the fix. The row for a
+  report with no stored output also says to commit `_quarto.yml` for a
+  report in the Analyses menu. It finds DOIs
   that differ from
   `_supplement.yml`, and a `CITATION.cff` that cannot be read. It finds
   the template's placeholder values that the author did not replace. These
@@ -207,5 +209,6 @@
   the text of its R code.
 * New guide, `vignette("publishing")`: the steps from an empty folder to a
   site on GitHub Pages with a Zenodo DOI. It also gives the rule for
-  rendering again after a report changes: render the report by name, then
-  render the whole site.
+  rendering again after a report changes: render the report by name,
+  render the whole site, then commit the report with `_freeze/`, `docs/`,
+  and `figures/`.
