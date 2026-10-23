@@ -203,3 +203,7 @@
 * Package functions read YAML files without running `!expr` code, also
   when `options(yaml.eval.expr = TRUE)` is set. Such a value is read as
   the text of its R code.
+* New guide, `vignette("publishing")`: the steps from an empty folder to a
+  site on GitHub Pages with a Zenodo DOI. It also gives the rule for
+  rendering again after a report changes: render the report by name, then
+  render the whole site.
