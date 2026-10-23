@@ -78,7 +78,7 @@ cases").
 template into a folder, refuses any file, folder, or link in its way
 before it writes, removes what it made when a write fails, and with
 `repo` fills the GitHub placeholders. It never runs git. After the copy
-it runs the lookups of `R/check-tools.R` (`tool_problems()`) and names
+it runs the lookups of `R/check-tools.R` (through `tool_problems()`) and names
 each missing, too old, or off-path tool in its closing message; an error
 or a warning in the lookups gives no line.
 `R/check-tools.R`: `check_tools()` looks for Quarto (system path, then
@@ -127,8 +127,8 @@ its problems as a data frame (`check`, `file`, `problem`), with a
 ls-files -z --cached --others --exclude-standard`, and its ignored-output
 check reads `git ls-files -z --others --ignored --exclude-standard` over
 `figures/`, `docs/`, and `_freeze/`, both through `git_run()`, the
-package's one place that runs a program itself (its `Sys.which()` check,
-like those of `check_tools()`, starts `which` on Unix). Its unpublished-figure check
+package's one `system2()` call. Its `Sys.which()` check, like the
+lookups of `check_tools()`, starts a shell that runs `which` on Unix. Its unpublished-figure check
 compares the MD5 of each file in `figures/` with its copy in
 `docs/figures/`, walking with `plain_files()`, which skips hidden names
 and links. Its link check lists `docs/`

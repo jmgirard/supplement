@@ -16,9 +16,10 @@
 #' * `gh`: the GitHub command-line interface, for the
 #'   `gh release create` command that [release_supplement()] prints.
 #'
-#' It then lists two accounts that it cannot check: a GitHub account, which
-#' hosts the site with GitHub Pages, and a Zenodo account, which archives
-#' each GitHub release with a DOI.
+#' It then lists two accounts that it cannot check:
+#'
+#' * `GitHub account`: hosts the site with GitHub Pages.
+#' * `Zenodo account`: archives each GitHub release with a DOI.
 #'
 #' The function only looks for the tools. It runs none of them, and it
 #' reads the Quarto version from a file.
@@ -27,7 +28,7 @@
 #' Each row has one of these statuses:
 #'
 #' * `found`: the tool is installed. For Quarto, the copy is on the system
-#'   path, and its version is 1.4.0 or later or unknown.
+#'   path that R sees, and its version is 1.4.0 or later or unknown.
 #' * `not on path`: a copy of Quarto was found only in `QUARTO_PATH` or in
 #'   an editor's folder, and its version is 1.4.0 or later or unknown. An
 #'   older copy there is `too old`. The copy is not on the system path that
@@ -221,7 +222,9 @@ quarto_version <- function(path) {
   if (!grepl("^[0-9]+(\\.[0-9]+)+$", text)) {
     return(NULL)
   }
-  numeric_version(text)
+  # A part too big for an R integer makes numeric_version() warn and give
+  # an NA part, so such a file holds no version either.
+  tryCatch(numeric_version(text), warning = function(w) NULL)
 }
 
 # The lookups, kept apart so that tests can mock them.

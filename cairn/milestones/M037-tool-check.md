@@ -41,10 +41,10 @@ Authors can see which tools a supplement site needs are missing before a first r
 
 - AC1 → T2, T3, T8
 - AC2 → T1, T2, T3
-- AC3 → T2, T3, T7, T8
+- AC3 → T2, T3, T7, T8, T9
 - AC4 → T3, T6
 - AC5 → T4
-- AC6 → T5
+- AC6 → T5, T9
 - AC7 → T6
 
 ## Tasks
@@ -58,6 +58,7 @@ Authors can see which tools a supplement site needs are missing before a first r
 - [x] T6: Run the verify slot, `devtools::check()`, and `tests/testthat/test-source.R` from the source tree.
 - [x] T7: Review return 1: make `quarto_version()` read a `share/version` with bytes that are not valid in the locale as no version, with no warning, and add a test for it in `check_tools()` and in `create_supplement()`.
 - [x] T8: Pass 1 fix-now items: a real invisibility test, a folder-link case, one line formatter, rename the test helper `quarto_row()`, remove two repeated expectations, the process-start wording in DESIGN.md and the `git_run()` comment, and the README wording.
+- [x] T9: Review return 2: read a `share/version` part too big for an R integer as no version with no warning, list the `GitHub account` and `Zenodo account` labels in the help page, and the pass 2 fix-now items (help "system path that R sees", one version-text check, DESIGN.md `tool_problems()` location, `git_run()` as the one `system2()` call).
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -95,6 +96,8 @@ Authors can see which tools a supplement site needs are missing before a first r
 - 2026-10-22: claim audit: 11 claims read, 2 corrected — R/check-supplement.R (the `git_run()` comment names `create_supplement()` and the shell that `Sys.which()` starts), R/check-tools.R (the byte-check comment names the `trimws()` error as well as the `grepl()` warning). The reader also noted that the folder-link case passes without `normalizePath()`; the file-link case is the one that fails without it (pass 1 plant).
 - 2026-10-22: verify at bdb6a0d (9d462e6 changes comments only): `devtools::document()` no change; full `devtools::test()` FAIL 0, ERR 0, SKIP 8, PASS 4999; `devtools::check()` 0 errors, 0 warnings, 0 notes. Status set to review.
 - 2026-10-22: review return 2: AC3 fails for a `share/version` whose part is too big for an R integer (`1.99999999999.0`): `numeric_version()` warns and the row reads `too old` with "version 1.NA.0", and `create_supplement()` drops every tool line (pass 2 diff-bug #1). AC6 fails because the help page does not list the row labels `GitHub account` and `Zenodo account` (diff-bug #5). Fix-now items to carry: help wording "the system path that R sees" (diff-bug #2), one version-text check (diff-bug #4), DESIGN.md `tool_problems()` location (blame-history #3), and `git_run()` named as the one `system2()` call in DESIGN.md and its comment (ripple #2).
+- 2026-10-22: minor amendment: task T9 (review return 2) added; Coverage AC3 → T9, AC6 → T9.
+- 2026-10-22: T9: `quarto_version()` wraps `numeric_version()` in `tryCatch()` for warnings, so a part too big for an integer reads as no version; a new test covers it, and a plant of the old call failed 3 tests. The help page lists the `GitHub account` and `Zenodo account` rows as items and says `found` means the system path that R sees. One version-text check removed from the loop. DESIGN.md and the `git_run()` comment name it as the one call of `system2` (the comment avoids `system2(` so `test-source.R` still counts one site). `devtools::test(filter = "check-tools|create-supplement|source")` clean (256 pass, 2 skips that predate the change).
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local -->

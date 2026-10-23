@@ -170,8 +170,15 @@ test_that("the version is compared as a version number", {
     local_tools(which = list(quarto = program))
     row <- quarto_result()
     expect_identical(row$status, cases[[version]], info = version)
-    expect_match(row$detail, paste0("version ", version), fixed = TRUE, info = version)
   }
+})
+
+test_that("a version part too big for an R integer is read as no version", {
+  program <- fake_quarto(file.path(withr::local_tempdir(), "q"), "1.99999999999.0\n")
+  local_tools(which = list(quarto = program), packages = list(rmarkdown = "2.30"))
+  expect_no_warning(row <- quarto_result())
+  expect_identical(row$status, "found")
+  expect_match(row$detail, "version unknown", fixed = TRUE)
 })
 
 test_that("a version file with no final line break is read with no warning", {
