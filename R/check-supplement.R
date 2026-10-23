@@ -73,6 +73,23 @@
 #'   valid UTF-8 as U+FFFD, so such a report gets a row after each render.
 #'   Quarto keeps the file of a format that the report no longer renders,
 #'   such as `docx.json`, with its old hash, so delete that file.
+#' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
+#'   name does not start with `.`, that no file or folder in `analyses/`
+#'   names. A name in `analyses/` names the folder when, cut before its
+#'   last `.` (the whole name when it holds no `.`), it equals the folder's
+#'   name with letter case ignored: the case of ASCII letters always, and
+#'   the case of other letters as `tolower()` reads it in the session's
+#'   locale. In a name that is not valid UTF-8, only the case of ASCII
+#'   letters is ignored. A name stored in another Unicode form, composed or
+#'   decomposed, does not match. Quarto 1.10.19 keeps a report's folder
+#'   after the report is deleted or renamed. The row says to delete the
+#'   folder, render the whole site, and commit `_freeze/` and `docs/`, and
+#'   for a deleted or renamed report also its old path and `_quarto.yml`.
+#'   Folders inside subfolders of `_freeze/analyses/` and folders directly
+#'   in `_freeze/` are not read. A file or folder in `analyses/` of the
+#'   same name, such as `<name>.R`, hides a leftover folder. So does a
+#'   report whose name differs only in letter case, as after a report is
+#'   renamed only in letter case on Linux.
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no
@@ -242,6 +259,7 @@ check_supplement <- function(path = ".") {
     if (!is.null(git$files)) check_ignored_output(path, git$ignored),
     check_stored_output(path),
     check_stale_output(path),
+    check_leftover_output(path),
     check_links(path),
     check_unpublished_figures(path),
     check_dois(path, meta, call = environment()),
@@ -588,6 +606,47 @@ check_stale_output <- function(path) {
   )
   hit <- state != "ok"
   problem_rows("stale-output", file.path("analyses", basename(reports[hit])), problem[state[hit]])
+}
+
+# Quarto 1.10.19 keeps a report's folder in _freeze/analyses/ after the
+# report is deleted or renamed. A file or folder in analyses/ whose name,
+# cut before its last `.`, equals the folder's name with letter case
+# ignored keeps it: a report of any kind, or a folder of reports. Case is
+# ignored because on a file system that ignores case, such as the macOS
+# default, a report renamed only in case still writes to its old folder.
+check_leftover_output <- function(path) {
+  freeze <- file.path(path, "_freeze", "analyses")
+  # list.files() leaves out names that start with `.`.
+  folders <- list.files(freeze)
+  folders <- folders[dir.exists(file.path(freeze, folders))]
+  # useBytes keeps a name that is not valid UTF-8 in the match.
+  stems <- sub("\\.[^.]*$", "", list.files(file.path(path, "analyses")), useBytes = TRUE)
+  Encoding(stems) <- "unknown"
+  leftover <- folders[!fold_case(folders) %in% fold_case(stems)]
+  problem_rows(
+    "leftover-output", file.path("_freeze", "analyses", leftover),
+    rep_len(paste("No report in analyses/ has this stored output, as after a report is deleted or renamed.",
+                  "Delete the folder, render the whole site, then commit _freeze/ and docs/.",
+                  "If you deleted or renamed the report, also commit its old path and _quarto.yml,",
+                  "which holds its menu item."),
+            length(leftover))
+  )
+}
+
+# Lower case: ASCII letters first, with chartr(), since tolower() follows
+# the locale, where `I` need not lower to `i` (Turkish). tolower() stops on
+# a name that is not valid UTF-8, so only the ASCII capitals of such a name
+# are lowered, byte by byte.
+fold_case <- function(x) {
+  ok <- validUTF8(x)
+  x[ok] <- tolower(ascii_lower(x[ok]))
+  x[!ok] <- vapply(x[!ok], function(name) {
+    bytes <- charToRaw(name)
+    upper <- bytes >= as.raw(0x41) & bytes <= as.raw(0x5a)
+    bytes[upper] <- as.raw(as.integer(bytes[upper]) + 32L)
+    rawToChar(bytes)
+  }, character(1), USE.NAMES = FALSE)
+  x
 }
 
 # The MD5 of a report's bytes with each CR LF read as LF, or NULL when the
@@ -1032,7 +1091,7 @@ check_placeholders <- function(path, meta) {
 }
 
 placeholder_example_problems <- c(
-  "analyses/example.qmd" = "This is the template's example report. Write your own report in it, or delete it and make the Analyses menu in _quarto.yml list your own reports.",
+  "analyses/example.qmd" = "This is the template's example report. Write your own report in it, or delete it and its stored output in _freeze/analyses/example/, and make the Analyses menu in _quarto.yml list your own reports.",
   "data/example.csv" = "This is the template's example data. Put your own data in it, or delete it, its entry under data in _supplement.yml, and the example report, which reads it."
 )
 

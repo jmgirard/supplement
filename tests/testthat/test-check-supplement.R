@@ -476,6 +476,53 @@ test_that("a source hash that cannot be read gives a stale-output row that says 
   expect_false(any(grepl("_quarto.yml", rows$problem, fixed = TRUE)))
 })
 
+test_that("a folder in _freeze/analyses/ that nothing in analyses/ names gives a leftover-output row", {
+  site <- new_site()
+  expect_identical(nrow(rows_of(check_quiet(site), "leftover-output")), 0L)
+
+  stored <- function(name) stored_file(site, name, "html.json", hash_json(md5_of(stale_lf)))
+  stored("deleted")
+  # A report of the folder's name, of any kind, a folder of reports, or a
+  # report whose name differs only in letter case keeps the folder.
+  report_bytes(site, "kept", stale_lf)
+  stored("kept")
+  writeBin(charToRaw("{}"), file.path(site, "analyses", "notebook.ipynb"))
+  stored("notebook")
+  dir.create(file.path(site, "analyses", "sub"))
+  writeBin(charToRaw(stale_lf), file.path(site, "analyses", "sub", "inner.qmd"))
+  stored(file.path("sub", "inner"))
+  report_bytes(site, "Cased", stale_lf)
+  stored("cased")
+  # Hidden folders and files directly in _freeze/analyses/ are not read.
+  stored(".hidden")
+  writeBin(charToRaw("{}"), file.path(site, "_freeze", "analyses", "loose.json"))
+
+  rows <- rows_of(check_quiet(site), "leftover-output")
+  expect_identical(rows$file, "_freeze/analyses/deleted")
+  expect_identical(rows$problem, paste(
+    "No report in analyses/ has this stored output, as after a report is deleted or renamed.",
+    "Delete the folder, render the whole site, then commit _freeze/ and docs/.",
+    "If you deleted or renamed the report, also commit its old path and _quarto.yml,",
+    "which holds its menu item."
+  ))
+})
+
+test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored", {
+  # "T" or "t", then a Latin-1 e with an acute accent.
+  upper <- rawToChar(as.raw(c(0x54, 0xe9)))
+  lower <- rawToChar(as.raw(c(0x74, 0xe9)))
+  expect_identical(fold_case(upper), lower)
+
+  # macOS and Windows refuse such a name, so this part runs on Linux.
+  site <- new_site()
+  made <- tryCatch(file.create(file.path(site, "analyses", paste0(upper, ".R"))), error = function(e) FALSE)
+  skip_if_not(isTRUE(made), "the file system refuses a name that is not valid UTF-8")
+  stored_file(site, lower, "html.json", hash_json(md5_of(stale_lf)))
+  stored_file(site, "deleted", "html.json", hash_json(md5_of(stale_lf)))
+  expect_no_error(rows <- rows_of(check_quiet(site), "leftover-output"))
+  expect_identical(rows$file, "_freeze/analyses/deleted")
+})
+
 test_that("a site with no docs folder gives one not-rendered row", {
   site <- new_site()
   result <- check_quiet(site)
@@ -1421,4 +1468,12 @@ test_that("an example file gives a row only while its text is the template's", {
     dir.create(file.path(site, file))
     expect_no_error(expect_false(has_row(site), info = file))
   }
+})
+
+test_that("the example report's row names its stored output", {
+  rows <- placeholder_rows(new_site())
+  expect_identical(rows$problem[rows$file == "analyses/example.qmd"], paste(
+    "This is the template's example report. Write your own report in it, or delete it and its stored output",
+    "in _freeze/analyses/example/, and make the Analyses menu in _quarto.yml list your own reports."
+  ))
 })

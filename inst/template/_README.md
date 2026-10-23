@@ -181,6 +181,8 @@ data frame. It finds:
 - reports directly in `analyses/` whose stored output in `_freeze/` was
   made from other text than the report holds now, or whose source hash
   cannot be read
+- folders in `_freeze/analyses/` that no file or folder in `analyses/`
+  names, as after a report is deleted or renamed
 - a missing `docs/` folder
 - relative `href`, `src`, and `xlink:href` links in `docs/` to files that
   are not in `docs/`, or to folders there with no `index.html`
