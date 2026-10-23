@@ -23,6 +23,7 @@ also run `setwd()` with the path of the folder.
 In the R console, in any folder, install the package and list the tools:
 
 ```r
+install.packages("pak")
 pak::pak("jmgirard/supplement")
 supplement::check_tools()
 ```
@@ -88,6 +89,23 @@ git push -u origin HEAD
 `HEAD` pushes the branch that you are on. To see its name, run
 `git branch --show-current`. You need that name in the next step.
 
+If git asks who you are, give it your name and email address, then run
+the commit again:
+
+```sh
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+If the push asks for a password, GitHub refuses it. Sign in with `gh`
+instead, let git use that sign-in, and run the push again:
+
+```sh
+gh auth login
+gh auth setup-git
+git push -u origin HEAD
+```
+
 ## 6. Serve the site with GitHub Pages
 
 On GitHub, open the repository's **Settings** tab and click **Pages**.
@@ -99,7 +117,8 @@ site](https://docs.github.com/en/pages/getting-started-with-github-pages/configu
 shows these settings.
 
 The site is at `https://owner.github.io/name/`, with the owner in
-lowercase.
+lowercase. For a repository named `owner.github.io`, the site is at
+`https://owner.github.io/`.
 
 ## 7. Turn on Zenodo for the repository
 
@@ -131,10 +150,13 @@ visitors to the site or the repository see them. In the site folder:
    year and the authors.
 4. Replace the example report and data. Add your own with
    `supplement::add_report()` and `supplement::add_data()`. Then delete
-   `analyses/example.qmd` and its item in the Analyses menu of
-   `_quarto.yml`. Delete `data/example.csv` and its entry under `data` in
-   `_supplement.yml`.
-5. Delete the example's figure, `figures/bootstrap-means.png`.
+   `analyses/example.qmd`, its stored output in `_freeze/analyses/example/`,
+   and its item in the Analyses menu of `_quarto.yml`. Delete
+   `data/example.csv` and its entry under `data` in `_supplement.yml`.
+5. Keep the example's figure, `figures/bootstrap-means.png`, until a
+   report saves its own figure in `figures/`. Then delete it. The commands
+   in the last part of this guide stage `figures/`, and git stops them
+   when that folder is missing in a clone.
 6. In `README.md`, replace the example citation under the title with the
    paper's citation.
 
@@ -183,6 +205,12 @@ address of the record page as `archive-url`. Zenodo also gives a concept
 DOI, which names every release of the repository. If you write it as
 `concept-doi`, the badge uses it when `version-doi` is empty. Write each
 DOI in the form `10.5281/zenodo.1234567`.
+
+In the R console, in the site folder, write the DOI into `CITATION.cff`:
+
+```r
+supplement::write_citation(overwrite = TRUE)
+```
 
 Then, in a terminal in the site folder, render the site and push it:
 

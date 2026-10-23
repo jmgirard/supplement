@@ -6,8 +6,12 @@ test_that("the publishing guide's local steps give a site that Pages can serve a
   skip_if_no_quarto()
   skip_if_no_git()
   local_plain_git()
+  # git before 2.32 reads the user's global configuration, so the commit
+  # sets its own signing and hooks.
+  hooks <- long_dir(withr::local_tempdir("hooks-"))
   commit <- c("-c", "user.name=Test", "-c", "user.email=test@example.com",
-              "-c", "commit.gpgsign=false", "commit", "-q", "-m")
+              "-c", "commit.gpgsign=false", "-c", paste0("core.hooksPath=", hooks),
+              "commit", "-q", "-m")
 
   # A clone of an empty GitHub repository holds only .git/.
   site <- long_dir(withr::local_tempdir("site-"))
