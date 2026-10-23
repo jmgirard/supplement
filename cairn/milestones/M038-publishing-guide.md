@@ -54,8 +54,8 @@ runs the guide's local steps.
       `check_supplement()` finds no problem; the first release with
       `release_supplement()` and the commands it prints; and adding the
       Zenodo DOIs to `_supplement.yml`, rendering again, and pushing.
-- [x] AC2: Every fenced block in `vignettes/publishing.Rmd` opens with
-      ```` ```r ```` or ```` ```sh ````, at any indent; the vignette has no
+- [x] AC2: Every fenced block in `vignettes/publishing.Rmd` opens
+      with ```` ```r ```` or ```` ```sh ````, at any indent; the vignette has no
       tilde fence, no code block indented by four spaces, no line that
       matches `^\s*```\s*\{`, and no inline `` `r `` code, so a build runs
       no code. Before its first block the vignette says that `r` blocks run
@@ -139,6 +139,7 @@ runs the guide's local steps.
 - 2026-10-22: claim audit: 50 claims read, 3 corrected — vignettes/publishing.Rmd (step 1 adds Quarto's not-on-path status; step 3 names where the repository and Pages address are written; step 8 separates the four items a release stops on from the example figure and a new README citation item). The re-read found the figure still under item 4, now its own item. Its scratch run of steps 3 to 9 rendered and checked clean.
 - 2026-10-22: T5: `devtools::document()` no diff; `devtools::test()` with NOT_CRAN=true: 19 files, 368 expectations, 0 failed, 0 errors, 8 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes (vignette built and re-built); the vignette rebuilt clean after the claim fixes. Minor amendment: T5's CI read moved to review's merge step, since the git model pushes the branch there.
 - 2026-10-22: Tasks section compressed in one rewrite (plan-owned body was 156 lines, cap 150); each task's content kept.
+- 2026-10-22: review: four-lens pass, 27 findings: 12 fixed in 6cd9971, 11 rejected, 4 to the new row "Align render advice with the new guide". Evidence was gathered on the fixed head (6cd9971) after the lenses ran. AC2 rewrapped (whitespace only) so no line starts with backticks, which the plan-body counter read as a code fence.
 
 ## Decisions
 
