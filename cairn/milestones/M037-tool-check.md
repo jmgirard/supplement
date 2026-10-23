@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M037: Report missing tools before site setup
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
@@ -55,7 +55,7 @@ Authors can see which tools a supplement site needs are missing before a first r
 - [x] T3: Write `R/check-tools.R`: `check_tools()`, the Quarto lookup and its editor list, the version read with `numeric_version()`, and the printed lines through cli. Look programs up with `Sys.which()`, which on Unix runs `which` but no looked-up tool. Add the roxygen help page (AC6 items) and run `devtools::document()`.
 - [x] T4: Write the AC5 tests in `tests/testthat/test-create-supplement.R` first, then add the lookups to the closing message at `R/create-supplement.R:113-121`, inside `tryCatch()` for errors and warnings. Existing tests match "Made a supplement site", so they keep passing.
 - [x] T5: Update `README.md` ("Start a new site", line 14), `NEWS.md`, and `cairn/DESIGN.md` (Function Families, Architecture). Widen the candidate row "Record the Python setup of reports" to say that `check_tools()` does not look for Python or Jupyter, and add `check_tools()` to the reference list of "Build a package site with pkgdown".
-- [ ] T6: Run the verify slot, `devtools::check()`, and `tests/testthat/test-source.R` from the source tree.
+- [x] T6: Run the verify slot, `devtools::check()`, and `tests/testthat/test-source.R` from the source tree.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -85,6 +85,7 @@ Authors can see which tools a supplement site needs are missing before a first r
 - 2026-10-22: substantive amendment: AC2 says the first place is the system path "as `Sys.which()` searches it from R", the `detail` says a terminal "can miss" the copy (was "will not find"), and the tests assert `can miss` and the place for the `QUARTO_PATH` and editor copies. Cause: claim-audit finding 12. The deliverable the user sees is the same apart from that one phrase, so no stop.
 - 2026-10-22: re-audit: AC2 (full) — "will not find" → "can miss" cleared; found "system path" loose (R's path) and no test of the terminal sentence; both fixed in the wording above.
 - 2026-10-22: re-audit: AC2 (full) — fixed wording cleared on questions 2, 3, 5, 6; noted "names the place" could mean the category or the path (the tests assert both) and that one precedence pair was tested. Answered with a second precedence test (`QUARTO_PATH` over an editor entry) and no wording change, so no further re-entry.
+- 2026-10-22: T6 at 50470ab: `devtools::document()` left no change; full `devtools::test()` FAIL 0, ERR 0, SKIP 8, PASS 4994 (test-source.R ran from the source tree); `devtools::check()` 0 errors, 0 warnings, 0 notes. Status set to review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local -->
