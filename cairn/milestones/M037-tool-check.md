@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M037: Report missing tools before site setup
 
-- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
@@ -86,9 +86,41 @@ Authors can see which tools a supplement site needs are missing before a first r
 - 2026-10-22: re-audit: AC2 (full) — "will not find" → "can miss" cleared; found "system path" loose (R's path) and no test of the terminal sentence; both fixed in the wording above.
 - 2026-10-22: re-audit: AC2 (full) — fixed wording cleared on questions 2, 3, 5, 6; noted "names the place" could mean the category or the path (the tests assert both) and that one precedence pair was tested. Answered with a second precedence test (`QUARTO_PATH` over an editor entry) and no wording change, so no further re-entry.
 - 2026-10-22: T6 at 50470ab: `devtools::document()` left no change; full `devtools::test()` FAIL 0, ERR 0, SKIP 8, PASS 4994 (test-source.R ran from the source tree); `devtools::check()` 0 errors, 0 warnings, 0 notes. Status set to review.
+- 2026-10-22: review return 1: AC3 fails for a `share/version` whose bytes are not valid in the locale: `grepl()` in `quarto_version()` warns ("input string 1 is invalid in this locale") instead of the row reading "version unknown", and `create_supplement()` then drops every tool line (diff-bug #2). The same pass settled these fix-now items for the return to carry: diff-bug #1 (a real invisibility test), #4 (add a folder-link case), #10 (one line formatter), #11 (rename the test helper `quarto_row()`), #12 and #14 (remove two repeated expectations), blame-history #1/#2 and ripple #1/#2 (DESIGN.md and the `git_run()` comment: the one place the package runs a program itself; `Sys.which()` starts `which` on Unix), ripple #5 (README: missing, too old, or not on path). Follow-up row "Report broken Quarto links on Windows" added.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local -->
 
 ## Review
 <!-- owner: review · exclusive -->
+
+Pass 1 (2026-10-22, head b324932). Sync: main at 33ebeba, branch up to date. No Copilot round (PROFILE has no `# Copilot review:` line).
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: `expect_invisible(suppressMessages(rows <- check_tools()))` always passes, because the assignment is invisible — fix now (test).
+- diff-bug #2: a `share/version` with bytes that are not valid in the locale makes `grepl()` warn ("input string 1 is invalid in this locale", reproduced), so `check_tools()` warns instead of giving "version unknown", and `create_supplement()` then drops every tool line — fix now; AC3 fails for that input, so review return 1.
+- diff-bug #3: R built without a `which` program makes `Sys.which()` warn — reject (edge: an R build without `which` is outside documented and common use; effect is a warning, and `create_supplement()` already catches it).
+- diff-bug #4: the link test links to the program, while AC3 says "a path entry that links to a folder holding `bin/` and `share/version`" — fix now: add a folder-link case beside the file-link case (the file link is the one that fails without `normalizePath()`).
+- diff-bug #5: the editor `detail` does not say which editor — reject (false: the `detail` holds the full path and "in the RStudio or Positron install", which names the place).
+- diff-bug #6: backticks in `detail` print literally — reject (style).
+- diff-bug #7: long details wrap on screen — reject (false: AC1 counts message conditions, and cli wraps to the console width by design).
+- diff-bug #8: mixed separators and 8.3 short names in Windows `detail` paths — reject (style: cosmetic, the lookup and version read still work).
+- diff-bug #9: a quoted or space-padded `QUARTO_PATH` is passed over — reject (false: such a value names no file, so passing it over is the stated rule).
+- diff-bug #10: the line format "tool: status. detail" is written twice — fix now (one formatter).
+- diff-bug #11: the test helper `quarto_row()` shares the name of the internal function — fix now (rename).
+- diff-bug #12: `expect_no_match(..., "detail of git")` after the exact count of 3 lines — fix now (remove).
+- diff-bug #13: "a copy on the system path is found" repeats the found path — reject (planned: AC2 names a test of the path place, and it adds the path and version checks).
+- diff-bug #14: the rmarkdown `install.packages` detail check repeats the knitr one through the same code — fix now (remove).
+- diff-bug #15: `NULL` and `""` for `QUARTO_PATH` run the same code — reject (planned: AC2 names both).
+- diff-bug #16: existing `create_supplement()` tests now run real `Sys.which()` lookups — reject (false as a defect: no assertion depends on them, and three lookups add milliseconds).
+- blame-history #1: `Sys.which()` starts `which` outside `git_run()`, against the "one place that starts a process" rule — fix now: DESIGN.md and the `git_run()` comment state the rule as the one place the package runs a program itself, with `Sys.which()` lookups starting `which` on Unix (`git_run()` already called it).
+- blame-history #2: DESIGN.md contradicts itself on process starts — fix now (same edit).
+- blame-history #3: `tool_problems()` drops lookup errors and warnings silently — reject (planned: AC5).
+- blame-history #4: `create_supplement()` help still promises no Quarto CLI and no network — reject (false: both still hold).
+- prior-review #1: on Windows a file link to a missing Quarto reads as existing, so it gives `found` or `not on path` with "version unknown" — follow-up: new row "Report broken Quarto links on Windows" (the "Detect broken file links on Windows" group already holds findings from M018, M022, and M035).
+- prior-review #2: existing tests run unmocked lookups — reject (false as a defect, as diff-bug #16).
+- ripple #1: DESIGN.md "the package's one place that starts a process" — fix now (with blame-history #1).
+- ripple #2: the `git_run()` comment says the same — fix now (with blame-history #1).
+- ripple #3: "The template needs Quarto 1.4.0 or later" while DESIGN.md says untested below 1.10 — reject (false: the message states the extension's declared `quarto-required` minimum, which Quarto enforces).
+- ripple #4: the candidate row "Report missing tools before site setup" still says nothing checks the tools — reject (planned: the row graduates at post-merge hygiene).
+- ripple #5: README says `check_tools()` reports which tools are missing, but it also reports too old and not on path — fix now (README wording).
+- ripple #6: "not on the PATH" in `check_supplement()` docs against the new "not on path" status — reject (style).
