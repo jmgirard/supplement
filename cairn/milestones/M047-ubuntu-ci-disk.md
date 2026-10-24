@@ -55,6 +55,8 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 - 2026-10-23: T3: the DESIGN.md CI paragraph names the `TMPDIR` folder and the 7.9 GB tmpfs. No R code changed, so the verify slot's `devtools::test()` was not run; CI at review covers the workflow. Status set to review.
 - 2026-10-23: claim audit: not owed — internal tier
 
+- 2026-10-23: stop: open-PR feature cap. The cap is 1, and PR #47 (m046-linked-figures) is open, so review posed no merge question and opened no PR. PR #47 waits on this milestone, so one of the two must give way: raise the cap with a `# Feature PR cap: 2` header line in `cairn/PROFILE.md`, or carry this change on the M046 branch.
+
 ## Decisions
 
 ## Review
@@ -62,7 +64,7 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 - 2026-10-23: synced: `origin/main` is fa772ad, an ancestor of the branch. No PR yet, and the Copilot round is off.
 - AC1 (2026-10-23): `.github/workflows/R-CMD-check.yaml` line 43 is the step "Put the temporary folder on the runner's disk", with `if: runner.os == 'Linux'` (line 44). It runs `mkdir -p "$RUNNER_TEMP/tmp"` and writes `TMPDIR=$RUNNER_TEMP/tmp` to `$GITHUB_ENV` (lines 46-47). It is the second step, before `r-lib/actions/check-r-package@v2` (line 66). Line numbers are those after the comment fix of this review pass. In run 40055150456 this step ran on ubuntu-latest, and that job passed with 5097 tests.
 - AC3 (2026-10-23): the CI paragraph of `cairn/DESIGN.md` (lines 252-258) says that the Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because `/tmp` on that runner image has too little space for the render tests' large fixtures.
-- gate (2026-10-23): `cairn_validate.py` passed. `devtools::document()` gave no diff. No R code, README.Rmd, `_pkgdown.yml`, NEWS entry, or top-level file is involved. `devtools::check()` is running.
+- gate (2026-10-23): `cairn_validate.py` passed. `devtools::document()` gave no diff. No R code, README.Rmd, `_pkgdown.yml`, NEWS entry, or top-level file is involved. `devtools::check()` on macOS gave 0 errors, 0 warnings, 0 notes.
 - spawned: diff-bug, blame-history, prior-review, ripple
 - diff-bug #1: the AC1 evidence line cited the workflow lines one too low — fix now, fixed 1ee63cd
 - diff-bug #2: the workflow comment's "the render tests write files of several GB" was loose; one shortcode test's 1.0, 2.1, and 4.3 GB data files, copied into `docs/`, fill the tmpfs — fix now, fixed 1ee63cd
