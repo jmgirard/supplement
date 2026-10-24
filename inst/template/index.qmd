@@ -19,8 +19,9 @@ listing:
 
 Run `quarto render` once in this folder. The first render adds the
 template's rules to `.gitignore`, which keep fitted models and other large
-files out of git. It also writes the template's guide to `README.md`. If a
-`README.md` already exists, the guide goes to `SUPPLEMENT.md`.
+files out of git. It also writes `README.md`, the page for the site's
+readers, unless a `README.md` already exists. The guide for authors is
+`GUIDE.md`.
 
 Put the paper title, citation, DOIs, and data files in `_supplement.yml`.
 This page reads them from there. Then delete this box.

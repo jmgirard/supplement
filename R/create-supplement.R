@@ -14,9 +14,10 @@
 #'
 #' The template ships `_gitignore` and `_README.md` under those names. The
 #' first `quarto render` gives them their real names, and that render adds
-#' the template's rules to an existing `.gitignore`. If `README.md` exists,
-#' the render writes the guide to `SUPPLEMENT.md` instead. If `README.md`
-#' and `SUPPLEMENT.md` both exist, it writes no guide. Render the site once before your first commit.
+#' the template's rules to an existing `.gitignore`. `_README.md` is the
+#' page for the site's readers. If `README.md` exists, the render keeps it
+#' and removes `_README.md`. The guide for the site's authors is
+#' `GUIDE.md`. Render the site once before your first commit.
 #'
 #' After it makes the site, the function runs the lookups of
 #' [check_tools()]. Its closing message names each tool that is missing,
@@ -30,7 +31,8 @@
 #' @param path The folder for the site. It is made if it does not exist.
 #' @param repo The GitHub repository of the site, as `"owner/name"`, or
 #'   `NULL`. When given, it replaces each `OWNER/REPO` placeholder in
-#'   `_quarto.yml`, and the GitHub Pages address in `_README.md` becomes
+#'   `_quarto.yml`, and the GitHub Pages address in `_README.md` and
+#'   `GUIDE.md` becomes
 #'   `https://<owner>.github.io/<name>/` with the owner in lowercase. For a
 #'   repository named `<owner>.github.io`, the address is
 #'   `https://<owner>.github.io/`. When `NULL`, the placeholders stay for
@@ -261,7 +263,9 @@ fill_repo <- function(path, repo) {
     paste0("https://", owner, ".github.io/", name, "/")
   }
   replace_text(file.path(path, "_quarto.yml"), "OWNER/REPO", repo)
-  replace_text(file.path(path, "_README.md"), "https://OWNER.github.io/REPO/", pages)
+  for (file in c("_README.md", "GUIDE.md")) {
+    replace_text(file.path(path, file), "https://OWNER.github.io/REPO/", pages)
+  }
 }
 
 replace_text <- function(file, from, to) {

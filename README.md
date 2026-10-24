@@ -57,16 +57,17 @@ quarto render
 
 The first render writes the template's rules into `.gitignore`. If
 `.gitignore` already exists, the render adds the rules that it lacks. The
-first render also writes the template's guide to `README.md`. If the folder
-already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. If
-both files exist, no guide is written. The template ships these files as `_gitignore` and `_README.md`, because
-`quarto use template` does not copy those file names. The guide explains how
-the site renders, how to render on the machine that holds private data, and
-how to publish. It also shows how to record R packages with renv and how
-to render reports in a Docker container.
+first render also writes `README.md`, a short page for the people who read
+the site's repository. It keeps a `README.md` that the folder already has. The
+template ships these files as `_gitignore` and `_README.md`, because
+`quarto use template` does not copy those file names. The guide for the
+site's authors is `GUIDE.md`. It explains how the site renders, how to
+render on the machine that holds private data, and how to publish. It also
+shows how to record R packages with renv and how to render reports in a
+Docker container.
 
 Put the paper title, citation, Zenodo DOIs, and data files in
-`_supplement.yml`. The home page reads them from that file. The guide
+`_supplement.yml`. The home page reads them from that file. `GUIDE.md`
 lists the values and describes the shortcodes that show them.
 
 ## Add reports and data
@@ -98,7 +99,7 @@ list, it stops, writes nothing, and shows the lines to add by hand.
 
 To record the version of each R package that the reports use, so that
 another machine can install the same versions, use the renv package. The
-guide's "Recording R packages with renv" part shows the three commands.
+"Recording R packages with renv" part of `GUIDE.md` shows the three commands.
 supplement does not call renv.
 
 In R, `supplement::write_dockerfile(quarto = "1.10.19")` in the site
@@ -106,8 +107,8 @@ folder reads `renv.lock` and writes a `Dockerfile` and a `.dockerignore`.
 Docker builds an image from them. The image holds the R version and the R
 packages in `renv.lock`, and Quarto. A report can render in it where Docker
 runs Linux containers on amd64, or on arm64 for R 4.1.0 or later. The
-guide's "Running reports in a container" part shows how to build the image
-and render a report in it.
+"Running reports in a container" part of `GUIDE.md` shows how to build the
+image and render a report in it.
 
 ## Check a site before a release
 
@@ -127,9 +128,9 @@ finds:
   release leaves out
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
-- reports directly in `analyses/` whose stored output in `_freeze/` was
-  made from other text than the report holds now, or whose source hash
-  cannot be read
+- reports directly in `analyses/` whose stored output in `_freeze/` came
+  from other text than the report holds now, or whose source hash cannot
+  be read
 - folders in `_freeze/analyses/` that no file or folder in `analyses/`
   names, as after a report is deleted or renamed
 - a site with no `docs/` folder

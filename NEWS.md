@@ -1,5 +1,18 @@
 # supplement 0.0.0.9000
 
+* A new site's `README.md` is now a short page for the people who read the
+  site's repository: the citation, the site address, the contents, and the
+  licenses. The guide for the site's authors is a separate file,
+  `GUIDE.md`. Its rules for edge cases sit in a "Reference" part at its
+  end. When the folder already has a `README.md`, the first render keeps
+  it and no `SUPPLEMENT.md` is written. Sites made earlier keep their
+  guide. To add the new guide to such a site, copy
+  `system.file("template", "GUIDE.md", package = "supplement")` into it,
+  and replace `OWNER` and `REPO` in its example figure address. Such a
+  site keeps the old guide until its authors replace it. If its folder
+  had no `README.md` before the first render, the old guide is
+  `README.md`. If the folder had a `README.md` and no `SUPPLEMENT.md`, the
+  old guide is `SUPPLEMENT.md`.
 * The template's `.gitignore` now holds the lines that Quarto 1.10 adds to a
   `.gitignore` that lacks them. A new site's `.gitignore` no longer changes
   on its second render, unless an `env/` folder in the site folder holds a
@@ -45,8 +58,8 @@
   Both refuse names that Windows reserves for a device, such as `con`, in
   any letter case. `add_data()` also refuses such a name with an
   extension, such as `con.csv`, and a file name that ends in `.`.
-* The template guide has a part on recording a site's R packages with
-  renv: `renv::init()`, `renv::snapshot()` after a render, and
+* The template guide, `GUIDE.md`, has a part on recording a site's R
+  packages with renv: `renv::init()`, `renv::snapshot()` after a render, and
   `renv::restore()` on another machine. In a site set up with renv, a full
   render from stored output still runs no R. `check_supplement()` finds
   no problem in the files that renv adds, and git keeps `renv/library/`
@@ -194,8 +207,8 @@
   with the PNG end chunk, such as one that a full disk cut short, also
   leaves none. When its code runs, the report stops with a message if a
   file named `figures` is in place of the folder. If `figures` is a link,
-  or on Windows a junction, the report also stops. The site's README says
-  how a report writes a figure to `figures/`. In new sites, git
+  or on Windows a junction, the report also stops. The template guide,
+  `GUIDE.md`, says how a report writes a figure to `figures/`. In new sites, git
   ignores `.png` and `.pdf` files saved directly in `analyses/` in any
   letter case.
 * The template's example report and each report that `add_report()` writes
@@ -209,7 +222,7 @@
   the same rule. Its text says to read a data file as
   `file.path(site, "data", "<file name>")`. Before, its text said to read
   data from `..`. That path is wrong for code run from the site folder.
-  The site's README tells reports to read fit files as
+  The template guide, `GUIDE.md`, tells reports to read fit files as
   `file.path(site, "analyses", "fits", ...)`. In a site made before this
   change, copy the `site` chunk from a new site's `analyses/example.qmd`
   into each report.

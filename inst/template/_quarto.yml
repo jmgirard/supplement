@@ -5,8 +5,7 @@ project:
   # _freeze/ (commit it). A full render reuses it and runs the code of each
   # report that has no stored output there.
   # After you change a report, render it by name, then render the whole site,
-  # then commit the report with _freeze/, docs/, and figures/. See README.md
-  # (or SUPPLEMENT.md when the folder already had a README.md).
+  # then commit the report with _freeze/, docs/, and figures/. See GUIDE.md.
   render:
     - index.qmd
     - "analyses/*.qmd"
@@ -17,7 +16,7 @@ project:
     - "data/**"
     - "figures/**"
   # Quarto runs these Lua scripts through Pandoc; they need no R. See
-  # README.md or SUPPLEMENT.md.
+  # GUIDE.md.
   pre-render: _scripts/setup.lua
   post-render: _scripts/nojekyll.lua
 

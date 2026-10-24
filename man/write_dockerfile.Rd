@@ -153,6 +153,6 @@ readLines(file.path(site, "Dockerfile"))
 unlink(site, recursive = TRUE)
 }
 \seealso{
-The template guide's parts "Recording R packages with renv"
-and "Running reports in a container".
+The parts "Recording R packages with renv" and "Running
+reports in a container" of the template guide, \code{GUIDE.md}.
 }
