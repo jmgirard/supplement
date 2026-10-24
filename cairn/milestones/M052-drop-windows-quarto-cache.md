@@ -21,10 +21,10 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 
 ## Acceptance criteria
 
-- [ ] AC1: `tests/testthat/helper-template.R` has no `quarto_cache_env()` function, and neither `run_in()` nor `run_split()` sets `LOCALAPPDATA`; `grep -rn -e quarto_cache_env -e LOCALAPPDATA R tests` lists only lines of `R/check-tools.R` and `tests/testthat/test-check-tools.R`.
-- [ ] AC2: `grep -rnE '\.(ts|js)([^A-Za-z]|$)' tests/testthat inst/template` and `grep -rn '"run"' tests/testthat` list only `tests/testthat/test-renv.R:38` (a debug-log string), `tests/testthat/test-check-supplement.R:759` and `:766` (an HTML `<script>` link), and `tests/testthat/test-write-dockerfile.R:278` (`docker run`), and `find inst/template -name '*.ts' -o -name '*.js'` lists nothing.
+- [x] AC1: `tests/testthat/helper-template.R` has no `quarto_cache_env()` function, and neither `run_in()` nor `run_split()` sets `LOCALAPPDATA`; `grep -rn -e quarto_cache_env -e LOCALAPPDATA R tests` lists only lines of `R/check-tools.R` and `tests/testthat/test-check-tools.R`.
+- [x] AC2: `grep -rnE '\.(ts|js)([^A-Za-z]|$)' tests/testthat inst/template` and `grep -rn '"run"' tests/testthat` list only `tests/testthat/test-renv.R:38` (a debug-log string), `tests/testthat/test-check-supplement.R:759` and `:766` (an HTML `<script>` link), and `tests/testthat/test-write-dockerfile.R:278` (`docker run`), and `find inst/template -name '*.ts' -o -name '*.js'` lists nothing.
 - [ ] AC3: `devtools::test()` passes on the Mac, and the R-CMD-check workflow's Windows job passes on the PR's head commit.
-- [ ] AC4: The DESIGN.md paragraph on `run_in()` and `run_split()` no longer says that they give each Windows test process its own Quarto cache or points at the candidate row "Drop the Windows Quarto cache in tests", and says that they set no Quarto cache folder, so test processes share the user's Quarto cache, whose Sass database the "database is locked" rerun covers.
+- [x] AC4: The DESIGN.md paragraph on `run_in()` and `run_split()` no longer says that they give each Windows test process its own Quarto cache or points at the candidate row "Drop the Windows Quarto cache in tests", and says that they set no Quarto cache folder, so test processes share the user's Quarto cache, whose Sass database the "database is locked" rerun covers.
 
 ## Coverage
 
@@ -62,3 +62,7 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 ## Decisions
 
 ## Review
+
+- 2026-10-24 AC1: at a734e5f, `grep -n "quarto_cache_env\|LOCALAPPDATA" tests/testthat/helper-template.R` lists nothing, and `grep -rn -e quarto_cache_env -e LOCALAPPDATA R tests` lists only `R/check-tools.R:55`, `R/check-tools.R:194`, and `tests/testthat/test-check-tools.R:90`; `run_in()` passes `log_level` alone to `withr::with_envvar()` and `run_split()` calls `system2()` inside `withr::with_dir()` only. Pass.
+- 2026-10-24 AC2: at a734e5f, the two greps list exactly `test-renv.R:38`, `test-check-supplement.R:759`, `test-check-supplement.R:766`, and `test-write-dockerfile.R:278`, and `find inst/template -name '*.ts' -o -name '*.js'` lists nothing. Pass.
+- 2026-10-24 AC4: `cairn/DESIGN.md:249-253` now says that both helpers set no Quarto cache folder, so on every system the test processes share the user's Quarto cache, and that the "database is locked" rerun covers its Sass database; the per-process Windows cache sentence and the candidate-row pointer are gone. Pass.
