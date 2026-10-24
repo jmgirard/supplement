@@ -1,6 +1,6 @@
 # M048: Run the template scripts without Deno
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -54,7 +54,7 @@ A render of a site made from the template runs its two project scripts in Lua th
 - [x] T4: Port the exit-code test (`test-template.R:48`, `Deno.exit(3);`) to a `setup.lua` that calls `os.exit(3)`, keeping its `QUARTO_LOG_LEVEL=DEBUG` read of `code: 3`. Change the made-up Deno log line in `tests/testthat/test-renv.R:38` to a script name the template does not ship.
 - [x] T5: Update `inst/template/_README.md`, the DESIGN.md template entries, and the Known issues sentence "`quarto-required: \">=1.4.0\"` is untested below 1.10" to cover the Lua scripts; add the NEWS bullet; run the AC5 grep.
 - [x] T6: Write `cairn/references/deno-script-crash.md` and its `INDEX.md` line from the macOS crash reports in `~/Library/Logs/DiagnosticReports/deno-*.ips`, CI run 39891081546, and the 2026-10-23 loops. Download the Deno 2.7.14 aarch64-apple-darwin symbol file from Deno's GitHub release page into the scratch folder and name the crashing functions if it resolves them. Draft the quarto-cli issue in the note, show the draft to the user, and post it only on the user's yes.
-- [ ] T7: `devtools::test()` and `devtools::check()` clean on the Mac; CI on all three systems at review.
+- [x] T7: `devtools::test()` and `devtools::check()` clean on the Mac; CI on all three systems at review.
 
 ## Work log
 
@@ -84,6 +84,7 @@ A render of a site made from the template runs its two project scripts in Lua th
 - 2026-10-24: T6 note written: `cairn/references/deno-script-crash.md` and its `INDEX.md` line, with the crash-report facts, the null function-pointer call, the loops that did not reproduce it, and the draft quarto-cli issue. The simple-english hook still flags the six `—` markers that the synthesis-note template requires. The draft goes to the user before any post.
 - 2026-10-24: T6 done: a search of quarto-cli issues found #10426 (open, reopened 2026-10-20 by a maintainer who traced the crash to a SQLite start-up race in Deno on arm64) and denoland/deno#37045 (open, Deno 2.7.14, same faulting stack); the note records both. The user chose to post nothing (over a comment on #10426 and over the duplicate issue), so nothing went to GitHub.
 - 2026-10-24: claim audit: 37 claims read, 2 corrected — NEWS.md, inst/template/_README.md, inst/template/_quarto.yml, inst/template/_scripts/setup.lua, inst/template/_scripts/nojekyll.lua, tests/testthat/test-template.R. Corrected: the no-Deno test's comment that Quarto on Windows can log a batch file in place of a script's command (in 1.10.19 `execProcess` logs `cmd` and `args`, and `safeWindowsExec` serves only reg.exe, unzip, tlmgr, fmtutil, and the browser), so the test now checks the log on every system, which also reverses the second plan audit's rejection of a Windows check; and the `appended()` comment. Open: the `é` test is unchecked on Windows until CI runs it.
+- 2026-10-24: T7 done on the Mac: `devtools::test()` 392 tests, 0 failed, 0 errors, 10 skipped; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes. The crash-report count stayed at 18 through this session's renders. CI on the three systems runs at review. Status set to review.
 
 ## Decisions
 
