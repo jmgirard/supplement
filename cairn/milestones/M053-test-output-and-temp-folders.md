@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M053: Keep test writes in temp folders and show failed command output
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — test files and test helpers only; no user of the package runs them
-- **Branch/PR:** —
+- **Branch/PR:** m053-test-output-temp-folders
 
 ## Goal
 
@@ -62,6 +62,8 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - 2026-10-24: plan gate chose rewriting the 26 checks with `expect_status()` and `expect_command_fails()` over adding `info =` to each, because DESIGN.md names those helpers as the form for exit-status checks; falsified by a result shape that `command_failure()` cannot print.
 - 2026-10-24: no changelog entry: tests and test helpers only.
 - 2026-10-24: criteria audit (reduced mode, fresh Opus reader): AC1 to AC3 no finding; AC4 promised every `run_split()` and `git_run()` result with no procedure over them, narrowed to the three named test cases; AC5 bound a runner's report and six CI jobs (instrument, proportionality), narrowed to the five test files passing on the Mac, with the CI wait kept as T6 and the Windows stop kept in T1.
+- 2026-10-24: implement started on branch m053-test-output-temp-folders.
+- 2026-10-24: T1 premise refuted: the renv render test asserts that its render starts no R process (`r_process_lines()` empty), and a local run of `test-renv.R` (15 passed, 0 skipped) left no file in `~/Library/Caches/org.R-project.R/R/renv` newer than a mark made before it, so renv never activates in that render and AC1's sandbox folder would stay empty; stopped for the user, since dropping AC1 drops asked-for work.
 
 ## Decisions
 
