@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M053: Keep test writes in temp folders and show failed command output
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -41,9 +41,9 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 
 - [x] T1: Replace the `skip_if_not(file.symlink(...), "cannot make a link")` line in `test-release-supplement.R` with `symlink_or_skip(outside, file.path(dir, "CITATION.cff"))` from `helper-files.R`.
 - [x] T2: In `command_failure()` (`helper-template.R`, about line 108), print `stdout` and `stderr` when the result has no `output`, with raw bytes turned into text. In `test-template.R`, beside the test of the helpers, add cases in which `expect_status()` fails on a `run_split()`-shaped result and on a `git_run()`-shaped result, and `expect_command_fails()` fails on a `run_split()`-shaped result; each case expects the printed text in the failure message, and each is seen failing before the change.
-- [ ] T3: Rewrite the 26 lines that AC2's grep prints: a success check becomes `expect_status(<result>)`, and a failure check (`!= 0L`, `expect_false(... == 0L)`) becomes `expect_command_fails(<result>)`. Keep the `status`, `stdout`, and `stderr` fields of the list results that `test-shortcodes.R` builds from `run_split()`, so that `command_failure()` finds them. Run the AC2 grep.
-- [ ] T4: In DESIGN.md (the paragraph that names `expect_status()`, about line 241), state which files' status checks go through the helpers, as the AC2 grep shows.
-- [ ] T5: Run `devtools::test()` on the Mac, then wait for CI on the PR.
+- [x] T3: Rewrite the 26 lines that AC2's grep prints: a success check becomes `expect_status(<result>)`, and a failure check (`!= 0L`, `expect_false(... == 0L)`) becomes `expect_command_fails(<result>)`. Keep the `status`, `stdout`, and `stderr` fields of the list results that `test-shortcodes.R` builds from `run_split()`, so that `command_failure()` finds them. Run the AC2 grep.
+- [x] T4: In DESIGN.md (the paragraph that names `expect_status()`, about line 241), state which files' status checks go through the helpers, as the AC2 grep shows.
+- [x] T5: Run `devtools::test()` on the Mac, then wait for CI on the PR.
 
 ## Work log
 
@@ -66,6 +66,9 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - 2026-10-24: re-audit: AC4 (reduced) — nothing; the reader noted that a skipped test does not pass, so review counts skips in the Mac run of the four files (the reader ran after the amended text was written, not before).
 - 2026-10-24: T2 done: `command_failure()` prints `stdout` and `stderr` (raw turned into text) when a result has no `output`; new test "a failed status check shows the output of run_split() and git_run()" in `test-template.R` failed 5 of 5 before the change and passes 5 of 5 after; the neighboring helper test passes 13 of 13.
 - 2026-10-24: checkpoint: T3's 26 rewrites (the AC2 grep prints nothing; diff 15, 7, and 4 lines) and T4's DESIGN.md sentence are written; boxes stay open until the full suite run finishes.
+- 2026-10-24: T3, T4, T5 done: `devtools::test()` on the Mac ran 391 tests, 0 failed, 0 errors, 10 skipped; the four AC4 files ran 186 tests, 0 failed, 4 skipped, all in `test-check-supplement.R` and none in a test M053 edits: "a name that is not valid UTF-8 matches with ASCII letter case ignored", "a page name that is not valid UTF-8 does not stop the link check", "a path that fs stops on gives the other link rules' answer, not an error", and "on Windows, a junction in docs to a folder outside docs gives the rows of a link" (system guards: Windows only, or names the Mac file system refuses); review judges them against AC4. T5's CI wait runs at review's merge step, where the PR opens.
+- 2026-10-24: claim audit: not owed — internal tier.
+- 2026-10-24: implement complete; status review.
 
 ## Decisions
 

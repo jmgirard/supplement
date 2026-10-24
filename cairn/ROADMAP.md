@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-24 (M052 done: graduated "Drop the Windows Quarto c
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M053 | Keep test writes in temp folders and show failed command output | in-progress | — | normal | milestones/M053-test-output-and-temp-folders.md |
+| M053 | Keep test writes in temp folders and show failed command output | review | — | normal | milestones/M053-test-output-and-temp-folders.md |
 | M052 | Drop the Windows Quarto cache in tests | done | — | high | milestones/archive/M052-drop-windows-quarto-cache.md |
 | M050 | Give a new site a reader README and a separate guide | done | — | normal | milestones/archive/M050-template-guide-split.md |
 | M051 | Keep the package README to the main steps | done | M050 | normal | milestones/archive/M051-readme-main-steps.md |
