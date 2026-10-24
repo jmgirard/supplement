@@ -35,16 +35,10 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Temporary diagnostic (M047): the /tmp file system on the runner.
-      - name: Show the temporary file systems
-        if: runner.os == 'Linux'
-        run: |
-          findmnt -T /tmp || true
-          df -h /tmp "$RUNNER_TEMP"
-
       # The render tests write files of several GB in R's temporary folder.
-      # /tmp on the ubuntu-26.04 image has too little space for them, so
-      # the Linux job puts that folder on the runner's disk.
+      # On the ubuntu-26.04 image /tmp is a 7.9 GB tmpfs with a user quota,
+      # too small for them, so the Linux job puts that folder on the
+      # runner's disk.
       - name: Put the temporary folder on the runner's disk
         if: runner.os == 'Linux'
         run: |

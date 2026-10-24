@@ -252,6 +252,10 @@ no test relies on state that another test file sets.
 `.github/workflows/R-CMD-check.yaml` runs `R CMD check` on Windows, macOS,
 and Ubuntu with the R release and Quarto 1.10, with `NOT_CRAN=true` so the
 render tests run (D-016), and one test process per runner core (D-020).
+The Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because
+`/tmp` on that runner image has too little space for the render tests'
+large fixtures: on ubuntu-26.04 it is a 7.9 GB tmpfs with a user quota
+(run 40055150456, 2026-10-23) (M047).
 `.github/scripts/check-skips.R` then reads the skipped tests from the test
 output that R CMD check keeps, with no second test run, and fails on a skip
 for a missing tool. A last step runs `tests/testthat/test-source.R`, whose

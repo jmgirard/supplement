@@ -1,6 +1,6 @@
 # M047: Keep the Ubuntu CI job within its disk
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -33,9 +33,9 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 
 ## Tasks
 
-- [ ] T1: On the branch, add a temporary Linux-only step before the check that prints `findmnt -T /tmp`, `df -h /tmp "$RUNNER_TEMP"`, and `Rscript -e 'tempdir()'`. Push the branch once (granted at the question set) and read the ubuntu-latest log. If `/tmp` is not a small file system that the fixtures can fill, the goal is wrong: stop and return to `/milestone-plan`.
-- [ ] T2: Replace the diagnostic step with the `TMPDIR` step of AC1, with a comment that names the reason. Keep `df -h` of the new folder in the step only if T1 shows it helps read a later failure. Push once more and read the three jobs.
-- [ ] T3: Update the CI paragraph of `cairn/DESIGN.md` (about line 252) for AC3.
+- [x] T1: On the branch, add a temporary Linux-only step before the check that prints `findmnt -T /tmp`, `df -h /tmp "$RUNNER_TEMP"`, and `Rscript -e 'tempdir()'`. Push the branch once (granted at the question set) and read the ubuntu-latest log. If `/tmp` is not a small file system that the fixtures can fill, the goal is wrong: stop and return to `/milestone-plan`.
+- [x] T2: Replace the diagnostic step with the `TMPDIR` step of AC1, with a comment that names the reason. Keep `df -h` of the new folder in the step only if T1 shows it helps read a later failure. Push once more and read the three jobs.
+- [x] T3: Update the CI paragraph of `cairn/DESIGN.md` (about line 252) for AC3.
 - [ ] T4: At review, read `gh pr checks` on the PR head for AC2.
 
 ## Work log
@@ -50,6 +50,10 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 - 2026-10-23: question set: may the branch be pushed early for one diagnostic CI run — yes, with the diagnostic step removed before review.
 - 2026-10-23: plan gate chose `TMPDIR` under `$RUNNER_TEMP` over pinning `ubuntu-24.04`, because the user chose to keep testing on the newest Ubuntu; falsified by a T1 log that shows `/tmp` on the runner's disk with room to spare.
 - 2026-10-23: minor amendment: T1's diagnostic step and T2's `TMPDIR` step go up in one push, so one CI run shows both the `/tmp` file system and whether the fix holds. The diagnostic step is removed before review, as the question set asked.
+- 2026-10-23: T1: run 40055150456 (branch head 4a77524) on ubuntu-26.04 20261012.163.1 showed `/tmp` as `tmpfs` with `usrquota`, 7.9G in size, and `/dev/root` with 88G free. So the "Quota exceeded" failures came from the tmpfs quota, and the goal holds.
+- 2026-10-23: T2: in the same run, with `TMPDIR` under `$RUNNER_TEMP`, ubuntu-latest passed (5097 passed, 0 failed, 10 skipped) and windows-latest passed. macos-latest failed in `setup-r-dependencies` with "Failed to download rcmdcheck 1.4.0" before any test ran; the two new steps are skipped on macOS, so the PR run at review is the macOS evidence. The diagnostic step is now removed; the workflow parses in R with 9 steps.
+- 2026-10-23: T3: the DESIGN.md CI paragraph names the `TMPDIR` folder and the 7.9 GB tmpfs. No R code changed, so the verify slot's `devtools::test()` was not run; CI at review covers the workflow. Status set to review.
+- 2026-10-23: claim audit: not owed — internal tier
 
 ## Decisions
 
