@@ -59,6 +59,7 @@ A new site's `.gitignore` stays as setup wrote it through later renders, because
 - 2026-10-24: T1–T3 done: `devtools::test()` on the T2 code gave 391 tests, 0 failed, 0 errors, 10 skipped, and the new test ran its 8 expectations unskipped (Quarto 1.10.19, macOS). NEWS and DESIGN.md edits came after that run and touch no test input.
 - 2026-10-24: claim audit: 12 claims read, 2 corrected — NEWS.md, inst/template/_gitignore. NEWS no longer says Quarto added its line at a site's second render (in a git repository it writes its lines at the first); the `_gitignore` comment now names each condition of Quarto's rewrite, `/_*.local` and `/env/` included. The same reader re-read both as correct. `test-template.R` rerun after the comment change: 46 tests, 0 failed, 0 skipped.
 - 2026-10-24: status → review.
+- 2026-10-24: step-7 approval: m049-quarto-ignore-lines approved for merge
 
 ## Decisions
 
