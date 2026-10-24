@@ -1,13 +1,13 @@
 # M050: Give a new site a reader README and a separate guide
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes the files a new site holds and the text its GitHub visitors read
-- **Branch/PR:** —
+- **Branch/PR:** m050-template-guide-split
 
 ## Goal
 
@@ -41,7 +41,7 @@ The first render of a new site leaves a short `README.md` for the people who rea
 
 ## Tasks
 
-- [ ] T1: Split `inst/template/_README.md`. Move its author parts to a new `inst/template/GUIDE.md`, keeping each heading's text, and end it with `## Reference`, holding the Windows device names and names that end in `.` (from "Paper facts"), the license id syntax with the spdx.org link sentence (lines 109-115), the Markdown changes to file names such as `a--b.csv`, and the "Setup scripts" part as a `###` heading, its text rewritten to say setup renames `_README.md` to `README.md`, or removes it when `README.md` exists. Rewrite `_README.md` as the reader page of AC1, with `GUIDE.md` in its contents list. Update `index.qmd`'s "Before your first commit" box and the two `_quarto.yml` comments to name `GUIDE.md`.
+- [x] T1: Split `inst/template/_README.md`. Move its author parts to a new `inst/template/GUIDE.md`, keeping each heading's text, and end it with `## Reference`, holding the Windows device names and names that end in `.` (from "Paper facts"), the license id syntax with the spdx.org link sentence (lines 109-115), the Markdown changes to file names such as `a--b.csv`, and the "Setup scripts" part as a `###` heading, its text rewritten to say setup renames `_README.md` to `README.md`, or removes it when `README.md` exists. Rewrite `_README.md` as the reader page of AC1, with `GUIDE.md` in its contents list. Update `index.qmd`'s "Before your first commit" box and the two `_quarto.yml` comments to name `GUIDE.md`.
 - [ ] T2: In `inst/template/_scripts/setup.lua` (lines 107-115 and the header comment at 11-13), drop the `SUPPLEMENT.md` branch: rename `_README.md` to `README.md` when no `README.md` exists, else remove `_README.md`. Copy `GUIDE.md` in `script_site()` and rewrite the rename tests in `test-template.R` (about lines 666-698 and 753-760) to AC4. Grep the Windows-only tests for hand-written lists of template files (LESSONS M028) and add `GUIDE.md` where one lists `_README.md`.
 - [ ] T3: In `R/create-supplement.R`, make `fill_repo()` (line 264) replace the address in `GUIDE.md` too, and update the roxygen at lines 15-19 and 33 and the message at line 123. Update `test-create-supplement.R`: `template_tracked`, the repo tests, and the rendered-site test at about lines 344-355 that expects `SUPPLEMENT.md`. Point `test-template.R:241` at `GUIDE.md` for the "Paper figures" code block.
 - [ ] T4: In `R/check-supplement.R`, keep the `SUPPLEMENT.md` placeholder keys (lines 1160-1172) for sites made earlier, and say so in the comment at line 1153 and the roxygen at line 210. Leave the placeholder tests' `SUPPLEMENT.md` cases in place.
@@ -63,6 +63,8 @@ The first render of a new site leaves a short `README.md` for the people who rea
 - 2026-10-24: plan split the candidate: M050 covers the template guide and reader README; M051 (planned now, depends on M050) trims the package README.
 - 2026-10-24: question set: approach, test scope, and changelog decided by the agent as written in the Tasks and Criteria.
 - 2026-10-24: criteria audit (full mode, fresh Opus reader, run after the question set because the work was chosen there): 10 findings on M050, all fixed: AC7 said no guide is written beside an existing README (now: no `SUPPLEMENT.md`); AC6 asked each kept line to state its purpose (now: the comment and roxygen sentence) and missed T1 and T2 in Coverage; AC4 "each existing file" covered renamed files, named no case for the second render, and its failing test would fail on the missing `GUIDE.md` alone; AC4 and AC5 bound test files (now behavior, tests as evidence); AC5 used a lowercase owner and skipped the user-site branch; AC2 named a moving ref and its script (now `bafeb91`); T1 did not name the spdx.org sentence or the Setup scripts rewrite.
+- 2026-10-24: implement started on branch m050-template-guide-split.
+- 2026-10-24: T1 done: `GUIDE.md` (author parts, `## Reference` with License ids, File names in `_supplement.yml`, Setup scripts) and a 26-line reader `_README.md`; `index.qmd` box and `_quarto.yml` comments name `GUIDE.md`. AC1 grep 0, AC2 no missing heading, AC3 Reference at line 515 with hits at 519-539 only. Minor amendment: T1 also took `GUIDE.md` into `template_tracked` and pointed the figure-code test at `GUIDE.md` (from T3), so the suite stays green; `test-create-supplement.R` 0 failed. One check-list bullet reworded to stay under the style hook's sentence limit.
 
 ## Decisions
 

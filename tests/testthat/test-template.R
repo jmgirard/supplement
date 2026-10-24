@@ -237,8 +237,8 @@ test_that("the example's site chunk finds the site folder from analyses/ or the 
   }
 })
 
-test_that("the README's figure code starts with the example's site chunk", {
-  readme <- readLines(file.path(template_dir(), "_README.md"), encoding = "UTF-8")
+test_that("the guide's figure code starts with the example's site chunk", {
+  readme <- readLines(file.path(template_dir(), "GUIDE.md"), encoding = "UTF-8")
   section <- readme[which(readme == "## Paper figures"):length(readme)]
   start <- which(section == "```r")[1]
   end <- which(section == "```")

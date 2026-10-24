@@ -2,7 +2,7 @@
 # test does not take its expectation from the folder that the function
 # copies.
 template_tracked <- c(
-  "LICENSE-CC-BY.md", "LICENSE.md", "_README.md",
+  "GUIDE.md", "LICENSE-CC-BY.md", "LICENSE.md", "_README.md",
   "_extensions/supplement/_extension.yml", "_extensions/supplement/supplement.lua",
   "_gitignore", "_quarto.yml", "_scripts/nojekyll.lua", "_scripts/setup.lua",
   "_supplement.yml", "analyses/example.qmd", "data/example.csv",
