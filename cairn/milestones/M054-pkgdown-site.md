@@ -67,7 +67,7 @@ coverage report to CI".
       holds `/docs/`, so `git status --porcelain` lists no path under
       `docs/` after AC2's build. NEWS.md has one bullet that names
       `https://jmgirard.github.io/supplement/`.
-- [ ] AC5: `Rscript -e 'devtools::test()'` passes, and
+- [x] AC5: `Rscript -e 'devtools::test()'` passes, and
       `Rscript -e 'devtools::check()'` gives 0 errors and 0 warnings, and
       none of its NOTEs names a file or folder this milestone adds.
 
@@ -100,8 +100,9 @@ coverage report to CI".
       concurrency group, `extra-packages: any::pkgdown, local::.`,
       `pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)`,
       and `JamesIves/github-pages-deploy-action` to `gh-pages` with
-      `clean: false`, skipped on pull requests. No Quarto setup step: the
-      vignette's code blocks are not evaluated and no help example renders.
+      `clean: false`, skipped on pull requests. A Quarto 1.10.19 setup step
+      so the `check_tools()` example on the site finds Quarto (added at
+      review; no help example or vignette block renders with Quarto).
       Check that it parses with `yaml::read_yaml()`, which reads the `on:`
       key as `"TRUE"` (YAML 1.1).
 - [x] T3: Add a NEWS.md bullet: DESCRIPTION's `URL:` field now names the
@@ -137,6 +138,7 @@ coverage report to CI".
 - 2026-10-24: T4 done: `devtools::document()` left no diff; `devtools::test()` 391 results, 0 failed, 0 errors, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 1 NOTE for the hidden folder `.claude`, which is untracked, holds no file git lists, and is not added by this milestone; the check started before the NEWS rewording in 739314d, which changed only bullet text
 - 2026-10-24: implement complete: status set to review
 - 2026-10-24: review checkpoint: AC1 to AC4 verified; AC5's test and check run and the four-lens review are in progress
+- 2026-10-24: review: AC5 and the gate verified; 21 findings settled (7 fix now, 5 follow-up into one new row, 9 reject); T2 text updated for the Quarto setup step added at review
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
@@ -151,3 +153,28 @@ Review pass 1, 2026-10-24, at e892ae8 (branch contains origin/main 85da5c9; no P
 - AC2: after `rm -rf docs`, `pkgdown::build_site(preview = FALSE)` exited 0 with no "error" in its log and wrote `docs/index.html`, `docs/reference/index.html`, `docs/articles/publishing.html`, `docs/news/index.html`, and 9 of 9 `docs/reference/<name>.html` pages for the `man/*.Rd` files.
 - AC3: `yaml::read_yaml()` parses `.github/workflows/pkgdown.yaml`; triggers (under `TRUE`) are push (branches: main), pull_request, release (types: published), and workflow_dispatch; default permissions `read-all`; one job, `pkgdown`, with `contents: write`; step "Build site" runs `pkgdown::build_site_github_pages(...)`; step "Deploy to GitHub Pages" uses the JamesIves deploy action with branch `gh-pages`, folder `docs`, and `if: github.event_name != 'pull_request'`.
 - AC4: DESCRIPTION `URL:` lists `https://jmgirard.github.io/supplement/` then `https://github.com/jmgirard/supplement`; `.Rbuildignore` lines 12 to 14 hold the three lines exactly (`grep -xF`); `.gitignore` line 7 is `/docs/`; after AC2's build `git status --porcelain -- docs` printed 0 lines; NEWS.md holds the address once, in the bullet at lines 3 to 6.
+- AC5: at fdf1a27's tree, `devtools::test()` gave 391 results, 0 failed, 0 errors, 10 skipped; `devtools::check()` gave 0 errors, 0 warnings, 1 NOTE naming the hidden folder `.claude`, which `git diff --name-only main...HEAD` does not list, so no NOTE names a file or folder this milestone adds.
+- Gate: `cairn_validate.py` exit 0, all checks passed; no principle changed, so `cairn_impact` skipped; `devtools::document()` left 0 changed paths in `man/` and `NAMESPACE`; no README.Rmd; `pkgdown::check_pkgdown()` passed (AC1); NEWS.md has the bullet (AC4); the two added top-level files are `.Rbuildignore`d (`.github` already was); `devtools::check()` 0/0/1, the NOTE justified in AC5.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: a local `build_site()` puts `CLAUDE.md` in `docs/` pages, `search.json`, and `sitemap.xml`, while DESIGN.md named only `CLAUDE.html` — fix now (DESIGN.md names all three and says only the workflow's build is for publishing)
+- diff-bug #2: `rm -f CLAUDE.md` names one file, so a later agent-notes `.md` would be published — reject, false: no such file is tracked, and pkgdown renders no other extra page today (the reviewer listed the tracked top-level `.md` files)
+- diff-bug #3: a manual run started on any branch deploys that branch's site — follow-up, row "Tighten the package site and its deploy"
+- diff-bug #4: a release run builds from the tag, so a release from an older tag publishes older pages — follow-up, same row
+- diff-bug #5: `clean: false` keeps pages the build no longer makes — follow-up, same row
+- diff-bug #6: the first `URL:` entry is dead until Pages is on — reject, planned change: the Scope leaves turning on Pages to the user after merge
+- diff-bug #7: the `check_tools()` example on the site would show Quarto missing, since the runner had none — fix now (Quarto 1.10.19 setup step in the workflow)
+- diff-bug #8: DESIGN.md's "no help example ... renders" reads as if no example runs — fix now (sentence removed; D-025 holds the Quarto reason)
+- diff-bug #9: the README's guide link points to the Rmd on GitHub, which the site's home page shows — follow-up, row "Tighten the package site and its deploy"
+- diff-bug #10: NEWS wording "built into a pkgdown website for <url>" reads oddly and lists only three parts — reject, style: wording only, and the bullet claims no full list
+- diff-bug #11: the deploy action's handling of a deleted tracked file is untested until the first push to main — reject, false: no defect shown, and the action deploys through its own worktree; the first deploy run is read after the merge
+- blame-history #1: no D-entry records the package site's `gh-pages` route, which D-001 rejected for template sites — fix now (D-025)
+- blame-history #2: the DESIGN.md addition held decision reasons, ran past one sentence, and joined the R-CMD-check paragraph — fix now (reasons moved to D-025, own paragraph, facts only)
+- blame-history #3: the first `URL:` entry is not live at merge — reject, planned change (as diff-bug #6)
+- blame-history #4: the NEWS bullet names an address not yet live and an internal detail — reject, planned change: the claim audit reworded it to say the site is built for the address, and the `URL` field is public package metadata
+- blame-history #5: `^pkgdown$` ignores a folder that does not exist — reject, planned change: AC4 asks for it, and it covers a `pkgdown/` folder of site assets if one is added
+- prior-review: no prior-review evidence, 0 findings
+- ripple #1: DESIGN.md's "never runs `git push`" convention now sits beside a workflow that pushes — fix now (the convention says it covers package code and names D-025)
+- ripple #2: as diff-bug #8 — fix now (same edit)
+- ripple #3: DESIGN.md "the CI workflow does not set it" is ambiguous with two workflows — fix now (names `R-CMD-check.yaml`)
+- ripple #4: PROFILE.md says the maintainers' CI never holds `cairn/` — reject, false: that sentence is the guest-mode clause, and this repo runs in owner mode
+- ripple #5: README and NEWS give two addresses for the guide — follow-up, row "Tighten the package site and its deploy" (as diff-bug #9)
