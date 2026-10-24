@@ -28,7 +28,7 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - [x] AC1: `grep -n 'file.symlink(' tests/testthat/test-release-supplement.R` prints nothing, and "a value error comes before the refusal of a linked output" makes its `CITATION.cff` link with `symlink_or_skip()`.
 - [x] AC2: `grep -nE 'expect_(equal|identical|true|false)\(.*\$status *(,|==|!=) *0L' tests/testthat/test-shortcodes.R tests/testthat/test-release-supplement.R tests/testthat/test-check-supplement.R | grep -vE 'info *=|label *='` prints nothing.
 - [x] AC3: In `tests/testthat/test-template.R`, three cases pass: `expect_status()` failing on a `run_split()`-shaped result and on a `git_run()`-shaped result, and `expect_command_fails()` failing on a `run_split()`-shaped result. Each case expects the text of the result's `stdout`, and for `run_split()` also its `stderr`, in the failure message.
-- [ ] AC4: Running `test-release-supplement.R`, `test-shortcodes.R`, `test-check-supplement.R`, and `test-template.R` on the Mac reports 0 failures and 0 errors, and no test whose lines `git diff main...HEAD` changes is skipped.
+- [x] AC4: Running `test-release-supplement.R`, `test-shortcodes.R`, `test-check-supplement.R`, and `test-template.R` on the Mac reports 0 failures and 0 errors, and no test whose lines `git diff main...HEAD` changes is skipped.
 
 ## Coverage
 
@@ -105,3 +105,5 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - ripple #1: the candidate row "Show output on failed status checks" describes the fixed problem — reject (planned change: step 9 hygiene graduates the row)
 - ripple #2: the candidate row "Use the link helper in the release test" describes the fixed problem — reject (planned change: step 9 hygiene graduates the row)
 - ripple #3: the `expect_command_fails()` comment names only `run_in()` — fix now (same as diff-bug #4)
+- Fix-now commit 8b6c5bd covers diff-bug #1, #2, #3, #4, #10 and ripple #3; the nul-byte expectation added to "a failed status check shows the output of run_split() and git_run()" errored without the fix and passes with it (6 of 6).
+- AC4 evidence, amended wording (2026-10-24, code at 8b6c5bd): `devtools::test()` on the Mac ran 391 tests, 0 failed, 0 errors, 10 skipped; the four AC4 files ran 186 tests, 0 failed, 0 errors, 4 skipped. The skipped four are the tests named in the first AC4 line above. Mapping each hunk of `git diff -U0 main...HEAD` in the four files to its enclosing `test_that()` gave 19 tests and the two page builders in `test-shortcodes.R`, and none of the four skipped tests is among them.
