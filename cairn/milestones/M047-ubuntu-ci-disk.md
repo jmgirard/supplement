@@ -56,6 +56,8 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 - 2026-10-23: claim audit: not owed — internal tier
 
 - 2026-10-23: stop: open-PR feature cap. The cap is 1, and PR #47 (m046-linked-figures) is open, so review posed no merge question and opened no PR. PR #47 waits on this milestone, so one of the two must give way: raise the cap with a `# Feature PR cap: 2` header line in `cairn/PROFILE.md`, or carry this change on the M046 branch.
+- 2026-10-23: the user chose to raise the cap: `# Feature PR cap: 2` added to `cairn/PROFILE.md` on main (8584efa), and main merged into the branch (c7c9e96). Only `cairn/PROFILE.md` changed, so the evidence stands.
+- 2026-10-23: step-7 approval: m047-ubuntu-ci-disk approved for merge (the user's message: "Raise the feature PR cap to 2 in cairn/PROFILE.md, then rerun the M047 review and merge it.")
 
 ## Decisions
 
