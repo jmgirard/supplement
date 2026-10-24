@@ -4,7 +4,7 @@
 template_tracked <- c(
   "LICENSE-CC-BY.md", "LICENSE.md", "_README.md",
   "_extensions/supplement/_extension.yml", "_extensions/supplement/supplement.lua",
-  "_gitignore", "_quarto.yml", "_scripts/nojekyll.ts", "_scripts/setup.ts",
+  "_gitignore", "_quarto.yml", "_scripts/nojekyll.lua", "_scripts/setup.lua",
   "_supplement.yml", "analyses/example.qmd", "data/example.csv",
   "figures/bootstrap-means.png", "index.qmd"
 )

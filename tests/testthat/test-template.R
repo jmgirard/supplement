@@ -45,7 +45,7 @@ test_that("a render whose setup script fails with no output shows the script's e
   expect_status(use_template(dir))
   # Quarto turns a failed project script into an error with no message, so
   # without debug logging the render prints only "Running script ...".
-  writeLines("Deno.exit(3);", file.path(dir, "_scripts", "setup.ts"))
+  writeLines("os.exit(3)", file.path(dir, "_scripts", "setup.lua"))
 
   rendered <- run_in(dir, "quarto", "render")
   expect_command_fails(rendered)

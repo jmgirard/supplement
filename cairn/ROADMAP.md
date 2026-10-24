@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-24 (M046 done: graduated "Stop the example at a lin
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M048 | Run the template scripts without Deno | planned | — | high | milestones/M048-lua-project-scripts.md |
+| M048 | Run the template scripts without Deno | in-progress | — | high | milestones/M048-lua-project-scripts.md |
 | M047 | Keep the Ubuntu CI job within its disk | done | — | high | milestones/archive/M047-ubuntu-ci-disk.md |
 | M046 | Stop the example at a linked figures folder | done | — | high | milestones/archive/M046-linked-figures.md |
 | M045 | Detect broken file links on Windows | done | — | high | milestones/archive/M045-windows-broken-file-links.md |

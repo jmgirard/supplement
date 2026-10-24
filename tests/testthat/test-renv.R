@@ -35,7 +35,7 @@ test_that("the R process check finds each form of an R call and no other process
   expect_identical(r_process_lines(r_calls), r_calls)
 
   others <- c(
-    "[execProcess] /Applications/quarto/bin/tools/aarch64/deno run --allow-all _scripts/setup.ts",
+    "[execProcess] /Applications/quarto/bin/tools/aarch64/deno run --allow-all _scripts/build.ts",
     "[execProcess] /Applications/quarto/bin/tools/aarch64/dart-sass/sass in.scss out.css --style compressed",
     "[execProcess] /Applications/quarto/bin/tools/aarch64/pandoc +RTS -K512m -RTS --defaults d.yml",
     "[execProcess] Success: true, code: 0",
