@@ -53,6 +53,8 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 - 2026-10-24: claim audit: 18 claims read, 2 corrected — README.md, R/create-supplement.R (README's release sentence now says skipped git checks stop it and a differing CITATION.cff DOI does not; the reader found the "adds the rules it lacks" fact on no help page, so the `create_supplement()` roxygen now says so, and its re-read added that the render ends `.gitignore` with `!docs/` and `!_freeze/`, checked against setup.lua by the session since the rule allows no second pass); also rewrapped README line 61.
 - 2026-10-24: T3 done at 4eb2617: AC1 grep prints nothing and README holds all six calls; every AC2 pattern matches its help page and README names all five `?fn` pages; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes (tests 161 s). An earlier check run was stopped because it started before the audit fixes.
 - 2026-10-24: implement complete; status review.
+- 2026-10-24: review: 18 findings settled (7 fix now in aae999f, 11 reject, 0 follow-up); feature cap read: 0 open PRs.
+- 2026-10-24: step-7 approval: m051-readme-main-steps approved for merge
 
 ## Decisions
 
