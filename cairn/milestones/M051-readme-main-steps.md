@@ -23,7 +23,7 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 
 - [x] AC1: `grep -n -e 'staged' -e 'subfolder' -e 'requests no' -e 'as text' -e '_gitignore' -e 'old text back' -e 'by hand' -e 'comments stay' -e 'With the' README.md` prints nothing, and `README.md` holds each of `create_supplement(`, `add_report(`, `add_data(`, `check_supplement()`, `release_supplement(`, and `write_dockerfile(`.
 - [x] AC2: The help pages hold the cut facts: `man/release_supplement.Rd` matches `staged`, `subfolder`, `old text back`, and `comments`; `man/check_supplement.Rd` matches `web address is requested`; `man/add_report.Rd` and `man/add_data.Rd` each match `as text` and `by hand`; `man/create_supplement.Rd` matches `_gitignore`. `README.md` names `?release_supplement`, `?check_supplement`, `?add_report`, `?add_data`, and `?create_supplement`.
-- [ ] AC3: `devtools::document()` leaves no diff, and `devtools::check()` is clean (0 errors, 0 warnings, any NOTE justified).
+- [x] AC3: `devtools::document()` leaves no diff, and `devtools::check()` is clean (0 errors, 0 warnings, any NOTE justified).
 
 ## Coverage
 
@@ -62,12 +62,12 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 - 2026-10-24 AC2 evidence (HEAD 4dd92be): man/release_supplement.Rd matches `staged` 3, `subfolder` 1, `old text back` 1, `comments` 1; man/check_supplement.Rd `web address is requested` 1; man/add_report.Rd `as text` 1, `by hand` 3; man/add_data.Rd `as text` 1, `by hand` 2; man/create_supplement.Rd `_gitignore` 1. README.md names `?release_supplement`, `?check_supplement`, `?add_report`, `?add_data`, `?create_supplement` once each.
 - 2026-10-24 consistency gate (HEAD e5e9bc3): cairn_validate all checks passed; no principle changed, so no cairn_impact; no README.Rmd, no pkgdown site, no new top-level file; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes. NEWS: no entry, as planned; the help-page additions state existing behavior and change none.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: README's release text said "skips its git checks", a term the README no longer explains — fix now
-- diff-bug #2: "the recovery from a failed write" reads as steps the user must take, though the function puts the files back itself — fix now
-- diff-bug #3: README line 37 tells users to edit `_README.md`, but no longer says the first render removes it when `README.md` exists, so edits can be lost — fix now
-- diff-bug #4: the new roxygen "ends it with `!docs/` and `!_freeze/`" omits that these lines cannot undo a rule such as `docs/*` (inst/template/GUIDE.md) — fix now
-- diff-bug #5: "how each function edits these files" has an unclear referent — fix now
-- diff-bug #6: the DOI sentence lost "because the release writes that file again" — fix now
+- diff-bug #1: README's release text said "skips its git checks", a term the README no longer explains — fix now, fixed aae999f
+- diff-bug #2: "the recovery from a failed write" reads as steps the user must take, though the function puts the files back itself — fix now, fixed aae999f
+- diff-bug #3: README line 37 tells users to edit `_README.md`, but no longer says the first render removes it when `README.md` exists, so edits can be lost — fix now, fixed aae999f
+- diff-bug #4: the new roxygen "ends it with `!docs/` and `!_freeze/`" omits that these lines cannot undo a rule such as `docs/*` (inst/template/GUIDE.md) — fix now, fixed aae999f
+- diff-bug #5: "how each function edits these files" has an unclear referent — fix now, fixed aae999f
+- diff-bug #6: the DOI sentence lost "because the release writes that file again" — fix now, fixed aae999f
 - prior-review #1: the staged-file warning (M015 review) left the README for the help page — reject (planned change: Scope cuts the staging details; man/release_supplement.Rd keeps it)
 - prior-review #2: the README no longer says the render appends to an existing `.gitignore` — reject (planned change: Scope cuts the setup-file details; man/create_supplement.Rd now states it)
 - prior-review #3: ragged wrap near README line 63 — reject (style); the line was rewrapped with the diff-bug #3 fix
@@ -75,7 +75,10 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 - ripple #1: candidate row "Split the template guide by reader" describes the pre-diff README — reject (planned change: post-merge hygiene removes the row this milestone resolves)
 - blame-history #1: staged-file hazard moved off the README (M015) — reject (planned change, as prior-review #1)
 - blame-history #2: "(`?check_supplement` lists them all)" removed — reject (false: the README list covers every check kind, and the new pointer above the list names the help page)
-- blame-history #3: git-skip sentence removed while the release text still names skipped git checks — fix now (same fix as diff-bug #1)
+- blame-history #3: git-skip sentence removed while the release text still names skipped git checks — fix now (same fix as diff-bug #1), fixed aae999f
 - blame-history #4-#6: link limits, release rollback and changed-file stops, and staging rules left the README — reject (planned change; each is on its help page)
 - blame-history #7-#10: `.gitignore` reason, text insertion, version-line comments, DOI reason traced — no finding reported (the lens judged each consistent)
 - blame-history style note: odd wraps in README, and the roxygen change goes past "adding the missing facts" — reject (style for the wraps; false for scope: Scope's In says a fact a help page lacks goes into the roxygen)
+- 2026-10-24 AC3 evidence (HEAD aae999f, after the fixes): `devtools::document()` leaves no diff (`git status --short` empty); `devtools::check()` 0 errors, 0 warnings, 0 notes, tests OK (163 s). AC1 grep rerun after the fixes: exit 1, no output.
+- snapshot files: none changed (no `_snaps` path in `git diff --name-only main...HEAD`).
+- PR conversation: no PR open, so no read.
