@@ -250,7 +250,10 @@ Both run a `quarto` command once more when it fails with "database is
 locked", which Quarto's Sass cache gives when parallel renders write it at
 once. They set no Quarto cache folder, so on every system the test
 processes share the user's Quarto cache, and that rerun covers its Sass
-database (M052).
+database (M052). A test that renders a `.ts` or `.js` project script would
+again make parallel Windows renders clash over the cache's `deno_std`
+folder (M033), since Quarto 1.10 removes and copies that folder for such
+a script.
 Test files run in parallel (`Config/testthat/parallel` in DESCRIPTION), so
 no test relies on state that another test file sets.
 `.github/workflows/R-CMD-check.yaml` runs `R CMD check` on Windows, macOS,
