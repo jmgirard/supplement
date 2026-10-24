@@ -1,13 +1,13 @@
 # M047: Keep the Ubuntu CI job within its disk
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — CI workflow configuration that no consumer of the package relies on
-- **Branch/PR:** —
+- **Branch/PR:** m047-ubuntu-ci-disk
 
 ## Goal
 
@@ -49,6 +49,7 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 - 2026-10-23: criteria audit (reduced mode, Opus fresh reader): AC1 no finding. AC2's step clause was outside what `gh pr checks` lists, and the job names were wrong; rewritten to the three check names. AC3's "and why" named no reason; rewritten to name it.
 - 2026-10-23: question set: may the branch be pushed early for one diagnostic CI run — yes, with the diagnostic step removed before review.
 - 2026-10-23: plan gate chose `TMPDIR` under `$RUNNER_TEMP` over pinning `ubuntu-24.04`, because the user chose to keep testing on the newest Ubuntu; falsified by a T1 log that shows `/tmp` on the runner's disk with room to spare.
+- 2026-10-23: minor amendment: T1's diagnostic step and T2's `TMPDIR` step go up in one push, so one CI run shows both the `/tmp` file system and whether the fix holds. The diagnostic step is removed before review, as the question set asked.
 
 ## Decisions
 
