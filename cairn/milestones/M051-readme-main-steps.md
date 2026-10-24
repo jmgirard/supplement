@@ -1,6 +1,6 @@
 # M051: Keep the package README to the main steps
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** M050
 - **Driving RR:** —
@@ -35,7 +35,7 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 
 - [x] T1: In `README.md`, cut the passages that AC1's patterns find, keeping one sentence per part that names its help page. Keep each part's main call.
 - [x] T2: For each AC2 pattern its help page lacks, add the fact to that function's roxygen in `R/`, then run `devtools::document()`.
-- [ ] T3: Run the AC1 and AC2 greps and `devtools::check()`, and record the outputs in the work log.
+- [x] T3: Run the AC1 and AC2 greps and `devtools::check()`, and record the outputs in the work log.
 
 ## Work log
 
@@ -51,6 +51,8 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 - 2026-10-24: T1 line count correction: README.md changed by 17 insertions and 38 deletions (`git show --stat` 55); the 41 deletions counted all three files.
 - 2026-10-24: T2 done: every AC2 pattern already matched its help page; read each cut fact against the pages, and only the reason for the `_gitignore` and `_README.md` names (from `inst/template/_scripts/setup.lua`) was missing; added it to the `create_supplement()` roxygen; `devtools::document()` rewrote only `create_supplement.Rd`.
 - 2026-10-24: claim audit: 18 claims read, 2 corrected — README.md, R/create-supplement.R (README's release sentence now says skipped git checks stop it and a differing CITATION.cff DOI does not; the reader found the "adds the rules it lacks" fact on no help page, so the `create_supplement()` roxygen now says so, and its re-read added that the render ends `.gitignore` with `!docs/` and `!_freeze/`, checked against setup.lua by the session since the rule allows no second pass); also rewrapped README line 61.
+- 2026-10-24: T3 done at 4eb2617: AC1 grep prints nothing and README holds all six calls; every AC2 pattern matches its help page and README names all five `?fn` pages; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes (tests 161 s). An earlier check run was stopped because it started before the audit fixes.
+- 2026-10-24: implement complete; status review.
 
 ## Decisions
 
