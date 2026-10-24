@@ -68,6 +68,24 @@ test_that("a new site renders and holds its setup files", {
   expect_false(file.exists(file.path(site$dir, "_README.md")))
 })
 
+test_that("a full render runs the project scripts through Pandoc and starts no Deno", {
+  skip_if_no_quarto()
+  site <- new_site()
+
+  rendered <- withr::with_envvar(c(QUARTO_LOG_LEVEL = "DEBUG"), run_in(site, "quarto", "render"))
+  expect_status(rendered)
+  expect_true(file.exists(file.path(site, "docs", ".nojekyll")))
+
+  # On Windows, Quarto can log a batch file in place of the command it runs,
+  # so its log does not show which program ran a script.
+  if (.Platform$OS.type != "windows") {
+    log <- paste(rendered$output, collapse = "\n")
+    expect_match(rendered$output, "--lua-filter _scripts/setup.lua", fixed = TRUE, all = FALSE, info = log)
+    expect_match(rendered$output, "--lua-filter _scripts/nojekyll.lua", fixed = TRUE, all = FALSE, info = log)
+    expect_no_match(rendered$output, 'deno(\\.exe)?"? run', info = log)
+  }
+})
+
 test_that("report pages carry the site navbar and stored output", {
   skip_if_no_quarto()
   site <- site_copy()
