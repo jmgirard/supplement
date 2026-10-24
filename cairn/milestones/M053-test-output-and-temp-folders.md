@@ -28,7 +28,7 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - [x] AC1: `grep -n 'file.symlink(' tests/testthat/test-release-supplement.R` prints nothing, and "a value error comes before the refusal of a linked output" makes its `CITATION.cff` link with `symlink_or_skip()`.
 - [x] AC2: `grep -nE 'expect_(equal|identical|true|false)\(.*\$status *(,|==|!=) *0L' tests/testthat/test-shortcodes.R tests/testthat/test-release-supplement.R tests/testthat/test-check-supplement.R | grep -vE 'info *=|label *='` prints nothing.
 - [x] AC3: In `tests/testthat/test-template.R`, three cases pass: `expect_status()` failing on a `run_split()`-shaped result and on a `git_run()`-shaped result, and `expect_command_fails()` failing on a `run_split()`-shaped result. Each case expects the text of the result's `stdout`, and for `run_split()` also its `stderr`, in the failure message.
-- [ ] AC4: Every test in `test-release-supplement.R`, `test-shortcodes.R`, `test-check-supplement.R`, and `test-template.R` passes on the Mac.
+- [ ] AC4: Running `test-release-supplement.R`, `test-shortcodes.R`, `test-check-supplement.R`, and `test-template.R` on the Mac reports 0 failures and 0 errors, and no test whose lines `git diff main...HEAD` changes is skipped.
 
 ## Coverage
 
@@ -69,6 +69,8 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - 2026-10-24: T3, T4, T5 done: `devtools::test()` on the Mac ran 391 tests, 0 failed, 0 errors, 10 skipped; the four AC4 files ran 186 tests, 0 failed, 4 skipped, all in `test-check-supplement.R` and none in a test M053 edits: "a name that is not valid UTF-8 matches with ASCII letter case ignored", "a page name that is not valid UTF-8 does not stop the link check", "a path that fs stops on gives the other link rules' answer, not an error", and "on Windows, a junction in docs to a folder outside docs gives the rows of a link" (system guards: Windows only, or names the Mac file system refuses); review judges them against AC4. T5's CI wait runs at review's merge step, where the PR opens.
 - 2026-10-24: claim audit: not owed — internal tier.
 - 2026-10-24: implement complete; status review.
+- 2026-10-24: amendment routed: AC4 — the fresh Mac run of the four files skipped 4 tests (system guards in tests M053 does not touch), and a skipped test does not pass, so AC4 as written cannot be met on the Mac; a second rewrite of AC4 would need a second `re-audit: AC4` line, so the wording went to the user at a stop.
+- 2026-10-24: amendment return: AC4 — "Running `test-release-supplement.R`, `test-shortcodes.R`, `test-check-supplement.R`, and `test-template.R` on the Mac reports 0 failures and 0 errors, and no test whose lines `git diff main...HEAD` changes is skipped." — the user chose this wording at the stop; no re-audit reader ran, since the stop replaces it; the amendment was written inline by the review session in place of a `/milestone-implement` round trip, the amendment being the only work, and status stayed `review`.
 
 ## Decisions
 
