@@ -21,9 +21,9 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 
 ## Acceptance criteria
 
-- [ ] AC1: In `.github/workflows/R-CMD-check.yaml`, a step that runs only when `runner.os == 'Linux'` and comes before the `r-lib/actions/check-r-package` step writes a `TMPDIR` line to `$GITHUB_ENV` that names a folder under `$RUNNER_TEMP`. The step makes that folder.
+- [x] AC1: In `.github/workflows/R-CMD-check.yaml`, a step that runs only when `runner.os == 'Linux'` and comes before the `r-lib/actions/check-r-package` step writes a `TMPDIR` line to `$GITHUB_ENV` that names a folder under `$RUNNER_TEMP`. The step makes that folder.
 - [ ] AC2: On the head of this milestone's pull request, `gh pr checks` reports pass for the R-CMD-check workflow's `windows-latest (release)`, `macos-latest (release)`, and `ubuntu-latest (release)` checks.
-- [ ] AC3: The CI paragraph of `cairn/DESIGN.md` (about line 252) says that the Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because `/tmp` on that runner image has too little space for the render tests' large fixtures.
+- [x] AC3: The CI paragraph of `cairn/DESIGN.md` (about line 252) says that the Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because `/tmp` on that runner image has too little space for the render tests' large fixtures.
 
 ## Coverage
 
@@ -58,3 +58,7 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 ## Decisions
 
 ## Review
+
+- 2026-10-23: synced: `origin/main` is fa772ad, an ancestor of the branch. No PR yet, and the Copilot round is off.
+- AC1 (2026-10-23): `.github/workflows/R-CMD-check.yaml` line 41 is the step "Put the temporary folder on the runner's disk", with `if: runner.os == 'Linux'` (line 43). It runs `mkdir -p "$RUNNER_TEMP/tmp"` and writes `TMPDIR=$RUNNER_TEMP/tmp` to `$GITHUB_ENV` (lines 45-46). It is the second step, before `r-lib/actions/check-r-package@v2` (line 65). In run 40055150456 this step ran on ubuntu-latest, and that job passed with 5097 tests.
+- AC3 (2026-10-23): the CI paragraph of `cairn/DESIGN.md` (lines 252-258) says that the Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because `/tmp` on that runner image has too little space for the render tests' large fixtures.
