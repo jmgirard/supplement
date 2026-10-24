@@ -50,6 +50,7 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 - 2026-10-24: T1 choice: the check part's pointer sits above the list and replaces the "(`?check_supplement` lists them all)" bullet tail; the release part's pointer is two sentences, because the simple-english linter refuses a trailing condition.
 - 2026-10-24: T1 line count correction: README.md changed by 17 insertions and 38 deletions (`git show --stat` 55); the 41 deletions counted all three files.
 - 2026-10-24: T2 done: every AC2 pattern already matched its help page; read each cut fact against the pages, and only the reason for the `_gitignore` and `_README.md` names (from `inst/template/_scripts/setup.lua`) was missing; added it to the `create_supplement()` roxygen; `devtools::document()` rewrote only `create_supplement.Rd`.
+- 2026-10-24: claim audit: 18 claims read, 2 corrected — README.md, R/create-supplement.R (README's release sentence now says skipped git checks stop it and a differing CITATION.cff DOI does not; the reader found the "adds the rules it lacks" fact on no help page, so the `create_supplement()` roxygen now says so, and its re-read added that the render ends `.gitignore` with `!docs/` and `!_freeze/`, checked against setup.lua by the session since the rule allows no second pass); also rewrapped README line 61.
 
 ## Decisions
 

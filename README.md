@@ -58,8 +58,9 @@ quarto render
 The first render writes `.gitignore` and `README.md`, a short page for the
 people who read the site's repository. It keeps a `README.md` that the
 folder already has. `?create_supplement` explains how the first render sets
-up these files. The guide for the site's authors is `GUIDE.md`. It explains how the site renders, how to
-render on the machine that holds private data, and how to publish. It also
+up these files. The guide for the site's authors is `GUIDE.md`. It explains
+how the site renders, how to render on the machine that holds private
+data, and how to publish. It also
 shows how to record R packages with renv and how to render reports in a
 Docker container.
 
@@ -162,9 +163,10 @@ parts after it to 0. An empty version counts as `0.0.0`, so `"major"`
 gives `1.0.0`. A version must be greater than the current version.
 
 Before it changes any file, the function runs `check_supplement()`. If
-that finds a problem, the function stops and changes no file. Then it
-changes the version in `_supplement.yml` and writes `CITATION.cff` and
-`.zenodo.json` again.
+that finds a problem or skips its git checks, the function stops and
+changes no file. A DOI in `CITATION.cff` that differs from
+`_supplement.yml` does not stop it. Then it changes the version in
+`_supplement.yml` and writes `CITATION.cff` and `.zenodo.json` again.
 
 Last, the function prints the commands that make the release, for example:
 

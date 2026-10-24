@@ -37,7 +37,8 @@ folder, it stops before it writes anything.
 The template ships \verb{_gitignore} and \verb{_README.md} under those names,
 because \verb{quarto use template} does not copy \code{.gitignore} or \code{README.md}.
 The first \verb{quarto render} gives them their real names, and that render adds
-the template's rules to an existing \code{.gitignore}. \verb{_README.md} is the
+the template's rules that an existing \code{.gitignore} lacks and ends it
+with \verb{!docs/} and \verb{!_freeze/}. \verb{_README.md} is the
 page for the site's readers. If \code{README.md} exists, the render keeps it
 and removes \verb{_README.md}. The guide for the site's authors is
 \code{GUIDE.md}. Render the site once before your first commit.
