@@ -21,8 +21,8 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 
 ## Acceptance criteria
 
-- [ ] AC1: `grep -n -e 'staged' -e 'subfolder' -e 'requests no' -e 'as text' -e '_gitignore' -e 'old text back' -e 'by hand' -e 'comments stay' -e 'With the' README.md` prints nothing, and `README.md` holds each of `create_supplement(`, `add_report(`, `add_data(`, `check_supplement()`, `release_supplement(`, and `write_dockerfile(`.
-- [ ] AC2: The help pages hold the cut facts: `man/release_supplement.Rd` matches `staged`, `subfolder`, `old text back`, and `comments`; `man/check_supplement.Rd` matches `web address is requested`; `man/add_report.Rd` and `man/add_data.Rd` each match `as text` and `by hand`; `man/create_supplement.Rd` matches `_gitignore`. `README.md` names `?release_supplement`, `?check_supplement`, `?add_report`, `?add_data`, and `?create_supplement`.
+- [x] AC1: `grep -n -e 'staged' -e 'subfolder' -e 'requests no' -e 'as text' -e '_gitignore' -e 'old text back' -e 'by hand' -e 'comments stay' -e 'With the' README.md` prints nothing, and `README.md` holds each of `create_supplement(`, `add_report(`, `add_data(`, `check_supplement()`, `release_supplement(`, and `write_dockerfile(`.
+- [x] AC2: The help pages hold the cut facts: `man/release_supplement.Rd` matches `staged`, `subfolder`, `old text back`, and `comments`; `man/check_supplement.Rd` matches `web address is requested`; `man/add_report.Rd` and `man/add_data.Rd` each match `as text` and `by hand`; `man/create_supplement.Rd` matches `_gitignore`. `README.md` names `?release_supplement`, `?check_supplement`, `?add_report`, `?add_data`, and `?create_supplement`.
 - [ ] AC3: `devtools::document()` leaves no diff, and `devtools::check()` is clean (0 errors, 0 warnings, any NOTE justified).
 
 ## Coverage
@@ -57,3 +57,6 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 ## Decisions
 
 ## Review
+
+- 2026-10-24 AC1 evidence (HEAD 4dd92be): the AC1 grep exits 1 with no output; on main the same grep printed 9 lines (README lines 62, 94-96, 151, 185, 200, 204-206), so it can fail. README.md holds `create_supplement(` 1, `add_report(` 2, `add_data(` 2, `check_supplement()` 3, `release_supplement(` 2, `write_dockerfile(` 1.
+- 2026-10-24 AC2 evidence (HEAD 4dd92be): man/release_supplement.Rd matches `staged` 3, `subfolder` 1, `old text back` 1, `comments` 1; man/check_supplement.Rd `web address is requested` 1; man/add_report.Rd `as text` 1, `by hand` 3; man/add_data.Rd `as text` 1, `by hand` 2; man/create_supplement.Rd `_gitignore` 1. README.md names `?release_supplement`, `?check_supplement`, `?add_report`, `?add_data`, `?create_supplement` once each.
