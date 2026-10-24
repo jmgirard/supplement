@@ -1,22 +1,21 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-24 (M049 done: graduated "Add Quarto's ignore lines to _gitignore"; pruned M046 table row; validate green)_
+_Last hygiene check: 2026-10-24 (M050 done: narrowed "Split the template guide by reader" to the package README part (M051); pruned M047 table row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M050 | Give a new site a reader README and a separate guide | review | — | normal | milestones/M050-template-guide-split.md |
+| M050 | Give a new site a reader README and a separate guide | done | — | normal | milestones/archive/M050-template-guide-split.md |
 | M051 | Keep the package README to the main steps | planned | M050 | normal | milestones/M051-readme-main-steps.md |
 | M049 | Keep a new site's .gitignore through later renders | done | — | normal | milestones/archive/M049-quarto-ignore-lines.md |
 | M048 | Run the template scripts without Deno | done | — | high | milestones/archive/M048-lua-project-scripts.md |
-| M047 | Keep the Ubuntu CI job within its disk | done | — | high | milestones/archive/M047-ubuntu-ci-disk.md |
 
 ## Candidates
 
 - Build a package site with pkgdown: a package site built with the toolkit itself. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review), `write_dockerfile()` (from the M032 review), and `check_tools()` (from M037). — added 2026-10-18, split 2026-10-19
-- Split the template guide by reader: from the ease-of-use review. `README.md` and `inst/template/_README.md` put edge cases, such as Windows device names, the SPDX id syntax, and `--` read as an en dash, beside the main steps. The first render makes the template guide the site repository's `README.md`, so visitors on GitHub read author instructions under a placeholder citation. A short guide for the main steps, the edge cases in help pages or a reference part, and a public README for the site's readers would fix both. The first-time walk now lives in `vignettes/publishing.Rmd` (M038, corrected 2026-10-23). — added 2026-10-22 — started M050
+- Split the template guide by reader: from the ease-of-use review. The package `README.md` puts edge cases, such as the setup file names, the text insertion of `add_report()` and `add_data()`, the link-check limits, and the release staging details, beside the main steps; they belong on the help pages. The first-time walk now lives in `vignettes/publishing.Rmd` (M038, corrected 2026-10-23). — added 2026-10-22; narrowed 2026-10-24 by M050 (template guide and reader README) — started M051
 - Shorten the setup code in new reports: from the ease-of-use review. `add_report()` writes about 50 lines, about 30 of them the Computing environment block that hides the home folder with regular expressions. The example report has 123 lines, and the template guide asks authors to copy `save_png()` by hand. Package functions for that code would shorten reports, but a render by name would then need supplement installed, which is a design choice. The `save-figure` chunk grew with the link stop and the PNG end check (M046). — added 2026-10-22
 - Check web links on the rendered site: web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
 - Handle short folder names on Windows: Windows short folder names: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
