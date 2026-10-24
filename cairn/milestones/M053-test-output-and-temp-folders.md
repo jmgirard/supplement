@@ -27,7 +27,7 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 
 - [x] AC1: `grep -n 'file.symlink(' tests/testthat/test-release-supplement.R` prints nothing, and "a value error comes before the refusal of a linked output" makes its `CITATION.cff` link with `symlink_or_skip()`.
 - [x] AC2: `grep -nE 'expect_(equal|identical|true|false)\(.*\$status *(,|==|!=) *0L' tests/testthat/test-shortcodes.R tests/testthat/test-release-supplement.R tests/testthat/test-check-supplement.R | grep -vE 'info *=|label *='` prints nothing.
-- [ ] AC3: In `tests/testthat/test-template.R`, three cases pass: `expect_status()` failing on a `run_split()`-shaped result and on a `git_run()`-shaped result, and `expect_command_fails()` failing on a `run_split()`-shaped result. Each case expects the text of the result's `stdout`, and for `run_split()` also its `stderr`, in the failure message.
+- [x] AC3: In `tests/testthat/test-template.R`, three cases pass: `expect_status()` failing on a `run_split()`-shaped result and on a `git_run()`-shaped result, and `expect_command_fails()` failing on a `run_split()`-shaped result. Each case expects the text of the result's `stdout`, and for `run_split()` also its `stderr`, in the failure message.
 - [ ] AC4: Every test in `test-release-supplement.R`, `test-shortcodes.R`, `test-check-supplement.R`, and `test-template.R` passes on the Mac.
 
 ## Coverage
@@ -76,3 +76,5 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 
 - AC1 evidence (2026-10-24, branch head 9276769): `grep -n 'file.symlink(' tests/testthat/test-release-supplement.R` printed nothing (exit 1); line 797 reads `symlink_or_skip(outside, file.path(dir, "CITATION.cff"))`, inside "a value error comes before the refusal of a linked output".
 - AC2 evidence (2026-10-24, branch head 9276769): the AC2 grep pipeline printed nothing (exit 1).
+- AC3 evidence (2026-10-24, branch head 9276769): `devtools::test(filter = "release-supplement|shortcodes|check-supplement|template")` on the Mac ran "a failed status check shows the output of run_split() and git_run()" in `test-template.R`: 5 expectations, 0 failed, not skipped; its cases are the three AC3 names, each expecting the `stdout` text, and the `stderr` text for the `run_split()` shape.
+- AC4 evidence (2026-10-24, same run): the four files ran 186 tests, 0 failed, 0 errors, 4 skipped, all in `test-check-supplement.R` and none in a test M053 edits: "a name that is not valid UTF-8 matches with ASCII letter case ignored", "a page name that is not valid UTF-8 does not stop the link check", "a path that fs stops on gives the other link rules' answer, not an error", "on Windows, a junction in docs to a folder outside docs gives the rows of a link". A skipped test does not pass, so AC4 as written fails on the Mac, and no change in this milestone can make a Windows-only test pass there; the criterion is wrong, not the work. Not ticked.
