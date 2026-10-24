@@ -1,6 +1,7 @@
 # Based on the r-lib/actions v2 pkgdown example. A pull request builds the
 # site; a push to main, a published release, or a manual run also pushes it
-# to the gh-pages branch, which GitHub Pages serves.
+# to the gh-pages branch, for GitHub Pages to serve once the repository's
+# Pages setting names that branch.
 on:
   push:
     branches: [main]
@@ -36,6 +37,12 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+
+      # pkgdown makes a page from top-level .md files such as CLAUDE.md and
+      # has no setting to skip one. CLAUDE.md holds notes for coding agents,
+      # not package docs, so the build leaves it out.
+      - name: Leave CLAUDE.md off the site
+        run: rm -f CLAUDE.md
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)

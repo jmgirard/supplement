@@ -275,7 +275,10 @@ tests read the package's R files, from the checkout (D-020).
 `.github/workflows/pkgdown.yaml` builds the package site from
 `_pkgdown.yml` on Ubuntu with no Quarto, since no help example or vignette
 chunk renders, and on events other than a pull request pushes `docs/` to
-the `gh-pages` branch, which GitHub Pages serves (M054).
+the `gh-pages` branch for GitHub Pages to serve (M054). It deletes
+`CLAUDE.md` from its checkout before the build, because pkgdown makes a
+page from top-level `.md` files and has no setting to skip one; a local
+`pkgdown::build_site()` still writes `docs/CLAUDE.html`.
 
 ## Known issues
 
