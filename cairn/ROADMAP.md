@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-24 (triage: promoted "Drop the Windows Quarto cache
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M052 | Drop the Windows Quarto cache in tests | in-progress | — | high | milestones/M052-drop-windows-quarto-cache.md |
+| M052 | Drop the Windows Quarto cache in tests | review | — | high | milestones/M052-drop-windows-quarto-cache.md |
 | M050 | Give a new site a reader README and a separate guide | done | — | normal | milestones/archive/M050-template-guide-split.md |
 | M051 | Keep the package README to the main steps | done | M050 | normal | milestones/archive/M051-readme-main-steps.md |
 | M049 | Keep a new site's .gitignore through later renders | done | — | normal | milestones/archive/M049-quarto-ignore-lines.md |

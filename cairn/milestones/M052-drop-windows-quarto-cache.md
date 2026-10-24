@@ -1,6 +1,6 @@
 # M052: Drop the Windows Quarto cache in tests
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
@@ -36,9 +36,9 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 ## Tasks
 
 - [x] T1: Run the AC2 searches and write one work-log line that classifies each listed line as a string no test hands Quarto as a script.
-- [ ] T2: In `tests/testthat/helper-template.R`, delete `quarto_cache_env()` and its comment block (about lines 71-84), and drop the `cache` variable from `run_in()` (about line 48) and `run_split()` (about line 302), keeping the `QUARTO_LOG_LEVEL` setting and the Sass lock rerun.
-- [ ] T3: Rewrite the helper paragraph in `cairn/DESIGN.md` (about lines 245-256) to the AC4 wording.
-- [ ] T4: Run `Rscript -e 'devtools::test()'` on the Mac; the Windows CI job runs at review. If that job fails with "database is locked" twice on one render, return to plan to keep the helper with the Sass reason.
+- [x] T2: In `tests/testthat/helper-template.R`, delete `quarto_cache_env()` and its comment block (about lines 71-84), and drop the `cache` variable from `run_in()` (about line 48) and `run_split()` (about line 302), keeping the `QUARTO_LOG_LEVEL` setting and the Sass lock rerun.
+- [x] T3: Rewrite the helper paragraph in `cairn/DESIGN.md` (about lines 245-256) to the AC4 wording.
+- [x] T4: Run `Rscript -e 'devtools::test()'` on the Mac; the Windows CI job runs at review. If that job fails with "database is locked" twice on one render, return to plan to keep the helper with the Sass reason.
 
 ## Work log
 
@@ -55,6 +55,9 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 - 2026-10-24: implement started on branch m052-drop-windows-quarto-cache, cut from main at df7c223.
 - 2026-10-24: T1: the AC2 searches list 4 lines and `find` lists nothing; `test-renv.R:38` is a debug-log string that `r_process_lines()` must drop, `test-check-supplement.R:759` and `:766` are an HTML `<script src="gone.js">` link and its broken-link row, and `test-write-dockerfile.R:278` is the `docker run` argument of a Linux container render; no test hands Quarto any of them as a script.
 - 2026-10-24: checkpoint: T2 and T3 edits made (helper removed, `run_split()` keeps `with_dir()` only; DESIGN.md paragraph rewritten), boxes left open until the running `devtools::test()` passes.
+- 2026-10-24: T2-T4: `devtools::test(reporter = "silent")` on the Mac at f4c5572: 390 tests, 0 failed, 0 errors, 10 skipped (2 test processes); the Windows CI job runs at review.
+- 2026-10-24: claim audit: not owed — internal tier
+- 2026-10-24: status review: all tasks done, handed to /milestone-review.
 
 ## Decisions
 
