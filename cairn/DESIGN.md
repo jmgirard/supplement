@@ -242,6 +242,11 @@ In `tests/testthat/test-template.R`, each exit-status check of a command
 shows everything the command printed when it fails, through
 `expect_status()` or `expect_command_fails()` (`helper-template.R`), or
 through `info` in the one test of those helpers.
+In `test-shortcodes.R`, `test-release-supplement.R`, and
+`test-check-supplement.R`, each exit-status check that passes no `info`
+or `label` goes through those helpers too (M053). For a `run_split()` or
+`git_run()` result, which has no `output`, they print the standard output
+and standard error that the result holds.
 `run_in()` runs `quarto` with `QUARTO_LOG_LEVEL=DEBUG` unless the variable
 is already set, so the output of a
 render whose project script failed holds the script's exit code;

@@ -18,6 +18,20 @@ test_that("a failed status check shows what the command printed", {
   expect_success(expect_command_fails(printed))
 })
 
+test_that("a failed status check shows the output of run_split() and git_run()", {
+  split <- list(status = 1L, stdout = "split-stdout\n", stderr = "split-stderr\n")
+  expect_failure(expect_status(split), "split-stdout", fixed = TRUE)
+  expect_failure(expect_status(split), "split-stderr", fixed = TRUE)
+  split$status <- 0L
+  expect_failure(expect_command_fails(split), "split-stdout", fixed = TRUE)
+  expect_failure(expect_command_fails(split), "split-stderr", fixed = TRUE)
+
+  git <- list(status = 128L, stdout = charToRaw("git-stdout\n"))
+  expect_failure(expect_status(git), "git-stdout", fixed = TRUE)
+  # git ls-files -z separates names with nul bytes.
+  expect_success(expect_status(list(status = 0L, stdout = as.raw(c(0x61, 0x00, 0x62)))))
+})
+
 test_that("a check for no output shows the lines the command printed", {
   printed <- list(status = 1L, output = "docs/index.html")
   expect_failure(expect_status(printed, 1L, output = character()), "docs/index.html", fixed = TRUE)

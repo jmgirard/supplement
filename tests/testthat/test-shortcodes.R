@@ -5,7 +5,7 @@ render_doi_page <- function(zenodo) {
     env = parent.frame()
   )
   rendered <- run_split(dir, "quarto", "render")
-  list(status = rendered$status, stderr = rendered$stderr,
+  list(status = rendered$status, stdout = rendered$stdout, stderr = rendered$stderr,
        html = if (rendered$status == 0L) read_text(file.path(dir, "docs", "index.html")) else "")
 }
 
@@ -13,12 +13,12 @@ test_that("the DOI badge shows the version DOI, then the concept DOI", {
   skip_if_no_quarto(needs_r = FALSE)
 
   both <- render_doi_page(zenodo_yaml(version = "10.5281/zenodo.222", concept = "10.5281/zenodo.111"))
-  expect_equal(both$status, 0L)
+  expect_status(both)
   expect_match(both$html, doi_badge_rx("10.5281/zenodo.222"), perl = TRUE)
   expect_no_match(both$html, "zenodo.111", fixed = TRUE)
 
   concept <- render_doi_page(zenodo_yaml(concept = "10.5281/zenodo.111"))
-  expect_equal(concept$status, 0L)
+  expect_status(concept)
   expect_match(concept$html, doi_badge_rx("10.5281/zenodo.111"), perl = TRUE)
 })
 
@@ -48,16 +48,16 @@ test_that("a DOI value that is not a DOI stops the render and names the field", 
   good <- "10.5281/zenodo.111"
   # A prefix with no DOI after it does not fall back to the other DOI.
   page <- render_doi_page(zenodo_yaml(version = "doi:", concept = good))
-  expect_false(page$status == 0L)
+  expect_command_fails(page)
   expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
 
   # The value that the badge does not show is checked too.
   page <- render_doi_page(zenodo_yaml(version = good, concept = "10.528/zenodo.1"))
-  expect_false(page$status == 0L)
+  expect_command_fails(page)
   expect_match(page$stderr, "supplement-doi: supplement.zenodo.concept-doi ", fixed = TRUE)
 
   page <- render_doi_page(c("zenodo:", paste0("  version-doi: [", good, "]")))
-  expect_false(page$status == 0L)
+  expect_command_fails(page)
   expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
 })
 
@@ -75,7 +75,7 @@ test_that("a null or block DOI value reads as empty or as its text, and two para
   expect_match(page$html, doi_badge_rx("10.5281/zenodo.333"), perl = TRUE)
 
   page <- render_doi_page(c("zenodo:", "  version-doi: |", "    10.5281/zenodo.1", "", "    2"))
-  expect_false(page$status == 0L)
+  expect_command_fails(page)
   expect_match(page$stderr, "supplement-doi: supplement.zenodo.version-doi ", fixed = TRUE)
 })
 
@@ -83,7 +83,7 @@ test_that("empty DOI and archive values render nothing", {
   skip_if_no_quarto(needs_r = FALSE)
 
   empty <- render_doi_page(zenodo_yaml())
-  expect_equal(empty$status, 0L)
+  expect_status(empty)
   expect_match(empty$html, "BEFORE\\s+MID\\s+AFTER", perl = TRUE)
   expect_no_match(empty$html, "zenodo.org/badge", fixed = TRUE)
 })
@@ -93,7 +93,7 @@ test_that("the download link points at the archive", {
 
   url <- "https://zenodo.org/records/12345"
   page <- render_doi_page(zenodo_yaml(archive = url))
-  expect_equal(page$status, 0L)
+  expect_status(page)
   expect_match(page$html, paste0('MID\\s*<a [^>]*href="', rx_escape(url), '"'), perl = TRUE)
   # With no DOI, the badge is still left out.
   expect_match(page$html, "BEFORE\\s+MID", perl = TRUE)
@@ -106,7 +106,7 @@ render_license_page <- function(supplement) {
     env = parent.frame()
   )
   rendered <- run_split(dir, "quarto", "render")
-  list(status = rendered$status, stderr = rendered$stderr,
+  list(status = rendered$status, stdout = rendered$stdout, stderr = rendered$stderr,
        html = if (rendered$status == 0L) read_text(file.path(dir, "docs", "index.html")) else "")
 }
 
@@ -291,7 +291,7 @@ test_that("the data table lists each file with its size and a page-relative link
   }
 
   rendered <- run_split(dir, "quarto", "render")
-  expect_equal(rendered$status, 0L)
+  expect_status(rendered)
   expect_true(file.exists(file.path(dir, "docs", "data", "example.csv")))
 
   expected_sizes <- c(paste(file.size(file.path(template_dir(), "data", "example.csv")), "B"),
@@ -324,7 +324,7 @@ test_that("a description that names a folder is shown as written on a subfolder 
   dir.create(file.path(dir, "data"))
   file.copy(file.path(template_dir(), "data", "example.csv"), file.path(dir, "data"))
 
-  expect_equal(run_split(dir, "quarto", "render")$status, 0L)
+  expect_status(run_split(dir, "quarto", "render"))
   rows <- data_table_rows(read_text(file.path(dir, "docs", "analyses", "page.html")))
   expect_length(rows, 1)
   expect_equal(rows[[1]][2], "data")
@@ -377,7 +377,7 @@ test_that("a folder listed as a data file stops the render", {
   file.copy(file.path(template_dir(), "data", "example.csv"), file.path(dir, "data"))
 
   rendered <- run_split(dir, "quarto", "render")
-  expect_true(rendered$status != 0L)
+  expect_command_fails(rendered)
   expect_match(rendered$stderr, "supplement-data-table: 'data' is a folder, not a file", fixed = TRUE)
 })
 
@@ -393,7 +393,7 @@ test_that("a missing data file stops the render and names the file", {
   file.copy(file.path(template_dir(), "data", "example.csv"), file.path(dir, "data"))
 
   rendered <- run_split(dir, "quarto", "render")
-  expect_true(rendered$status != 0L)
+  expect_command_fails(rendered)
   expect_match(rendered$stderr, "supplement-data-table: data file not found: 'data/not_here_42.csv'",
                fixed = TRUE)
   # The shortcode itself stops the render, not a later Lua error.
@@ -403,7 +403,7 @@ test_that("a missing data file stops the render and names the file", {
 test_that("values set in _supplement.yml reach the home page", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
-  expect_equal(use_template(dir)$status, 0L)
+  expect_status(use_template(dir))
 
   yml <- file.path(dir, "_supplement.yml")
   new <- c(
@@ -413,7 +413,7 @@ test_that("values set in _supplement.yml reach the home page", {
   )
   for (key in names(new)) set_supplement_value(yml, key, new[[key]])
 
-  expect_equal(run_in(dir, "quarto", "render")$status, 0L)
+  expect_status(run_in(dir, "quarto", "render"))
   html <- read_text(file.path(dir, "docs", "index.html"))
   for (value in new) expect_match(html, value, fixed = TRUE)
   expect_match(html, doi_badge_rx(new[["version-doi"]]), perl = TRUE)
@@ -427,7 +427,7 @@ footer_center <- function(html) {
 test_that("the page footer shows the licenses set in _supplement.yml", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")
-  expect_equal(use_template(dir)$status, 0L)
+  expect_status(use_template(dir))
 
   yml <- file.path(dir, "_supplement.yml")
   # Each case: the two ids, the footer text, and the SPDX link targets.
