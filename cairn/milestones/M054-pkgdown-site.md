@@ -140,6 +140,8 @@ coverage report to CI".
 - 2026-10-24: review checkpoint: AC1 to AC4 verified; AC5's test and check run and the four-lens review are in progress
 - 2026-10-24: review: AC5 and the gate verified; 21 findings settled (7 fix now, 5 follow-up into one new row, 9 reject); T2 text updated for the Quarto setup step added at review
 - 2026-10-24: correction to the line above: the 21 findings split 8 fix now, 5 follow-up, 8 reject, as the Review section lists; fixes are in 61765f5
+- 2026-10-24: review: verify slot re-run after the fixes: 391 results, 0 failed, 0 errors, 10 skipped
+- 2026-10-24: step-7 approval: m054-pkgdown-site approved for merge
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
