@@ -1,5 +1,14 @@
 # supplement 0.0.0.9000
 
+* The template's two project scripts are now Lua files, `_scripts/setup.lua`
+  and `_scripts/nojekyll.lua`, that Quarto runs through Pandoc, so a render
+  starts no Deno process for them. On macOS, Quarto's Deno sometimes
+  crashed while it ran the old TypeScript scripts, and the render then
+  failed. To switch a site made earlier, copy `setup.lua` and
+  `nojekyll.lua` from
+  `system.file("template", "_scripts", package = "supplement")` into its
+  `_scripts/` folder. Change the `pre-render` and `post-render` lines of
+  `_quarto.yml` to name them, and delete `setup.ts` and `nojekyll.ts`.
 * Initial package with a Quarto website template for supplemental
   materials in `inst/template/`.
 * The template's home page reads the paper title, citation, and contact

@@ -16,10 +16,10 @@ project:
   resources:
     - "data/**"
     - "figures/**"
-  # Quarto runs these scripts itself; they need no R. See README.md or
-  # SUPPLEMENT.md.
-  pre-render: _scripts/setup.ts
-  post-render: _scripts/nojekyll.ts
+  # Quarto runs these Lua scripts through Pandoc; they need no R. See
+  # README.md or SUPPLEMENT.md.
+  pre-render: _scripts/setup.lua
+  post-render: _scripts/nojekyll.lua
 
 # Facts about the paper (title, citation, DOIs, data files) that every page
 # can read.

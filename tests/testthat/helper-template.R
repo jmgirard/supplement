@@ -69,7 +69,8 @@ sass_cache_locked <- function(output) {
 }
 
 # On Windows, Quarto 1.10 keeps its cache in %LOCALAPPDATA%\quarto, and a
-# project script makes it remove and copy the cache's deno_std folder.
+# TypeScript or JavaScript project script makes it remove and copy the
+# cache's deno_std folder.
 # With test files in parallel, one render can then fail to remove the
 # folder while another uses it ("os error 32" or "os error 5"), so the
 # quarto commands of each test process get a cache folder of their own.
