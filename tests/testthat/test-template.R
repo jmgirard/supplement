@@ -686,6 +686,10 @@ test_that("setup appends the template's missing lines after the existing bytes",
     "LF" = list(before = lf_lines(some), added = appended(some)),
     "CRLF" = list(before = paste0(some, "\r\n", collapse = ""), added = appended(some)),
     "no final line break" = list(before = paste(some, collapse = "\r\n"), added = paste0("\n", appended(some))),
+    "the two lines last and a template line missing" = list(
+      before = lf_lines(c(quarto_ignore, lines[-1], "!docs/", "!_freeze/")),
+      added = lf_lines(c(lines[1], "!docs/", "!_freeze/"))
+    ),
     "the two lines before a later rule" = list(
       before = lf_lines(c(all, "!docs/", "!_freeze/", "docs/")),
       added = lf_lines(c("!docs/", "!_freeze/"))
@@ -703,6 +707,17 @@ test_that("setup appends the template's missing lines after the existing bytes",
     )
     expect_false(file.exists(file.path(dir, "_gitignore")), info = case)
   }
+})
+
+test_that("setup renames _gitignore and _README.md with their bytes", {
+  skip_if_no_quarto(needs_r = FALSE)
+  dir <- script_site()
+
+  expect_status(run_in(dir, "quarto", "render"))
+  expect_identical(read_bytes(file.path(dir, ".gitignore")), read_bytes(file.path(template_dir(), "_gitignore")))
+  expect_identical(read_bytes(file.path(dir, "README.md")), read_bytes(file.path(template_dir(), "_README.md")))
+  expect_false(file.exists(file.path(dir, "_gitignore")))
+  expect_false(file.exists(file.path(dir, "_README.md")))
 })
 
 test_that("setup leaves the bytes of an existing README.md and SUPPLEMENT.md", {
@@ -735,18 +750,27 @@ test_that("a second render leaves the files that setup wrote", {
 
 test_that("a setup step that fails stops the render and names the script", {
   skip_if_no_quarto(needs_r = FALSE)
+  skip_if(Sys.info()[["user"]] == "root", "root can read and write any file")
   ignore <- lf_lines(c("mine", quarto_ignore))
-  dir <- script_site(list(.gitignore = ignore))
-  # The script cannot read a folder in place of the template's _gitignore.
-  file.remove(file.path(dir, "_gitignore"))
-  dir.create(file.path(dir, "_gitignore"))
+  expect_setup_error <- function(dir, case) {
+    rendered <- withr::with_envvar(c(QUARTO_LOG_LEVEL = "INFO"), run_in(dir, "quarto", "render"))
+    expect_command_fails(rendered)
+    expect_match(rendered$output, "Error running filter '_scripts/setup.lua'", fixed = TRUE, all = FALSE,
+                 info = paste(c(case, rendered$output), collapse = "\n"))
+    expect_identical(read_bytes(file.path(dir, ".gitignore")), charToRaw(ignore), info = case)
+  }
 
-  # Without debug lines, which name the script on every render.
-  rendered <- withr::with_envvar(c(QUARTO_LOG_LEVEL = "INFO"), run_in(dir, "quarto", "render"))
-  expect_command_fails(rendered)
-  expect_match(rendered$output, "Error running filter '_scripts/setup.lua'", fixed = TRUE, all = FALSE,
-               info = paste(rendered$output, collapse = "\n"))
-  expect_identical(read_bytes(file.path(dir, ".gitignore")), charToRaw(ignore))
+  # The script cannot read a folder in place of the template's _gitignore.
+  folder <- script_site(list(.gitignore = ignore))
+  file.remove(file.path(folder, "_gitignore"))
+  dir.create(file.path(folder, "_gitignore"))
+  expect_setup_error(folder, "a _gitignore folder")
+
+  # Nor write to a .gitignore that is read-only.
+  locked <- script_site(list(.gitignore = ignore))
+  Sys.chmod(file.path(locked, ".gitignore"), "444")
+  withr::defer(Sys.chmod(file.path(locked, ".gitignore"), "644"))
+  expect_setup_error(locked, "a read-only .gitignore")
 })
 
 test_that("the scripts run in a site folder whose path holds a non-ASCII letter", {
