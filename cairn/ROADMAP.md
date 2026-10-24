@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-24 (M048 done: graduated "Trace the post-render cra
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M049 | Keep a new site's .gitignore through later renders | planned | — | normal | milestones/M049-quarto-ignore-lines.md |
+| M049 | Keep a new site's .gitignore through later renders | review | — | normal | milestones/M049-quarto-ignore-lines.md |
 | M048 | Run the template scripts without Deno | done | — | high | milestones/archive/M048-lua-project-scripts.md |
 | M047 | Keep the Ubuntu CI job within its disk | done | — | high | milestones/archive/M047-ubuntu-ci-disk.md |
 | M046 | Stop the example at a linked figures folder | done | — | high | milestones/archive/M046-linked-figures.md |
