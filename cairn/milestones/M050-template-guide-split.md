@@ -21,9 +21,9 @@ The first render of a new site leaves a short `README.md` for the people who rea
 
 ## Acceptance criteria
 
-- [ ] AC1: `inst/template/_README.md` holds the line `Website: https://OWNER.github.io/REPO/`, a line that names `GUIDE.md`, and a `## License` heading, and `grep -c -e '```' -e 'supplement::' -e 'quarto render' inst/template/_README.md` prints 0.
-- [ ] AC2: `inst/template/GUIDE.md` exists, and each `## ` heading of `git show bafeb91:inst/template/_README.md`, except `Contents` and `License`, is a level-2 or level-3 heading of `GUIDE.md` with the same text.
-- [ ] AC3: `GUIDE.md` has one `## Reference` heading, and `grep -n -e 'device name' -e 'SPDX' -e 'a--b' -e '_scripts/' inst/template/GUIDE.md` prints at least one line for each of the four patterns and only lines below that heading.
+- [x] AC1: `inst/template/_README.md` holds the line `Website: https://OWNER.github.io/REPO/`, a line that names `GUIDE.md`, and a `## License` heading, and `grep -c -e '```' -e 'supplement::' -e 'quarto render' inst/template/_README.md` prints 0.
+- [x] AC2: `inst/template/GUIDE.md` exists, and each `## ` heading of `git show bafeb91:inst/template/_README.md`, except `Contents` and `License`, is a level-2 or level-3 heading of `GUIDE.md` with the same text.
+- [x] AC3: `GUIDE.md` has one `## Reference` heading, and `grep -n -e 'device name' -e 'SPDX' -e 'a--b' -e '_scripts/' inst/template/GUIDE.md` prints at least one line for each of the four patterns and only lines below that heading.
 - [ ] AC4: After the first render of a folder that holds the template's setup files and `GUIDE.md`, in each of three cases (no `README.md`; an existing `README.md`; an existing `README.md` and `SUPPLEMENT.md`), `_README.md` is gone and `GUIDE.md` keeps the template's bytes. In the first case `README.md` has the bytes of the template's `_README.md`. In the second and third cases the `README.md` written before the render, and in the third case the `SUPPLEMENT.md`, keep their bytes, and in the second case no `SUPPLEMENT.md` exists. In each case a second render leaves `README.md`, `GUIDE.md`, `.gitignore`, and any `SUPPLEMENT.md` with the same bytes. Shown by `script_site()` tests in `tests/testthat/test-template.R`; with the template's `GUIDE.md` present, the second-case test fails on the default branch's `setup.lua` at its assertion that no `SUPPLEMENT.md` exists.
 - [ ] AC5: A new site from `create_supplement()` holds `GUIDE.md`. After `repo = "JDoe/my_site.v-2"`, `_README.md` and `GUIDE.md` both hold `https://jdoe.github.io/my_site.v-2/` and neither holds `OWNER.github.io`; after `repo = "jdoe/JDoe.github.io"`, `GUIDE.md` holds `https://jdoe.github.io/figures/` and not `github.io/JDoe.github.io`. Shown by tests in `tests/testthat/test-create-supplement.R`.
 - [ ] AC6: `grep -rn 'SUPPLEMENT\.md' R man inst/template vignettes README.md` prints only lines of `R/check-supplement.R` and `man/check_supplement.Rd`; the comment above `placeholder_lines` and the roxygen sentence that names `SUPPLEMENT.md` say the file serves sites made before this change; `devtools::document()` leaves no diff.
@@ -75,3 +75,9 @@ The first render of a new site leaves a short `README.md` for the people who rea
 ## Decisions
 
 ## Review
+
+Evidence gathered 2026-10-24 on branch head 150a489, default branch level with `origin/main`.
+
+- AC1 evidence: `grep -c -e '```' -e 'supplement::' -e 'quarto render' inst/template/_README.md` printed 0; `_README.md` holds `Website: https://OWNER.github.io/REPO/` (line 6), `## License` (line 20), and the `GUIDE.md` contents line (line 18).
+- AC2 evidence: `inst/template/GUIDE.md` exists; the 14 `## ` headings of `git show bafeb91:inst/template/_README.md` other than `Contents` and `License` were each matched as a whole `## ` or `### ` line of `GUIDE.md` by `grep -qxF`; none missing.
+- AC3 evidence: one `## Reference` heading, line 517; the AC3 grep found `device name` at 536, `SPDX` at 521, 522, 524, `a--b` at 534, `_scripts/` at 541: each pattern at least once, all below 517.
