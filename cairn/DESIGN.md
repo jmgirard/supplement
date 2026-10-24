@@ -272,6 +272,10 @@ large fixtures: on ubuntu-26.04 it is a 7.9 GB tmpfs with a user quota
 output that R CMD check keeps, with no second test run, and fails on a skip
 for a missing tool. A last step runs `tests/testthat/test-source.R`, whose
 tests read the package's R files, from the checkout (D-020).
+`.github/workflows/pkgdown.yaml` builds the package site from
+`_pkgdown.yml` on Ubuntu with no Quarto, since no help example or vignette
+chunk renders, and on events other than a pull request pushes `docs/` to
+the `gh-pages` branch, which GitHub Pages serves (M054).
 
 ## Known issues
 

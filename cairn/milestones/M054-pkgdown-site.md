@@ -104,7 +104,7 @@ coverage report to CI".
       vignette's code blocks are not evaluated and no help example renders.
       Check that it parses with `yaml::read_yaml()`, which reads the `on:`
       key as `"TRUE"` (YAML 1.1).
-- [ ] T3: Add a NEWS.md bullet: DESCRIPTION's `URL:` field now names the
+- [x] T3: Add a NEWS.md bullet: DESCRIPTION's `URL:` field now names the
       package site, which holds the help pages, the publishing guide, and
       the news (written against T1's build). Add one sentence on the
       pkgdown workflow to DESIGN.md Architecture, beside the
@@ -131,6 +131,7 @@ coverage report to CI".
 - 2026-10-24: implement: set in-progress, branch m054-pkgdown-site cut from main at 85da5c9
 - 2026-10-24: T1 done: `_pkgdown.yml` with four reference groups, site address first in `URL:`, ignore entries; `check_pkgdown()` printed "No problems found.", `build_site(preview = FALSE)` exited 0 and wrote all nine reference pages, and `git status --porcelain` listed nothing under `docs/`; pandoc printed deprecation warnings for `--mathml` and `--mathjax`, which pkgdown passes and which change no output
 - 2026-10-24: T2 done: `.github/workflows/pkgdown.yaml` from the r-lib/actions v2 example (fetched 2026-10-24), with `actions/checkout@v7` and `use-public-rspm: true` as in `R-CMD-check.yaml`, push trigger on `main` only, and the deploy action kept at its pinned v4.8.0 commit; `yaml::read_yaml()` parses it (triggers under `TRUE`: push, pull_request, release, workflow_dispatch), with `read-all` default, one job with `contents: write`, and the deploy step's `if:`; actionlint is not installed, so the first CI run is the workflow's first execution
+- 2026-10-24: T3 done: NEWS.md bullet naming the site and what T1's build put on it (`reference/`, `articles/publishing.html`, `news/index.html`); DESIGN.md Architecture sentence on the pkgdown workflow after the CI paragraph
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

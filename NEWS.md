@@ -1,5 +1,8 @@
 # supplement 0.0.0.9000
 
+* The package has a website, <https://jmgirard.github.io/supplement/>,
+  with the help pages, the guide "Publish a supplement site", and this
+  news file. DESCRIPTION's `URL` field lists it first.
 * A new site's `README.md` is now a short page for the people who read the
   site's repository: the citation, the site address, the contents, and the
   licenses. The guide for the site's authors is a separate file,
