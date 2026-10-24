@@ -71,6 +71,7 @@ The first render of a new site leaves a short `README.md` for the people who rea
 - 2026-10-24: T6: full `devtools::test()` 390 tests, 0 failed, 0 errors, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes (both run at efd3f1d). After the claim-audit fixes (prose and roxygen only): `devtools::document()` rewrote `check_supplement.Rd`; create-supplement and check-supplement tests 95, 0 failed; the three-case setup test passes; AC2 no missing heading; AC3 Reference at line 517, hits at 521-541 only; AC6 grep 9 lines, all in `R/check-supplement.R` and `man/check_supplement.Rd`.
 - 2026-10-24: claim audit: 45 claims read, 4 corrected — NEWS.md, inst/template/GUIDE.md, R/check-supplement.R (re-read once: NEWS sentence on old sites corrected again to name `SUPPLEMENT.md`; the SPDX fix then moved "SPDX" above the Reference heading and was reworded to keep AC3). Not changed: the reader noted the no-repo message and README.md:36 name only `_README.md` for OWNER/REPO, while `GUIDE.md` also holds it in an example figure address; the old guide held the same example, so the text is no less complete than before.
 - 2026-10-24: implement done; status review.
+- 2026-10-24: step-7 approval: m050-template-guide-split approved for merge
 
 ## Decisions
 
