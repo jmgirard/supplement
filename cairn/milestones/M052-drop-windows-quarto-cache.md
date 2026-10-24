@@ -1,13 +1,13 @@
 # M052: Drop the Windows Quarto cache in tests
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — test helpers in `tests/testthat` only
-- **Branch/PR:** —
+- **Branch/PR:** m052-drop-windows-quarto-cache
 
 ## Goal
 
@@ -35,7 +35,7 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 
 ## Tasks
 
-- [ ] T1: Run the AC2 searches and write one work-log line that classifies each listed line as a string no test hands Quarto as a script.
+- [x] T1: Run the AC2 searches and write one work-log line that classifies each listed line as a string no test hands Quarto as a script.
 - [ ] T2: In `tests/testthat/helper-template.R`, delete `quarto_cache_env()` and its comment block (about lines 71-84), and drop the `cache` variable from `run_in()` (about line 48) and `run_split()` (about line 302), keeping the `QUARTO_LOG_LEVEL` setting and the Sass lock rerun.
 - [ ] T3: Rewrite the helper paragraph in `cairn/DESIGN.md` (about lines 245-256) to the AC4 wording.
 - [ ] T4: Run `Rscript -e 'devtools::test()'` on the Mac; the Windows CI job runs at review. If that job fails with "database is locked" twice on one render, return to plan to keep the helper with the Sass reason.
@@ -52,6 +52,8 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 - 2026-10-24: question set: drop the cache override with Windows sharing the Sass cache — drop it; add a guard that fails a render that starts Deno — no guard.
 - 2026-10-24: plan gate chose dropping the helper over keeping it for Sass isolation on Windows because macOS and Linux tests already share the Sass cache with the one-time rerun; falsified by a Windows CI render that fails with "database is locked" twice in a row.
 - 2026-10-24: changelog: no NEWS entry, since only test helpers change.
+- 2026-10-24: implement started on branch m052-drop-windows-quarto-cache, cut from main at df7c223.
+- 2026-10-24: T1: the AC2 searches list 4 lines and `find` lists nothing; `test-renv.R:38` is a debug-log string that `r_process_lines()` must drop, `test-check-supplement.R:759` and `:766` are an HTML `<script src="gone.js">` link and its broken-link row, and `test-write-dockerfile.R:278` is the `docker run` argument of a Linux container render; no test hands Quarto any of them as a script.
 
 ## Decisions
 
