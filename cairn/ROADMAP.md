@@ -7,13 +7,14 @@ _Last hygiene check: 2026-10-24 (triage: promoted "Drop the Windows Quarto cache
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
+| M052 | Drop the Windows Quarto cache in tests | planned | — | high | milestones/M052-drop-windows-quarto-cache.md |
 | M050 | Give a new site a reader README and a separate guide | done | — | normal | milestones/archive/M050-template-guide-split.md |
 | M051 | Keep the package README to the main steps | done | M050 | normal | milestones/archive/M051-readme-main-steps.md |
 | M049 | Keep a new site's .gitignore through later renders | done | — | normal | milestones/archive/M049-quarto-ignore-lines.md |
 
 ## Candidates
 
-- [high] Drop the Windows Quarto cache in tests: from the M048 plan. `quarto_cache_env()` in `tests/testthat/helper-template.R` gives each test process its own Quarto cache folder on Windows, because a Deno project script makes Quarto remove and copy the cache's `deno_std` folder. Once the template scripts are Lua (M048), check whether any test still runs a Deno script, and drop the helper if none does. — added 2026-10-23
+- [high] Drop the Windows Quarto cache in tests: from the M048 plan. `quarto_cache_env()` in `tests/testthat/helper-template.R` gives each test process its own Quarto cache folder on Windows, because a Deno project script makes Quarto remove and copy the cache's `deno_std` folder. Once the template scripts are Lua (M048), check whether any test still runs a Deno script, and drop the helper if none does. — added 2026-10-23 — started M052
 - Build a package site with pkgdown: a package site built with the toolkit itself. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review), `write_dockerfile()` (from the M032 review), and `check_tools()` (from M037). — added 2026-10-18, split 2026-10-19
 - Shorten the setup code in new reports: from the ease-of-use review. `add_report()` writes about 50 lines, about 30 of them the Computing environment block that hides the home folder with regular expressions. The example report has 123 lines, and the template guide asks authors to copy `save_png()` by hand. Package functions for that code would shorten reports, but a render by name would then need supplement installed, which is a design choice. The `save-figure` chunk grew with the link stop and the PNG end check (M046). — added 2026-10-22
 - Check web links on the rendered site: web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
