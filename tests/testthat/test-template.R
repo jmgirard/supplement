@@ -639,6 +639,131 @@ test_that("setup keeps both files when README.md and SUPPLEMENT.md exist", {
   expect_false(file.exists(file.path(dir, "_README.md")))
 })
 
+# A project with the template's two scripts, _gitignore, and _README.md, and
+# one page with no code, so a render runs no R. `files` maps file names to
+# the bytes they start with.
+script_site <- function(files = list(), dir = withr::local_tempdir("scripts-", .local_envir = env),
+                        env = parent.frame()) {
+  dir.create(file.path(dir, "_scripts"), recursive = TRUE)
+  file.copy(file.path(template_dir(), c("_gitignore", "_README.md")), dir)
+  file.copy(file.path(template_dir(), "_scripts", c("setup.lua", "nojekyll.lua")), file.path(dir, "_scripts"))
+  writeLines(
+    c("project:", "  type: website", "  output-dir: docs",
+      "  pre-render: _scripts/setup.lua", "  post-render: _scripts/nojekyll.lua"),
+    file.path(dir, "_quarto.yml")
+  )
+  writeLines(c("---", "title: Home", "---", "", "Hi"), file.path(dir, "index.qmd"))
+  for (name in names(files)) writeBin(charToRaw(files[[name]]), file.path(dir, name))
+  dir
+}
+
+# The non-blank lines of the template's _gitignore other than the two that
+# setup keeps last.
+template_ignore_lines <- function() {
+  lines <- readLines(file.path(template_dir(), "_gitignore"))
+  lines[grepl("\\S", lines) & !lines %in% c("!docs/", "!_freeze/")]
+}
+
+lf_lines <- function(lines) paste0(lines, "\n", collapse = "")
+
+# Before the setup script runs, Quarto adds these lines to an existing
+# .gitignore that lacks one and rewrites the whole file, so each .gitignore
+# that a test writes holds them and reaches the script as written.
+quarto_ignore <- c("/.quarto/", "**/*.quarto_ipynb")
+
+# The lines that setup appends to a .gitignore holding the lines `have`.
+appended <- function(have) {
+  lines <- template_ignore_lines()
+  lf_lines(c(lines[!lines %in% have], "!docs/", "!_freeze/"))
+}
+
+test_that("setup appends the template's missing lines after the existing bytes", {
+  skip_if_no_quarto(needs_r = FALSE)
+  lines <- template_ignore_lines()
+  some <- c("mine", quarto_ignore, lines[2])
+  all <- c(quarto_ignore, lines)
+  cases <- list(
+    "LF" = list(before = lf_lines(some), added = appended(some)),
+    "CRLF" = list(before = paste0(some, "\r\n", collapse = ""), added = appended(some)),
+    "no final line break" = list(before = paste(some, collapse = "\r\n"), added = paste0("\n", appended(some))),
+    "the two lines before a later rule" = list(
+      before = lf_lines(c(all, "!docs/", "!_freeze/", "docs/")),
+      added = lf_lines(c("!docs/", "!_freeze/"))
+    ),
+    "complete" = list(before = paste0(c(all, "!docs/", "!_freeze/", ""), "\r\n", collapse = ""), added = "")
+  )
+
+  for (case in names(cases)) {
+    dir <- script_site(list(.gitignore = cases[[case]]$before))
+    expect_status(run_in(dir, "quarto", "render"))
+    expect_identical(
+      read_bytes(file.path(dir, ".gitignore")),
+      charToRaw(paste0(cases[[case]]$before, cases[[case]]$added)),
+      info = case
+    )
+    expect_false(file.exists(file.path(dir, "_gitignore")), info = case)
+  }
+})
+
+test_that("setup leaves the bytes of an existing README.md and SUPPLEMENT.md", {
+  skip_if_no_quarto(needs_r = FALSE)
+  guide <- read_bytes(file.path(template_dir(), "_README.md"))
+
+  one <- script_site(list(README.md = "my readme\r\n"))
+  expect_status(run_in(one, "quarto", "render"))
+  expect_identical(read_bytes(file.path(one, "README.md")), charToRaw("my readme\r\n"))
+  expect_identical(read_bytes(file.path(one, "SUPPLEMENT.md")), guide)
+  expect_false(file.exists(file.path(one, "_README.md")))
+
+  both <- script_site(list(README.md = "my readme", SUPPLEMENT.md = "my supplement\r\n"))
+  expect_status(run_in(both, "quarto", "render"))
+  expect_identical(read_bytes(file.path(both, "README.md")), charToRaw("my readme"))
+  expect_identical(read_bytes(file.path(both, "SUPPLEMENT.md")), charToRaw("my supplement\r\n"))
+  expect_false(file.exists(file.path(both, "_README.md")))
+})
+
+test_that("a second render leaves the files that setup wrote", {
+  skip_if_no_quarto(needs_r = FALSE)
+  dir <- script_site(list(.gitignore = lf_lines(c("mine", quarto_ignore)), README.md = "my readme\n"))
+  expect_status(run_in(dir, "quarto", "render"))
+  files <- c(".gitignore", "README.md", "SUPPLEMENT.md")
+  first <- lapply(file.path(dir, files), read_bytes)
+
+  expect_status(run_in(dir, "quarto", "render"))
+  expect_identical(lapply(file.path(dir, files), read_bytes), first)
+})
+
+test_that("a setup step that fails stops the render and names the script", {
+  skip_if_no_quarto(needs_r = FALSE)
+  ignore <- lf_lines(c("mine", quarto_ignore))
+  dir <- script_site(list(.gitignore = ignore))
+  # The script cannot read a folder in place of the template's _gitignore.
+  file.remove(file.path(dir, "_gitignore"))
+  dir.create(file.path(dir, "_gitignore"))
+
+  # Without debug lines, which name the script on every render.
+  rendered <- withr::with_envvar(c(QUARTO_LOG_LEVEL = "INFO"), run_in(dir, "quarto", "render"))
+  expect_command_fails(rendered)
+  expect_match(rendered$output, "Error running filter '_scripts/setup.lua'", fixed = TRUE, all = FALSE,
+               info = paste(rendered$output, collapse = "\n"))
+  expect_identical(read_bytes(file.path(dir, ".gitignore")), charToRaw(ignore))
+})
+
+test_that("the scripts run in a site folder whose path holds a non-ASCII letter", {
+  skip_if_no_quarto(needs_r = FALSE)
+  dir <- file.path(withr::local_tempdir(), paste0("site-", intToUtf8(233)))
+  have <- c("mine", quarto_ignore)
+  script_site(list(.gitignore = lf_lines(have), README.md = "my readme\n"), dir = dir)
+
+  expect_status(run_in(dir, "quarto", "render"))
+  expect_identical(read_bytes(file.path(dir, ".gitignore")), charToRaw(paste0(lf_lines(have), appended(have))))
+  expect_identical(read_bytes(file.path(dir, "README.md")), charToRaw("my readme\n"))
+  expect_identical(read_bytes(file.path(dir, "SUPPLEMENT.md")), read_bytes(file.path(template_dir(), "_README.md")))
+  expect_false(file.exists(file.path(dir, "_gitignore")))
+  expect_false(file.exists(file.path(dir, "_README.md")))
+  expect_true(file.exists(file.path(dir, "docs", ".nojekyll")))
+})
+
 # Lines that hide sessioninfo from code that asks requireNamespace() for it.
 # On macOS, sessioninfo can sit in R's own library, so no library path
 # setting hides it.
