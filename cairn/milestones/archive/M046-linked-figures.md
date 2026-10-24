@@ -1,0 +1,11 @@
+# M046: Stop the example at a linked figures folder
+
+**Status:** done (2026-10-24, PR #47 https://github.com/jmgirard/supplement/pull/47)
+
+**Goal:** The example report stops with a message when `figures` is a link, and `save_png()` names a figure only when its file ends with the PNG end chunk.
+
+**Outcome:** The `save-figure` chunk of `inst/template/analyses/example.qmd` stops with "`figures` is a link. Replace it with a folder, then render again." before its file stop. In base R, it finds a link by a non-empty `Sys.readlink()`, or by an existing folder whose `normalizePath()` differs in lower case from the site's plus `figures`, which finds a Windows junction. On Windows a file link to a missing path gets the file message. `save_png()` renames its temporary PNG only when the file exists and its last 12 bytes are the `IEND` chunk; otherwise it stops with "Could not write a whole PNG file for <target>." and leaves the target as it was. The "Paper figures" section of `inst/template/_README.md` keeps only the `site` block and tells authors to copy the whole `save-figure` chunk after the chunks that make the plot's data. NEWS.md and DESIGN.md describe both stops. Tests in `test-template.R`: a missing `figures` folder, links to a folder outside the site (a junction on Windows), to a missing path, and to a file (skips on Windows), and four cut-short PNG probes with and without an earlier figure.
+
+**Decisions:** none. The user chose to refuse any link and to add the end check at the plan. A base R link check was chosen over `fs::is_link()`, because a site renders without supplement.
+
+**Review:** Criteria audit at plan (full mode): 10 findings, 9 fixed in the wording. Claim audit: 40 claims, 4 corrected. Four-lens review: 24 findings, 5 fix-now (fixed b7c7033), 1 follow-up (absorbed into "template test flake"), 2 noted, 16 rejected (4 edge, 9 planned, 2 false, 1 style). The first PR run was red on Ubuntu from a full 7.9 GB tmpfs `/tmp` on ubuntu-26.04, also red on main; M047 fixed it first, and the feature PR cap was raised to 2. After main was merged in, CI passed on all six checks. `devtools::check()` 0/0/0 on macOS. Graduated the candidate row "Stop the example at a linked figures".
