@@ -12,8 +12,9 @@
 #' template writes a file, or a file or a link where the template needs a
 #' folder, it stops before it writes anything.
 #'
-#' The template ships `_gitignore` and `_README.md` under those names. The
-#' first `quarto render` gives them their real names, and that render adds
+#' The template ships `_gitignore` and `_README.md` under those names,
+#' because `quarto use template` does not copy `.gitignore` or `README.md`.
+#' The first `quarto render` gives them their real names, and that render adds
 #' the template's rules to an existing `.gitignore`. `_README.md` is the
 #' page for the site's readers. If `README.md` exists, the render keeps it
 #' and removes `_README.md`. The guide for the site's authors is

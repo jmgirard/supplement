@@ -34,7 +34,7 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 ## Tasks
 
 - [x] T1: In `README.md`, cut the passages that AC1's patterns find, keeping one sentence per part that names its help page. Keep each part's main call.
-- [ ] T2: For each AC2 pattern its help page lacks, add the fact to that function's roxygen in `R/`, then run `devtools::document()`.
+- [x] T2: For each AC2 pattern its help page lacks, add the fact to that function's roxygen in `R/`, then run `devtools::document()`.
 - [ ] T3: Run the AC1 and AC2 greps and `devtools::check()`, and record the outputs in the work log.
 
 ## Work log
@@ -48,6 +48,8 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 - 2026-10-24: implement start: branch m051-readme-main-steps cut from main at 5fb4c05; status in-progress.
 - 2026-10-24: T1 done: cut the setup-file-name, .gitignore merge, text-insertion, link-limit, git-skip, release-stop, rollback, and `-- .` passages from README.md (55 lines changed, 41 removed); each part names its help page in one sentence; AC1 grep prints nothing.
 - 2026-10-24: T1 choice: the check part's pointer sits above the list and replaces the "(`?check_supplement` lists them all)" bullet tail; the release part's pointer is two sentences, because the simple-english linter refuses a trailing condition.
+- 2026-10-24: T1 line count correction: README.md changed by 17 insertions and 38 deletions (`git show --stat` 55); the 41 deletions counted all three files.
+- 2026-10-24: T2 done: every AC2 pattern already matched its help page; read each cut fact against the pages, and only the reason for the `_gitignore` and `_README.md` names (from `inst/template/_scripts/setup.lua`) was missing; added it to the `create_supplement()` roxygen; `devtools::document()` rewrote only `create_supplement.Rd`.
 
 ## Decisions
 
