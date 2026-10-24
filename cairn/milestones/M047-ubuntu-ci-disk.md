@@ -64,12 +64,12 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 - AC3 (2026-10-23): the CI paragraph of `cairn/DESIGN.md` (lines 252-258) says that the Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because `/tmp` on that runner image has too little space for the render tests' large fixtures.
 - gate (2026-10-23): `cairn_validate.py` passed. `devtools::document()` gave no diff. No R code, README.Rmd, `_pkgdown.yml`, NEWS entry, or top-level file is involved. `devtools::check()` is running.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: the AC1 evidence line cited the workflow lines one too low — fix now
-- diff-bug #2: the workflow comment's "the render tests write files of several GB" was loose; one shortcode test's 1.0, 2.1, and 4.3 GB data files, copied into `docs/`, fill the tmpfs — fix now
+- diff-bug #1: the AC1 evidence line cited the workflow lines one too low — fix now, fixed 1ee63cd
+- diff-bug #2: the workflow comment's "the render tests write files of several GB" was loose; one shortcode test's 1.0, 2.1, and 4.3 GB data files, copied into `docs/`, fill the tmpfs — fix now, fixed 1ee63cd
 - diff-bug #3: `r-lib/actions/setup-r` runs after the new step and could export its own `TMPDIR` — reject (false: run 40055150456 passed on Ubuntu with the step in place, and setup-r does not set `TMPDIR` on Linux)
 - diff-bug #4: on Linux `tempdir()` now sits under `$HOME`, which the home-folder tests could notice — reject (false: those tests set their own home or skip, and run 40055150456 passed)
 - diff-bug #5: the DESIGN paragraph matches the T1 log — noted
-- blame-history #1: the DESIGN paragraph carried a CI run number and date — fix now (dropped; the milestone file keeps the run)
+- blame-history #1: the DESIGN paragraph carried a CI run number and date — fix now (dropped; the milestone file keeps the run), fixed 1ee63cd
 - blame-history #2: the comment names ubuntu-26.04 while the matrix says ubuntu-latest — reject (planned change: the comment names the image where the problem was seen, and D-016 keeps ubuntu-latest)
 - blame-history #3: "several GB" was not measured — reject (false: `size_cases` defines 1.0, 2.1, and 4.3 GB; the comment now names them)
 - prior-review: no prior-review evidence
