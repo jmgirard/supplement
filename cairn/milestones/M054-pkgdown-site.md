@@ -28,26 +28,27 @@ index in titled groups that lists all nine exported functions, among them
 `check_tools()` (the candidate row). `.github/workflows/pkgdown.yaml`,
 which builds the site on pull requests and deploys it to `gh-pages` on
 other events. The site address in DESCRIPTION's `URL:` field. Ignore
-entries for `_pkgdown.yml`, `docs/`, and `pkgdown/`. One DESIGN.md
-Architecture sentence on the new workflow.
+entries for `_pkgdown.yml`, `docs/`, and `pkgdown/`. One NEWS.md bullet
+naming the site address. One DESIGN.md Architecture sentence on the new
+workflow.
 
 **Out:** Turning on GitHub Pages for the `gh-pages` branch, and the repo's
 website field: the user does both in the repo settings after the merge,
 since repo settings are the user's. The template guide `GUIDE.md` as a site
 article: it ships inside the template, and no request asks for it on the
-package site. A NEWS.md entry: none, because the installed package does not
-change apart from its `URL:` field. A coverage report in CI: the candidate
-row "Add a test coverage report to CI".
+package site. A coverage report in CI: the candidate row "Add a test
+coverage report to CI".
 
 ## Acceptance criteria
 <!-- owner: plan · create/amend-via-gate; review reads, never reinterprets. -->
 
 - [ ] AC1: `_pkgdown.yml` at the repo root sets
       `url: https://jmgirard.github.io/supplement/` and Bootstrap 5
-      (`template: bootstrap: 5`), and its `reference:` index lists the help
-      topics in titled groups. `Rscript -e 'pkgdown::check_pkgdown()'` exits
-      0 with no problem reported, which means pkgdown found every help topic
-      in `man/` in the reference index.
+      (`template: bootstrap: 5`), and its `reference:` index has titled
+      groups that name, by topic name, each topic of the `man/*.Rd` files
+      that `list.files("man", "\\.Rd$")` returns.
+      `Rscript -e 'pkgdown::check_pkgdown()'` exits 0 and prints
+      "No problems found."
 - [ ] AC2: `Rscript -e 'pkgdown::build_site(preview = FALSE)'` finishes
       with no error and writes `docs/index.html`,
       `docs/reference/index.html`, `docs/articles/publishing.html`,
@@ -55,16 +56,17 @@ row "Add a test coverage report to CI".
       `man/<name>.Rd` file that `list.files("man", "\\.Rd$")` returns.
 - [ ] AC3: `.github/workflows/pkgdown.yaml` parses as YAML and runs on
       pull requests, on pushes to `main`, on published releases, and on a
-      manual run. Its build step runs pkgdown, and its deploy step pushes
-      `docs/` to the `gh-pages` branch only when the event is not a pull
-      request. The workflow's default permission is `read-all`, and only
-      the build job gets `contents: write`.
+      manual run. It has one job. A step of that job builds the site with
+      pkgdown, and its deploy step pushes `docs/` to the `gh-pages` branch
+      and carries `if: github.event_name != 'pull_request'`. The workflow's
+      default permission is `read-all`, and the job gets `contents: write`.
 - [ ] AC4: DESCRIPTION's `URL:` field lists
       `https://jmgirard.github.io/supplement/` before
       `https://github.com/jmgirard/supplement`. `.Rbuildignore` holds the
       lines `^_pkgdown\.yml$`, `^docs$`, and `^pkgdown$`, and `.gitignore`
       holds `/docs/`, so `git status --porcelain` lists no path under
-      `docs/` after AC2's build.
+      `docs/` after AC2's build. NEWS.md has one bullet that names
+      `https://jmgirard.github.io/supplement/`.
 - [ ] AC5: `Rscript -e 'devtools::test()'` passes, and
       `Rscript -e 'devtools::check()'` gives 0 errors and 0 warnings, and
       none of its NOTEs names a file or folder this milestone adds.
@@ -75,7 +77,7 @@ row "Add a test coverage report to CI".
 - AC1 → T1
 - AC2 → T1
 - AC3 → T2
-- AC4 → T1
+- AC4 → T1, T3
 - AC5 → T4
 
 ## Tasks
@@ -87,7 +89,8 @@ row "Add a test coverage report to CI".
       (`create_supplement`, `add_report`, `add_data`), checking tools and
       sites (`check_tools`, `check_supplement`), releasing
       (`release_supplement`, `write_citation`, `write_zenodo`), and running
-      reports in a container (`write_dockerfile`). Put the site address
+      reports in a container (`write_dockerfile`). Set no `development:`
+      mode, so the build writes to `docs/`. Put the site address
       first in DESCRIPTION's `URL:`. Add the three `.Rbuildignore` lines
       and `/docs/` to `.gitignore`. Run `pkgdown::check_pkgdown()` and
       `pkgdown::build_site(preview = FALSE)`, then `git status --porcelain`.
@@ -99,9 +102,13 @@ row "Add a test coverage report to CI".
       and `JamesIves/github-pages-deploy-action` to `gh-pages` with
       `clean: false`, skipped on pull requests. No Quarto setup step: the
       vignette's code blocks are not evaluated and no help example renders.
-      Check that it parses with `yaml::read_yaml()`.
-- [ ] T3: Add one sentence on the pkgdown workflow to DESIGN.md
-      Architecture, beside the `R-CMD-check.yaml` paragraph.
+      Check that it parses with `yaml::read_yaml()`, which reads the `on:`
+      key as `"TRUE"` (YAML 1.1).
+- [ ] T3: Add a NEWS.md bullet: DESCRIPTION's `URL:` field now names the
+      package site, which holds the help pages, the publishing guide, and
+      the news (written against T1's build). Add one sentence on the
+      pkgdown workflow to DESIGN.md Architecture, beside the
+      `R-CMD-check.yaml` paragraph.
 - [ ] T4: Run `devtools::document()` (no diff expected), `devtools::test()`,
       and `devtools::check()`.
 
@@ -113,6 +120,14 @@ row "Add a test coverage report to CI".
 - 2026-10-24: question set: which candidate to build — the pkgdown package site
 - 2026-10-24: question set: how to publish the site — a workflow that pushes a `gh-pages` branch after merge; the user turns on Pages in the repo settings
 - 2026-10-24: checkpoint: plan written; the criteria audit (fresh Opus reader, full mode) is running and its findings are not yet applied
+- 2026-10-24: idea vet: found no concern; pkgdown is the R-package convention for a documentation site, and the vignette's code blocks and the help examples run without Quarto, so the build needs no Quarto setup
+- 2026-10-24: collision check: absorbs candidate row "Build a package site with pkgdown"; no archived milestone or D-entry covers a package site; D-016 and D-020 cover only `R-CMD-check.yaml`, which this workflow leaves as it is
+- 2026-10-24: inbox sweep: 0 open issues and 0 open PRs on jmgirard/supplement
+- 2026-10-24: lessons used: none
+- 2026-10-24: plan gate chose a workflow deploy to `gh-pages` over a config-only site because the user chose publishing at the question set; falsified by the deploy failing on GitHub or the user not wanting a public site
+- 2026-10-24: plan chose to install pkgdown in the workflow (`extra-packages: any::pkgdown`) over a `Config/Needs/website` field or a Suggests entry, so DESCRIPTION's dependencies do not change; falsified by the workflow failing to find pkgdown
+- 2026-10-24: criteria audit (full mode, fresh Opus reader): AC1 named the checker's meaning rather than the config, and a broad selector could pass the check, so AC1 now requires each `man/*.Rd` topic by name and the "No problems found." line; AC3 described the run-time push, which only shows after merge, so it now states the `if:` condition, and "build job" became the workflow's one job; AC3's suggested CI-build clause was not added, because the PR opens only after the merge approval and the merge wait already blocks a red run; AC5 found the gate's changelog rule in conflict with the declined NEWS entry, so a NEWS bullet moved into Scope, AC4, and T3; AC2's development-mode caveat went into T1 and the `on:` key note into T2; AC2, AC4, AC5 otherwise no finding
+- 2026-10-24: changelog: one NEWS.md bullet naming the site address, decided after the criteria audit
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
