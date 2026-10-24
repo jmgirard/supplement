@@ -55,13 +55,10 @@ commit:
 quarto render
 ```
 
-The first render writes the template's rules into `.gitignore`. If
-`.gitignore` already exists, the render adds the rules that it lacks. The
-first render also writes `README.md`, a short page for the people who read
-the site's repository. It keeps a `README.md` that the folder already has. The
-template ships these files as `_gitignore` and `_README.md`, because
-`quarto use template` does not copy those file names. The guide for the
-site's authors is `GUIDE.md`. It explains how the site renders, how to
+The first render writes `.gitignore` and `README.md`, a short page for the
+people who read the site's repository. It keeps a `README.md` that the
+folder already has. `?create_supplement` explains how the first render sets
+up these files. The guide for the site's authors is `GUIDE.md`. It explains how the site renders, how to
 render on the machine that holds private data, and how to publish. It also
 shows how to record R packages with renv and how to render reports in a
 Docker container.
@@ -91,9 +88,8 @@ in `_supplement.yml`. If the file is directly in `data/`, the function does
 not copy it. The data table on the home page lists each file in that list.
 Every file in `data/` is published on the site.
 
-Both functions add lines to these files as text, so the other lines and
-the comments stay as they are. If a function cannot find the menu or the
-list, it stops, writes nothing, and shows the lines to add by hand.
+`?add_report` and `?add_data` describe how each function edits these
+files and the error for a missing menu or list.
 
 ## Record the R setup
 
@@ -119,8 +115,9 @@ supplement::check_supplement()
 ```
 
 `check_supplement()` changes no file. It prints each problem that it finds
-and returns the problems as a data frame, with one row per problem. It
-finds:
+and returns the problems as a data frame, with one row per problem.
+`?check_supplement` describes each check and its limits, for example the
+links that it does not test. It finds:
 
 - files larger than GitHub's limit of 100 MiB
 - saved R objects, such as `.rds` files, that git tracks or does not ignore
@@ -145,13 +142,6 @@ finds:
   `_supplement.yml`, and a `CITATION.cff` that cannot be read
 - template placeholders left in place, such as the paper title in
   `_supplement.yml` or the unchanged example report
-  (`?check_supplement` lists them all)
-
-On pages, it checks only relative links, which point inside the site. It
-does not check links that start with `/` and requests no web address. For the
-file size, saved object, and ignored file checks, it reads the file list
-from git. When git cannot run or the folder is not in a git work tree, it
-skips those three checks and says so.
 
 ## Make a release
 
@@ -171,18 +161,10 @@ such as `"1.0.0"`. A word raises that part of the version and sets the
 parts after it to 0. An empty version counts as `0.0.0`, so `"major"`
 gives `1.0.0`. A version must be greater than the current version.
 
-If a value in `_supplement.yml` stops `write_citation()` or
-`write_zenodo()`, the function also stops and changes no file. Its error
-has the same class and message. Before it changes any file, the function runs `check_supplement()`. If
-that finds a problem, or skips its git checks, the function stops and
-changes no file. If `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`
-changes while the check runs, the function also stops and writes none of
-these files. A DOI in
-`CITATION.cff` that differs from `_supplement.yml` does not stop it,
-because the release writes that file again. The function then changes the
-version in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json`
-again. Only the version line of `_supplement.yml` changes, so its comments
-stay. If a write stops, the three files get their old text back.
+Before it changes any file, the function runs `check_supplement()`. If
+that finds a problem, the function stops and changes no file. Then it
+changes the version in `_supplement.yml` and writes `CITATION.cff` and
+`.zenodo.json` again.
 
 Last, the function prints the commands that make the release, for example:
 
@@ -197,15 +179,12 @@ gh release create v1.0.0 --generate-notes
 ```
 
 It runs none of them. Read them, then run them yourself in the site
-folder. With the `-- .`, `git status` shows only files under the site
-folder, and `git add` and `git commit` stage and commit only these files.
-These are the files that the file size and saved object checks of
-`check_supplement()` read.
-If the site is in a subfolder of its repository, changes outside the site
-stay out of the release commit. A file outside the site that was staged
-before the release stays staged, so a later `git commit` adds it. The last command needs the [GitHub command-line
+folder. The last command needs the [GitHub command-line
 tool](https://cli.github.com), `gh`. After Zenodo archives the release, add the
 new version DOI to `_supplement.yml` and render the site again.
+`?release_supplement` describes the cases that stop the function and the
+recovery from a failed write. It also explains the `-- .` in the git
+commands.
 
 ## License
 

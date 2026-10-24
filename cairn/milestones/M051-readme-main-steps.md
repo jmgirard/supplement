@@ -1,13 +1,13 @@
 # M051: Keep the package README to the main steps
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** M050
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the package README is the first page a new user reads
-- **Branch/PR:** —
+- **Branch/PR:** m051-readme-main-steps
 
 ## Goal
 
@@ -33,7 +33,7 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 
 ## Tasks
 
-- [ ] T1: In `README.md`, cut the passages that AC1's patterns find, keeping one sentence per part that names its help page. Keep each part's main call.
+- [x] T1: In `README.md`, cut the passages that AC1's patterns find, keeping one sentence per part that names its help page. Keep each part's main call.
 - [ ] T2: For each AC2 pattern its help page lacks, add the fact to that function's roxygen in `R/`, then run `devtools::document()`.
 - [ ] T3: Run the AC1 and AC2 greps and `devtools::check()`, and record the outputs in the work log.
 
@@ -45,6 +45,9 @@ The package `README.md` shows the main steps of each task, and the edge cases it
 - 2026-10-24: split from the candidate "Split the template guide by reader" with M050; depends on M050, which rewrites README.md lines 58-66 first.
 - 2026-10-24: criteria audit (full mode, fresh Opus reader): 3 findings, all fixed: AC2's `requests no` matched no help page (now `web address is requested`, the help page's wording); AC2 named `add_data.Rd` but README was not asked to name `?add_data` (added); AC1's patterns missed three Scope passages (added `by hand`, `comments stay`, `With the`, with their help-page patterns in AC2). Noted for T2: M050 T3 rewrites the `create_supplement()` roxygen that holds `_gitignore`.
 - 2026-10-24: plan chose no NEWS entry, because the change moves README text and changes no package behavior; falsified by a cut fact that no help page held before T2 and that users relied on.
+- 2026-10-24: implement start: branch m051-readme-main-steps cut from main at 5fb4c05; status in-progress.
+- 2026-10-24: T1 done: cut the setup-file-name, .gitignore merge, text-insertion, link-limit, git-skip, release-stop, rollback, and `-- .` passages from README.md (55 lines changed, 41 removed); each part names its help page in one sentence; AC1 grep prints nothing.
+- 2026-10-24: T1 choice: the check part's pointer sits above the list and replaces the "(`?check_supplement` lists them all)" bullet tail; the release part's pointer is two sentences, because the simple-english linter refuses a trailing condition.
 
 ## Decisions
 

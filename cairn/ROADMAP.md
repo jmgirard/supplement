@@ -8,7 +8,7 @@ _Last hygiene check: 2026-10-24 (M050 done: narrowed "Split the template guide b
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
 | M050 | Give a new site a reader README and a separate guide | done | — | normal | milestones/archive/M050-template-guide-split.md |
-| M051 | Keep the package README to the main steps | planned | M050 | normal | milestones/M051-readme-main-steps.md |
+| M051 | Keep the package README to the main steps | in-progress | M050 | normal | milestones/M051-readme-main-steps.md |
 | M049 | Keep a new site's .gitignore through later renders | done | — | normal | milestones/archive/M049-quarto-ignore-lines.md |
 | M048 | Run the template scripts without Deno | done | — | high | milestones/archive/M048-lua-project-scripts.md |
 
