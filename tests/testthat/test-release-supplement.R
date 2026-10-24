@@ -794,7 +794,7 @@ test_that("a value error comes before the refusal of a linked output", {
   calls <- mock_check()
   dir <- value_site("^  citation: .*$", '  citation: ""')
   outside <- withr::local_tempfile(lines = "outside")
-  skip_if_not(file.symlink(outside, file.path(dir, "CITATION.cff")), "cannot make a link")
+  symlink_or_skip(outside, file.path(dir, "CITATION.cff"))
   before <- list(Sys.readlink(file.path(dir, "CITATION.cff")), read_bytes(file.path(dir, "_supplement.yml")))
   expect_error(release("patch", path = dir), class = "supplement_error_missing_field")
   expect_identical(list(Sys.readlink(file.path(dir, "CITATION.cff")), read_bytes(file.path(dir, "_supplement.yml"))), before)
