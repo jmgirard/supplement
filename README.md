@@ -56,13 +56,13 @@ quarto render
 ```
 
 The first render writes `.gitignore` and `README.md`, a short page for the
-people who read the site's repository. It keeps a `README.md` that the
-folder already has. `?create_supplement` explains how the first render sets
-up these files. The guide for the site's authors is `GUIDE.md`. It explains
-how the site renders, how to render on the machine that holds private
-data, and how to publish. It also
-shows how to record R packages with renv and how to render reports in a
-Docker container.
+people who read the site's repository. If the folder already has a
+`README.md`, the render keeps it and removes `_README.md`.
+`?create_supplement` explains how the first render sets up these files.
+The guide for the site's authors is `GUIDE.md`. It explains how the site
+renders, how to render on the machine that holds private data, and how to
+publish. It also shows how to record R packages with renv and how to
+render reports in a Docker container.
 
 Put the paper title, citation, Zenodo DOIs, and data files in
 `_supplement.yml`. The home page reads them from that file. `GUIDE.md`
@@ -89,8 +89,9 @@ in `_supplement.yml`. If the file is directly in `data/`, the function does
 not copy it. The data table on the home page lists each file in that list.
 Every file in `data/` is published on the site.
 
-`?add_report` and `?add_data` describe how each function edits these
-files and the error for a missing menu or list.
+`?add_report` describes how the function edits `_quarto.yml`, and
+`?add_data` how it edits `_supplement.yml`. Each page also describes the
+error for a missing menu or list.
 
 ## Record the R setup
 
@@ -163,10 +164,12 @@ parts after it to 0. An empty version counts as `0.0.0`, so `"major"`
 gives `1.0.0`. A version must be greater than the current version.
 
 Before it changes any file, the function runs `check_supplement()`. If
-that finds a problem or skips its git checks, the function stops and
-changes no file. A DOI in `CITATION.cff` that differs from
-`_supplement.yml` does not stop it. Then it changes the version in
-`_supplement.yml` and writes `CITATION.cff` and `.zenodo.json` again.
+that finds a problem, the function stops and changes no file. If
+`check_supplement()` cannot run git, for example in a folder that is not
+in a git repository, the function also stops. A DOI in `CITATION.cff` that differs from
+`_supplement.yml` does not stop it, because the release writes that file
+again. Then it changes the version in `_supplement.yml` and writes
+`CITATION.cff` and `.zenodo.json` again.
 
 Last, the function prints the commands that make the release, for example:
 
@@ -184,9 +187,9 @@ It runs none of them. Read them, then run them yourself in the site
 folder. The last command needs the [GitHub command-line
 tool](https://cli.github.com), `gh`. After Zenodo archives the release, add the
 new version DOI to `_supplement.yml` and render the site again.
-`?release_supplement` describes the cases that stop the function and the
-recovery from a failed write. It also explains the `-- .` in the git
-commands.
+`?release_supplement` describes the cases that stop the function and how
+it puts back the files after a failed write. It also explains the `-- .`
+in the git commands.
 
 ## License
 
