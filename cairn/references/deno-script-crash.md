@@ -43,7 +43,15 @@ These runs used the same `deno run` command line and `DENO_DIR` on the Mac on 20
 
 The crashes came during parallel test runs, which also run R, knitr, and Pandoc.
 
+## Upstream status
+
+quarto-dev/quarto-cli#10426 tracks this crash, and it is open. A Quarto maintainer reopened it on 2026-10-20 and wrote that macOS crash reports from Quarto's nightly CI show the cause. At start, Deno opens its cache databases on parallel threads, and SQLite's start-up code inside Deno can then race. It happens only on arm64. denoland/deno#37045 reports it for Deno 2.7.14 with the same faulting stack: address 0 on a `tokio-runtime-worker` thread, about 20 ms after start. That issue is open, and no linked fix was found — observed 2026-10-24.
+
+That cause fits the facts above. The null call is in a worker thread soon after start. Quarto points each script's Deno at one shared `DENO_DIR`, which holds SQLite cache files (`dep_analysis_cache_v2`, `v8_code_cache_v2`, and others).
+
 ## Draft issue for quarto-dev/quarto-cli
+
+The draft below predates the find of #10426 and duplicates it, so it was not posted.
 
 Title: TypeScript project scripts crash with exit 139 on macOS arm64.
 
