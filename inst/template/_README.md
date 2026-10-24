@@ -267,9 +267,10 @@ under new names.
 
 ## Setup scripts
 
-Quarto runs two scripts in `_scripts/` on each render. They need no R.
+Quarto runs two Lua scripts in `_scripts/` on each render, through
+Pandoc. They need no R.
 
-- `setup.ts` runs before the render. On the first render it renames
+- `setup.lua` runs before the render. On the first render it renames
   `_gitignore` to `.gitignore` and `_README.md` to `README.md`, because
   `quarto use template` does not copy those names. When `.gitignore` already
   exists, it adds the rules that it lacks. It then ends the file with
@@ -279,7 +280,7 @@ Quarto runs two scripts in `_scripts/` on each render. They need no R.
   rule by hand. When `README.md` already exists,
   it writes this guide to `SUPPLEMENT.md` instead. If both files exist, it
   writes no guide.
-- `nojekyll.ts` runs after the render and writes `docs/.nojekyll`, so that
+- `nojekyll.lua` runs after the render and writes `docs/.nojekyll`, so that
   GitHub Pages serves the site as it is.
 
 ## Rendering on the machine with the private data
