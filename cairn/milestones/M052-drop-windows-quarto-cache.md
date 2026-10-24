@@ -72,7 +72,7 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 - diff-bug #3: the codepage token, editor lookup, and `R_LIBS_USER` under the real `LOCALAPPDATA` do no harm — reject (false: the reviewer reports no defect).
 - diff-bug #4: `with_envvar()` with an empty vector and `run_split()`'s `with_dir()` form behave as before — reject (false: no defect).
 - diff-bug #5: docs and tracking hold; no tests owed for a helper removal — reject (false: no defect).
-- blame-history #1: with the helper gone and DESIGN.md silent on Deno, a future test with a `.ts` or `.js` project script would bring back the Windows `deno_std` clash with no note — fix now (DESIGN.md sentence naming the clash and its cause).
+- blame-history #1: with the helper gone and DESIGN.md silent on Deno, a future test with a `.ts` or `.js` project script would bring back the Windows `deno_std` clash with no note — fix now (DESIGN.md sentence naming the clash and its cause), fixed e4aff7e.
 - blame-history #2: the M033 Windows fix is reverted with only Mac evidence so far — reject (planned change: the Windows job runs at the merge step and AC3 ticks only on it).
 - blame-history #3: the Sass database is now shared on Windows with no Windows rate on record — follow-up (candidate row "Measure Sass lock reruns on Windows").
 - blame-history #4: the change reverses a D-020 trade-off with no D-entry — reject (false: D-020 records parallel tests and the Windows loop skips, not the cache override, and parallel tests stay).
