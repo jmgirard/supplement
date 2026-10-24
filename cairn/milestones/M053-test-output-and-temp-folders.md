@@ -28,8 +28,8 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - [ ] AC1: In `tests/testthat/test-renv.R`, the `quarto render` of "a site set up with renv renders with no R, checks clean, and keeps its library out of git" runs with `RENV_PATHS_ROOT` set to the temporary root folder that `renv_site()` gave `renv::init()`, and with `RENV_PATHS_SANDBOX` set to a temporary folder that is empty before the render; the test expects that sandbox folder to hold at least one entry after the render.
 - [ ] AC2: `grep -n 'file.symlink(' tests/testthat/test-release-supplement.R` prints nothing, and "a value error comes before the refusal of a linked output" makes its `CITATION.cff` link with `symlink_or_skip()`.
 - [ ] AC3: `grep -nE 'expect_(equal|identical|true|false)\(.*\$status *(,|==|!=) *0L' tests/testthat/test-shortcodes.R tests/testthat/test-release-supplement.R tests/testthat/test-check-supplement.R | grep -vE 'info *=|label *='` prints nothing.
-- [ ] AC4: When `expect_status()` or `expect_command_fails()` fails on a `run_split()` result, its failure message holds that result's standard output and standard error; when `expect_status()` fails on a `git_run()` result, its failure message holds that result's standard output as text.
-- [ ] AC5: `Rscript -e 'devtools::test()'` reports 0 failures on the Mac, and the R-CMD-check workflow passes on the PR in all six jobs.
+- [ ] AC4: In `tests/testthat/test-template.R`, three cases pass: `expect_status()` failing on a `run_split()`-shaped result and on a `git_run()`-shaped result, and `expect_command_fails()` failing on a `run_split()`-shaped result. Each case expects the text of the result's `stdout`, and for `run_split()` also its `stderr`, in the failure message.
+- [ ] AC5: Every test in `test-renv.R`, `test-release-supplement.R`, `test-shortcodes.R`, `test-check-supplement.R`, and `test-template.R` passes on the Mac.
 
 ## Coverage
 
@@ -61,6 +61,7 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - 2026-10-24: plan gate chose setting the render's renv variables with `withr::with_envvar()` over writing them into a site `.Renviron`, because `renv_site()` already sets them that way for `renv::init()`; falsified by a Windows CI render whose R does not see them.
 - 2026-10-24: plan gate chose rewriting the 26 checks with `expect_status()` and `expect_command_fails()` over adding `info =` to each, because DESIGN.md names those helpers as the form for exit-status checks; falsified by a result shape that `command_failure()` cannot print.
 - 2026-10-24: no changelog entry: tests and test helpers only.
+- 2026-10-24: criteria audit (reduced mode, fresh Opus reader): AC1 to AC3 no finding; AC4 promised every `run_split()` and `git_run()` result with no procedure over them, narrowed to the three named test cases; AC5 bound a runner's report and six CI jobs (instrument, proportionality), narrowed to the five test files passing on the Mac, with the CI wait kept as T6 and the Windows stop kept in T1.
 
 ## Decisions
 
