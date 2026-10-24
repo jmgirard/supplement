@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-24 (M053 done: graduated "Show output on failed sta
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M054 | Build a package site with pkgdown | in-progress | — | normal | milestones/M054-pkgdown-site.md |
+| M054 | Build a package site with pkgdown | review | — | normal | milestones/M054-pkgdown-site.md |
 | M053 | Keep test writes in temp folders and show failed command output | done | — | normal | milestones/archive/M053-test-output-and-temp-folders.md |
 | M052 | Drop the Windows Quarto cache in tests | done | — | high | milestones/archive/M052-drop-windows-quarto-cache.md |
 | M051 | Keep the package README to the main steps | done | M050 | normal | milestones/archive/M051-readme-main-steps.md |

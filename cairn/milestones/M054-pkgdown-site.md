@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M054: Build a package site with pkgdown
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
@@ -109,7 +109,7 @@ coverage report to CI".
       the news (written against T1's build). Add one sentence on the
       pkgdown workflow to DESIGN.md Architecture, beside the
       `R-CMD-check.yaml` paragraph.
-- [ ] T4: Run `devtools::document()` (no diff expected), `devtools::test()`,
+- [x] T4: Run `devtools::document()` (no diff expected), `devtools::test()`,
       and `devtools::check()`.
 
 ## Work log
@@ -134,6 +134,8 @@ coverage report to CI".
 - 2026-10-24: T3 done: NEWS.md bullet naming the site and what T1's build put on it (`reference/`, `articles/publishing.html`, `news/index.html`); DESIGN.md Architecture sentence on the pkgdown workflow after the CI paragraph
 - 2026-10-24: claim audit: 10 claims read, 2 corrected (workflow header said Pages serves gh-pages, NEWS said the package has a website; both now name the address without saying it is live) — .github/workflows/pkgdown.yaml, NEWS.md; the re-read held both, and the agent then narrowed the new step's comment, which listed too few of pkgdown's skipped names, to a pointer
 - 2026-10-24: implement: the claim auditor found that pkgdown's `package_mds()` turns the tracked `CLAUDE.md` into `docs/CLAUDE.html` and has no setting to skip a file, so the workflow runs `rm -f CLAUDE.md` before the build; chosen over moving `CLAUDE.md`, which the repo's cairn setup keeps at the root; DESIGN.md Architecture names the step
+- 2026-10-24: T4 done: `devtools::document()` left no diff; `devtools::test()` 391 results, 0 failed, 0 errors, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 1 NOTE for the hidden folder `.claude`, which is untracked, holds no file git lists, and is not added by this milestone; the check started before the NEWS rewording in 739314d, which changed only bullet text
+- 2026-10-24: implement complete: status set to review
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
