@@ -10,7 +10,8 @@ Description: Provides a 'Quarto' website template for sharing the
     computation output lets the site rebuild without the data. The site is
     served by 'GitHub Pages', and each release can be archived on 'Zenodo'.
 License: MIT + file LICENSE
-URL: https://github.com/jmgirard/supplement
+URL: https://jmgirard.github.io/supplement/,
+    https://github.com/jmgirard/supplement
 BugReports: https://github.com/jmgirard/supplement/issues
 Imports:
     cli,

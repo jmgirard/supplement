@@ -1,0 +1,26 @@
+url: https://jmgirard.github.io/supplement/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: Make a site
+    desc: Make a site from the template, then add reports and data files.
+    contents:
+      - create_supplement
+      - add_report
+      - add_data
+  - title: Check tools and sites
+    desc: Find missing tools, and check a site before a release.
+    contents:
+      - check_tools
+      - check_supplement
+  - title: Make a release
+    desc: Raise the site version and write the citation files.
+    contents:
+      - release_supplement
+      - write_citation
+      - write_zenodo
+  - title: Run reports in a container
+    contents:
+      - write_dockerfile

@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M054: Build a package site with pkgdown
 
-- **Status:** planned   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
 - **Principles touched:** —   <!-- owner: plan · create/amend-via-gate; comma-separated IPn/GPn ids this milestone touches, or — -->
 - **Resolves:** —   <!-- owner: plan · create/amend-via-gate; comma-separated GitHub issues the scope absorbs, each `#N closes` (the PR closes it at merge) or `#N partial` (the remainder gets a candidate row), or — ; skill conduct only — no validate check parses it -->
 - **Surface tier:** user-facing — the package's users read its help pages, guide, and news on the site   <!-- owner: plan · create/amend-via-gate; user-facing | internal — <one-clause reason>; skill conduct only — no validate check parses it -->
-- **Branch/PR:** —   <!-- owner: implement (branch) / review (PR URL) · create; a companion checkout the milestone also works in is one further entry per checkout, `companion: <abs-path> <branch>` (implement), its PR URL appended by review — /milestone-review merges companions first, in listed order -->
+- **Branch/PR:** m054-pkgdown-site   <!-- owner: implement (branch) / review (PR URL) · create; a companion checkout the milestone also works in is one further entry per checkout, `companion: <abs-path> <branch>` (implement), its PR URL appended by review — /milestone-review merges companions first, in listed order -->
 
 ## Goal
 <!-- owner: plan · create; a wrong goal returns to plan, never edited in place -->
@@ -84,7 +84,7 @@ coverage report to CI".
 <!-- owner: plan (create) / implement (check-off, minor edits); substantive
      change is amend-via-gate. -->
 
-- [ ] T1: Write `_pkgdown.yml`: `url:`, `template: bootstrap: 5`, and a
+- [x] T1: Write `_pkgdown.yml`: `url:`, `template: bootstrap: 5`, and a
       `reference:` index with four titled groups: making a site
       (`create_supplement`, `add_report`, `add_data`), checking tools and
       sites (`check_tools`, `check_supplement`), releasing
@@ -128,6 +128,8 @@ coverage report to CI".
 - 2026-10-24: plan chose to install pkgdown in the workflow (`extra-packages: any::pkgdown`) over a `Config/Needs/website` field or a Suggests entry, so DESCRIPTION's dependencies do not change; falsified by the workflow failing to find pkgdown
 - 2026-10-24: criteria audit (full mode, fresh Opus reader): AC1 named the checker's meaning rather than the config, and a broad selector could pass the check, so AC1 now requires each `man/*.Rd` topic by name and the "No problems found." line; AC3 described the run-time push, which only shows after merge, so it now states the `if:` condition, and "build job" became the workflow's one job; AC3's suggested CI-build clause was not added, because the PR opens only after the merge approval and the merge wait already blocks a red run; AC5 found the gate's changelog rule in conflict with the declined NEWS entry, so a NEWS bullet moved into Scope, AC4, and T3; AC2's development-mode caveat went into T1 and the `on:` key note into T2; AC2, AC4, AC5 otherwise no finding
 - 2026-10-24: changelog: one NEWS.md bullet naming the site address, decided after the criteria audit
+- 2026-10-24: implement: set in-progress, branch m054-pkgdown-site cut from main at 85da5c9
+- 2026-10-24: T1 done: `_pkgdown.yml` with four reference groups, site address first in `URL:`, ignore entries; `check_pkgdown()` printed "No problems found.", `build_site(preview = FALSE)` exited 0 and wrote all nine reference pages, and `git status --porcelain` listed nothing under `docs/`; pandoc printed deprecation warnings for `--mathml` and `--mathjax`, which pkgdown passes and which change no output
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
