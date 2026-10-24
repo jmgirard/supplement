@@ -58,6 +58,7 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 - 2026-10-24: T2-T4: `devtools::test(reporter = "silent")` on the Mac at f4c5572: 390 tests, 0 failed, 0 errors, 10 skipped (2 test processes); the Windows CI job runs at review.
 - 2026-10-24: claim audit: not owed — internal tier
 - 2026-10-24: status review: all tasks done, handed to /milestone-review.
+- 2026-10-24: step-7 approval: m052-drop-windows-quarto-cache approved for merge
 
 ## Decisions
 
