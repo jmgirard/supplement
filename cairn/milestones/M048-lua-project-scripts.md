@@ -87,6 +87,7 @@ A render of a site made from the template runs its two project scripts in Lua th
 - 2026-10-24: T7 done on the Mac: `devtools::test()` 392 tests, 0 failed, 0 errors, 10 skipped; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes. The crash-report count stayed at 18 through this session's renders. CI on the three systems runs at review. Status set to review.
 - 2026-10-24: step-7 approval: m048-lua-project-scripts approved for merge
 - 2026-10-24: PR #49 opened from 9103a58; its 3 checks were pending. The session does not poll CI (app rule), so review stops for the CI wait; the merge marker is written only at the merge.
+- 2026-10-24: CI on 9103a58: macOS and Ubuntu passed; Windows failed 2 expectations of the `é中` folder test. `setup.lua` worked there (its 4 file checks passed), but Quarto's own `main.lua` filter stopped the render with "recoverEncode: invalid argument (cannot encode character '\20013')" on the runner's code page 1252, so `nojekyll.lua` never ran. Quarto 1.10.19 cannot render such a site on that system whatever its scripts are. Fix: the render test is back to `é` (AC4 as written); a new test runs `nojekyll.lua` through `quarto pandoc` in a `中` folder, the review fix's case. Both pass on the Mac; whether the old absolute path fails there on Windows is unchecked. Hygiene adds the Quarto limit to DESIGN.md Known issues.
 
 ## Decisions
 

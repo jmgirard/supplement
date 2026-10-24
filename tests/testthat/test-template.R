@@ -729,10 +729,9 @@ test_that("a setup step that fails stops the render and names the script", {
   expect_setup_error(locked, "a read-only .gitignore", "\\.gitignore: Permission denied")
 })
 
-test_that("the scripts run in a site folder whose path holds non-ASCII letters", {
+test_that("the scripts run in a site folder whose path holds a non-ASCII letter", {
   skip_if_no_quarto(needs_r = FALSE)
-  # U+4E2D is outside the Windows-1252 code page.
-  dir <- file.path(withr::local_tempdir(), paste0("site-", intToUtf8(c(233, 0x4E2D), multiple = FALSE)))
+  dir <- file.path(withr::local_tempdir(), paste0("site-", intToUtf8(233)))
   have <- c("mine", quarto_ignore)
   script_site(list(.gitignore = lf_lines(have), README.md = "my readme\n"), dir = dir)
 
@@ -742,6 +741,26 @@ test_that("the scripts run in a site folder whose path holds non-ASCII letters",
   expect_identical(read_bytes(file.path(dir, "SUPPLEMENT.md")), read_bytes(file.path(template_dir(), "_README.md")))
   expect_false(file.exists(file.path(dir, "_gitignore")))
   expect_false(file.exists(file.path(dir, "_README.md")))
+  expect_true(file.exists(file.path(dir, "docs", ".nojekyll")))
+})
+
+test_that("the post-render script writes .nojekyll under a letter outside the Windows code page", {
+  skip_if_no_quarto(needs_r = FALSE)
+  # U+4E2D is outside Windows-1252. Quarto 1.10.19's own filters cannot
+  # render in such a folder on a Windows-1252 system ("cannot encode
+  # character"), so Quarto's Pandoc runs the script the way a render does.
+  dir <- file.path(withr::local_tempdir(), paste0("site-", intToUtf8(0x4E2D)))
+  dir.create(file.path(dir, "docs"), recursive = TRUE)
+  dir.create(file.path(dir, "_scripts"))
+  file.copy(file.path(template_dir(), "_scripts", "nojekyll.lua"), file.path(dir, "_scripts"))
+  file.create(file.path(dir, "empty.md"))
+
+  output <- normalizePath(file.path(dir, "docs"), mustWork = TRUE)
+  ran <- withr::with_envvar(c(QUARTO_PROJECT_OUTPUT_DIR = output), run_in(
+    dir, "quarto",
+    c("pandoc", "--from", "markdown", "--to", "plain", "--lua-filter", "_scripts/nojekyll.lua", "empty.md")
+  ))
+  expect_status(ran)
   expect_true(file.exists(file.path(dir, "docs", ".nojekyll")))
 })
 
