@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template's project scripts ship to every new site
-- **Branch/PR:** m048-lua-project-scripts
+- **Branch/PR:** m048-lua-project-scripts, https://github.com/jmgirard/supplement/pull/49
 
 ## Goal
 
