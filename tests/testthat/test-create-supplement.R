@@ -68,6 +68,7 @@ test_that("repo replaces the placeholders", {
 
   quarto <- read_text(file.path(site, "_quarto.yml"))
   readme <- read_text(file.path(site, "_README.md"))
+  guide <- read_text(file.path(site, "GUIDE.md"))
   template_quarto <- read_text(file.path(template_dir(), "_quarto.yml"))
   n_sites <- lengths(regmatches(template_quarto, gregexpr("OWNER/REPO", template_quarto, fixed = TRUE)))
   expect_gt(n_sites, 0)
@@ -76,20 +77,24 @@ test_that("repo replaces the placeholders", {
     n_sites
   )
   expect_match(readme, "https://jdoe.github.io/my_site.v-2/", fixed = TRUE)
-  for (text in c(quarto, readme)) {
+  expect_match(guide, "https://jdoe.github.io/my_site.v-2/", fixed = TRUE)
+  for (text in c(quarto, readme, guide)) {
     expect_false(grepl("OWNER/REPO", text, fixed = TRUE))
-    expect_false(grepl("OWNER.github.io/REPO", text, fixed = TRUE))
+    expect_false(grepl("OWNER.github.io", text, fixed = TRUE))
   }
   # Only the placeholders change, byte for byte.
   expect_identical(
     gsub("JDoe/my_site.v-2", "OWNER/REPO", read_raw_text(file.path(site, "_quarto.yml")), fixed = TRUE),
     read_raw_text(file.path(template_dir(), "_quarto.yml"))
   )
-  expect_identical(
-    gsub("https://jdoe.github.io/my_site.v-2/", "https://OWNER.github.io/REPO/",
-         read_raw_text(file.path(site, "_README.md")), fixed = TRUE),
-    read_raw_text(file.path(template_dir(), "_README.md"))
-  )
+  for (file in c("_README.md", "GUIDE.md")) {
+    expect_identical(
+      gsub("https://jdoe.github.io/my_site.v-2/", "https://OWNER.github.io/REPO/",
+           read_raw_text(file.path(site, file)), fixed = TRUE),
+      read_raw_text(file.path(template_dir(), file)),
+      info = file
+    )
+  }
 })
 
 test_that("copied files are writable when the template is read-only", {
@@ -112,6 +117,9 @@ test_that("a user site repo gets the root Pages address", {
   readme <- read_text(file.path(site, "_README.md"))
   expect_match(readme, "Website: https://jdoe.github.io/\n", fixed = TRUE)
   expect_false(grepl("github.io/JDoe.github.io", readme, fixed = TRUE))
+  guide <- read_text(file.path(site, "GUIDE.md"))
+  expect_match(guide, "https://jdoe.github.io/figures/", fixed = TRUE)
+  expect_false(grepl("github.io/JDoe.github.io", guide, fixed = TRUE))
   expect_match(read_text(file.path(site, "_quarto.yml")), "https://github.com/jdoe/JDoe.github.io", fixed = TRUE)
 })
 
@@ -352,7 +360,8 @@ test_that("a site made with repo renders", {
   expect_true(file.exists(file.path(site, "docs", ".nojekyll")))
   expect_true(file.exists(file.path(site, ".gitignore")))
   expect_identical(read_bytes(file.path(site, "README.md")), readme_before)
-  expect_true(file.exists(file.path(site, "SUPPLEMENT.md")))
+  expect_false(file.exists(file.path(site, "SUPPLEMENT.md")))
+  expect_true(file.exists(file.path(site, "GUIDE.md")))
   gitignore <- readLines(file.path(site, ".gitignore"))
   expect_identical(gitignore[1], "*.log")
   expect_identical(utils::tail(gitignore, 2), c("!docs/", "!_freeze/"))

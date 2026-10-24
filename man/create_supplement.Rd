@@ -11,7 +11,8 @@ create_supplement(path, repo = NULL)
 
 \item{repo}{The GitHub repository of the site, as \code{"owner/name"}, or
 \code{NULL}. When given, it replaces each \code{OWNER/REPO} placeholder in
-\verb{_quarto.yml}, and the GitHub Pages address in \verb{_README.md} becomes
+\verb{_quarto.yml}, and the GitHub Pages address in \verb{_README.md} and
+\code{GUIDE.md} becomes
 \verb{https://<owner>.github.io/<name>/} with the owner in lowercase. For a
 repository named \verb{<owner>.github.io}, the address is
 \verb{https://<owner>.github.io/}. When \code{NULL}, the placeholders stay for
@@ -35,9 +36,10 @@ folder, it stops before it writes anything.
 
 The template ships \verb{_gitignore} and \verb{_README.md} under those names. The
 first \verb{quarto render} gives them their real names, and that render adds
-the template's rules to an existing \code{.gitignore}. If \code{README.md} exists,
-the render writes the guide to \code{SUPPLEMENT.md} instead. If \code{README.md}
-and \code{SUPPLEMENT.md} both exist, it writes no guide. Render the site once before your first commit.
+the template's rules to an existing \code{.gitignore}. \verb{_README.md} is the
+page for the site's readers. If \code{README.md} exists, the render keeps it
+and removes \verb{_README.md}. The guide for the site's authors is
+\code{GUIDE.md}. Render the site once before your first commit.
 
 After it makes the site, the function runs the lookups of
 \code{\link[=check_tools]{check_tools()}}. Its closing message names each tool that is missing,
