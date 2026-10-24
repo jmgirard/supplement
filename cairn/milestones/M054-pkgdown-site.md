@@ -42,25 +42,25 @@ coverage report to CI".
 ## Acceptance criteria
 <!-- owner: plan · create/amend-via-gate; review reads, never reinterprets. -->
 
-- [ ] AC1: `_pkgdown.yml` at the repo root sets
+- [x] AC1: `_pkgdown.yml` at the repo root sets
       `url: https://jmgirard.github.io/supplement/` and Bootstrap 5
       (`template: bootstrap: 5`), and its `reference:` index has titled
       groups that name, by topic name, each topic of the `man/*.Rd` files
       that `list.files("man", "\\.Rd$")` returns.
       `Rscript -e 'pkgdown::check_pkgdown()'` exits 0 and prints
       "No problems found."
-- [ ] AC2: `Rscript -e 'pkgdown::build_site(preview = FALSE)'` finishes
+- [x] AC2: `Rscript -e 'pkgdown::build_site(preview = FALSE)'` finishes
       with no error and writes `docs/index.html`,
       `docs/reference/index.html`, `docs/articles/publishing.html`,
       `docs/news/index.html`, and one `docs/reference/<name>.html` for each
       `man/<name>.Rd` file that `list.files("man", "\\.Rd$")` returns.
-- [ ] AC3: `.github/workflows/pkgdown.yaml` parses as YAML and runs on
+- [x] AC3: `.github/workflows/pkgdown.yaml` parses as YAML and runs on
       pull requests, on pushes to `main`, on published releases, and on a
       manual run. It has one job. A step of that job builds the site with
       pkgdown, and its deploy step pushes `docs/` to the `gh-pages` branch
       and carries `if: github.event_name != 'pull_request'`. The workflow's
       default permission is `read-all`, and the job gets `contents: write`.
-- [ ] AC4: DESCRIPTION's `URL:` field lists
+- [x] AC4: DESCRIPTION's `URL:` field lists
       `https://jmgirard.github.io/supplement/` before
       `https://github.com/jmgirard/supplement`. `.Rbuildignore` holds the
       lines `^_pkgdown\.yml$`, `^docs$`, and `^pkgdown$`, and `.gitignore`
@@ -136,6 +136,7 @@ coverage report to CI".
 - 2026-10-24: implement: the claim auditor found that pkgdown's `package_mds()` turns the tracked `CLAUDE.md` into `docs/CLAUDE.html` and has no setting to skip a file, so the workflow runs `rm -f CLAUDE.md` before the build; chosen over moving `CLAUDE.md`, which the repo's cairn setup keeps at the root; DESIGN.md Architecture names the step
 - 2026-10-24: T4 done: `devtools::document()` left no diff; `devtools::test()` 391 results, 0 failed, 0 errors, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 1 NOTE for the hidden folder `.claude`, which is untracked, holds no file git lists, and is not added by this milestone; the check started before the NEWS rewording in 739314d, which changed only bullet text
 - 2026-10-24: implement complete: status set to review
+- 2026-10-24: review checkpoint: AC1 to AC4 verified; AC5's test and check run and the four-lens review are in progress
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
@@ -143,3 +144,10 @@ coverage report to CI".
 ## Review
 <!-- owner: review · exclusive; evidence per criterion, consistency-gate
      results, review findings + triage. -->
+
+Review pass 1, 2026-10-24, at e892ae8 (branch contains origin/main 85da5c9; no PR yet; Copilot round off).
+
+- AC1: `_pkgdown.yml` line 1 sets the `url:`, line 4 `bootstrap: 5`; a yaml read gives 4 reference groups, all titled, naming 9 topics, with none missing and none extra against the 9 names from `list.files("man", "\\.Rd$")`; `pkgdown::check_pkgdown()` exited 0 and printed "No problems found."
+- AC2: after `rm -rf docs`, `pkgdown::build_site(preview = FALSE)` exited 0 with no "error" in its log and wrote `docs/index.html`, `docs/reference/index.html`, `docs/articles/publishing.html`, `docs/news/index.html`, and 9 of 9 `docs/reference/<name>.html` pages for the `man/*.Rd` files.
+- AC3: `yaml::read_yaml()` parses `.github/workflows/pkgdown.yaml`; triggers (under `TRUE`) are push (branches: main), pull_request, release (types: published), and workflow_dispatch; default permissions `read-all`; one job, `pkgdown`, with `contents: write`; step "Build site" runs `pkgdown::build_site_github_pages(...)`; step "Deploy to GitHub Pages" uses the JamesIves deploy action with branch `gh-pages`, folder `docs`, and `if: github.event_name != 'pull_request'`.
+- AC4: DESCRIPTION `URL:` lists `https://jmgirard.github.io/supplement/` then `https://github.com/jmgirard/supplement`; `.Rbuildignore` lines 12 to 14 hold the three lines exactly (`grep -xF`); `.gitignore` line 7 is `/docs/`; after AC2's build `git status --porcelain -- docs` printed 0 lines; NEWS.md holds the address once, in the bullet at lines 3 to 6.
