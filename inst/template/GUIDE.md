@@ -1,10 +1,11 @@
 # Guide for the site's authors
 
 This guide shows how to add reports and data, render the site, check it,
-and make a release. `README.md` is the page for the site's readers: it
-gives the paper's citation, the site address, and the contents of this
-folder. The "Reference" part at the end holds the rules for some edge
-cases.
+and make a release. The template's `README.md` is the page for the
+site's readers. The first render puts it in place unless the folder
+already had a `README.md`. It gives the paper's citation, the site
+address, and the contents of this folder. The "Reference" part at the end
+holds the rules for some edge cases.
 
 ## Reports
 
@@ -97,7 +98,8 @@ The home page shows the values with these shortcodes:
   `license.content`. The page footer in `_quarto.yml` uses them. A common
   id shows as a readable name, for example `CC-BY-4.0` as CC BY 4.0. Any
   other id shows as written, and an empty value shows nothing. Each name
-  links to the license's page. The render stops on an id of the wrong
+  links to the id's page on spdx.org, which has pages only for the ids
+  on its lists. The render stops on an id of the wrong
   form. "License ids" in the Reference part gives the form.
 
 If you turn on Zenodo's GitHub integration for this repository, Zenodo

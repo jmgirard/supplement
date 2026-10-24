@@ -7,7 +7,11 @@
   end. When the folder already has a `README.md`, the first render keeps
   it and no `SUPPLEMENT.md` is written. Sites made earlier keep their
   guide. To add the new guide to such a site, copy
-  `system.file("template", "GUIDE.md", package = "supplement")` into it.
+  `system.file("template", "GUIDE.md", package = "supplement")` into it,
+  and replace `OWNER` and `REPO` in its example figure address. Such a
+  site keeps the old guide until its authors replace it. If its folder
+  had no `README.md` before the first render, the old guide is
+  `README.md`. Otherwise it is `SUPPLEMENT.md`.
 * The template's `.gitignore` now holds the lines that Quarto 1.10 adds to a
   `.gitignore` that lacks them. A new site's `.gitignore` no longer changes
   on its second render, unless an `env/` folder in the site folder holds a

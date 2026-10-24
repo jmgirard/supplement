@@ -229,8 +229,9 @@ fields.
 for the line \verb{Copyright (c) YEAR AUTHORS}, and \code{README.md},
 \code{SUPPLEMENT.md}, and \verb{_README.md} for the line
 \verb{Website: https://OWNER.github.io/REPO/}. \code{SUPPLEMENT.md} is for
-sites made before the template's guide moved to \code{GUIDE.md}, where
-setup wrote the guide to that file. Spaces, tabs, and a
+sites made before the template's guide moved to \code{GUIDE.md}, whose
+first render found a \code{README.md} and so wrote the guide to
+\code{SUPPLEMENT.md}. Spaces, tabs, and a
 carriage return at the ends of a line are ignored. A file that is
 missing, a folder, not UTF-8 text, or that cannot be read gives no
 row.

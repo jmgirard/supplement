@@ -1,6 +1,6 @@
 # M050: Give a new site a reader README and a separate guide
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -46,7 +46,7 @@ The first render of a new site leaves a short `README.md` for the people who rea
 - [x] T3: In `R/create-supplement.R`, make `fill_repo()` (line 264) replace the address in `GUIDE.md` too, and update the roxygen at lines 15-19 and 33 and the message at line 123. Update `test-create-supplement.R`: `template_tracked`, the repo tests, and the rendered-site test at about lines 344-355 that expects `SUPPLEMENT.md`. Point `test-template.R:241` at `GUIDE.md` for the "Paper figures" code block.
 - [x] T4: In `R/check-supplement.R`, keep the `SUPPLEMENT.md` placeholder keys (lines 1160-1172) for sites made earlier, and say so in the comment at line 1153 and the roxygen at line 210. Leave the placeholder tests' `SUPPLEMENT.md` cases in place.
 - [x] T5: Update the package `README.md` (lines 36 and 58-66) and `vignettes/publishing.Rmd` (line 76) to name `README.md` and `GUIDE.md`; update DESIGN.md's `setup.lua` entry to D-024. Add the NEWS entry, with the `system.file("template", "GUIDE.md", package = "supplement")` path for sites made earlier. Run `devtools::document()`.
-- [ ] T6: Write and run the AC2 heading script and the AC3 grep, run `devtools::test()` and `devtools::check()`, and record the outputs in the work log.
+- [x] T6: Write and run the AC2 heading script and the AC3 grep, run `devtools::test()` and `devtools::check()`, and record the outputs in the work log.
 
 ## Work log
 
@@ -68,6 +68,9 @@ The first render of a new site leaves a short `README.md` for the people who rea
 - 2026-10-24: T2 done: `setup.lua` drops the `SUPPLEMENT.md` branch and removes `_README.md` beside an existing `README.md`. `script_site()` copies `GUIDE.md`; the two README tests and the second-render test became "setup keeps an existing README.md and writes no SUPPLEMENT.md" (three cases, second render in each); the non-ASCII test lost its `SUPPLEMENT.md` line. Before the fix, with `GUIDE.md` in the template, the new test failed once, at `test-template.R:694` `file.exists(... "SUPPLEMENT.md")` in case "a README.md"; after it, it and the rename, non-ASCII, and figure-code tests pass. Windows-only tests list template folders only, so none needed `GUIDE.md`.
 - 2026-10-24: T3 done: `fill_repo()` writes the Pages address into `_README.md` and `GUIDE.md`; roxygen of `create_supplement()` names the reader page and `GUIDE.md`, `devtools::document()` rewrote `create_supplement.Rd`. The no-repo message still names `_README.md` only, because `GUIDE.md` holds the address only as an example. Tests: "repo replaces the placeholders" and "a user site repo gets the root Pages address" now read `GUIDE.md` and failed (3 failures) before the change; "a site made with repo renders" expects no `SUPPLEMENT.md`. After: 0 failed, 2 Windows-only skips.
 - 2026-10-24: T4 and T5 done: the `placeholder_lines` comment and the roxygen sentence say `SUPPLEMENT.md` serves sites made before the guide moved to `GUIDE.md`; README.md and the vignette (lines 63 and 76) name the reader `README.md` and `GUIDE.md`; DESIGN.md's `setup.lua` entry cites D-024; NEWS entry added; `devtools::document()` rewrote `check_supplement.Rd`. AC6 grep prints 7 lines, all in `R/check-supplement.R` and `man/check_supplement.Rd`. One README check-list bullet reworded for the style hook's sentence limit.
+- 2026-10-24: T6: full `devtools::test()` 390 tests, 0 failed, 0 errors, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes (both run at efd3f1d). After the claim-audit fixes (prose and roxygen only): `devtools::document()` rewrote `check_supplement.Rd`; create-supplement and check-supplement tests 95, 0 failed; the three-case setup test passes; AC2 no missing heading; AC3 Reference at line 517, hits at 521-541 only; AC6 grep 9 lines, all in `R/check-supplement.R` and `man/check_supplement.Rd`.
+- 2026-10-24: claim audit: 45 claims read, 4 corrected — NEWS.md, inst/template/GUIDE.md, R/check-supplement.R (re-read once: NEWS sentence on old sites corrected again to name `SUPPLEMENT.md`; the SPDX fix then moved "SPDX" above the Reference heading and was reworded to keep AC3). Not changed: the reader noted the no-repo message and README.md:36 name only `_README.md` for OWNER/REPO, while `GUIDE.md` also holds it in an example figure address; the old guide held the same example, so the text is no less complete than before.
+- 2026-10-24: implement done; status review.
 
 ## Decisions
 
