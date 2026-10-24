@@ -248,11 +248,9 @@ render whose project script failed holds the script's exit code;
 `run_split()` sets no log level.
 Both run a `quarto` command once more when it fails with "database is
 locked", which Quarto's Sass cache gives when parallel renders write it at
-once. On Windows they give each test process its own Quarto cache folder
-(`LOCALAPPDATA`), since parallel renders that run TypeScript project
-scripts there clash over the cache's `deno_std` folder; since the template's
-scripts are Lua (D-023), see the candidate row "Drop the Windows Quarto
-cache in tests" (corrected M048).
+once. They set no Quarto cache folder, so on every system the test
+processes share the user's Quarto cache, and that rerun covers its Sass
+database (M052).
 Test files run in parallel (`Config/testthat/parallel` in DESCRIPTION), so
 no test relies on state that another test file sets.
 `.github/workflows/R-CMD-check.yaml` runs `R CMD check` on Windows, macOS,

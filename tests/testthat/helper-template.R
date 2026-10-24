@@ -45,9 +45,8 @@ run_in <- function(dir, command, args, env = character()) {
   } else {
     character()
   }
-  cache <- if (is_quarto) quarto_cache_env() else character()
   run <- function() {
-    withr::with_dir(long_dir(dir), withr::with_envvar(c(log_level, cache), {
+    withr::with_dir(long_dir(dir), withr::with_envvar(log_level, {
       suppressWarnings(system2(command, args, stdout = TRUE, stderr = TRUE, env = env))
     }))
   }
@@ -66,21 +65,6 @@ is_quarto_command <- function(command) {
 # run_split() run such a render once more.
 sass_cache_locked <- function(output) {
   any(grepl("database is locked", output, fixed = TRUE))
-}
-
-# On Windows, Quarto 1.10 keeps its cache in %LOCALAPPDATA%\quarto, and a
-# TypeScript or JavaScript project script makes it remove and copy the
-# cache's deno_std folder.
-# With test files in parallel, one render can then fail to remove the
-# folder while another uses it ("os error 32" or "os error 5"), so the
-# quarto commands of each test process get a cache folder of their own.
-# R sets R_LIBS_USER at startup, so the R that Quarto runs keeps its
-# package library.
-quarto_cache_env <- function() {
-  if (.Platform$OS.type != "windows") return(character())
-  dir <- file.path(tempdir(), "quarto-cache")
-  dir.create(dir, showWarnings = FALSE)
-  c(LOCALAPPDATA = long_dir(dir))
 }
 
 # Check the exit status of a result from run_in() or git_in(), and with
@@ -299,11 +283,10 @@ run_split <- function(dir, command, args) {
   err <- tempfile("stderr-")
   on.exit(unlink(c(out, err)))
   is_quarto <- is_quarto_command(command)
-  cache <- if (is_quarto) quarto_cache_env() else character()
   run <- function() {
-    withr::with_dir(long_dir(dir), withr::with_envvar(cache, {
+    withr::with_dir(long_dir(dir), {
       suppressWarnings(system2(command, args, stdout = out, stderr = err))
-    }))
+    })
   }
   status <- run()
   if (is_quarto && status != 0L && sass_cache_locked(c(read_text(out), read_text(err)))) {

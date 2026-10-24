@@ -54,6 +54,7 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 - 2026-10-24: changelog: no NEWS entry, since only test helpers change.
 - 2026-10-24: implement started on branch m052-drop-windows-quarto-cache, cut from main at df7c223.
 - 2026-10-24: T1: the AC2 searches list 4 lines and `find` lists nothing; `test-renv.R:38` is a debug-log string that `r_process_lines()` must drop, `test-check-supplement.R:759` and `:766` are an HTML `<script src="gone.js">` link and its broken-link row, and `test-write-dockerfile.R:278` is the `docker run` argument of a Linux container render; no test hands Quarto any of them as a script.
+- 2026-10-24: checkpoint: T2 and T3 edits made (helper removed, `run_split()` keeps `with_dir()` only; DESIGN.md paragraph rewritten), boxes left open until the running `devtools::test()` passes.
 
 ## Decisions
 
