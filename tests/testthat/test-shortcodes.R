@@ -5,7 +5,7 @@ render_doi_page <- function(zenodo) {
     env = parent.frame()
   )
   rendered <- run_split(dir, "quarto", "render")
-  list(status = rendered$status, stderr = rendered$stderr,
+  list(status = rendered$status, stdout = rendered$stdout, stderr = rendered$stderr,
        html = if (rendered$status == 0L) read_text(file.path(dir, "docs", "index.html")) else "")
 }
 
@@ -106,7 +106,7 @@ render_license_page <- function(supplement) {
     env = parent.frame()
   )
   rendered <- run_split(dir, "quarto", "render")
-  list(status = rendered$status, stderr = rendered$stderr,
+  list(status = rendered$status, stdout = rendered$stdout, stderr = rendered$stderr,
        html = if (rendered$status == 0L) read_text(file.path(dir, "docs", "index.html")) else "")
 }
 

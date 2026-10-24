@@ -68,9 +68,9 @@ sass_cache_locked <- function(output) {
 }
 
 # Check the exit status of a result from run_in(), git_in(), run_split(),
-# or git_run(), and with `output`, also the lines it printed. A failure
-# shows everything the command printed, so the cause of a failed command
-# reaches the test log.
+# or git_run(), and with `output`, also the lines that a run_in() or
+# git_in() result printed. A failure shows everything the command
+# printed, so the cause of a failed command reaches the test log.
 expect_status <- function(result, status = 0L, output = NULL) {
   printed <- as.character(result$output)
   actual <- exit_status(result)
@@ -88,7 +88,8 @@ expect_status <- function(result, status = 0L, output = NULL) {
   invisible(result)
 }
 
-# Check that a result from run_in() has an exit status other than 0.
+# Check that a result from run_in(), git_in(), run_split(), or git_run()
+# has an exit status other than 0.
 expect_command_fails <- function(result) {
   actual <- exit_status(result)
   expect(!is.na(actual) && actual != 0L, command_failure(result, "an exit status other than 0"))
@@ -108,10 +109,11 @@ exit_status <- function(result) {
 command_failure <- function(result, expected) {
   printed <- as.character(result$output)
   # run_split() keeps standard output and standard error apart, and
-  # git_run() keeps standard output as raw bytes.
+  # git_run() keeps standard output as raw bytes. rawToChar() stops on a
+  # nul byte, which `git ls-files -z` prints, so nul bytes are dropped.
   if (is.null(result$output)) {
     printed <- vapply(list(result$stdout, result$stderr), function(x) {
-      if (is.raw(x)) rawToChar(x) else paste(x, collapse = "\n")
+      if (is.raw(x)) rawToChar(x[x != as.raw(0)]) else paste(x, collapse = "\n")
     }, character(1))
     printed <- printed[nzchar(printed)]
   }

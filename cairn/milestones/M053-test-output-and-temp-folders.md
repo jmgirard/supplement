@@ -78,3 +78,28 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - AC2 evidence (2026-10-24, branch head 9276769): the AC2 grep pipeline printed nothing (exit 1).
 - AC3 evidence (2026-10-24, branch head 9276769): `devtools::test(filter = "release-supplement|shortcodes|check-supplement|template")` on the Mac ran "a failed status check shows the output of run_split() and git_run()" in `test-template.R`: 5 expectations, 0 failed, not skipped; its cases are the three AC3 names, each expecting the `stdout` text, and the `stderr` text for the `run_split()` shape.
 - AC4 evidence (2026-10-24, same run): the four files ran 186 tests, 0 failed, 0 errors, 4 skipped, all in `test-check-supplement.R` and none in a test M053 edits: "a name that is not valid UTF-8 matches with ASCII letter case ignored", "a page name that is not valid UTF-8 does not stop the link check", "a path that fs stops on gives the other link rules' answer, not an error", "on Windows, a junction in docs to a folder outside docs gives the rows of a link". A skipped test does not pass, so AC4 as written fails on the Mac, and no change in this milestone can make a Windows-only test pass there; the criterion is wrong, not the work. Not ticked.
+- Gate (2026-10-24): `cairn_validate.py` all checks passed; `devtools::document()` left no diff in `man/` or `NAMESPACE`; no NEWS entry owed (tests only); no new top-level file; no README.Rmd or pkgdown site change. `devtools::check()` runs after the AC4 decision.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: `command_failure()` stops with "embedded nul in string" on raw `stdout` that holds a nul byte, even when the check passes, since testthat builds the message first (reproduced) — fix now
+- diff-bug #2: the `expect_status()` comment promises an `output` check for `run_split()` and `git_run()` results, which hold no `output` — fix now (comment narrowed to `run_in()` and `git_in()`)
+- diff-bug #3: the shortcode page builders in `test-shortcodes.R` keep `stderr` but not `stdout`, so their failures print stderr only — fix now
+- diff-bug #4: the `expect_command_fails()` comment names only `run_in()` results — fix now
+- diff-bug #5: `expect_status()` accepts a double `0` that `expect_identical(x$status, 0L)` refused — reject (planned change: DESIGN.md names the helpers as the form; every rewritten site gets an integer from `system2()`)
+- diff-bug #6: `expect_equal()` tolerance against `exit_status()` — reject (false: same result for integer statuses)
+- diff-bug #7: `expect_false(s == 0L)` against `expect_command_fails()` — reject (false: the reviewer found the same meaning for NA and NULL)
+- diff-bug #8: other `command_failure()` cases (invalid UTF-8, several lines, both fields, NULL result) — reject (false: correct; invalid UTF-8 rechecked here)
+- diff-bug #9: the two `expect_command_fails(split)` checks run the same branch as the `expect_status(split)` checks — reject (planned change: AC3 names that case)
+- diff-bug #10: the DESIGN.md sentence fails for the nul-byte case — fix now (covered by the #1 fix)
+- diff-bug #11: rewritten sites pass shapes the helper prints — reject (false: confirms the change)
+- diff-bug #12: the symlink change meets AC1 — reject (false: confirms the change)
+- diff-bug #13: AC3, AC4 unticked and the CI wait pending at review — reject (false: expected state)
+- blame-history #1: the move to `expect_status()` loosens `expect_identical(x$status, 0L)` — reject (planned change, as diff-bug #5)
+- blame-history #2: `expect_command_fails()` is stricter than the old forms — reject (false: no regression)
+- blame-history #3: the release test's skip reason now fails CI — reject (planned change: AC1)
+- blame-history #4: `test-shortcodes.R:173` keeps `expect_false(page$status == 0L, info = info)` — reject (planned change: Out keeps checks with `info`)
+- blame-history #5: `command_failure()` reads `stdout` only when `output` is NULL — reject (false: confirms the change)
+- prior-review #1: a Windows job without link rights now fails at the skip check — reject (planned change: AC1; `test-template.R` already skips with the same listed reason and the Windows jobs passed in M052)
+- prior-review #2: `rawToChar()` output in `sprintf()` may warn on invalid bytes — reject (false: an `\xff` byte printed with no warning or error here)
+- ripple #1: the candidate row "Show output on failed status checks" describes the fixed problem — reject (planned change: step 9 hygiene graduates the row)
+- ripple #2: the candidate row "Use the link helper in the release test" describes the fixed problem — reject (planned change: step 9 hygiene graduates the row)
+- ripple #3: the `expect_command_fails()` comment names only `run_in()` — fix now (same as diff-bug #4)
