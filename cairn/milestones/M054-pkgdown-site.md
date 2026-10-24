@@ -94,7 +94,7 @@ coverage report to CI".
       first in DESCRIPTION's `URL:`. Add the three `.Rbuildignore` lines
       and `/docs/` to `.gitignore`. Run `pkgdown::check_pkgdown()` and
       `pkgdown::build_site(preview = FALSE)`, then `git status --porcelain`.
-- [ ] T2: Add `.github/workflows/pkgdown.yaml` from the r-lib/actions v2
+- [x] T2: Add `.github/workflows/pkgdown.yaml` from the r-lib/actions v2
       pkgdown example: `actions/checkout@v7` as in `R-CMD-check.yaml`,
       `permissions: read-all` at the top, `contents: write` on the job, a
       concurrency group, `extra-packages: any::pkgdown, local::.`,
@@ -130,6 +130,7 @@ coverage report to CI".
 - 2026-10-24: changelog: one NEWS.md bullet naming the site address, decided after the criteria audit
 - 2026-10-24: implement: set in-progress, branch m054-pkgdown-site cut from main at 85da5c9
 - 2026-10-24: T1 done: `_pkgdown.yml` with four reference groups, site address first in `URL:`, ignore entries; `check_pkgdown()` printed "No problems found.", `build_site(preview = FALSE)` exited 0 and wrote all nine reference pages, and `git status --porcelain` listed nothing under `docs/`; pandoc printed deprecation warnings for `--mathml` and `--mathjax`, which pkgdown passes and which change no output
+- 2026-10-24: T2 done: `.github/workflows/pkgdown.yaml` from the r-lib/actions v2 example (fetched 2026-10-24), with `actions/checkout@v7` and `use-public-rspm: true` as in `R-CMD-check.yaml`, push trigger on `main` only, and the deploy action kept at its pinned v4.8.0 commit; `yaml::read_yaml()` parses it (triggers under `TRUE`: push, pull_request, release, workflow_dispatch), with `read-all` default, one job with `contents: write`, and the deploy step's `if:`; actionlint is not installed, so the first CI run is the workflow's first execution
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
