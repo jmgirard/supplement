@@ -86,3 +86,41 @@ Evidence gathered 2026-10-24 on branch head 150a489, default branch level with `
 - AC6 evidence: the AC6 grep printed 9 lines, 6 in `R/check-supplement.R` (211, 212, 215, 1157, 1165, 1175) and 3 in `man/check_supplement.Rd` (230, 231, 234); the comment at 1155-1158 above `placeholder_lines` and the roxygen sentence at 212-215 say `SUPPLEMENT.md` serves sites made before the guide moved to `GUIDE.md`. `devtools::document()` left 0 changed files.
 - AC7 evidence: NEWS.md's `# supplement 0.0.0.9000` section opens with an entry naming `GUIDE.md` and saying "When the folder already has a `README.md`, the first render keeps it and no `SUPPLEMENT.md` is written." At 150a489: `devtools::test()` 390 tests, 0 failed, 0 errors, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes.
 - Consistency gate: `cairn_validate.py` all checks passed; no principle changed, so `cairn_impact` skipped; `devtools::document()` no diff; no `README.Rmd`, no pkgdown site; NEWS entry present; no new top-level file (`git diff --name-only main..HEAD` outside `cairn/`, `R/`, `man/`, `tests/`, `inst/`, `vignettes/` lists only `NEWS.md` and `README.md`); `devtools::check()` clean as above.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: no test shows that `quarto use template` copies `GUIDE.md` (`test-template.R:62-68` list) — fix now, fixed 3beb261
+- diff-bug #2: the three-case setup test repeats checks over cases 2 and 3, which run the same `os.remove` branch — reject (planned change: AC4 names all three cases and the second render in each)
+- diff-bug #3: NEWS says an old site's guide is `SUPPLEMENT.md` whenever its folder had a `README.md`, false when `SUPPLEMENT.md` also existed — fix now, fixed 3beb261
+- diff-bug #4: the no-repo message and README.md:36 name only `_README.md` for OWNER/REPO, while `GUIDE.md:486` holds the address too — reject (false: that address is an example inside a sentence, not a placeholder line the check reads; main's message omitted the same example in the old guide)
+- diff-bug #5: `create_supplement()` now stops when the folder holds a `GUIDE.md`, undocumented — reject (false: the roxygen's first paragraph says it stops when `path` holds a file where the template writes a file, which covers `GUIDE.md`)
+- diff-bug #6: `quarto use template` may overwrite an existing `GUIDE.md` — reject (false: a scratch run of `quarto use template --no-prompt` into a folder holding `GUIDE.md` and `index.qmd` stopped with an error and left both files as they were)
+- diff-bug #7: the user-site `GUIDE.md` checks repeat the `_README.md` path — reject (planned change: AC5 names the user-site check for `GUIDE.md`)
+- diff-bug #8: `kept <- intersect(...)` can drop a missing file from the second-render check — fix now, fixed 3beb261 (fixed list plus an existence check)
+- diff-bug #9: `GUIDE.md:4` says the template's `README.md`, but the template ships `_README.md` — fix now, fixed 3beb261
+- diff-bug #10: the new roxygen sentence on `SUPPLEMENT.md` has an unclear "whose" — fix now, fixed 3beb261
+- diff-bug #11: the reader page's License part names `_scripts/` and the license files, which its Contents list omits — fix now, fixed 3beb261
+- diff-bug #12: `write_dockerfile()` help and error say "the template guide" without the file name — fix now, fixed 3beb261
+- diff-bug #13: `fill_repo()`'s fixed-string replace needs the example address on one line — reject (false: the repo tests at `test-create-supplement.R:80` and `:121` fail if it wraps)
+- diff-bug #14: the figure-code test still names its variable `readme` — reject (style)
+- diff-bug #15: DESIGN.md:198 runs past the wrap width — reject (style)
+- blame-history #1: `check_supplement()` has no `GUIDE.md` placeholder key, while the old guide's `Website:` line was checked — reject (false: the `Website:` line moved to the reader page, which `README.md` and `_README.md` keys still check; `GUIDE.md` holds no placeholder line, only an example address that the old guide also held unchecked)
+- blame-history #2: no automated check that `quarto use template` copies `GUIDE.md` — fix now (same as diff-bug #1), fixed 3beb261
+- blame-history #3: the non-ASCII test lost its `SUPPLEMENT.md` rename — reject (false: that rename no longer exists by D-024; the test still runs setup's remove branch and `nojekyll.lua` under `é`)
+- blame-history #4: the no-repo message names only `_README.md` — reject (same as diff-bug #4)
+- blame-history #5: AC4 to AC7 unticked while status is review — reject (false: review ticks them as their evidence lands, as it did here)
+- blame-history #6: DESIGN.md:198 wrap width — reject (style)
+- prior-review #1: `GUIDE.md`'s address is outside the placeholder check that M036 set — reject (same as blame-history #1)
+- prior-review #2: two hints name only `_README.md` for the address — reject (same as diff-bug #4)
+- ripple #1: NEWS.md:209 says the site's README tells how a report writes a figure — fix now, fixed 3beb261
+- ripple #2: NEWS.md:224 says the site's README tells reports how to read fit files — fix now, fixed 3beb261
+- ripple #3: `write_dockerfile()` help and error say "the template guide" — fix now (same as diff-bug #12), fixed 3beb261
+- ripple #4: the no-repo message names only `_README.md` — reject (same as diff-bug #4)
+- ripple #5: README.md:36 lists `_quarto.yml` and `_README.md` only — reject (same as diff-bug #4)
+- ripple #6: `fill_placeholders()` in `helper-files.R` does not fill `GUIDE.md` — reject (false: no check reads `GUIDE.md`, so the helper's filled site gives the same rows)
+- ripple #7: README.md:70, :102, :110 say "the guide" where the vignette is also called the guide — fix now, fixed 3beb261
+- ripple #8: NEWS.md:60 says "the template guide" without the file — fix now, fixed 3beb261
+- ripple #9: DESIGN.md Known issues says the template guide's placeholder citation gives no row, but the citation is in the reader page now — fix now, fixed 3beb261 (the candidate pointer goes at hygiene, when the row graduates)
+- ripple #10: DESIGN.md:52 "the guide" is ambiguous — fix now, fixed 3beb261
+- ripple #11: `test-renv.R:1` comment says "as the template guide shows" — reject (false: still true; the template guide is `GUIDE.md`, which holds those steps)
+- After the fixes, at 3beb261: `devtools::document()` rewrote `check_supplement.Rd` and `write_dockerfile.Rd` (committed); the template, create-supplement, check-supplement, write-dockerfile, and renv test files ran 161 tests, 0 failed, 0 errors, 7 skipped; AC1 grep 0, AC3 hits 521-541 below Reference at 517, AC6 hits only in the two allowed files. The full suite and `devtools::check()` ran at 150a489; the fixes change prose, roxygen, one message string, and two tests, and the PR's CI runs the full check on all six jobs.
+- Return floor: no finding shows a criterion failing or a load-bearing defect; no return.
+- Snapshot files: `git diff --name-only main...HEAD` lists none under `_snaps`.
