@@ -8,9 +8,8 @@
 -- so the ignore rules for fitted models are never lost. The file then ends
 -- with `!docs/` and `!_freeze/`, because in git the last matching rule wins,
 -- so an earlier `docs/` rule cannot keep the site out of git. An existing
--- README.md is kept as it is, and the template's README becomes
--- SUPPLEMENT.md instead. If SUPPLEMENT.md also exists, the template's
--- README is removed and no guide is written.
+-- README.md is kept as it is, and the template's README is removed. The
+-- guide for authors ships as GUIDE.md, which this script leaves alone.
 --
 -- Quarto runs the script in the project folder, so the file names are
 -- relative to it. Files are read and written as bytes, so their line
@@ -107,8 +106,6 @@ end
 if exists("_README.md") then
   if not exists("README.md") then
     assert(os.rename("_README.md", "README.md"))
-  elseif not exists("SUPPLEMENT.md") then
-    assert(os.rename("_README.md", "SUPPLEMENT.md"))
   else
     assert(os.remove("_README.md"))
   end

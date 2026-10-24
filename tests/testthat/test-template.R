@@ -592,13 +592,13 @@ test_that("fit files stay ignored when git init comes before the first render", 
   expect_figure_rules(dir)
 })
 
-# A project with the template's two scripts, _gitignore, and _README.md, and
-# one page with no code, so a render runs no R. `files` maps file names to
-# the bytes they start with.
+# A project with the template's two scripts, _gitignore, _README.md, and
+# GUIDE.md, and one page with no code, so a render runs no R. `files` maps
+# file names to the bytes they start with.
 script_site <- function(files = list(), dir = withr::local_tempdir("scripts-", .local_envir = env),
                         env = parent.frame()) {
   dir.create(file.path(dir, "_scripts"), recursive = TRUE)
-  file.copy(file.path(template_dir(), c("_gitignore", "_README.md")), dir)
+  file.copy(file.path(template_dir(), c("_gitignore", "_README.md", "GUIDE.md")), dir)
   file.copy(file.path(template_dir(), "_scripts", c("setup.lua", "nojekyll.lua")), file.path(dir, "_scripts"))
   writeLines(
     c("project:", "  type: website", "  output-dir: docs",
@@ -674,32 +674,33 @@ test_that("setup renames _gitignore and _README.md with their bytes", {
   expect_false(file.exists(file.path(dir, "_README.md")))
 })
 
-test_that("setup leaves the bytes of an existing README.md and SUPPLEMENT.md", {
+test_that("setup keeps an existing README.md and writes no SUPPLEMENT.md", {
   skip_if_no_quarto(needs_r = FALSE)
-  guide <- read_bytes(file.path(template_dir(), "_README.md"))
+  guide <- read_bytes(file.path(template_dir(), "GUIDE.md"))
+  cases <- list(
+    "no README.md" = list(),
+    "a README.md" = list(.gitignore = lf_lines(c("mine", quarto_ignore)), README.md = "my readme\r\n"),
+    "a README.md and a SUPPLEMENT.md" = list(README.md = "my readme", SUPPLEMENT.md = "my supplement\r\n")
+  )
 
-  one <- script_site(list(README.md = "my readme\r\n"))
-  expect_status(run_in(one, "quarto", "render"))
-  expect_identical(read_bytes(file.path(one, "README.md")), charToRaw("my readme\r\n"))
-  expect_identical(read_bytes(file.path(one, "SUPPLEMENT.md")), guide)
-  expect_false(file.exists(file.path(one, "_README.md")))
+  for (case in names(cases)) {
+    files <- cases[[case]]
+    dir <- script_site(files)
+    expect_status(run_in(dir, "quarto", "render"))
+    for (file in intersect(names(files), c("README.md", "SUPPLEMENT.md"))) {
+      expect_identical(read_bytes(file.path(dir, file)), charToRaw(files[[file]]), info = paste(case, file))
+    }
+    if (!"SUPPLEMENT.md" %in% names(files)) {
+      expect_false(file.exists(file.path(dir, "SUPPLEMENT.md")), info = case)
+    }
+    expect_identical(read_bytes(file.path(dir, "GUIDE.md")), guide, info = case)
+    expect_false(file.exists(file.path(dir, "_README.md")), info = case)
 
-  both <- script_site(list(README.md = "my readme", SUPPLEMENT.md = "my supplement\r\n"))
-  expect_status(run_in(both, "quarto", "render"))
-  expect_identical(read_bytes(file.path(both, "README.md")), charToRaw("my readme"))
-  expect_identical(read_bytes(file.path(both, "SUPPLEMENT.md")), charToRaw("my supplement\r\n"))
-  expect_false(file.exists(file.path(both, "_README.md")))
-})
-
-test_that("a second render leaves the files that setup wrote", {
-  skip_if_no_quarto(needs_r = FALSE)
-  dir <- script_site(list(.gitignore = lf_lines(c("mine", quarto_ignore)), README.md = "my readme\n"))
-  expect_status(run_in(dir, "quarto", "render"))
-  files <- c(".gitignore", "README.md", "SUPPLEMENT.md")
-  first <- lapply(file.path(dir, files), read_bytes)
-
-  expect_status(run_in(dir, "quarto", "render"))
-  expect_identical(lapply(file.path(dir, files), read_bytes), first)
+    kept <- intersect(c(".gitignore", "README.md", "GUIDE.md", "SUPPLEMENT.md"), list.files(dir, all.files = TRUE))
+    first <- lapply(file.path(dir, kept), read_bytes)
+    expect_status(run_in(dir, "quarto", "render"))
+    expect_identical(lapply(file.path(dir, kept), read_bytes), first, info = case)
+  }
 })
 
 test_that("a second render leaves the .gitignore that setup renamed", {
@@ -755,7 +756,6 @@ test_that("the scripts run in a site folder whose path holds a non-ASCII letter"
   expect_status(run_in(dir, "quarto", "render"))
   expect_identical(read_bytes(file.path(dir, ".gitignore")), charToRaw(paste0(lf_lines(have), appended(have))))
   expect_identical(read_bytes(file.path(dir, "README.md")), charToRaw("my readme\n"))
-  expect_identical(read_bytes(file.path(dir, "SUPPLEMENT.md")), read_bytes(file.path(template_dir(), "_README.md")))
   expect_false(file.exists(file.path(dir, "_gitignore")))
   expect_false(file.exists(file.path(dir, "_README.md")))
   expect_true(file.exists(file.path(dir, "docs", ".nojekyll")))
