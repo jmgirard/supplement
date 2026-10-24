@@ -76,14 +76,10 @@ test_that("a full render runs the project scripts through Pandoc and starts no D
   expect_status(rendered)
   expect_true(file.exists(file.path(site, "docs", ".nojekyll")))
 
-  # On Windows, Quarto can log a batch file in place of the command it runs,
-  # so its log does not show which program ran a script.
-  if (.Platform$OS.type != "windows") {
-    log <- paste(rendered$output, collapse = "\n")
-    expect_match(rendered$output, "--lua-filter _scripts/setup.lua", fixed = TRUE, all = FALSE, info = log)
-    expect_match(rendered$output, "--lua-filter _scripts/nojekyll.lua", fixed = TRUE, all = FALSE, info = log)
-    expect_no_match(rendered$output, 'deno(\\.exe)?"? run', info = log)
-  }
+  log <- paste(rendered$output, collapse = "\n")
+  expect_match(rendered$output, "--lua-filter _scripts/setup.lua", fixed = TRUE, all = FALSE, info = log)
+  expect_match(rendered$output, "--lua-filter _scripts/nojekyll.lua", fixed = TRUE, all = FALSE, info = log)
+  expect_no_match(rendered$output, 'deno(\\.exe)?"? run', info = log)
 })
 
 test_that("report pages carry the site navbar and stored output", {
@@ -671,7 +667,8 @@ lf_lines <- function(lines) paste0(lines, "\n", collapse = "")
 # that a test writes holds them and reaches the script as written.
 quarto_ignore <- c("/.quarto/", "**/*.quarto_ipynb")
 
-# The lines that setup appends to a .gitignore holding the lines `have`.
+# The lines that setup appends to a .gitignore holding the lines `have`,
+# which do not end with `!docs/` and `!_freeze/`.
 appended <- function(have) {
   lines <- template_ignore_lines()
   lf_lines(c(lines[!lines %in% have], "!docs/", "!_freeze/"))
