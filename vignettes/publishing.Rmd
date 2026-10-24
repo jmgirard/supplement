@@ -60,8 +60,8 @@ supplement::create_supplement("my-supplement", repo = "owner/name")
 
 The function copies the template into the clone. It writes the repository
 into the GitHub link in `_quarto.yml`. It also writes the site's GitHub
-Pages address, `https://owner.github.io/name/`, into the guide for
-authors. If the folder already holds a file that
+Pages address, `https://owner.github.io/name/`, into the site's README and
+into the guide for authors. If the folder already holds a file that
 the template writes, the function stops and writes nothing.
 
 ## 4. Render the site
@@ -72,9 +72,10 @@ In a terminal, in the site folder, run:
 quarto render
 ```
 
-The first render writes `.gitignore` and the guide for authors,
-`README.md`. It also renders the site into `docs/`, the folder that GitHub
-Pages serves.
+The first render writes `.gitignore` and `README.md`, the page for the
+people who read the site's repository. The guide for authors is
+`GUIDE.md`. The render also writes the site into `docs/`, the folder that
+GitHub Pages serves.
 
 ## 5. Commit and push
 

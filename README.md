@@ -57,13 +57,14 @@ quarto render
 
 The first render writes the template's rules into `.gitignore`. If
 `.gitignore` already exists, the render adds the rules that it lacks. The
-first render also writes the template's guide to `README.md`. If the folder
-already has a `README.md`, the guide goes to `SUPPLEMENT.md` instead. If
-both files exist, no guide is written. The template ships these files as `_gitignore` and `_README.md`, because
-`quarto use template` does not copy those file names. The guide explains how
-the site renders, how to render on the machine that holds private data, and
-how to publish. It also shows how to record R packages with renv and how
-to render reports in a Docker container.
+first render also writes `README.md`, a short page for the people who read
+the site's repository. It keeps a `README.md` that the folder already has. The
+template ships these files as `_gitignore` and `_README.md`, because
+`quarto use template` does not copy those file names. The guide for the
+site's authors is `GUIDE.md`. It explains how the site renders, how to
+render on the machine that holds private data, and how to publish. It also
+shows how to record R packages with renv and how to render reports in a
+Docker container.
 
 Put the paper title, citation, Zenodo DOIs, and data files in
 `_supplement.yml`. The home page reads them from that file. The guide
@@ -127,9 +128,9 @@ finds:
   release leaves out
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
-- reports directly in `analyses/` whose stored output in `_freeze/` was
-  made from other text than the report holds now, or whose source hash
-  cannot be read
+- reports directly in `analyses/` whose stored output in `_freeze/` came
+  from other text than the report holds now, or whose source hash cannot
+  be read
 - folders in `_freeze/analyses/` that no file or folder in `analyses/`
   names, as after a report is deleted or renamed
 - a site with no `docs/` folder

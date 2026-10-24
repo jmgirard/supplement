@@ -193,9 +193,9 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   existing name reaches `docs/` in the same render, and a figure saved
   under a new name reaches it on the next render.
 - `_scripts/setup.lua` (pre-render): gives `_gitignore` and `_README.md`
-  their real names, merges missing rules into an existing `.gitignore`, and
-  writes the guide to `SUPPLEMENT.md` beside an existing README (D-004,
-  D-006, D-023). Quarto runs it through Pandoc (`--lua-filter`) in the
+  (the reader page) their real names, merges missing rules into an existing
+  `.gitignore`, and removes `_README.md` beside an existing README; the
+  author guide ships as `GUIDE.md` (D-004, D-006, D-023, D-024). Quarto runs it through Pandoc (`--lua-filter`) in the
   project folder, so it uses file names relative to that folder.
 - `_scripts/nojekyll.lua` (post-render): writes `.nojekyll` into the output
   folder that `QUARTO_PROJECT_OUTPUT_DIR` names. A render starts no Deno

@@ -1,5 +1,13 @@
 # supplement 0.0.0.9000
 
+* A new site's `README.md` is now a short page for the people who read the
+  site's repository: the citation, the site address, the contents, and the
+  licenses. The guide for the site's authors is a separate file,
+  `GUIDE.md`. Its rules for edge cases sit in a "Reference" part at its
+  end. When the folder already has a `README.md`, the first render keeps
+  it and no `SUPPLEMENT.md` is written. Sites made earlier keep their
+  guide. To add the new guide to such a site, copy
+  `system.file("template", "GUIDE.md", package = "supplement")` into it.
 * The template's `.gitignore` now holds the lines that Quarto 1.10 adds to a
   `.gitignore` that lacks them. A new site's `.gitignore` no longer changes
   on its second render, unless an `env/` folder in the site folder holds a

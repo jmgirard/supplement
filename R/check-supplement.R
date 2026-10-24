@@ -209,7 +209,9 @@
 #'     `## Before your first commit`, `LICENSE.md` and `LICENSE-CC-BY.md`
 #'     for the line `Copyright (c) YEAR AUTHORS`, and `README.md`,
 #'     `SUPPLEMENT.md`, and `_README.md` for the line
-#'     `Website: https://OWNER.github.io/REPO/`. Spaces, tabs, and a
+#'     `Website: https://OWNER.github.io/REPO/`. `SUPPLEMENT.md` is for
+#'     sites made before the template's guide moved to `GUIDE.md`, where
+#'     setup wrote the guide to that file. Spaces, tabs, and a
 #'     carriage return at the ends of a line are ignored. A file that is
 #'     missing, a folder, not UTF-8 text, or that cannot be read gives no
 #'     row.
@@ -1150,8 +1152,9 @@ placeholder_example_rows <- function(path) {
 }
 
 # Lines of the template's files that the author replaces or deletes. The
-# guide is `_README.md` in the template and becomes `README.md`, or
-# `SUPPLEMENT.md` beside an existing README, at the first render.
+# reader page is `_README.md` in the template and becomes `README.md` at the
+# first render. `SUPPLEMENT.md` serves sites made before the guide moved to
+# `GUIDE.md`, where setup wrote the guide there beside an existing README.
 placeholder_lines <- list(
   "_quarto.yml" = "href: https://github.com/OWNER/REPO",
   "index.qmd" = "## Before your first commit",
