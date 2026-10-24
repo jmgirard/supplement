@@ -15,6 +15,8 @@ Website: https://OWNER.github.io/REPO/
 - `index.qmd`, `_quarto.yml`: website source
 - `_extensions/supplement/`: the shortcodes that show the DOI badge, the download link, and the data table
 - `docs/`: rendered website, served by GitHub Pages
+- `_scripts/`: the scripts that Quarto runs before and after each render
+- `LICENSE.md`, `LICENSE-CC-BY.md`: the licenses of the code and the content
 - `GUIDE.md`: the guide for the site's authors
 
 ## License

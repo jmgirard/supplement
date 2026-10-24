@@ -125,8 +125,8 @@
 #' * `supplement_error_write`: a file was opened, but writing it gave an
 #'   error or a warning, or the file then has another size than the text.
 #'
-#' @seealso The template guide's parts "Recording R packages with renv"
-#'   and "Running reports in a container".
+#' @seealso The parts "Recording R packages with renv" and "Running
+#'   reports in a container" of the template guide, `GUIDE.md`.
 #' @export
 #' @examples
 #' site <- file.path(tempdir(), "my-supplement")
@@ -188,7 +188,7 @@ read_lockfile_versions <- function(path, call = parent.frame()) {
   if (!file.exists(file) || dir.exists(file)) {
     cli::cli_abort(
       c("No {.file renv.lock} in {.path {path}}.",
-        "i" = "Set up renv in the site first, as the template guide's part {.emph Recording R packages with renv} shows."),
+        "i" = "Set up renv in the site first, as the part {.emph Recording R packages with renv} of {.file GUIDE.md} shows."),
       class = c("supplement_error_no_file", "supplement_error"),
       call = call
     )

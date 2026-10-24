@@ -60,7 +60,7 @@ test_that("a new site renders and holds its setup files", {
   expect_status(site$rendered)
 
   expected <- c(
-    ".gitignore", "README.md", "index.qmd", "analyses/example.qmd",
+    ".gitignore", "README.md", "GUIDE.md", "index.qmd", "analyses/example.qmd",
     "data/example.csv", "LICENSE.md", "LICENSE-CC-BY.md", "docs/.nojekyll"
   )
   expect_true(all(file.exists(file.path(site$dir, expected))))
@@ -696,7 +696,8 @@ test_that("setup keeps an existing README.md and writes no SUPPLEMENT.md", {
     expect_identical(read_bytes(file.path(dir, "GUIDE.md")), guide, info = case)
     expect_false(file.exists(file.path(dir, "_README.md")), info = case)
 
-    kept <- intersect(c(".gitignore", "README.md", "GUIDE.md", "SUPPLEMENT.md"), list.files(dir, all.files = TRUE))
+    kept <- c(".gitignore", "README.md", "GUIDE.md", intersect("SUPPLEMENT.md", names(files)))
+    expect_true(all(file.exists(file.path(dir, kept))), info = case)
     first <- lapply(file.path(dir, kept), read_bytes)
     expect_status(run_in(dir, "quarto", "render"))
     expect_identical(lapply(file.path(dir, kept), read_bytes), first, info = case)

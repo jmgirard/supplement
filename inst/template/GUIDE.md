@@ -1,9 +1,9 @@
 # Guide for the site's authors
 
 This guide shows how to add reports and data, render the site, check it,
-and make a release. The template's `README.md` is the page for the
-site's readers. The first render puts it in place unless the folder
-already had a `README.md`. It gives the paper's citation, the site
+and make a release. The template's `_README.md` is the page for the
+site's readers. The first render renames it to `README.md` unless the
+folder already had a `README.md`. It gives the paper's citation, the site
 address, and the contents of this folder. The "Reference" part at the end
 holds the rules for some edge cases.
 
