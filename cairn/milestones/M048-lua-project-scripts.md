@@ -86,6 +86,7 @@ A render of a site made from the template runs its two project scripts in Lua th
 - 2026-10-24: claim audit: 37 claims read, 2 corrected — NEWS.md, inst/template/_README.md, inst/template/_quarto.yml, inst/template/_scripts/setup.lua, inst/template/_scripts/nojekyll.lua, tests/testthat/test-template.R. Corrected: the no-Deno test's comment that Quarto on Windows can log a batch file in place of a script's command (in 1.10.19 `execProcess` logs `cmd` and `args`, and `safeWindowsExec` serves only reg.exe, unzip, tlmgr, fmtutil, and the browser), so the test now checks the log on every system, which also reverses the second plan audit's rejection of a Windows check; and the `appended()` comment. Open: the `é` test is unchecked on Windows until CI runs it.
 - 2026-10-24: T7 done on the Mac: `devtools::test()` 392 tests, 0 failed, 0 errors, 10 skipped; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 0 notes. The crash-report count stayed at 18 through this session's renders. CI on the three systems runs at review. Status set to review.
 - 2026-10-24: step-7 approval: m048-lua-project-scripts approved for merge
+- 2026-10-24: PR #49 opened from 9103a58; its 3 checks were pending. The session does not poll CI (app rule), so review stops for the CI wait; the merge marker is written only at the merge.
 
 ## Decisions
 
