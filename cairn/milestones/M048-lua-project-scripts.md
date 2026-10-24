@@ -100,3 +100,29 @@ Evidence at 22be1f2, branch level with origin/main d8667fd, 2026-10-24.
 - AC4 (local part): `test-template.R` 47 tests, 0 failed, 0 skipped on macOS, the `é` test (7 expectations) included. The Windows, macOS, and Ubuntu CI jobs run after the PR opens.
 - Consistency gate: `cairn_validate.py` all checks passed; no principle changed, so no impact report; `devtools::document()` no diff; no README.Rmd and no pkgdown site; NEWS.md has the entry; no new top-level file; `devtools::check()` 0 errors, 0 warnings, 0 notes at 22be1f2 (T7; only `cairn/` changed since).
 - spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: `nojekyll.lua` opened the absolute `QUARTO_PROJECT_OUTPUT_DIR` through C `fopen`, which on Windows can fail on a name outside the code page where Deno used wide calls — fix now (it reads the path with `pandoc.system.environment()` and opens it relative to the project folder; a probe showed `docs` opened from `/private/tmp` and `/var/folders`)
+- diff-bug #2: the `é` test cannot catch #1, since `é` is in Windows-1252 and `setup.lua` opens only relative names — fix now (the folder name also holds U+4E2D)
+- diff-bug #3: on Windows a dangling `.gitignore` or `README.md` link now stops the render, where `Deno.renameSync` replaced it — reject, edge: a dangling link at a setup target in a new site is outside documented and common use, and the effect is an error
+- diff-bug #4: `wb` truncates the author's `.gitignore` before writing, so a failed write loses its lines (as `setup.ts` did) — fix now (only the appended bytes are written, with `ab`)
+- diff-bug #5: the failure test asserts no failure identity — fix now (it matches `_gitignore: Permission denied|Is a directory` and `\.gitignore: Permission denied`)
+- diff-bug #6: the root skip covered the folder case too — fix now (it comes after that case)
+- diff-bug #7: Pandoc prints one blank stdout line per script — reject, style: no wrong result, and Quarto prints its own blank line after the scripts (`info("")` in `runScripts`)
+- diff-bug #8: AC2 says the log check runs off Windows while the test runs it everywhere — reject, false: the test meets AC2 as written
+- diff-bug #9: the second-render test checks Quarto more than setup — reject, planned change (AC3 case 9)
+- diff-bug #10: three older setup tests repeat the new byte tests with weaker checks and full R renders — fix now (removed: "setup adds the template rules to an existing .gitignore", "setup keeps an existing README.md and writes the guide beside it", "setup keeps both files when README.md and SUPPLEMENT.md exist")
+- diff-bug #11: two append cases take the same branches — reject, planned change (AC3 case 3)
+- diff-bug #12: the `é` test repeats covered branches — reject, planned change (AC4)
+- blame-history #1: without `QUARTO_PROJECT_DIR`, setup does nothing in a render run from a subfolder — reject, false: a full render and `quarto render a.qmd` run from `analyses/` renamed both files and wrote `docs/.nojekyll`; `runScripts` passes `cwd: projDir`
+- blame-history #2: Windows non-ASCII paths in `io.open` — fix now (diff-bug #1)
+- blame-history #3: `exists()` treats any open error but error 2 as present, so an unsearchable path stops the render — reject, edge: an unreadable name in the site folder is outside documented and common use, the effect is an error, and the comment states it
+- blame-history #4: the Windows cache rationale in `helper-template.R` and DESIGN.md is stale — fix now
+- blame-history #5: the `test-renv.R` fixture names `_scripts/build.ts` — reject, planned change (T4 chose a name the template does not ship)
+- prior-review #1: the M003 class of Windows path failure in `nojekyll.lua` — fix now (diff-bug #1)
+- prior-review #2: M018's "Lua read error" fix may repeat — reject, false: that fix was in the shortcode extension's file reading, not a project script
+- prior-review #3: the `helper-template.R` cache comment — fix now (blame-history #4)
+- ripple #1: the candidate row "Trace the post-render crash on macOS" names `nojekyll.ts` — reject, planned change: hygiene removes the row the plan absorbed
+- ripple #2: the row "Drop the Windows Quarto cache in tests" now holds its condition — reject, planned change: the row was written for after this merge
+- ripple #3: `helper-template.R:71-72` — fix now (names TypeScript or JavaScript scripts)
+- ripple #4: `cairn/DESIGN.md:251-253` — fix now (corrected M048, points to the row)
+- ripple #5: the M019 lesson's `setup.ts` example — fix now (corrected M048: a TypeScript script prints only "Running script", a Lua one also prints Pandoc's error)
+- ripple #6: the `test-renv.R` fixture name — reject, planned change (blame-history #5)

@@ -556,21 +556,6 @@ test_that("a figures link to a file stops the example report", {
   expect_identical(folder_state(outside), before)
 })
 
-test_that("setup adds the template rules to an existing .gitignore", {
-  skip_if_no_quarto()
-  dir <- withr::local_tempdir("site-")
-  expect_status(use_template(dir))
-  writeLines("mine", file.path(dir, ".gitignore"))
-
-  expect_status(run_in(dir, "quarto", "render"))
-  kept <- readLines(file.path(dir, ".gitignore"))
-  expect_equal(kept[1], "mine")
-  expect_true(all(c("*.[Rr][Dd][Ss]", "analyses/fits/") %in% kept))
-  expect_equal(sum(kept == "*.[Rr][Dd][Ss]"), 1L)
-  expect_equal(utils::tail(kept, 2), c("!docs/", "!_freeze/"))
-  expect_false(file.exists(file.path(dir, "_gitignore")))
-})
-
 expect_site_not_ignored <- function(existing_gitignore) {
   dir <- withr::local_tempdir("site-")
   expect_status(use_template(dir))
@@ -605,34 +590,6 @@ test_that("fit files stay ignored when git init comes before the first render", 
   expect_status(ignored)
   expect_setequal(ignored$output,c("analyses/fits/m.rds", "x.rds"))
   expect_figure_rules(dir)
-})
-
-test_that("setup keeps an existing README.md and writes the guide beside it", {
-  skip_if_no_quarto()
-  dir <- withr::local_tempdir("site-")
-  expect_status(use_template(dir))
-  writeLines("my readme", file.path(dir, "README.md"))
-
-  expect_status(run_in(dir, "quarto", "render"))
-  expect_equal(readLines(file.path(dir, "README.md")), "my readme")
-  expect_equal(
-    readLines(file.path(dir, "SUPPLEMENT.md")),
-    readLines(file.path(template_dir(), "_README.md"))
-  )
-  expect_false(file.exists(file.path(dir, "_README.md")))
-})
-
-test_that("setup keeps both files when README.md and SUPPLEMENT.md exist", {
-  skip_if_no_quarto()
-  dir <- withr::local_tempdir("site-")
-  expect_status(use_template(dir))
-  writeLines("my readme", file.path(dir, "README.md"))
-  writeLines("my supplement", file.path(dir, "SUPPLEMENT.md"))
-
-  expect_status(run_in(dir, "quarto", "render"))
-  expect_equal(readLines(file.path(dir, "README.md")), "my readme")
-  expect_equal(readLines(file.path(dir, "SUPPLEMENT.md")), "my supplement")
-  expect_false(file.exists(file.path(dir, "_README.md")))
 })
 
 # A project with the template's two scripts, _gitignore, and _README.md, and
@@ -747,32 +704,35 @@ test_that("a second render leaves the files that setup wrote", {
 
 test_that("a setup step that fails stops the render and names the script", {
   skip_if_no_quarto(needs_r = FALSE)
-  skip_if(Sys.info()[["user"]] == "root", "root can read and write any file")
   ignore <- lf_lines(c("mine", quarto_ignore))
-  expect_setup_error <- function(dir, case) {
+  expect_setup_error <- function(dir, case, message) {
     rendered <- withr::with_envvar(c(QUARTO_LOG_LEVEL = "INFO"), run_in(dir, "quarto", "render"))
+    log <- paste(c(case, rendered$output), collapse = "\n")
     expect_command_fails(rendered)
-    expect_match(rendered$output, "Error running filter '_scripts/setup.lua'", fixed = TRUE, all = FALSE,
-                 info = paste(c(case, rendered$output), collapse = "\n"))
+    expect_match(rendered$output, "Error running filter '_scripts/setup.lua'", fixed = TRUE, all = FALSE, info = log)
+    expect_match(rendered$output, message, all = FALSE, info = log)
     expect_identical(read_bytes(file.path(dir, ".gitignore")), charToRaw(ignore), info = case)
   }
 
   # The script cannot read a folder in place of the template's _gitignore.
+  # On Windows the open fails; elsewhere the read does.
   folder <- script_site(list(.gitignore = ignore))
   file.remove(file.path(folder, "_gitignore"))
   dir.create(file.path(folder, "_gitignore"))
-  expect_setup_error(folder, "a _gitignore folder")
+  expect_setup_error(folder, "a _gitignore folder", "_gitignore: Permission denied|Is a directory")
 
-  # Nor write to a .gitignore that is read-only.
+  # Nor append to a .gitignore that is read-only.
+  skip_if(Sys.info()[["user"]] == "root", "root can read and write any file")
   locked <- script_site(list(.gitignore = ignore))
   Sys.chmod(file.path(locked, ".gitignore"), "444")
   withr::defer(Sys.chmod(file.path(locked, ".gitignore"), "644"))
-  expect_setup_error(locked, "a read-only .gitignore")
+  expect_setup_error(locked, "a read-only .gitignore", "\\.gitignore: Permission denied")
 })
 
-test_that("the scripts run in a site folder whose path holds a non-ASCII letter", {
+test_that("the scripts run in a site folder whose path holds non-ASCII letters", {
   skip_if_no_quarto(needs_r = FALSE)
-  dir <- file.path(withr::local_tempdir(), paste0("site-", intToUtf8(233)))
+  # U+4E2D is outside the Windows-1252 code page.
+  dir <- file.path(withr::local_tempdir(), paste0("site-", intToUtf8(c(233, 0x4E2D), multiple = FALSE)))
   have <- c("mine", quarto_ignore)
   script_site(list(.gitignore = lf_lines(have), README.md = "my readme\n"), dir = dir)
 

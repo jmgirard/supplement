@@ -34,8 +34,9 @@ local function read(path)
   return text
 end
 
-local function write(path, text)
-  local file = assert(io.open(path, "wb"))
+-- Appending leaves the existing bytes in place if the write fails.
+local function append(path, text)
+  local file = assert(io.open(path, "ab"))
   assert(file:write(text))
   assert(file:close())
 end
@@ -90,7 +91,7 @@ local function merge_lines(src, dest)
 
   if #add > 0 then
     local sep = (current == "" or current:sub(-1) == "\n") and "" or "\n"
-    write(dest, current .. sep .. table.concat(add, "\n") .. "\n")
+    append(dest, sep .. table.concat(add, "\n") .. "\n")
   end
 end
 
