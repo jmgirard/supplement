@@ -69,6 +69,8 @@ The example report stops with a message when `figures` is a link, and `save_png(
 - 2026-10-23: PR #47 opened and the merge marker written. CI had registered no checks yet. The session stopped before the CI wait, because the desktop app forbids watching CI with `gh` from the session; `/milestone-review M046` re-derives the check state and merges on green. AC1 and AC6 wait on that CI run.
 - 2026-10-23: resume: PR #47 open (route d). CI on head 3d186f8: Windows and macOS green, Ubuntu red from a full runner disk in tests the branch does not touch, as on `main` since dd1ed7b. Asked where the disk fix goes; the user chose a separate fix first (candidate row "Keep the Ubuntu CI job within its disk"). PR #47 stays open and approved, the merge marker stays, and AC6 waits for a green Ubuntu run.
 
+- 2026-10-24: resume: PR #47 open (route d). M047 merged as PR #48 (e370fc9), so main now sets `TMPDIR` on the Linux CI job. Merged main (fd95253) into the branch; the one conflict, the ROADMAP table rows for M047 and M046, was resolved by keeping both (M046 at `review`). main's changes touch no R or test file, so the macOS evidence stands and PR #47's CI re-runs on the new head. The user asked to merge on green: "Run the M046 review now: merge main into its branch, re-run CI on PR #47, and merge on green."
+
 ## Decisions
 
 ## Review

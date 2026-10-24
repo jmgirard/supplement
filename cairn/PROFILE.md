@@ -1,4 +1,5 @@
 # Toolchain profile: r-package
+# Feature PR cap: 2
 
 <!-- A cairn *toolchain profile*: the language/toolchain-specific slots the
      operational skills read. cairn-init instantiates this into the repo's

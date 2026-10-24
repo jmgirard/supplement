@@ -1,16 +1,16 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-23 (M045 done: graduated "Detect broken file links on Windows" and "Test the link refusals on Windows"; new row "Use the link helper in the release test"; pruned M042 table row; validate green)_
+_Last hygiene check: 2026-10-24 (M047 done: graduated "Keep the Ubuntu CI job within its disk"; pruned M043 table row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
+| M047 | Keep the Ubuntu CI job within its disk | done | — | high | milestones/archive/M047-ubuntu-ci-disk.md |
 | M046 | Stop the example at a linked figures folder | review | — | high | milestones/M046-linked-figures.md |
 | M045 | Detect broken file links on Windows | done | — | high | milestones/archive/M045-windows-broken-file-links.md |
 | M044 | Advise deleting unreadable format files | done | — | normal | milestones/archive/M044-unreadable-format-files.md |
-| M043 | Name leftover format files in _freeze | done | — | normal | milestones/archive/M043-leftover-format-files.md |
 
 ## Candidates
 

@@ -35,6 +35,17 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # A shortcode test renders a site whose data files of 1.0, 2.1, and
+      # 4.3 GB Quarto copies into docs/, under R's temporary folder. On the
+      # ubuntu-26.04 image /tmp is a 7.9 GB tmpfs with a user quota, too
+      # small for that, so the Linux job puts the folder on the runner's
+      # disk.
+      - name: Put the temporary folder on the runner's disk
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p "$RUNNER_TEMP/tmp"
+          echo "TMPDIR=$RUNNER_TEMP/tmp" >> "$GITHUB_ENV"
+
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: 1.10.19
