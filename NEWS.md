@@ -5,8 +5,8 @@
   on its second render, unless an `env/` folder in the site folder holds a
   Python environment. The template also ignores Quarto's `_*.local` files in
   the site folder, such as `_environment.local`, which hold settings for
-  one computer. Sites made earlier need no change: Quarto added its line
-  to their `.gitignore` at their second render.
+  one computer. Sites made earlier need no change, because Quarto adds the
+  lines it needs to their `.gitignore` itself.
 * The template's two project scripts are now Lua files, `_scripts/setup.lua`
   and `_scripts/nojekyll.lua`, that Quarto runs through Pandoc, so a render
   starts no Deno process for them. On macOS, Quarto's Deno sometimes

@@ -1,6 +1,6 @@
 # M049: Keep a new site's .gitignore through later renders
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -57,6 +57,8 @@ A new site's `.gitignore` stays as setup wrote it through later renders, because
 - 2026-10-24: criteria audit (full mode, fresh Opus reader): 10 findings, 9 fixed by narrowing and 1 answered. AC1 named Quarto 1.10.19, excluded git repositories (Quarto writes `.gitignore` before setup there) and a root `env/`, and stated its two cases itself rather than through the test. AC2 states file contents against the base commit, not a `git diff`, and forbids other new rules. AC3 carries the `env/` caveat. AC4 requires AC1's test to run, not skip. The finding that no criterion covers the DESIGN.md line was answered: that line is a project record, not the deliverable, so it stays task T3.
 - 2026-10-24: checkpoint (T1–T3 written, full suite still running, boxes unticked): the new test failed on the unchanged template in both cases, the second render appending `\n/.quarto/\n` (plus `/_*.local\n` with `_environment.local`), and passed after the `_gitignore` edit; with `/_*.local` planted out, only the local-file case failed. The new lines sit in their own commented block, so the old lines keep their order (AC2). NEWS entry and DESIGN.md Known issues line written; the `quarto_ignore` comment still fits.
 - 2026-10-24: T1–T3 done: `devtools::test()` on the T2 code gave 391 tests, 0 failed, 0 errors, 10 skipped, and the new test ran its 8 expectations unskipped (Quarto 1.10.19, macOS). NEWS and DESIGN.md edits came after that run and touch no test input.
+- 2026-10-24: claim audit: 12 claims read, 2 corrected — NEWS.md, inst/template/_gitignore. NEWS no longer says Quarto added its line at a site's second render (in a git repository it writes its lines at the first); the `_gitignore` comment now names each condition of Quarto's rewrite, `/_*.local` and `/env/` included. The same reader re-read both as correct. `test-template.R` rerun after the comment change: 46 tests, 0 failed, 0 skipped.
+- 2026-10-24: status → review.
 
 ## Decisions
 

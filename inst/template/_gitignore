@@ -15,9 +15,11 @@ rsconnect/
 .DS_Store
 .claude/
 
-# Quarto rewrites this file before each render unless it holds these lines
-# and `**/*.quarto_ipynb` as written. Files such as _environment.local hold
-# settings for one computer.
+# Before each render, Quarto rewrites this file if it lacks `/.quarto/` or
+# `**/*.quarto_ipynb`. It also rewrites it if it lacks `/_*.local` while a
+# file such as _environment.local is in this folder, or `/env/` while env/
+# holds a Python environment. Files such as _environment.local hold settings
+# for one computer.
 /.quarto/
 /_*.local
 
