@@ -66,3 +66,19 @@ The test helpers stop giving each Windows test process its own Quarto cache fold
 - 2026-10-24 AC1: at a734e5f, `grep -n "quarto_cache_env\|LOCALAPPDATA" tests/testthat/helper-template.R` lists nothing, and `grep -rn -e quarto_cache_env -e LOCALAPPDATA R tests` lists only `R/check-tools.R:55`, `R/check-tools.R:194`, and `tests/testthat/test-check-tools.R:90`; `run_in()` passes `log_level` alone to `withr::with_envvar()` and `run_split()` calls `system2()` inside `withr::with_dir()` only. Pass.
 - 2026-10-24 AC2: at a734e5f, the two greps list exactly `test-renv.R:38`, `test-check-supplement.R:759`, `test-check-supplement.R:766`, and `test-write-dockerfile.R:278`, and `find inst/template -name '*.ts' -o -name '*.js'` lists nothing. Pass.
 - 2026-10-24 AC4: `cairn/DESIGN.md:249-253` now says that both helpers set no Quarto cache folder, so on every system the test processes share the user's Quarto cache, and that the "database is locked" rerun covers its Sass database; the per-process Windows cache sentence and the candidate-row pointer are gone. Pass.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: Windows Sass lock risk is untested until the Windows CI job runs — reject (planned change: the user accepted the shared Sass cache at the plan, and the Windows job is AC3's evidence at the merge step).
+- diff-bug #2: the renv render in `test-renv.R` now writes renv's sandbox under the user's real `LOCALAPPDATA` renv folder on Windows, as it already did on macOS and Linux — follow-up (candidate row "Keep renv render tests in temp folders").
+- diff-bug #3: the codepage token, editor lookup, and `R_LIBS_USER` under the real `LOCALAPPDATA` do no harm — reject (false: the reviewer reports no defect).
+- diff-bug #4: `with_envvar()` with an empty vector and `run_split()`'s `with_dir()` form behave as before — reject (false: no defect).
+- diff-bug #5: docs and tracking hold; no tests owed for a helper removal — reject (false: no defect).
+- blame-history #1: with the helper gone and DESIGN.md silent on Deno, a future test with a `.ts` or `.js` project script would bring back the Windows `deno_std` clash with no note — fix now (DESIGN.md sentence naming the clash and its cause).
+- blame-history #2: the M033 Windows fix is reverted with only Mac evidence so far — reject (planned change: the Windows job runs at the merge step and AC3 ticks only on it).
+- blame-history #3: the Sass database is now shared on Windows with no Windows rate on record — follow-up (candidate row "Measure Sass lock reruns on Windows").
+- blame-history #4: the change reverses a D-020 trade-off with no D-entry — reject (false: D-020 records parallel tests and the Windows loop skips, not the cache override, and parallel tests stay).
+- blame-history #5: DESIGN.md edit matches the code — reject (false: no defect).
+- prior-review #1: the diff reverts the helper M033 added after two red Windows runs — reject (planned change: M048's Lua scripts removed the Deno path, and the plan names a falsifier).
+- prior-review #2: the unlogged Sass rerun is now the only Windows guard — follow-up (candidate row "Measure Sass lock reruns on Windows", which points at "Log render retries after a cache lock").
+- prior-review #3: no LESSONS line keeps the helper's rationale — reject (false: the diff changes no LESSONS line, and DESIGN.md now states the Deno clash and its cause).
+- ripple #1: DESIGN.md's "no test relies on state that another test file sets" sits beside the shared-cache sentence — reject (false: no test reads the cache's contents, and macOS and Linux tests shared it before the diff).
+- ripple #2: the `rendered_site()` comment "no test changes what another test sees" — reject (false: it speaks of each test's copy of the rendered site, which the diff does not touch).
