@@ -60,5 +60,18 @@ The ubuntu-latest CI job runs the render tests with R's temporary folder on the 
 ## Review
 
 - 2026-10-23: synced: `origin/main` is fa772ad, an ancestor of the branch. No PR yet, and the Copilot round is off.
-- AC1 (2026-10-23): `.github/workflows/R-CMD-check.yaml` line 41 is the step "Put the temporary folder on the runner's disk", with `if: runner.os == 'Linux'` (line 43). It runs `mkdir -p "$RUNNER_TEMP/tmp"` and writes `TMPDIR=$RUNNER_TEMP/tmp` to `$GITHUB_ENV` (lines 45-46). It is the second step, before `r-lib/actions/check-r-package@v2` (line 65). In run 40055150456 this step ran on ubuntu-latest, and that job passed with 5097 tests.
+- AC1 (2026-10-23): `.github/workflows/R-CMD-check.yaml` line 43 is the step "Put the temporary folder on the runner's disk", with `if: runner.os == 'Linux'` (line 44). It runs `mkdir -p "$RUNNER_TEMP/tmp"` and writes `TMPDIR=$RUNNER_TEMP/tmp` to `$GITHUB_ENV` (lines 46-47). It is the second step, before `r-lib/actions/check-r-package@v2` (line 66). Line numbers are those after the comment fix of this review pass. In run 40055150456 this step ran on ubuntu-latest, and that job passed with 5097 tests.
 - AC3 (2026-10-23): the CI paragraph of `cairn/DESIGN.md` (lines 252-258) says that the Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because `/tmp` on that runner image has too little space for the render tests' large fixtures.
+- gate (2026-10-23): `cairn_validate.py` passed. `devtools::document()` gave no diff. No R code, README.Rmd, `_pkgdown.yml`, NEWS entry, or top-level file is involved. `devtools::check()` is running.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the AC1 evidence line cited the workflow lines one too low — fix now
+- diff-bug #2: the workflow comment's "the render tests write files of several GB" was loose; one shortcode test's 1.0, 2.1, and 4.3 GB data files, copied into `docs/`, fill the tmpfs — fix now
+- diff-bug #3: `r-lib/actions/setup-r` runs after the new step and could export its own `TMPDIR` — reject (false: run 40055150456 passed on Ubuntu with the step in place, and setup-r does not set `TMPDIR` on Linux)
+- diff-bug #4: on Linux `tempdir()` now sits under `$HOME`, which the home-folder tests could notice — reject (false: those tests set their own home or skip, and run 40055150456 passed)
+- diff-bug #5: the DESIGN paragraph matches the T1 log — noted
+- blame-history #1: the DESIGN paragraph carried a CI run number and date — fix now (dropped; the milestone file keeps the run)
+- blame-history #2: the comment names ubuntu-26.04 while the matrix says ubuntu-latest — reject (planned change: the comment names the image where the problem was seen, and D-016 keeps ubuntu-latest)
+- blame-history #3: "several GB" was not measured — reject (false: `size_cases` defines 1.0, 2.1, and 4.3 GB; the comment now names them)
+- prior-review: no prior-review evidence
+- ripple #1: the candidate row "Keep the Ubuntu CI job within its disk" still calls the cause unconfirmed — reject (planned change: step 9 deletes the row)
+- ripple #2: the row "Measure the cost of large data files" says the Linux fixture cost was not measured — reject (false: still true; this milestone measured the tmpfs, not the fixtures' cost)
