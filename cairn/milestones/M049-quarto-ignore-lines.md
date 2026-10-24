@@ -24,9 +24,9 @@ A new site's `.gitignore` stays as setup wrote it through later renders, because
 
 ## Acceptance criteria
 
-- [ ] AC1: With Quarto 1.10.19, in a project that is not inside a git repository and holds the template's `_gitignore` and setup script, no `.gitignore`, and no root `env/` folder, a second full render leaves `.gitignore` byte for byte as the first full render left it. This holds both with no root file matching `_*.local` and with a root `_environment.local`.
-- [ ] AC2: `inst/template/_gitignore` holds every line it held at the milestone's base commit, in the same order, and adds `/.quarto/` and `/_*.local` as whole lines. The only ignore rules it adds are those two; comment lines may be added.
-- [ ] AC3: `NEWS.md`'s development section has one entry for the change that says a new site's `.gitignore` no longer changes on its second render unless a root `env/` folder holds a Python environment, and that the template now ignores Quarto's `_*.local` files at the project root.
+- [x] AC1: With Quarto 1.10.19, in a project that is not inside a git repository and holds the template's `_gitignore` and setup script, no `.gitignore`, and no root `env/` folder, a second full render leaves `.gitignore` byte for byte as the first full render left it. This holds both with no root file matching `_*.local` and with a root `_environment.local`.
+- [x] AC2: `inst/template/_gitignore` holds every line it held at the milestone's base commit, in the same order, and adds `/.quarto/` and `/_*.local` as whole lines. The only ignore rules it adds are those two; comment lines may be added.
+- [x] AC3: `NEWS.md`'s development section has one entry for the change that says a new site's `.gitignore` no longer changes on its second render unless a root `env/` folder holds a Python environment, and that the template now ignores Quarto's `_*.local` files at the project root.
 - [ ] AC4: `devtools::test()` passes on Quarto 1.10.19 with AC1's test run and not skipped. At review, `devtools::check()` gives 0 errors and 0 warnings.
 
 ## Coverage
@@ -63,3 +63,7 @@ A new site's `.gitignore` stays as setup wrote it through later renders, because
 ## Decisions
 
 ## Review
+
+- AC1: 2026-10-24, Quarto 1.10.19, macOS: "a second render leaves the .gitignore that setup renamed" ran 8 expectations, 0 failed, 0 skipped. `script_site()` makes a fresh temp folder outside any repository with no `.gitignore` and no `env/`; per case it asserts `.gitignore` equals the template's `_gitignore` bytes after the first render (setup renamed it) and again after the second, for no local file and for `_environment.local`. Discrimination (implement work log): both cases failed on the unchanged template, and the `_environment.local` case alone failed with `/_*.local` removed.
+- AC2: `git diff --numstat main -- inst/template/_gitignore` gives 8 added, 0 removed, so every base line stays in order (the base commit 414f126 is `main`). The added lines are five `#` comment lines, `/.quarto/`, `/_*.local`, and one blank line; no other rule.
+- AC3: `NEWS.md` lines 3–9, the first bullet under `# supplement 0.0.0.9000` (the only, development section), is one entry saying "A new site's `.gitignore` no longer changes on its second render, unless an `env/` folder in the site folder holds a Python environment" and "The template also ignores Quarto's `_*.local` files in the site folder"; no milestone number.
