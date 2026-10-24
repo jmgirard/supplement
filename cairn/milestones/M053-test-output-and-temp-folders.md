@@ -71,6 +71,7 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - 2026-10-24: implement complete; status review.
 - 2026-10-24: amendment routed: AC4 — the fresh Mac run of the four files skipped 4 tests (system guards in tests M053 does not touch), and a skipped test does not pass, so AC4 as written cannot be met on the Mac; a second rewrite of AC4 would need a second `re-audit: AC4` line, so the wording went to the user at a stop.
 - 2026-10-24: amendment return: AC4 — "Running `test-release-supplement.R`, `test-shortcodes.R`, `test-check-supplement.R`, and `test-template.R` on the Mac reports 0 failures and 0 errors, and no test whose lines `git diff main...HEAD` changes is skipped." — the user chose this wording at the stop; no re-audit reader ran, since the stop replaces it; the amendment was written inline by the review session in place of a `/milestone-implement` round trip, the amendment being the only work, and status stayed `review`.
+- 2026-10-24: step-7 approval: m053-test-output-temp-folders approved for merge
 
 ## Decisions
 
