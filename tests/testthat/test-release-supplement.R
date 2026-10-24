@@ -1029,7 +1029,7 @@ git_repo <- function(env = parent.frame()) {
                     c("config", "user.email", "test@example.com"),
                     c("config", "commit.gpgsign", "false"),
                     c("config", "core.hooksPath", shQuote(hooks)))) {
-    expect_identical(git_in(repo, args)$status, 0L)
+    expect_status(git_in(repo, args))
   }
   repo
 }
@@ -1055,7 +1055,7 @@ run_release_commit <- function(commands, dir) {
 # The paths that the last commit changed.
 committed_paths <- function(repo) {
   out <- git_in(repo, c("diff-tree", "--root", "--no-commit-id", "--name-only", "-r", "HEAD"))
-  expect_identical(out$status, 0L)
+  expect_status(out)
   out$output
 }
 
@@ -1066,15 +1066,15 @@ test_that("for a site in a subfolder, the release commit holds only files of the
   site <- file.path(repo, "site")
   write_site_yml(site)
   writeLines("old", file.path(repo, "tracked.txt"))
-  expect_identical(git_in(repo, c("add", "-A"))$status, 0L)
-  expect_identical(git_in(repo, c("commit", "-q", "-m", "start"))$status, 0L)
+  expect_status(git_in(repo, c("add", "-A")))
+  expect_status(git_in(repo, c("commit", "-q", "-m", "start")))
 
   # Three changes outside the site: a changed tracked file, a new file that
   # git does not track, and a new file staged before the release.
   writeLines("new", file.path(repo, "tracked.txt"))
   writeLines("new", file.path(repo, "untracked.txt"))
   writeLines("new", file.path(repo, "staged.txt"))
-  expect_identical(git_in(repo, c("add", "staged.txt"))$status, 0L)
+  expect_status(git_in(repo, c("add", "staged.txt")))
 
   commands <- release("patch", path = site)
   run_release_commit(commands, site)
@@ -1092,8 +1092,8 @@ test_that("for a site at the top of the repository, the release commit holds its
   mock_check()
   repo <- git_repo()
   write_site_yml(repo)
-  expect_identical(git_in(repo, c("add", "-A"))$status, 0L)
-  expect_identical(git_in(repo, c("commit", "-q", "-m", "start"))$status, 0L)
+  expect_status(git_in(repo, c("add", "-A")))
+  expect_status(git_in(repo, c("commit", "-q", "-m", "start")))
   dir.create(file.path(repo, "docs"))
   writeLines("<html></html>", file.path(repo, "docs", "index.html"))
 

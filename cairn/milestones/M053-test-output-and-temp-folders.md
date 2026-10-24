@@ -65,6 +65,7 @@ Three test fixes: the renv render test keeps renv's writes in temporary folders,
 - 2026-10-24: T1 done: the linked-output release test calls `symlink_or_skip()`; `grep -n 'file.symlink(' tests/testthat/test-release-supplement.R` prints nothing; `test-release-supplement.R` 46 tests, 0 failed, 0 skipped on the Mac.
 - 2026-10-24: re-audit: AC4 (reduced) — nothing; the reader noted that a skipped test does not pass, so review counts skips in the Mac run of the four files (the reader ran after the amended text was written, not before).
 - 2026-10-24: T2 done: `command_failure()` prints `stdout` and `stderr` (raw turned into text) when a result has no `output`; new test "a failed status check shows the output of run_split() and git_run()" in `test-template.R` failed 5 of 5 before the change and passes 5 of 5 after; the neighboring helper test passes 13 of 13.
+- 2026-10-24: checkpoint: T3's 26 rewrites (the AC2 grep prints nothing; diff 15, 7, and 4 lines) and T4's DESIGN.md sentence are written; boxes stay open until the full suite run finishes.
 
 ## Decisions
 

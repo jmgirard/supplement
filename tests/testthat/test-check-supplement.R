@@ -46,7 +46,7 @@ test_that("a rendered site in a git repository has no problems", {
   rendered <- run_in(site, "quarto", "render")
   expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
   local_plain_git()
-  expect_identical(git_in(site, c("init", "-q"))$status, 0L)
+  expect_status(git_in(site, c("init", "-q")))
   expect_match(read_text(file.path(site, "docs", "index.html")),
                "https://zenodo.org/badge/DOI/10.5281/zenodo.222.svg", fixed = TRUE)
 
@@ -60,7 +60,7 @@ test_that("a rendered site in a git repository has no problems", {
   # Each planted problem then gives its row.
   sparse_file(file.path(site, "data", "big.csv"), 104857601)
   touch(file.path(site, "fits-shared", "model.qs2"))
-  expect_identical(git_in(site, c("add", "-f", "fits-shared/model.qs2"))$status, 0L)
+  expect_status(git_in(site, c("add", "-f", "fits-shared/model.qs2")))
   writeLines(c("---", "title: New", "---", "", "```{r}", "1 + 1", "```"),
              file.path(site, "analyses", "new.qmd"))
   write_page(site, "extra.html", '<a href="missing.csv">x</a>')
@@ -132,7 +132,7 @@ test_that("saved R objects that git would publish give a saved-object row", {
   skip_if_no_git()
   site <- git_site()
   touch(file.path(site, "fits", "model.RDS"))
-  expect_identical(git_in(site, c("add", "-f", "fits/model.RDS"))$status, 0L)
+  expect_status(git_in(site, c("add", "-f", "fits/model.RDS")))
   touch(file.path(site, "x.rds"))
   # The template's .gitignore blocks *.rds, so only a tracked or force-added
   # one, or one in a folder whose own rules let it through, is listed.
@@ -1195,7 +1195,7 @@ test_that("git output in a folder with pattern characters removes only its own f
   out <- file.path(base, "tmp[ab]", "git-out")
   local_mocked_bindings(git_out_file = function() out)
   result <- git_run("--version", base)
-  expect_identical(result$status, 0L)
+  expect_status(result)
   expect_match(rawToChar(result$stdout), "^git version")
   expect_false(file.exists(out))
   expect_identical(readLines(file.path(base, "tmpa", "git-out")), "mine")
