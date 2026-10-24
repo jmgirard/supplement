@@ -1,13 +1,13 @@
 # M049: Keep a new site's .gitignore through later renders
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the template's `_gitignore` becomes each new site's `.gitignore`
-- **Branch/PR:** —
+- **Branch/PR:** m049-quarto-ignore-lines
 
 ## Goal
 
@@ -55,6 +55,7 @@ A new site's `.gitignore` stays as setup wrote it through later renders, because
 - 2026-10-24: plan chose leaving `/env/` out over adding it because Quarto adds it only for a Python environment folder and a site may keep other files in `env/`; falsified by evidence that sites made from the template keep Python environments at the root.
 - 2026-10-24: test scope: one new test with two cases (T1) and one planted-defect run (T2); no existing test should need edits. Changelog: one NEWS entry (AC3).
 - 2026-10-24: criteria audit (full mode, fresh Opus reader): 10 findings, 9 fixed by narrowing and 1 answered. AC1 named Quarto 1.10.19, excluded git repositories (Quarto writes `.gitignore` before setup there) and a root `env/`, and stated its two cases itself rather than through the test. AC2 states file contents against the base commit, not a `git diff`, and forbids other new rules. AC3 carries the `env/` caveat. AC4 requires AC1's test to run, not skip. The finding that no criterion covers the DESIGN.md line was answered: that line is a project record, not the deliverable, so it stays task T3.
+- 2026-10-24: checkpoint (T1–T3 written, full suite still running, boxes unticked): the new test failed on the unchanged template in both cases, the second render appending `\n/.quarto/\n` (plus `/_*.local\n` with `_environment.local`), and passed after the `_gitignore` edit; with `/_*.local` planted out, only the local-file case failed. The new lines sit in their own commented block, so the old lines keep their order (AC2). NEWS entry and DESIGN.md Known issues line written; the `quarto_ignore` comment still fits.
 
 ## Decisions
 

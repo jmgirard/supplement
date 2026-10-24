@@ -702,6 +702,23 @@ test_that("a second render leaves the files that setup wrote", {
   expect_identical(lapply(file.path(dir, files), read_bytes), first)
 })
 
+test_that("a second render leaves the .gitignore that setup renamed", {
+  skip_if_no_quarto(needs_r = FALSE)
+  # Quarto also requires /_*.local when a file such as _environment.local
+  # sits in the project folder.
+  cases <- list("no local file" = list(), "a local file" = list(`_environment.local` = "SUPPLEMENT_X=1\n"))
+  for (case in names(cases)) {
+    dir <- script_site(cases[[case]])
+    expect_status(run_in(dir, "quarto", "render"))
+    expect_identical(read_bytes(file.path(dir, ".gitignore")), read_bytes(file.path(template_dir(), "_gitignore")),
+                     info = case)
+
+    expect_status(run_in(dir, "quarto", "render"))
+    expect_identical(read_bytes(file.path(dir, ".gitignore")), read_bytes(file.path(template_dir(), "_gitignore")),
+                     info = case)
+  }
+})
+
 test_that("a setup step that fails stops the render and names the script", {
   skip_if_no_quarto(needs_r = FALSE)
   ignore <- lf_lines(c("mine", quarto_ignore))

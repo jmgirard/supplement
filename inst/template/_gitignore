@@ -15,6 +15,12 @@ rsconnect/
 .DS_Store
 .claude/
 
+# Quarto rewrites this file before each render unless it holds these lines
+# and `**/*.quarto_ipynb` as written. Files such as _environment.local hold
+# settings for one computer.
+/.quarto/
+/_*.local
+
 # Fitted models and other saved R objects can embed the data. The bracket
 # patterns match any mix of upper and lower case, as on Linux git is
 # case-sensitive.
