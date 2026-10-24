@@ -410,6 +410,47 @@ test_that("save_png() refuses a folder at its target and a plot that is not a fu
   expect_true(dir.exists(file.path(figures, "taken.png")))
 })
 
+test_that("save_png() keeps its target as it was when the PNG file lacks its end chunk", {
+  skip_on_cran()
+  skip_if_not(capabilities("png"), "R has no png device")
+  site <- new_site()
+  qmd <- file.path(site, "analyses", "example.qmd")
+  code <- unlist(lapply(c("site", "save-figure"), chunk_code, path = qmd))
+  figures <- file.path(site, "figures")
+  env <- new.env()
+  env$boot_means <- c(1, 2, 3)
+  withr::with_envvar(c(QUARTO_PROJECT_DIR = NA), withr::with_dir(
+    file.path(site, "analyses"),
+    eval(parse(text = code), envir = env)
+  ))
+  earlier <- read_bytes(file.path(figures, "bootstrap-means.png"))
+
+  # Each probe changes the device's file after the device closes it.
+  probes <- list(
+    "no file" = function(path) file.remove(path),
+    "0 bytes" = function(path) writeBin(raw(0), path),
+    "11 bytes" = function(path) writeBin(read_bytes(path)[1:11], path),
+    "the last byte cut" = function(path) writeBin(utils::head(read_bytes(path), -1L), path)
+  )
+  for (probe in names(probes)) {
+    env$dev.off <- function(which) {
+      grDevices::dev.off(which)
+      probes[[probe]](list.files(figures, "^\\.save-.*\\.png$", all.files = TRUE, full.names = TRUE))
+    }
+    for (file in c("new.png", "bootstrap-means.png")) {
+      info <- paste(probe, "with", file)
+      withr::with_dir(file.path(site, "analyses"), expect_error(
+        env$save_png(file, function() plot(1)),
+        paste0("Could not write a whole PNG file for \\S*", gsub(".", "\\.", file, fixed = TRUE)),
+        info = info
+      ))
+      expect_length(list.files(figures, "^\\.save-", all.files = TRUE), 0L)
+    }
+    expect_false(file.exists(file.path(figures, "new.png")), info = probe)
+    expect_identical(read_bytes(file.path(figures, "bootstrap-means.png")), earlier, info = probe)
+  }
+})
+
 test_that("the figure rules hold in sites made by create_supplement()", {
   skip_if_no_quarto()
   skip_if_no_git()
@@ -438,6 +479,67 @@ test_that("a file named figures stops the example report with a message", {
   expect_command_fails(rendered)
   expect_true(any(grepl("`figures` is a file, not a folder", rendered$output, fixed = TRUE)),
               info = command_failure(rendered, "the figures message"))
+})
+
+test_that("the example report makes a missing figures folder and saves its figure there", {
+  skip_if_no_quarto()
+  site <- new_site()
+  unlink(file.path(site, "figures"), recursive = TRUE)
+
+  expect_status(run_in(site, "quarto", c("render", "analyses/example.qmd")))
+  expect_true(file.exists(file.path(site, "figures", "bootstrap-means.png")))
+})
+
+# Replace the site's figures/ with a link to `target`, render the example
+# report by name, and return the render.
+render_with_linked_figures <- function(site, target) {
+  figures <- file.path(site, "figures")
+  unlink(figures, recursive = TRUE)
+  symlink_or_skip(target, figures)
+  run_in(site, "quarto", c("render", "analyses/example.qmd"))
+}
+
+
+test_that("a figures link to a folder outside the site stops the example report", {
+  skip_if_no_quarto()
+  site <- new_site()
+  # On Windows symlink_or_skip() makes a junction to the folder.
+  outside <- withr::local_tempdir("outside-")
+  writeLines("kept", file.path(outside, "other.txt"))
+  before <- folder_state(outside)
+
+  rendered <- render_with_linked_figures(site, outside)
+  expect_command_fails(rendered)
+  expect_match(rendered$output, "`figures` is a link", fixed = TRUE, all = FALSE,
+               info = command_failure(rendered, "the link message"))
+  expect_identical(folder_state(outside), before)
+})
+
+test_that("a figures link to a missing path stops the example report", {
+  skip_if_no_quarto()
+  site <- new_site()
+
+  rendered <- render_with_linked_figures(site, file.path(site, "gone"))
+  expect_command_fails(rendered)
+  # On Windows a file link to a missing path reads as a file in base R.
+  message <- if (.Platform$OS.type == "windows") "`figures` is a (link|file, not a folder)" else "`figures` is a link"
+  expect_match(rendered$output, message, all = FALSE,
+               info = command_failure(rendered, "the link message"))
+})
+
+test_that("a figures link to a file stops the example report", {
+  skip_on_os("windows")
+  skip_if_no_quarto()
+  site <- new_site()
+  outside <- withr::local_tempdir("outside-")
+  writeLines("kept", file.path(outside, "figures.txt"))
+  before <- folder_state(outside)
+
+  rendered <- render_with_linked_figures(site, file.path(outside, "figures.txt"))
+  expect_command_fails(rendered)
+  expect_match(rendered$output, "`figures` is a link", fixed = TRUE, all = FALSE,
+               info = command_failure(rendered, "the link message"))
+  expect_identical(folder_state(outside), before)
 })
 
 test_that("setup adds the template rules to an existing .gitignore", {

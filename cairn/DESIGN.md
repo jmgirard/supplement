@@ -221,8 +221,10 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   if it is not empty, else `.` or `..`, whichever holds `_quarto.yml`, else
   a stop (M034). `add_report()` copies that chunk to the start of each new
   report (`site_chunk()` in `R/add-report.R`). The example stops when
-  `figures` is a file, makes `figures/` when it is missing, and saves the figure again with `save_png()`, which renames a
-  temporary file into place (D-018). It ends with a "Computing
+  `figures` is a link (a non-empty `Sys.readlink()`, or a folder whose `normalizePath()` differs in lower case from the
+  site's plus `figures`, which finds a Windows junction) and then when it is a file (M046). It makes `figures/` when it
+  is missing and saves the figure again with `save_png()`, which renames a temporary file into place only when the file
+  ends with the 12-byte PNG `IEND` chunk (D-018, M046). It ends with a "Computing
   environment" section, a collapsed callout whose chunk prints
   `sessioninfo::session_info()` or, without sessioninfo,
   `utils::sessionInfo()`, with the home folder shown as `~`.

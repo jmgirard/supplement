@@ -50,13 +50,23 @@ hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
 ## Paper Figures
 
 Save each figure for the paper in `figures/`, which git tracks and the site
-publishes. `save_png()` runs a function that draws the plot. It draws into a
-temporary file in `figures/` and gives that file its name only when the
-plot succeeds, so a failed plot leaves no partial file there.
+publishes. The chunk stops when `figures` is a link or a file. `save_png()`
+runs a function that draws the plot. It draws into a temporary file in
+`figures/`. It gives that file its name only when the plot succeeds and the
+file ends as a whole PNG file does. So a failed plot, or a file cut short,
+leaves no partial file there.
 
 ```{r}
 #| label: save-figure
 figures <- file.path(site, "figures")
+# A link, or on Windows a junction, can send the figures outside the
+# site, and git commits a symbolic link without the figures.
+link <- Sys.readlink(figures)
+inside <- file.path(normalizePath(site, winslash = "/"), "figures")
+if ((!is.na(link) && nzchar(link)) || (dir.exists(figures) &&
+    tolower(normalizePath(figures, winslash = "/")) != tolower(inside))) {
+  stop("`figures` is a link. Replace it with a folder, then render again.")
+}
 if (file.exists(figures) && !dir.exists(figures)) {
   stop("`figures` is a file, not a folder. Rename it, then render again.")
 }
@@ -76,6 +86,12 @@ save_png <- function(file, draw, dir = figures) {
     dev.off(device)
     if (old != 1) dev.set(old)
   })
+  # A whole PNG file ends with its IEND chunk. A full disk can cut it short.
+  size <- file.size(tmp)
+  end <- if (isTRUE(size >= 12)) readBin(tmp, "raw", size)[(size - 11):size] else raw(0)
+  if (!identical(end, as.raw(c(0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82)))) {
+    stop("Could not write a whole PNG file for ", target, ".")
+  }
   if (!file.rename(tmp, target)) stop("Could not write ", target, ".")
 }
 save_png("bootstrap-means.png", function() {
