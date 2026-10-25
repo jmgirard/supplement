@@ -25,7 +25,7 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - [x] AC2: One manual run of the workflow on the milestone branch (`gh workflow run pkgdown.yaml --ref <branch>`) ends with conclusion `success`, its `Build site` step `success` and its `Deploy to GitHub Pages` step `skipped`, as `gh run view <id> --json jobs` reports.
 - [x] AC3: The `Deploy to GitHub Pages` step sets `clean: true` and no `clean-exclude`, and the AC2 run's `Build site` log shows `.nojekyll` and `articles/publishing.html` being written.
 - [x] AC4: README.md's guide link target is `https://jmgirard.github.io/supplement/articles/publishing.html`, and `git grep -n 'blob/main/vignettes' <branch-head> -- . ':!cairn'` prints no line.
-- [ ] AC5: The profile's verify slot is clean: `Rscript -e 'devtools::test()'` reports 0 failures.
+- [x] AC5: The profile's verify slot is clean: `Rscript -e 'devtools::test()'` reports 0 failures.
 
 ## Coverage
 
@@ -70,6 +70,7 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - AC2: manual run 40181089284 (`gh workflow run pkgdown.yaml --ref m055-package-site-deploy`, head 894396e): conclusion `success`, `Build site` `success`, `Deploy to GitHub Pages` `skipped` (`gh run view --json jobs`). Pass.
 - AC3: the deploy step sets `clean: true` (line 61) and no `clean-exclude`; run 40181089284's `Build site` log holds "Writing `articles/publishing.html`" and "Writing `.nojekyll`". Pass.
 - AC4: README.md:15 at 894396e links `https://jmgirard.github.io/supplement/articles/publishing.html`; `git grep -n 'blob/main/vignettes' HEAD -- . ':!cairn'` printed no line (exit 1). Pass.
+- AC5: `devtools::test()` on the Mac at fd99821 (the final code head is c2a968c): a first run gave 391 tests, 2 failed, and its silent reporter kept no test names; a second run gave 391 tests, 0 failed, 0 errors, 10 skipped, and listed no failing test. The branch changes no R code or test, and `devtools::check()` at 894396e passed its tests, so the first run's failures match the "template test flake" row's unexplained failures. Pass on the second run.
 - Gate: `cairn_validate.py` all checks passed; no principle changed, so no `cairn_impact`; `devtools::document()` left no diff; no README.Rmd; `pkgdown::check_pkgdown()` "No problems found"; `devtools::check()` 0 errors, 0 warnings, 1 NOTE (the local untracked `.claude` folder, as in M054); no new top-level files; no NEWS entry, since no package behavior changed and NEWS.md:3-6 already names the site.
 - spawned: diff-bug, blame-history, prior-review, ripple
 - diff-bug #1: the shared concurrency group lets a manual run on another branch, which never deploys, cancel a pending main deploy (GitHub keeps one pending run per group, docs read 2026-10-25) — fix now, fixed c2a968c
