@@ -11,14 +11,29 @@
 #' `QUARTO_PROJECT_DIR` is not empty, as in a render, `site` is its value.
 #' Otherwise `site` is `"."` or `".."`, the first of the two that holds
 #' `_quarto.yml`, and the chunk stops with an error if neither holds it.
-#' The report's text says to read a data file as
+#' The chunk then reads `_scripts/report.R` with
+#' `source(file.path(site, "_scripts", "report.R"), local = TRUE)`. That
+#' file defines `save_png()`, which saves a figure in `figures/`, and
+#' `print_environment()`. The report's text says to read a data file as
 #' `file.path(site, "data", "<file name>")`.
 #'
+#' A site made before the template had `_scripts/report.R` lacks the file.
+#' When the site has no `_scripts/report.R`, the function copies the
+#' template's file there, and it makes the `_scripts` folder when that is
+#' missing. It never replaces a `_scripts/report.R` that the site has. A
+#' report fails to render when that file lacks `print_environment()`.
+#'
 #' The new report ends with a "Computing environment" section, the same as
-#' the template's example report. It prints the R and package versions of
-#' the render, with `sessioninfo::session_info()` when the sessioninfo
-#' package is installed and with `utils::sessionInfo()` otherwise. It shows
-#' the home folder as `~`.
+#' the template's example report. It calls `print_environment()`, which
+#' prints the R and package versions of the render, with
+#' `sessioninfo::session_info()` when the sessioninfo package is installed
+#' and with `utils::sessionInfo()` otherwise. It shows the home folder as
+#' `~`.
+#'
+#' `check_supplement()` compares the text of each report with the hash in
+#' its stored output and does not read `_scripts/report.R`. So after a
+#' change to that file, it gives no row. Render each report by name to
+#' take the change.
 #'
 #' The function adds lines to `_quarto.yml` as text, so the other lines of
 #' the file, its comments included, stay as they are. It finds the menu as
@@ -65,8 +80,10 @@
 #'   gives the message of the yaml package.
 #' * `supplement_error_file_exists`: the report file exists, or a file
 #'   whose name differs from it only in letter case; `analyses` is not a
-#'   folder or is a link; or `_freeze/analyses/<name>` exists, which holds
-#'   the stored output of an earlier report of that name.
+#'   folder or is a link; `_scripts` is not a folder or is a link;
+#'   `_scripts/report.R` is a folder or a link; or
+#'   `_freeze/analyses/<name>` exists, which holds the stored output of an
+#'   earlier report of that name.
 #' * `supplement_error_no_menu`: `_quarto.yml` has no Analyses menu in
 #'   block style. The error shows the lines to add by hand.
 #' * `supplement_error_yaml`: the yaml package does not read the changed
@@ -74,13 +91,15 @@
 #'   the lines to add by hand.
 #' * `supplement_error_encoding`: `title`, `description`, or
 #'   `_quarto.yml` is not UTF-8 text.
-#' * `supplement_error_write`: the `analyses` folder could not be made, or
-#'   a write failed after its file was opened, for example on a full disk.
-#'   A `_quarto.yml` whose write failed gets its old text back.
+#' * `supplement_error_write`: the `analyses` or `_scripts` folder could
+#'   not be made, or a write failed after its file was opened, for example
+#'   on a full disk. A `_quarto.yml` whose write failed gets its old text
+#'   back.
 #'
 #' When a file cannot be opened for writing, for example a read-only
 #' `_quarto.yml`, R's own error is shown. After any failed write, the
-#' function removes the report file and any folder it made.
+#' function removes the report file, a `_scripts/report.R` that it copied,
+#' and any folder it made.
 #'
 #' @seealso [add_data()] to add a data file, and [create_supplement()] to
 #'   make a site.
@@ -127,6 +146,23 @@ add_report <- function(name, title, description = "", path = ".") {
   if (path_occupied(folder) && (!dir.exists(folder) || is_link(folder))) {
     cli::cli_abort(
       "{.path {folder}} is not a folder in the site, or is a link, so the report cannot be written there.",
+      class = c("supplement_error_file_exists", "supplement_error")
+    )
+  }
+  # The report reads _scripts/report.R. A link would make the copy land
+  # outside the site, or make the report read a file outside it.
+  scripts <- file.path(path, "_scripts")
+  shared <- file.path(scripts, "report.R")
+  if (path_occupied(scripts) && (!dir.exists(scripts) || is_link(scripts))) {
+    cli::cli_abort(
+      "{.path {scripts}} is not a folder in the site, or is a link, so {.file _scripts/report.R} cannot be read there.",
+      class = c("supplement_error_file_exists", "supplement_error")
+    )
+  }
+  if (is_link(shared) || dir.exists(shared)) {
+    cli::cli_abort(
+      c("{.path {shared}} is a link or a folder, so the report cannot read it.",
+        "i" = "Replace it with the template's file, then run this function again. Nothing was written."),
       class = c("supplement_error_file_exists", "supplement_error")
     )
   }
@@ -183,6 +219,18 @@ add_report <- function(name, title, description = "", path = ".") {
     }
     made <- c(made, folder)
   }
+  copied <- !file.exists(shared)
+  if (copied) {
+    if (!dir.exists(scripts)) {
+      if (!dir.create(scripts, showWarnings = FALSE)) {
+        write_error("Could not make the folder {.path {scripts}}.")
+      }
+      made <- c(made, scripts)
+    }
+    made <- c(made, shared)
+    template <- system.file("template", "_scripts", "report.R", package = "supplement", mustWork = TRUE)
+    write_checked(readBin(template, "raw", file.size(template)), shared)
+  }
   made <- c(made, report)
   text <- paste0(paste(report_lines(title, description), collapse = "\n"), "\n")
   write_checked(charToRaw(enc2utf8(text)), report)
@@ -191,6 +239,7 @@ add_report <- function(name, title, description = "", path = ".") {
 
   cli::cli_inform(c(
     "v" = "Wrote {.file {href}} and added it to the Analyses menu in {.file _quarto.yml}.",
+    "v" = if (copied) "Copied the template's {.file _scripts/report.R}, which the report reads.",
     "i" = "Run {.code quarto render {href}} in {.path {path}} to run the report."
   ))
   invisible(report)

@@ -430,3 +430,104 @@ test_that("a report stub ends with the example report's Computing environment se
   }
   expect_identical(section(stub), section(example))
 })
+
+test_that("a report stub reads the shared functions and defines none", {
+  site <- new_site()
+  stub <- suppressMessages(add_report("models", "Model Comparison", "Fits and compares the models.", path = site))
+  lines <- readLines(stub, encoding = "UTF-8")
+  expect_lte(length(lines), 40L)
+  expect_false(any(grepl("<- function(", lines, fixed = TRUE)))
+  expect_identical(
+    utils::tail(chunk_code(stub, "site"), 1L),
+    'source(file.path(site, "_scripts", "report.R"), local = TRUE)'
+  )
+  code <- chunk_code(stub, "session-info")
+  expect_identical(code[!startsWith(code, "#|")], "print_environment()")
+})
+
+test_that("a site with no _scripts/report.R gets the template's copy", {
+  template <- read_bytes(file.path(template_dir(), "_scripts", "report.R"))
+  # With the _scripts folder in place, and with no _scripts folder.
+  for (missing_folder in c(FALSE, TRUE)) {
+    site <- new_site()
+    unlink(file.path(site, "_scripts", "report.R"))
+    if (missing_folder) unlink(file.path(site, "_scripts"), recursive = TRUE)
+    expect_message(add_report("x", "X", path = site), "Copied the template's")
+    expect_identical(read_bytes(file.path(site, "_scripts", "report.R")), template, info = format(missing_folder))
+  }
+})
+
+test_that("an existing _scripts/report.R is kept as it is", {
+  site <- new_site()
+  shared <- file.path(site, "_scripts", "report.R")
+  writeLines("# My own functions", shared)
+  before <- read_bytes(shared)
+  messages <- character()
+  withCallingHandlers(add_report("x", "X", path = site), message = function(m) {
+    messages <<- c(messages, conditionMessage(m))
+    invokeRestart("muffleMessage")
+  })
+  expect_false(any(grepl("Copied", messages, fixed = TRUE)))
+  expect_identical(read_bytes(shared), before)
+})
+
+test_that("a _scripts folder or report.R that is not a plain folder and file stops and writes nothing", {
+  outside <- withr::local_tempdir("outside-")
+  writeLines("# outside", file.path(outside, "report.R"))
+  outside_before <- folder_state(outside)
+  cases <- list(
+    "_scripts is a file" = list(
+      setup = function(site) {
+        unlink(file.path(site, "_scripts"), recursive = TRUE)
+        writeLines("x", file.path(site, "_scripts"))
+      },
+      message = "is not a folder in the site, or is a link"
+    ),
+    "report.R is a folder" = list(
+      setup = function(site) {
+        unlink(file.path(site, "_scripts", "report.R"))
+        dir.create(file.path(site, "_scripts", "report.R"))
+      },
+      message = "is a link or a folder"
+    )
+  )
+  if (.Platform$OS.type != "windows") {
+    cases[["_scripts is a link"]] <- list(
+      setup = function(site) {
+        unlink(file.path(site, "_scripts"), recursive = TRUE)
+        file.symlink(outside, file.path(site, "_scripts"))
+      },
+      message = "is not a folder in the site, or is a link"
+    )
+    cases[["report.R is a link"]] <- list(
+      setup = function(site) {
+        unlink(file.path(site, "_scripts", "report.R"))
+        file.symlink(file.path(outside, "report.R"), file.path(site, "_scripts", "report.R"))
+      },
+      message = "is a link or a folder"
+    )
+  }
+  for (case in names(cases)) {
+    site <- new_site()
+    cases[[case]]$setup(site)
+    before <- folder_state(site)
+    expect_error(
+      add_report("x", "X", path = site),
+      cases[[case]]$message, fixed = TRUE, class = "supplement_error_file_exists", info = case
+    )
+    expect_identical(folder_state(site), before, info = case)
+  }
+  expect_identical(folder_state(outside), outside_before)
+})
+
+test_that("a failed edit of _quarto.yml removes the copied report.R and the _scripts folder it made", {
+  local_mocked_bindings(write_text_lines = function(...) stop("planted failure"))
+  for (missing_folder in c(FALSE, TRUE)) {
+    site <- new_site()
+    unlink(file.path(site, "_scripts", "report.R"))
+    if (missing_folder) unlink(file.path(site, "_scripts"), recursive = TRUE)
+    before <- folder_state(site)
+    expect_error(add_report("x", "X", path = site), "planted failure", fixed = TRUE)
+    expect_identical(folder_state(site), before, info = format(missing_folder))
+  }
+})

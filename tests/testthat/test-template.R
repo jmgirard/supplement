@@ -370,6 +370,17 @@ test_that("a report from add_report() reads data through its site chunk with eit
   }
 })
 
+test_that("a report from add_report() renders by name with the shared report file", {
+  skip_if_no_quarto()
+  site <- new_site()
+  suppressMessages(add_report("models", "Model Comparison", "Fits and compares the models.", path = site))
+
+  expect_status(run_in(site, "quarto", c("render", "analyses/models.qmd")))
+  page <- read_text(file.path(site, "docs", "analyses", "models.html"))
+  section <- section_html(page, "computing-environment")
+  expect_match(html_text(section), "R version [0-9]+\\.[0-9]+\\.[0-9]+")
+})
+
 test_that("the example code run by hand from analyses/ saves into the site's figures/", {
   skip_on_cran()
   skip_if_not(capabilities("png"), "R has no png device")
