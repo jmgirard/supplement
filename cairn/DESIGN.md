@@ -51,7 +51,7 @@ Status and order live in `ROADMAP.md`.
   renv either: `write_dockerfile()` writes the recipe, and the help and
   the template guide (`GUIDE.md`, M050) show the commands (M032). This
   covers package code: the repo's pkgdown workflow pushes the package
-  site to `gh-pages` (D-025).
+  site to `gh-pages` from runs on main (D-025, D-026).
 - No oracle-verification rule for numeric results (declined at init,
   2026-10-18).
 
