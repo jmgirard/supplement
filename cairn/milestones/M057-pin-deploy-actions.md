@@ -21,10 +21,10 @@ Pin each action that the site's deploy job runs to a full commit hash, so that a
 
 ## Acceptance criteria
 
-- [ ] AC1: In `.github/workflows/pkgdown.yaml`, each `uses:` line in the `deploy` job (the lines from `  deploy:` to the end of the file, as `grep -n 'uses:'` lists them) names a 40-character hexadecimal commit hash followed by a `# <tag>` comment that names a full release tag, such as `v7.0.1`. For `actions/checkout` and `actions/download-artifact`, the hash equals what `gh api repos/actions/<name>/commits/<tag in the comment> --jq .sha` reads.
-- [ ] AC2: The branch's diff against main, `git diff main...HEAD -- .github/`, changes only `uses:` lines and comment lines, all inside the `deploy` job of `.github/workflows/pkgdown.yaml`.
-- [ ] AC3: A `workflow_dispatch` run on the milestone branch whose deploy job uses the pinned `uses:` lines has every deploy-job step at `success` in `gh run view <id> --json jobs`.
-- [ ] AC4: DESIGN.md's paragraph on `pkgdown.yaml` and a comment in the `deploy` job state that the deploy job pins each action to a commit hash because it is the one job with write access, and that other jobs use version tags. The comment also gives the `gh api` command that reads the commit a tag points to, for updating a pin.
+- [x] AC1: In `.github/workflows/pkgdown.yaml`, each `uses:` line in the `deploy` job (the lines from `  deploy:` to the end of the file, as `grep -n 'uses:'` lists them) names a 40-character hexadecimal commit hash followed by a `# <tag>` comment that names a full release tag, such as `v7.0.1`. For `actions/checkout` and `actions/download-artifact`, the hash equals what `gh api repos/actions/<name>/commits/<tag in the comment> --jq .sha` reads.
+- [x] AC2: The branch's diff against main, `git diff main...HEAD -- .github/`, changes only `uses:` lines and comment lines, all inside the `deploy` job of `.github/workflows/pkgdown.yaml`.
+- [x] AC3: A `workflow_dispatch` run on the milestone branch whose deploy job uses the pinned `uses:` lines has every deploy-job step at `success` in `gh run view <id> --json jobs`.
+- [x] AC4: DESIGN.md's paragraph on `pkgdown.yaml` and a comment in the `deploy` job state that the deploy job pins each action to a commit hash because it is the one job with write access, and that other jobs use version tags. The comment also gives the `gh api` command that reads the commit a tag points to, for updating a pin.
 
 ## Coverage
 
@@ -64,3 +64,9 @@ Pin each action that the site's deploy job runs to a full commit hash, so that a
 ## Decisions
 
 ## Review
+
+- 2026-10-25: route (d): no PR for the branch; Copilot round off (no `# Copilot review:` line). Branch contains `origin/main` at bb5da4f, so no sync was needed.
+- AC1 evidence: `sed -n '/^  deploy:/,$p' .github/workflows/pkgdown.yaml | grep -n 'uses:'` lists 3 lines, and all 3 match `@[0-9a-f]{40} # v<x.y.z>$`. `gh api repos/actions/checkout/commits/v7.0.1 --jq .sha` reads `3d3c42e5aac5ba805825da76410c181273ba90b1` and `gh api repos/actions/download-artifact/commits/v8.0.2 --jq .sha` reads `9000827ccba6bdab643e8b6fd33ac0654aef8333`, each equal to its pin.
+- AC2 evidence: `git diff main...HEAD -- .github/` has three hunks, at new lines 73-78 (six `#` comment lines), 86, and 89 (the two `uses:` lines), all after `  deploy:` at line 72 of the 103-line file; no other file under `.github/` changes.
+- AC3 evidence: run 40233620162 (`workflow_dispatch`, head abc2f87) concluded `success`; its deploy job's steps `Set up job`, `Run actions/checkout@3d3c42e5…`, `Download site`, `Deploy to GitHub Pages`, the post step, and `Complete job` are all `success`, and `Set up job` downloaded the three actions at the pinned hashes. `git diff abc2f87 HEAD -- .github/` changes only the deploy `if:` and the `dry-run: true` line, so the run's `uses:` lines are the head's.
+- AC4 evidence: `cairn/DESIGN.md:286-289` says the deploy job, which has write access, pins each action to a full commit hash with the release tag in a comment, and that the build job and the check workflow use version tags. The comment at `.github/workflows/pkgdown.yaml:73-78` says the same and gives `gh api repos/<owner>/<repo>/commits/<tag> --jq .sha`.
