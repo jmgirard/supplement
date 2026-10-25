@@ -66,6 +66,7 @@ Run every build of the package site with a read-only token, so that only the dep
 - 2026-10-25: T5 done: `devtools::test()` on the branch, 391 tests, 0 failed, 10 skipped.
 - 2026-10-25: claim audit: not owed — internal tier.
 - 2026-10-25: implement complete; status set to review. The probe revert is commit 9d31e99.
+- 2026-10-25: step-7 approval: m056-read-only-site-builds approved for merge
 
 ## Decisions
 
