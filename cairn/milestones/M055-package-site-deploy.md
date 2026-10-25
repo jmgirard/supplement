@@ -59,6 +59,7 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - 2026-10-25: T1 done: `release` trigger removed, deploy `if:` is `github.ref == 'refs/heads/main'`, `clean: true` with a comment from the action's `action.yml` (v4.8.0, line 52); the shared concurrency group of non-PR runs is left as it is, so a manual run on a branch can still wait behind a deploy.
 - 2026-10-25: T2 done: README.md:15 links the guide at `https://jmgirard.github.io/supplement/articles/publishing.html`; README.md has no README.Rmd source, so no render step.
 - 2026-10-25: T3 done: D-026 supersedes D-025's list of deploy events; the DESIGN.md pkgdown paragraph names the three triggers, the main-only deploy, and `clean: true`. The Conventions line at DESIGN.md:52-54 cites D-025 for the gh-pages push and stays true.
+- 2026-10-25: claim audit: 10 claims read, 1 corrected — .github/workflows/pkgdown.yaml (the clean comment now says the action keeps `.git`, `.github`, and a CNAME the build does not write, read from the action's `src/git.ts` lines 172-194 at d92aa23), README.md.
 
 ## Decisions
 
