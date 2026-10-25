@@ -10,17 +10,17 @@ save_png <- function(file, draw, dir = file.path(site, "figures")) {
   if (!is.function(draw)) stop("Pass the plot as a function, such as function() print(p).")
   # A link, or on Windows a junction, can send the figures outside the
   # site, and git commits a symbolic link without the figures.
-  name <- basename(dir)
-  link <- Sys.readlink(dir)
-  inside <- file.path(normalizePath(dirname(dir), winslash = "/"), name)
-  if ((!is.na(link) && nzchar(link)) || (dir.exists(dir) &&
-      tolower(normalizePath(dir, winslash = "/")) != tolower(inside))) {
-    stop("`", name, "` is a link. Replace it with a folder, then render again.")
+  figures <- file.path(site, "figures")
+  link <- Sys.readlink(figures)
+  inside <- file.path(normalizePath(site, winslash = "/"), "figures")
+  if ((!is.na(link) && nzchar(link)) || (dir.exists(figures) &&
+      tolower(normalizePath(figures, winslash = "/")) != tolower(inside))) {
+    stop("`figures` is a link. Replace it with a folder, then render again.")
   }
-  if (file.exists(dir) && !dir.exists(dir)) {
-    stop("`", name, "` is a file, not a folder. Rename it, then render again.")
+  if (file.exists(figures) && !dir.exists(figures)) {
+    stop("`figures` is a file, not a folder. Rename it, then render again.")
   }
-  dir.create(dir, showWarnings = FALSE)
+  dir.create(figures, showWarnings = FALSE)
   target <- file.path(dir, file)
   if (dir.exists(target)) stop(target, " is a folder.")
   tmp <- tempfile(".save-", tmpdir = dir, fileext = ".png")

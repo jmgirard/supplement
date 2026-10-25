@@ -42,8 +42,9 @@ source(file.path(site, "_scripts", "report.R"), local = TRUE)
 
 A site made before this file existed does not have it. `add_report()`
 copies the template's file into such a site, and never replaces a file
-that is there. To copy it yourself, R prints the path of the template's
-copy:
+that is there. Commit `_scripts/report.R` with the first report that
+uses it, because a clone without the file cannot render the report. To
+copy it yourself, R prints the path of the template's copy:
 
 ```r
 system.file("template", "_scripts", "report.R", package = "supplement")
@@ -81,20 +82,21 @@ before you publish it.
 
 To add the section to an older report, follow these steps. If the site
 has no `_scripts/report.R`, copy it in as "Shared report code" says. Then
-add the `source()` line from that section to the report's `site` chunk. Then paste the section
-of `analyses/example.qmd`, from its `## Computing environment` heading to
-the end of the file, at the end of the report. If you removed the example,
-R prints the path of the template's copy:
+add the `source()` line from that section to the report's `site` chunk.
+Then paste the section of `analyses/example.qmd`, from its
+`## Computing environment` heading to the end of the file, at the end of
+the report. If you removed the example, R prints the path of the
+template's copy:
 
 ```r
 system.file("template", "analyses", "example.qmd", package = "supplement")
 ```
 
-Then render the report by name,
-for example `quarto render analyses/models.qmd`. Then render the whole
-site with `quarto render`, and commit the report with `_freeze/`, `docs/`,
-and `figures/`. A full render alone reuses the old stored output, so it
-does not show the new section. An older report whose section holds the
+Then render the report by name, for example
+`quarto render analyses/models.qmd`. Then render the whole site with
+`quarto render`, and commit the report with `_freeze/`, `docs/`, and
+`figures/`. If you copied `_scripts/report.R` in, commit it too. A full render
+alone reuses the old stored output, so it does not show the new section. An older report whose section holds the
 full code, and no `print_environment()` call, still renders as it is.
 
 ## Paper facts in `_supplement.yml`

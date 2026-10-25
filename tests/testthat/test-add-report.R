@@ -447,7 +447,6 @@ test_that("a report stub reads the shared functions and defines none", {
 
 test_that("a site with no _scripts/report.R gets the template's copy", {
   template <- read_bytes(file.path(template_dir(), "_scripts", "report.R"))
-  # With the _scripts folder in place, and with no _scripts folder.
   for (missing_folder in c(FALSE, TRUE)) {
     site <- new_site()
     unlink(file.path(site, "_scripts", "report.R"))

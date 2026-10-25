@@ -463,6 +463,25 @@ test_that("save_png() refuses a folder at its target and a plot that is not a fu
   expect_true(dir.exists(file.path(figures, "taken.png")))
 })
 
+test_that("save_png() stops for a linked figures folder when its dir is a folder inside it", {
+  skip_on_cran()
+  skip_on_os("windows")
+  skip_if_not(capabilities("png"), "R has no png device")
+  site <- new_site()
+  outside <- withr::local_tempdir("outside-")
+  unlink(file.path(site, "figures"), recursive = TRUE)
+  file.symlink(outside, file.path(site, "figures"))
+  env <- new.env()
+  env$site <- site
+  sys.source(file.path(site, "_scripts", "report.R"), envir = env)
+
+  expect_error(
+    env$save_png("a.png", function() plot(1), dir = file.path(site, "figures", "supp")),
+    "`figures` is a link.", fixed = TRUE
+  )
+  expect_length(list.files(outside, recursive = TRUE, all.files = TRUE), 0L)
+})
+
 test_that("save_png() keeps its target as it was when the PNG file lacks its end chunk", {
   skip_on_cran()
   skip_if_not(capabilities("png"), "R has no png device")
