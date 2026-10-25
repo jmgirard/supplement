@@ -6,8 +6,9 @@
   prints the Computing environment section. The last line of each
   report's `site` chunk reads the file:
   `source(file.path(site, "_scripts", "report.R"), local = TRUE)`. So a
-  report from `add_report()` no longer holds that code, and a render does
-  not need supplement installed. When a site made earlier has no
+  report from `add_report()` no longer holds the Computing environment
+  code, and the example report no longer defines `save_png()`. The
+  reports still call no supplement function. When a site made earlier has no
   `_scripts/report.R`, `add_report()` copies the template's file into it,
   and it never replaces a file that is there. Older reports keep their
   own code and still render. `check_supplement()` does not read

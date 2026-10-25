@@ -1,6 +1,6 @@
 # M058: Share report setup code through one site file
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -69,6 +69,8 @@ Reports that `add_report()` writes, and the template's example report, get `save
 - 2026-10-25: T1, T2 done: `_scripts/report.R` holds both functions, the example calls them, and `test-template.R` runs them from the file (new test: a `quarto use template` site renders the example with it). GUIDE.md's guide-code block and its "Shared report code", "Computing environment", and "Paper figures" text moved here from T4, because a T2 test reads that block. `_gitignore`'s comment names the new file. Full suite: 392 results, 0 failed, 10 skipped.
 - 2026-10-25: T3 done: `add_report()` refuses a `_scripts` that is a file or link and a `report.R` that is a link or folder (own messages, `supplement_error_file_exists`), copies the template's file when it is missing, and tells the user when it copied. A new report has 40 lines; the example's Computing environment paragraph was rewrapped to keep it there. The rollback test went red with each cleanup line removed. Full suite: 398 results, 0 failed, 10 skipped.
 - 2026-10-25: T4 done: NEWS.md entry, DESIGN.md (add-report paragraph, a `_scripts/report.R` entry, the example's figure and environment text). The stale-output sentences were written after reading `check_stale_output()` and `report_hash()` in `R/check-supplement.R`, which hash the report file alone. The four AC6 phrases return no match in GUIDE.md (`grep -cF`, 0 each).
+- 2026-10-25: claim audit: 55 claims read, 4 corrected — inst/template/GUIDE.md (the `save_png()` example line, which reports call which function, the copy step for older reports), NEWS.md (the render-without-supplement sentence was true before this change). The reader also found that an unedited old example no longer gives a placeholder row; recorded as the candidate row "Flag the old example as a placeholder".
+- 2026-10-25: implement done, status review. Template tests after the claim fixes: 48 results, 0 failed.
 
 ## Decisions
 

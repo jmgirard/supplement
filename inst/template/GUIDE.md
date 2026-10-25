@@ -49,9 +49,10 @@ copy:
 system.file("template", "_scripts", "report.R", package = "supplement")
 ```
 
-The reports call `save_png()` and `print_environment()`. If you edit
-`_scripts/report.R`, keep both functions in it, because a report whose
-function is missing fails to render.
+The example report calls `save_png()` and `print_environment()`, and each
+report from `add_report()` calls `print_environment()`. If you edit
+`_scripts/report.R`, keep both functions in it, because a report that
+calls a missing function fails to render.
 
 `check_supplement()` compares the text of each report with the hash in its
 stored output. It does not read `_scripts/report.R`, so a change to that
@@ -78,8 +79,9 @@ function shows your home folder as `~`, in each spelling that R gives for
 it. Folders outside your home folder show in full, so read the output
 before you publish it.
 
-To add the section to an older report, first add the `source()` line from
-"Shared report code" to the report's `site` chunk. Then paste the section
+To add the section to an older report, follow these steps. If the site
+has no `_scripts/report.R`, copy it in as "Shared report code" says. Then
+add the `source()` line from that section to the report's `site` chunk. Then paste the section
 of `analyses/example.qmd`, from its `## Computing environment` heading to
 the end of the file, at the end of the report. If you removed the example,
 R prints the path of the template's copy:
@@ -495,8 +497,8 @@ writes the same chunk as the first chunk of each new report. If
 line reads `_scripts/report.R` (see "Shared report code").
 
 To save a figure in your own report, call `save_png()` after the chunks
-that make your plot's data. The `save-figure` chunk of the example does
-this:
+that make your plot's data. For example, this line saves a plot of a
+model `fit`:
 
 ```r
 save_png("model-fit.png", function() plot(fit))
