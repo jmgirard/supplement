@@ -73,8 +73,11 @@ jobs:
     # This is the one job with write access, so it pins each action to a
     # full commit hash, with that commit's release tag in a comment. A tag
     # can be moved to other code, and a hash cannot. The build job and
-    # R-CMD-check.yaml use version tags. To update a pin, read the commit
-    # of the new release tag from the action's own repository:
+    # R-CMD-check.yaml use version tags, and the build job makes the site
+    # that this job publishes, so these pins guard the write token, not
+    # the site's content. To update a pin, read the commit of the new full
+    # release tag (such as v7.0.1, not v7) from the action's own repository,
+    # and put that tag in the comment:
     #   gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
     needs: build
     if: github.ref == 'refs/heads/main'
