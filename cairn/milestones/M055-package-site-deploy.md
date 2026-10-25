@@ -61,6 +61,7 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - 2026-10-25: T3 done: D-026 supersedes D-025's list of deploy events; the DESIGN.md pkgdown paragraph names the three triggers, the main-only deploy, and `clean: true`. The Conventions line at DESIGN.md:52-54 cites D-025 for the gh-pages push and stays true.
 - 2026-10-25: claim audit: 10 claims read, 1 corrected — .github/workflows/pkgdown.yaml (the clean comment now says the action keeps `.git`, `.github`, and a CNAME the build does not write, read from the action's `src/git.ts` lines 172-194 at d92aa23), README.md. The re-read of the corrected comment found that it holds.
 - 2026-10-25: T4 done: `devtools::test()` on the Mac at c1e0858 gave 391 tests, 0 failed, 0 errors, 10 skipped; d1b374c after it changes a workflow comment only. Status set to review.
+- 2026-10-25: step-7 approval: m055-package-site-deploy approved for merge
 
 ## Decisions
 
