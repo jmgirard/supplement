@@ -77,7 +77,7 @@ jobs:
     # of the new release tag from the action's own repository:
     #   gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
     needs: build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/m057-pin-deploy-actions'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -98,7 +98,6 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         with:
-          dry-run: true
           clean: true
           branch: gh-pages
           folder: docs
