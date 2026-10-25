@@ -21,10 +21,10 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 
 ## Acceptance criteria
 
-- [ ] AC1: In `.github/workflows/pkgdown.yaml` at the branch head, the `on:` block lists `push` (branches `[main]`), `pull_request`, and `workflow_dispatch` and no other event; the `Deploy to GitHub Pages` step's `if:` is `github.ref == 'refs/heads/main'`; and the file's opening comment says that only a push to main or a manual run on main deploys. Shown by reading the file.
-- [ ] AC2: One manual run of the workflow on the milestone branch (`gh workflow run pkgdown.yaml --ref <branch>`) ends with conclusion `success`, its `Build site` step `success` and its `Deploy to GitHub Pages` step `skipped`, as `gh run view <id> --json jobs` reports.
-- [ ] AC3: The `Deploy to GitHub Pages` step sets `clean: true` and no `clean-exclude`, and the AC2 run's `Build site` log shows `.nojekyll` and `articles/publishing.html` being written.
-- [ ] AC4: README.md's guide link target is `https://jmgirard.github.io/supplement/articles/publishing.html`, and `git grep -n 'blob/main/vignettes' <branch-head> -- . ':!cairn'` prints no line.
+- [x] AC1: In `.github/workflows/pkgdown.yaml` at the branch head, the `on:` block lists `push` (branches `[main]`), `pull_request`, and `workflow_dispatch` and no other event; the `Deploy to GitHub Pages` step's `if:` is `github.ref == 'refs/heads/main'`; and the file's opening comment says that only a push to main or a manual run on main deploys. Shown by reading the file.
+- [x] AC2: One manual run of the workflow on the milestone branch (`gh workflow run pkgdown.yaml --ref <branch>`) ends with conclusion `success`, its `Build site` step `success` and its `Deploy to GitHub Pages` step `skipped`, as `gh run view <id> --json jobs` reports.
+- [x] AC3: The `Deploy to GitHub Pages` step sets `clean: true` and no `clean-exclude`, and the AC2 run's `Build site` log shows `.nojekyll` and `articles/publishing.html` being written.
+- [x] AC4: README.md's guide link target is `https://jmgirard.github.io/supplement/articles/publishing.html`, and `git grep -n 'blob/main/vignettes' <branch-head> -- . ':!cairn'` prints no line.
 - [ ] AC5: The profile's verify slot is clean: `Rscript -e 'devtools::test()'` reports 0 failures.
 
 ## Coverage
@@ -65,3 +65,8 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 ## Decisions
 
 ## Review
+
+- AC1: `git show 894396e:.github/workflows/pkgdown.yaml` shows `on:` with `push` (branches `[main]`), `pull_request`, `workflow_dispatch` and no other event, the deploy step's `if: github.ref == 'refs/heads/main'` (line 58), and lines 1-4 saying only a push to main or a manual run on main pushes to `gh-pages`. Pass.
+- AC2: manual run 40181089284 (`gh workflow run pkgdown.yaml --ref m055-package-site-deploy`, head 894396e): conclusion `success`, `Build site` `success`, `Deploy to GitHub Pages` `skipped` (`gh run view --json jobs`). Pass.
+- AC3: the deploy step sets `clean: true` (line 61) and no `clean-exclude`; run 40181089284's `Build site` log holds "Writing `articles/publishing.html`" and "Writing `.nojekyll`". Pass.
+- AC4: README.md:15 at 894396e links `https://jmgirard.github.io/supplement/articles/publishing.html`; `git grep -n 'blob/main/vignettes' HEAD -- . ':!cairn'` printed no line (exit 1). Pass.
