@@ -96,3 +96,33 @@ Pass 2, 2026-10-26, branch head 19a70eb, main still 1659b8a. Since pass 1 the br
 
 - AC6 (amended): GUIDE.md "Shared report code" gives the `source()` line, the stale-output gap ("compares the text of each report with the hash in its stored output. It does not read `_scripts/report.R`, so a change to that file gives no row"), render each report by name, and "a report that calls a missing function fails to render"; "Computing environment" gives the older-report step that adds the `source()` line. The `add_report()` help and the top NEWS.md entry each give the `source()` line, the stale-output gap, and render by name. `grep -cF` of GUIDE.md: 0 for each of the four phrases.
 - spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: `save_png()` with a caller-given `dir` inside a linked `figures` wrote outside the site, since only the last folder of `dir` was checked (main checked `figures` for any `dir`) — fix now, fixed b159dc2 (checks `figures` as main did; regression test failed on the old code).
+- diff-bug #2: a `_scripts/Report.R` differing only in case skips the copy on macOS or Windows, or adds a second file on Linux — reject, edge: a case-variant file name the user made, outside documented and common use; the effect is a render error.
+- diff-bug #3: a `_Scripts` folder in another case, same shape — reject, edge (same input class and effect as #2).
+- diff-bug #4: `dir.create(dir)` is not recursive, so a nested `dir` with a missing parent gives an unclear error — reject, false since b159dc2: `figures` is made first, and a deeper missing folder fails as on main.
+- diff-bug #5: `dir = "."` was refused as a link — reject, false since b159dc2 (the check reads `figures`, not `dir`).
+- diff-bug #6: the message named only the last folder of `dir` — reject, false since b159dc2 (messages name `figures`, as on main).
+- diff-bug #7: a `_scripts` linked on purpose between sites is now refused — reject, planned change (AC5 refuses a linked `_scripts`).
+- diff-bug #8: an existing `report.R` without `print_environment()` gets no warning — reject, planned change (AC5 never replaces the file; AC6 documents the failure).
+- diff-bug #9: an unedited example in an older site no longer gives a placeholder row — follow-up, candidate row "Flag the old example as a placeholder" (recorded at implement).
+- diff-bug #10: no Windows junction case for the `_scripts` and `report.R` link refusals — reject, false as a gap: the same `is_link()` call is tested with a junction for `analyses`, and the file and folder cases fire both refusals on Windows.
+- diff-bug #11: no test for a caller-given `dir` — fix now, fixed b159dc2 (the #1 regression test).
+- diff-bug #12: the "no `docs/_scripts/report.R`" check tests Quarto and repeats across two renders — reject, planned change (AC4 names both sites and the check).
+- diff-bug #13: the R version line checks repeat an existing test's path — reject, planned change (AC4 names them).
+- diff-bug #14: the file and link cases of each refusal run one branch — reject, false: each case makes a different half of the condition true, and the link half is the one that keeps writes inside the site.
+- diff-bug #15: a test comment says only what the loop shows — fix now, fixed b159dc2 (removed).
+- diff-bug #16: a GUIDE.md paragraph was not rewrapped — reject, style; rewrapped anyway in b159dc2 with the ripple #1 edit.
+- diff-bug #17: the `_scripts` abort lacks the "Nothing was written." hint — reject, style (matches the existing `analyses` abort).
+- blame-history #1: a change to `_scripts/report.R` gives no stale-output row, which narrows M027's coverage — follow-up, candidate row "Flag reports after report.R changes" (D-028 records the trade-off).
+- blame-history #2: `check_supplement()` and `release_supplement()` give no row when `_scripts/report.R` is missing, and every report then fails to render — follow-up, new candidate row "Flag a missing _scripts/report.R file".
+- blame-history #3: the placeholder check no longer matches an older site's unedited example — follow-up, candidate row "Flag the old example as a placeholder".
+- blame-history #4: the link stop moved from chunk start to the `save_png()` call — reject, false: a report that never calls `save_png()` writes nothing into `figures/`.
+- blame-history #5: older sites keep their own copy of the file — reject, planned change (D-028).
+- blame-history #6: `save_png()` reads `site` from its environment — reject, false: main's chunk had the same dependency.
+- prior-review #1: the stale-output gap reverses M027's goal for the shared file — follow-up, candidate row "Flag reports after report.R changes".
+- prior-review #2: nothing at render time refuses a linked `_scripts/report.R` — reject, edge: a link that the author makes by hand, outside documented and common use; a clone without the target fails with an error.
+- prior-review #3: the copy rollback matches M007's full-disk finding, no regression — reject, false (reports no defect).
+- ripple #1: commit steps omit `_scripts/report.R` — fix now for the sites where the file is new (GUIDE.md "Shared report code" and the older-report steps, and the `add_report()` message), fixed b159dc2; the changed-report commit lists stay, since the file does not change in that flow.
+- ripple #2: `_README.md` says `_scripts/` holds only Quarto's scripts — fix now, fixed b159dc2.
+- ripple #3: the `_quarto.yml` comment's commit list omits the file — reject, false: that comment is about a changed report, where `_scripts/report.R` does not change.
+- After the fixes: `devtools::document()` no diff; full suite 399 results, 0 failed, 10 skipped.
