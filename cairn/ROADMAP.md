@@ -1,20 +1,18 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-24 (M053 done: graduated "Show output on failed status checks" and "Use the link helper in the release test", deleted the refuted "Keep renv render tests in temp folders", pruned the M050 row; validate green)_
+_Last hygiene check: 2026-10-25 (M054 done: graduated "Build a package site with pkgdown", added "Tighten the package site and its deploy", pruned the M051 row; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M054 | Build a package site with pkgdown | review | — | normal | milestones/M054-pkgdown-site.md |
+| M054 | Build a package site with pkgdown | done | — | normal | milestones/archive/M054-pkgdown-site.md |
 | M053 | Keep test writes in temp folders and show failed command output | done | — | normal | milestones/archive/M053-test-output-and-temp-folders.md |
 | M052 | Drop the Windows Quarto cache in tests | done | — | high | milestones/archive/M052-drop-windows-quarto-cache.md |
-| M051 | Keep the package README to the main steps | done | M050 | normal | milestones/archive/M051-readme-main-steps.md |
 
 ## Candidates
 
-- Build a package site with pkgdown: a package site built with the toolkit itself. Its `_pkgdown.yml` reference index lists `write_citation()` and `write_zenodo()` (from the M005 review), `write_dockerfile()` (from the M032 review), and `check_tools()` (from M037). — added 2026-10-18, split 2026-10-19 — started M054
 - Shorten the setup code in new reports: from the ease-of-use review. `add_report()` writes about 50 lines, about 30 of them the Computing environment block that hides the home folder with regular expressions. The example report has 123 lines, and the template guide asks authors to copy `save_png()` by hand. Package functions for that code would shorten reports, but a render by name would then need supplement installed, which is a design choice. The `save-figure` chunk grew with the link stop and the PNG end check (M046). — added 2026-10-22
 - Check web links on the rendered site: web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18
 - Handle short folder names on Windows: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19

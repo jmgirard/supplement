@@ -1,0 +1,11 @@
+# M054: Build a package site with pkgdown
+
+**Status:** done (2026-10-25, PR #55 https://github.com/jmgirard/supplement/pull/55)
+
+**Goal:** Publish the package's help pages, guide, and news as a pkgdown site that a GitHub Actions workflow deploys to the `gh-pages` branch.
+
+**Outcome:** `_pkgdown.yml` sets `url: https://jmgirard.github.io/supplement/`, Bootstrap 5, and four titled reference groups that name all nine exports (make a site; check tools and sites; make a release; run reports in a container). `.github/workflows/pkgdown.yaml`, from the r-lib/actions v2 example, runs on pull requests, pushes to main, published releases, and manual runs; it sets up Quarto 1.10.19 so the `check_tools()` example finds it, deletes `CLAUDE.md` from its checkout before `build_site_github_pages()`, and pushes `docs/` to `gh-pages` with `if: github.event_name != 'pull_request'`. DESCRIPTION lists the site first in `URL:`; `.Rbuildignore` holds `^_pkgdown\.yml$`, `^docs$`, `^pkgdown$`; `.gitignore` holds `/docs/`. NEWS.md has one bullet naming the site. pkgdown is installed only by the workflow, so dependencies did not change. GitHub Pages still has to be set to serve `gh-pages`, which the user does in the repo settings.
+
+**Decisions:** D-025 (the package site deploys to `gh-pages` from CI; D-001 stays scoped to template sites; why `CLAUDE.md` is deleted before the build).
+
+**Review:** Criteria audit reworded AC1 (topics by name) and AC3 (the `if:` condition) and added the NEWS bullet; the claim audit corrected 2 of 10 claims and found that pkgdown publishes `CLAUDE.md`, which the workflow now removes. Four-lens review: 21 findings, 8 fixed in 61765f5 (Quarto setup step, D-025, DESIGN.md wording on local builds, the push convention, and the R-CMD-check name), 5 to the new row "Tighten the package site and its deploy" (manual or release deploys from other refs, `clean: false`, the README guide link), 8 rejected (planned, false, style). Mac suite 391 tests, 0 failed, 10 skipped; `devtools::check()` 0/0/1 (local `.claude` folder); CI green on six check jobs and the pkgdown build. Graduated "Build a package site with pkgdown". No LESSONS line: the `CLAUDE.md` fact lives in D-025 and DESIGN.md.
