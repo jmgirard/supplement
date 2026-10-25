@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-25 (M056 review: graduated "Give site builds read-o
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M057 | Pin the deploy job's actions by SHA | in-progress | — | normal | milestones/M057-pin-deploy-actions.md |
+| M057 | Pin the deploy job's actions by SHA | review | — | normal | milestones/M057-pin-deploy-actions.md |
 | M056 | Give site builds read-only access | done | — | normal | milestones/archive/M056-read-only-site-builds.md |
 | M055 | Tighten the package site and its deploy | done | — | normal | milestones/archive/M055-package-site-deploy.md |
 | M054 | Build a package site with pkgdown | done | — | normal | milestones/archive/M054-pkgdown-site.md |

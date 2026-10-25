@@ -1,6 +1,6 @@
 # M057: Pin the deploy job's actions by SHA
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -37,7 +37,7 @@ Pin each action that the site's deploy job runs to a full commit hash, so that a
 
 - [x] T1: In `.github/workflows/pkgdown.yaml`, read each tag's commit from the action's own repository (`gh api repos/actions/checkout/commits/v7 --jq .sha`, and the same for `download-artifact` at `v8`; on 2026-10-25 these read `3d3c42e5…` and `9000827c…`). Find the full release tag at that commit with `gh api repos/actions/<name>/git/matching-refs/tags/v` (`v7.0.1` and `v8.0.2` on 2026-10-25). Replace the deploy job's two `uses:` lines (lines 80 and 83) with `<owner>/<name>@<hash> # <tag>`. Add a comment at the top of the deploy job that states the rule and the update command. Leave the build job's tags as they are.
 - [x] T2: Add one sentence on the rule to the pkgdown paragraph at `cairn/DESIGN.md:279-291`.
-- [ ] T3: Commit a probe that differs from the branch head only in the deploy job's `if:` (also admitting the branch) and an added `dry-run: true` on the deploy step. Push, run `gh workflow run pkgdown.yaml --ref <branch>` once the user allows manual runs, watch the run in the background, and read `gh run view <id> --json jobs`. Then revert the probe in its own commit and push.
+- [x] T3: Commit a probe that differs from the branch head only in the deploy job's `if:` (also admitting the branch) and an added `dry-run: true` on the deploy step. Push, run `gh workflow run pkgdown.yaml --ref <branch>` once the user allows manual runs, watch the run in the background, and read `gh run view <id> --json jobs`. Then revert the probe in its own commit and push.
 
 ## Work log
 
@@ -56,6 +56,10 @@ Pin each action that the site's deploy job runs to a full commit hash, so that a
 - 2026-10-25: known limit, recorded in D-027: an action in the build job still runs by tag and could change the site artifact that the deploy job publishes, so the pins protect the write token, not the site's content.
 - 2026-10-25: T1 done: `v7` and `v8` read `3d3c42e5aac5ba805825da76410c181273ba90b1` and `9000827ccba6bdab643e8b6fd33ac0654aef8333` from the actions' own repositories, the release tags at those commits are `v7.0.1` and `v8.0.2`, and the deploy job now pins both with tag comments; the rule comment sits under `deploy:`, so the diff stays inside the job. R's yaml reads the three deploy `uses:` values as hash pins.
 - 2026-10-25: T2 done: DESIGN.md's pkgdown paragraph states the pin rule with D-027 and notes that the build job's actions still make the artifact the deploy job publishes.
+- 2026-10-25: stop: asked the user before T3's push and manual run, since the question set had not covered it; the user allowed the probe run.
+- 2026-10-25: T3 done: probe abc2f87 (deploy `if:` also admits the branch, `dry-run: true`) pushed; run 40233620162 on abc2f87 ended `success`, and every deploy-job step, `Run actions/checkout@3d3c42e5…` and `Download site` included, was `success`; the deploy log shows `dry-run: true` and "Dry run complete", and `gh-pages` stayed at a57adeb. Reverted in 1cb2390; `git diff main...HEAD -- .github/` now holds only the rule comment and the two `uses:` lines.
+- 2026-10-25: claim audit: not owed — internal tier.
+- 2026-10-25: verify slot not run, as the plan's test-scope line says: no R file or file the tests read changed. Status set to `review`.
 
 ## Decisions
 
