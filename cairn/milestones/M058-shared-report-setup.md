@@ -1,6 +1,6 @@
 # M058: Share report setup code through one site file
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -29,7 +29,7 @@ Reports that `add_report()` writes, and the template's example report, get `save
 - [x] AC3: `save_png()` from `_scripts/report.R` stops when `figures` is a link or a file. It refuses a folder at its target and a `draw` that is not a function. It leaves its target as it was when the PNG file lacks its end chunk. `print_environment()` passes the four home-folder tests of `test-template.R` at 1d2f8ca (lines 913 to 967), run against `_scripts/report.R`.
 - [x] AC4: A first full render of a site from `create_supplement()`, and of one from `quarto use template`, publishes `docs/figures/bootstrap-means.png`. The example page's Computing environment section shows the R version line. `docs/` holds no `_scripts/report.R`. After `add_report("models", ...)`, a render of `analyses/models.qmd` by name succeeds, and its page shows the R version line.
 - [x] AC5: In a site with no `_scripts/report.R`, `add_report()` copies the installed template's file there before it writes the report. When `_scripts` is missing, it makes the folder. An existing `_scripts/report.R` stays byte-identical. When `_scripts` is a file or a link, or `_scripts/report.R` is a link or a folder, it stops with `supplement_error_file_exists` and writes nothing. When the write of `_quarto.yml` fails, it removes the copied `report.R` and any `_scripts` folder it made. A test covers each case.
-- [ ] AC6: The help of `add_report()`, `NEWS.md`, and the "Computing environment" and "Paper figures" sections of `inst/template/GUIDE.md` say five things. Reports source `_scripts/report.R`. `check_supplement()` compares each report's own text with its stored output, so a change to that file gives no stale-output row. To take the change, render each report by name. An older report adds the `source()` line to use the file. A site whose own `_scripts/report.R` lacks `print_environment()` gets reports that fail to render. A `grep -F` of GUIDE.md for "copy the whole `save-figure` chunk", "copy the lines from the", "the chunk stops", and "The chunk sets `figures`" returns no match.
+- [ ] AC6: `inst/template/GUIDE.md` says five things. Reports source `_scripts/report.R`. `check_supplement()` compares each report's own text with its stored output, so a change to that file gives no stale-output row. To take the change, render each report by name. An older report adds the `source()` line to use the file. A report that calls a function which the site's `_scripts/report.R` lacks, and does not define itself, fails to render. The help of `add_report()` and `NEWS.md` each say the first three of these. A `grep -F` of GUIDE.md for "copy the whole `save-figure` chunk", "copy the lines from the", "the chunk stops", and "The chunk sets `figures`" returns no match.
 
 ## Coverage
 
@@ -72,6 +72,10 @@ Reports that `add_report()` writes, and the template's example report, get `save
 - 2026-10-25: claim audit: 55 claims read, 4 corrected — inst/template/GUIDE.md (the `save_png()` example line, which reports call which function, the copy step for older reports), NEWS.md (the render-without-supplement sentence was true before this change). The reader also found that an unedited old example no longer gives a placeholder row; recorded as the candidate row "Flag the old example as a placeholder".
 - 2026-10-25: implement done, status review. Template tests after the claim fixes: 48 results, 0 failed.
 - 2026-10-26: amendment routed: AC6 — the criterion names the help, NEWS.md, and two GUIDE.md sections as each saying five things, but the stale-output and missing-function text lives in GUIDE.md's new "Shared report code" section, and the help and NEWS.md give only the source, stale-output, and render-by-name points.
+- 2026-10-26: re-audit: AC6 (full) — NEWS.md lacked the "compares each report's own text … no stale-output row" point, fixed in NEWS.md; the missing-function point claimed too much for a report that defines its own `save_png()`, narrowed.
+- 2026-10-26: re-audit: AC6 (full) — satisfiable on disk; minor: GUIDE.md's "a report that calls a missing function" has no "does not define itself" clause; answered, not reworded: a report that defines the function does not call a missing one.
+- 2026-10-26: amendment return: AC6 — "`inst/template/GUIDE.md` says five things. … A report that calls a function which the site's `_scripts/report.R` lacks, and does not define itself, fails to render. The help of `add_report()` and `NEWS.md` each say the first three of these."
+- 2026-10-26: implement done after the AC6 amendment, status review.
 
 ## Decisions
 

@@ -11,9 +11,10 @@
   reports still call no supplement function. When a site made earlier has no
   `_scripts/report.R`, `add_report()` copies the template's file into it,
   and it never replaces a file that is there. Older reports keep their
-  own code and still render. `check_supplement()` does not read
-  `_scripts/report.R`, so after a change to that file, render each report
-  by name.
+  own code and still render. `check_supplement()` compares each report's
+  own text with its stored output. It does not read `_scripts/report.R`,
+  so a change to that file gives no stale-output row. To take the change,
+  render each report by name.
 * The help pages, the guide "Publish a supplement site", and this news
   file are built into a pkgdown website for
   <https://jmgirard.github.io/supplement/>, which DESCRIPTION's `URL` field
