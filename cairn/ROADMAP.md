@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-25 (lessons pass: dropped by planner test 2026-10-1
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M058 | Share report setup code through one site file | planned | — | normal | milestones/M058-shared-report-setup.md |
+| M058 | Share report setup code through one site file | in-progress | — | normal | milestones/M058-shared-report-setup.md |
 | M057 | Pin the deploy job's actions by SHA | done | — | normal | milestones/archive/M057-pin-deploy-actions.md |
 | M056 | Give site builds read-only access | done | — | normal | milestones/archive/M056-read-only-site-builds.md |
 | M055 | Tighten the package site and its deploy | done | — | normal | milestones/archive/M055-package-site-deploy.md |

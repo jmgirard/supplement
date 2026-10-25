@@ -238,6 +238,8 @@ test_that("the example's site chunk finds the site folder from analyses/ or the 
   expect_identical(site_from(nested, NA), ".")
 
   other <- withr::local_tempdir("other-")
+  dir.create(file.path(other, "_scripts"))
+  file.copy(file.path(template_dir(), "_scripts", "report.R"), file.path(other, "_scripts"))
   expect_identical(site_from(analyses, other), other)
 
   lost <- file.path(withr::local_tempdir("lost-"), "a", "b")
@@ -294,6 +296,18 @@ test_that("the first full render of a new site publishes the example figure", {
   published <- file.path(site, "docs", "figures", "bootstrap-means.png")
   expect_true(file.exists(published))
   expect_identical(unname(tools::md5sum(published)), unname(tools::md5sum(figure)))
+  expect_false(file.exists(file.path(site, "docs", "_scripts", "report.R")))
+})
+
+test_that("a site from quarto use template renders the example with the shared report file", {
+  skip_if_no_quarto()
+  site <- site_copy()
+
+  expect_true(file.exists(file.path(site$dir, "docs", "figures", "bootstrap-means.png")))
+  expect_false(file.exists(file.path(site$dir, "docs", "_scripts", "report.R")))
+  page <- read_text(file.path(site$dir, "docs", "analyses", "example.html"))
+  section <- section_html(page, "computing-environment")
+  expect_match(html_text(section), "R version [0-9]+\\.[0-9]+\\.[0-9]+")
 })
 
 # A new site in its own parent folder, without the shipped figure, so that
@@ -875,11 +889,13 @@ test_that("the example page shows the R and knitr versions of its render", {
 })
 
 # Run the code of the example report's session-info chunk with Rscript, after
-# the lines in `before`, and return all it printed as one string.
+# the lines in `before` and the template's _scripts/report.R, and return all
+# it printed as one string.
 run_session_code <- function(before = character(), env = parent.frame()) {
   code <- chunk_code(file.path(template_dir(), "analyses", "example.qmd"), "session-info")
+  shared <- sprintf("source(%s)", deparse(file.path(template_dir(), "_scripts", "report.R")))
   dir <- withr::local_tempdir("session-", .local_envir = env)
-  writeLines(c(before, code), file.path(dir, "session.R"))
+  writeLines(c(before, shared, code), file.path(dir, "session.R"))
   out <- run_in(dir, home_rscript(), "session.R")
   expect_status(out)
   paste(out$output, collapse = "\n")
