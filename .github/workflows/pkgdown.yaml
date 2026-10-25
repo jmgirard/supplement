@@ -57,7 +57,9 @@ jobs:
         shell: Rscript {0}
 
       # The upload skips hidden files unless told otherwise, and the build
-      # writes docs/.nojekyll.
+      # writes docs/.nojekyll. The artifact is kept for one day, so after
+      # that a failed deploy needs a re-run of all jobs, not of the deploy
+      # job alone.
       - name: Upload site
         uses: actions/upload-artifact@v7
         with:

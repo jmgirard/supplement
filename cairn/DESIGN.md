@@ -284,10 +284,10 @@ and manual runs. Its `build` job runs on every trigger with read access
 access (`contents: write`), which pushes that artifact to the `gh-pages`
 branch with `clean: true`, so files the build did not make are deleted
 there (D-025, D-026; M056). The build job deletes
-`CLAUDE.md` from its checkout before the build, so a local
+`CLAUDE.md` from its checkout before the build. A local
 `pkgdown::build_site()` still puts `CLAUDE.md` in `docs/` pages,
-`search.json`, and `sitemap.xml`, and only the workflow's build is for
-publishing.
+`search.json`, and `sitemap.xml`, so only the site that the workflow
+builds and deploys is for publishing.
 
 ## Known issues
 
