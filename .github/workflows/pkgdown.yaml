@@ -69,7 +69,7 @@ jobs:
 
   deploy:
     needs: build
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/m056-read-only-site-builds'
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -93,4 +93,3 @@ jobs:
           clean: true
           branch: gh-pages
           folder: docs
-          dry-run: true
