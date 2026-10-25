@@ -51,7 +51,7 @@ Status and order live in `ROADMAP.md`.
   renv either: `write_dockerfile()` writes the recipe, and the help and
   the template guide (`GUIDE.md`, M050) show the commands (M032). This
   covers package code: the repo's pkgdown workflow pushes the package
-  site to `gh-pages` (D-025).
+  site to `gh-pages` from runs on main (D-025, D-026).
 - No oracle-verification rule for numeric results (declined at init,
   2026-10-18).
 
@@ -277,8 +277,10 @@ for a missing tool. A last step runs `tests/testthat/test-source.R`, whose
 tests read the package's R files, from the checkout (D-020).
 
 `.github/workflows/pkgdown.yaml` builds the package site from
-`_pkgdown.yml` on Ubuntu with Quarto 1.10, and on events other than a pull
-request pushes `docs/` to the `gh-pages` branch (D-025). It deletes
+`_pkgdown.yml` on Ubuntu with Quarto 1.10 on pull requests, pushes to main,
+and manual runs. Only a run on main (a push or a manual run) pushes `docs/`
+to the `gh-pages` branch, with `clean: true`, so files the build did not
+make are deleted there (D-025, D-026). It deletes
 `CLAUDE.md` from its checkout before the build, so a local
 `pkgdown::build_site()` still puts `CLAUDE.md` in `docs/` pages,
 `search.json`, and `sitemap.xml`, and only the workflow's build is for

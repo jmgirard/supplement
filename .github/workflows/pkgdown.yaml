@@ -1,13 +1,11 @@
-# Based on the r-lib/actions v2 pkgdown example. A pull request builds the
-# site; a push to main, a published release, or a manual run also pushes it
-# to the gh-pages branch, for GitHub Pages to serve once the repository's
-# Pages setting names that branch.
+# Based on the r-lib/actions v2 pkgdown example. A pull request, or a manual
+# run on another branch, only builds the site. Only a push to main or a
+# manual run on main also pushes it to the gh-pages branch, for GitHub Pages
+# to serve once the repository's Pages setting names that branch.
 on:
   push:
     branches: [main]
   pull_request:
-  release:
-    types: [published]
   workflow_dispatch:
 
 name: pkgdown
@@ -17,9 +15,11 @@ permissions: read-all
 jobs:
   pkgdown:
     runs-on: ubuntu-latest
-    # Only one deploy runs at a time; pull request builds run in parallel.
+    # Only one run on main runs at a time. Runs that do not deploy (pull
+    # requests and manual runs on other branches) each get their own group,
+    # so they never cancel a deploy that waits in the main group.
     concurrency:
-      group: pkgdown-${{ github.event_name != 'pull_request' || github.run_id }}
+      group: pkgdown-${{ github.ref == 'refs/heads/main' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     permissions:
@@ -53,10 +53,14 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
+      # clean: true deletes files on gh-pages that this build did not make,
+      # such as the page of a removed help topic. The action always keeps
+      # .git, .github, and .ssh, and keeps a CNAME or .nojekyll that the
+      # build does not write.
       - name: Deploy to GitHub Pages
-        if: github.event_name != 'pull_request'
+        if: github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         with:
-          clean: false
+          clean: true
           branch: gh-pages
           folder: docs
