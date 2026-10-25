@@ -1,0 +1,11 @@
+# M057: Pin the deploy job's actions by SHA
+
+**Status:** done (2026-10-25, PR #58 https://github.com/jmgirard/supplement/pull/58)
+
+**Goal:** Pin each action that the site's deploy job runs to a full commit hash, so that a moved tag cannot change what the one job with write access runs.
+
+**Outcome:** The `deploy` job of `.github/workflows/pkgdown.yaml` runs `actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1` and `actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2`, beside the already-pinned JamesIves step; each hash was read from the action's own repository with `gh api repos/actions/<name>/commits/<tag> --jq .sha`. A comment under `deploy:` states the rule, its limit (the build job still runs by tag and makes the published site, so the pins guard the write token, not the site's content), and the update command with a full release tag. The build job and `R-CMD-check.yaml` keep version tags; no Dependabot file. DESIGN.md's pkgdown paragraph states the same. No NEWS entry, since no package behavior changed.
+
+**Decisions:** D-027 (deploy job pins every action by hash; other jobs use version tags; hand-updated pins), chosen by the user at the plan.
+
+**Review:** Reduced criteria audit fixed 4 findings at plan (AC1 now checks the hash against the comment's release tag; the probe and its revert moved from AC3 to T3, and AC2 allows only `uses:` and comment lines). The question set had not covered manual workflow runs, so implement stopped at T3 for the user's yes. Evidence: dry-run probe run 40233620162 passed every deploy step at the pinned hashes, reverted in 1cb2390, with `gh-pages` unchanged. `devtools::check()` 0/0/1 (local `.claude`) on the rerun; the first run's 1 error was not printed and not identified, and the diff changes no R code. Four-lens review: 14 findings, 8 fixed (DESIGN.md and workflow-comment wording, one evidence line), 6 rejected (false or planned), 0 to candidate rows. The first CI wait hit the 10-minute ceiling; the resume found all 8 checks green and an empty PR conversation. Graduated "Pin the deploy job's actions by SHA"; pruned the M054 row. No lesson captured. The M019 lesson took no `used` mark, since it is over 450 bytes.

@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-25 (M056 review: graduated "Give site builds read-only access", added "Pin the deploy job's actions by SHA", pruned the M053 row; LESSONS holds 38 lessons, over the 25 limit; validate green)_
+_Last hygiene check: 2026-10-25 (M057 review: graduated "Pin the deploy job's actions by SHA", pruned the M054 row; LESSONS holds 38 lessons, over the 25 limit; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M057 | Pin the deploy job's actions by SHA | review | — | normal | milestones/M057-pin-deploy-actions.md |
+| M057 | Pin the deploy job's actions by SHA | done | — | normal | milestones/archive/M057-pin-deploy-actions.md |
 | M056 | Give site builds read-only access | done | — | normal | milestones/archive/M056-read-only-site-builds.md |
 | M055 | Tighten the package site and its deploy | done | — | normal | milestones/archive/M055-package-site-deploy.md |
-| M054 | Build a package site with pkgdown | done | — | normal | milestones/archive/M054-pkgdown-site.md |
 
 ## Candidates
 
@@ -36,7 +35,6 @@ _Last hygiene check: 2026-10-25 (M056 review: graduated "Give site builds read-o
 - Match folder names across Unicode forms: from the M042 review. `check_leftover_output()` in `R/check-supplement.R` compares the names in `analyses/` with the folders in `_freeze/analyses/` as stored, so a report name and its folder that differ only in composed or decomposed Unicode form give a `leftover-output` row that tells the author to delete live output; the help page states it. Base R has no normalizer, so a fix needs a package such as `utf8` or `stringi` (a dependency change). — added 2026-10-23
 - Read report names that are not UTF-8: from the M042 review. `analysis_reports()` lists `analyses/` with `list.files(pattern =)`, and `check_stored_output()` and `check_stale_output()` run `sub()` on each report name without `useBytes`, which stops with "input string is invalid" on a name that is not valid UTF-8 (possible on Linux); whether a `.qmd` name with such bytes stops `check_supplement()` was not checked. `check_leftover_output()` (M042) cuts names with `useBytes = TRUE`. — added 2026-10-23
 - Measure Sass lock reruns on Windows: from the M052 review. Since M052, Windows test processes share Quarto's Sass cache, as macOS and Linux ones did, and `run_in()` and `run_split()` rerun a render once on "database is locked"; no Windows lock rate is on record (macOS: 1 of 18 parallel first renders, M033). See also "Log render retries after a cache lock". — added 2026-10-24
-- Pin the deploy job's actions by SHA: from the M056 review. The `deploy` job of `.github/workflows/pkgdown.yaml` holds `contents: write` and runs `actions/checkout@v7` and `actions/download-artifact@v8` by tag, while the third-party deploy action is pinned by commit SHA. The repo tag-pins every first-party action, so a change of rule would cover both workflows. — added 2026-10-25 — started M057
 - [low] Keep tests within the Suggests floors: nothing stops a new test from calling a testthat function newer than the DESCRIPTION floor, and the withr, knitr, renv, rmarkdown, and sessioninfo entries in Suggests have no floor (renv corrected M031). A CI job on the floor versions, or a test that compares the functions the tests call with the floor's exports, would catch it. From the M013 plan. From the M025 review: yaml in Imports has no floor either, and the code needs its `eval.expr` argument. — added 2026-10-18
 - [parked] Recommend a pinned tag in the README: template install from GitHub: recommend a pinned tag (`@vX.Y.Z`) in the README once a release exists. Narrowed 2026-10-18: the untagged route ran after the M003 merge and rendered. From the M003 review. — added 2026-10-18
 - [parked] Migrate old sites to the freeze layout: existing-site migration: a helper that converts a site with the old `src/` and `analyses/` layout to the freeze layout. Out of scope for version 1. — added 2026-10-18
