@@ -1,7 +1,9 @@
-# Based on the r-lib/actions v2 pkgdown example. A pull request, or a manual
-# run on another branch, only builds the site. Only a push to main or a
-# manual run on main also pushes it to the gh-pages branch, for GitHub Pages
-# to serve once the repository's Pages setting names that branch.
+# Based on the r-lib/actions v2 pkgdown example. The build job runs on every
+# trigger with a read-only token and uploads the site as a run artifact.
+# Only a push to main or a manual run on main also runs the deploy job, the
+# one job with write access, which pushes that artifact to the gh-pages
+# branch, for GitHub Pages to serve once the repository's Pages setting
+# names that branch.
 on:
   push:
     branches: [main]
@@ -12,18 +14,19 @@ name: pkgdown
 
 permissions: read-all
 
+# Only one run on main runs at a time. Runs that do not deploy (pull
+# requests and manual runs on other branches) each get their own group, so
+# they never cancel a deploy that waits in the main group.
+concurrency:
+  group: pkgdown-${{ github.ref == 'refs/heads/main' || github.run_id }}
+
 jobs:
-  pkgdown:
+  build:
     runs-on: ubuntu-latest
-    # Only one run on main runs at a time. Runs that do not deploy (pull
-    # requests and manual runs on other branches) each get their own group,
-    # so they never cancel a deploy that waits in the main group.
-    concurrency:
-      group: pkgdown-${{ github.ref == 'refs/heads/main' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     permissions:
-      contents: write
+      contents: read
     steps:
       - uses: actions/checkout@v7
 
@@ -53,12 +56,40 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
+      # The upload skips hidden files unless told otherwise, and the build
+      # writes docs/.nojekyll. The artifact is kept for one day, so after
+      # that a failed deploy needs a re-run of all jobs, not of the deploy
+      # job alone.
+      - name: Upload site
+        uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: docs
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
+
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # The deploy action works from the git repository in the workspace.
+      - uses: actions/checkout@v7
+
+      - name: Download site
+        uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: docs
+
       # clean: true deletes files on gh-pages that this build did not make,
       # such as the page of a removed help topic. The action always keeps
       # .git, .github, and .ssh, and keeps a CNAME or .nojekyll that the
       # build does not write.
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main'
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
         with:
           clean: true
