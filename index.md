@@ -13,9 +13,9 @@ The package is in early development.
 ## Start a new site
 
 The guide [Publish a supplement
-site](https://github.com/jmgirard/supplement/blob/main/vignettes/publishing.Rmd)
-is for your first site. It goes step by step from an empty folder to a
-site on GitHub Pages with a Zenodo DOI. In R,
+site](https://jmgirard.github.io/supplement/articles/publishing.html) is
+for your first site. It goes step by step from an empty folder to a site
+on GitHub Pages with a Zenodo DOI. In R,
 [`vignette("publishing", package = "supplement")`](https://jmgirard.github.io/supplement/articles/publishing.md)
 opens it when the package was installed with its vignettes.
 

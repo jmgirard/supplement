@@ -59,7 +59,7 @@
 <div class="section level2">
 <h2 id="start-a-new-site">Start a new site<a class="anchor" aria-label="anchor" href="#start-a-new-site"></a>
 </h2>
-<p>The guide <a href="https://github.com/jmgirard/supplement/blob/main/vignettes/publishing.Rmd" class="external-link">Publish a supplement site</a> is for your first site. It goes step by step from an empty folder to a site on GitHub Pages with a Zenodo DOI. In R, <code><a href="articles/publishing.html">vignette("publishing", package = "supplement")</a></code> opens it when the package was installed with its vignettes.</p>
+<p>The guide <a href="https://jmgirard.github.io/supplement/articles/publishing.html">Publish a supplement site</a> is for your first site. It goes step by step from an empty folder to a site on GitHub Pages with a Zenodo DOI. In R, <code><a href="articles/publishing.html">vignette("publishing", package = "supplement")</a></code> opens it when the package was installed with its vignettes.</p>
 <p>You need the <a href="https://quarto.org" class="external-link">Quarto</a> command-line interface, and R with the knitr and rmarkdown packages, to render the site. You can make the site folder from R or from Quarto. In R, <code><a href="reference/check_tools.html">supplement::check_tools()</a></code> reports which of these tools are missing, too old, or not on the system path. It also checks for git and the GitHub CLI (<code>gh</code>).</p>
 <p>From R, install the package from GitHub with <code>pak::pak("jmgirard/supplement")</code>. Then run:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
