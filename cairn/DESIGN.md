@@ -278,9 +278,12 @@ tests read the package's R files, from the checkout (D-020).
 
 `.github/workflows/pkgdown.yaml` builds the package site from
 `_pkgdown.yml` on Ubuntu with Quarto 1.10 on pull requests, pushes to main,
-and manual runs. Only a run on main (a push or a manual run) pushes `docs/`
-to the `gh-pages` branch, with `clean: true`, so files the build did not
-make are deleted there (D-025, D-026). It deletes
+and manual runs. Its `build` job runs on every trigger with read access
+(`contents: read`) and uploads `docs/` as a run artifact. Only a run on main
+(a push or a manual run) also runs the `deploy` job, the one job with write
+access (`contents: write`), which pushes that artifact to the `gh-pages`
+branch with `clean: true`, so files the build did not make are deleted
+there (D-025, D-026; M056). The build job deletes
 `CLAUDE.md` from its checkout before the build, so a local
 `pkgdown::build_site()` still puts `CLAUDE.md` in `docs/` pages,
 `search.json`, and `sitemap.xml`, and only the workflow's build is for

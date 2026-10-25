@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-25 (triage: routed "template test flake" to Known i
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M056 | Give site builds read-only access | planned | — | normal | milestones/M056-read-only-site-builds.md |
+| M056 | Give site builds read-only access | in-progress | — | normal | milestones/M056-read-only-site-builds.md |
 | M055 | Tighten the package site and its deploy | done | — | normal | milestones/archive/M055-package-site-deploy.md |
 | M054 | Build a package site with pkgdown | done | — | normal | milestones/archive/M054-pkgdown-site.md |
 | M053 | Keep test writes in temp folders and show failed command output | done | — | normal | milestones/archive/M053-test-output-and-temp-folders.md |
