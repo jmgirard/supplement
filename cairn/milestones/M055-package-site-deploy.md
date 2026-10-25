@@ -72,10 +72,10 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - AC4: README.md:15 at 894396e links `https://jmgirard.github.io/supplement/articles/publishing.html`; `git grep -n 'blob/main/vignettes' HEAD -- . ':!cairn'` printed no line (exit 1). Pass.
 - Gate: `cairn_validate.py` all checks passed; no principle changed, so no `cairn_impact`; `devtools::document()` left no diff; no README.Rmd; `pkgdown::check_pkgdown()` "No problems found"; `devtools::check()` 0 errors, 0 warnings, 1 NOTE (the local untracked `.claude` folder, as in M054); no new top-level files; no NEWS entry, since no package behavior changed and NEWS.md:3-6 already names the site.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: the shared concurrency group lets a manual run on another branch, which never deploys, cancel a pending main deploy (GitHub keeps one pending run per group, docs read 2026-10-25) — fix now
-- diff-bug #2: the concurrency comment "Only one deploy runs at a time; pull request builds run in parallel" no longer says which runs share the group — fix now (with #1)
+- diff-bug #1: the shared concurrency group lets a manual run on another branch, which never deploys, cancel a pending main deploy (GitHub keeps one pending run per group, docs read 2026-10-25) — fix now, fixed c2a968c
+- diff-bug #2: the concurrency comment "Only one deploy runs at a time; pull request builds run in parallel" no longer says which runs share the group — fix now (with #1), fixed c2a968c
 - diff-bug #3: the README link returns 404 until Pages is on — reject, planned change (the user chose it at the question set, work log line 6)
-- diff-bug #4: the clean comment omits `.ssh` and a `.nojekyll` the build does not write, which the action also keeps — fix now
+- diff-bug #4: the clean comment omits `.ssh` and a `.nojekyll` the build does not write, which the action also keeps — fix now, fixed c2a968c
 - diff-bug #5: `clean: true` is the action's default, so the line is redundant — reject, style
 - diff-bug #6: D-026's consequence understates the change, since no release triggers the workflow — reject, false (D-026's Decision says the `release` trigger is removed)
 - diff-bug #7: PR and branch runs keep `contents: write`, though only main runs deploy — follow-up, new row "Give site builds read-only access" (predates the branch)
@@ -83,7 +83,7 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - blame-history #1: the README link resolves only after Pages is on, and no record says so — reject, false (work log line 6 records it) and planned change
 - blame-history #2: `clean: true` replaces a value copied from the r-lib example with no decision behind it — reject, planned change (D-026)
 - blame-history #3: a release tagged on a commit that never reached main no longer redeploys — reject, planned change (the plan's rejected-alternative line names that case as the falsifier)
-- blame-history #4: a manual run on a branch shares the deploy group — fix now (same fix as diff-bug #1)
+- blame-history #4: a manual run on a branch shares the deploy group — fix now (same fix as diff-bug #1), fixed c2a968c
 - prior-review: no regression; the three M054 findings this milestone took are each addressed (M054 archive line 11), and the PR comment probe returned `[]` — noted
 - ripple #1: vignettes/publishing.Rmd:112-114 says to serve the pushed branch's `/docs` folder, unlike `gh-pages` — reject, false (that step is for the reader's own template site, D-001)
-- ripple #2: cairn/DESIGN.md:53-54 says the workflow pushes to `gh-pages` with no condition — fix now
+- ripple #2: cairn/DESIGN.md:53-54 says the workflow pushes to `gh-pages` with no condition — fix now, fixed c2a968c
