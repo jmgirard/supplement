@@ -1,6 +1,6 @@
 # M056: Give site builds read-only access
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -41,9 +41,9 @@ Run every build of the package site with a read-only token, so that only the dep
 
 - [x] T1: In `.github/workflows/pkgdown.yaml`, move the `concurrency:` block (lines 20-22) to the workflow level. Rename the job to `build` with `permissions: contents: read`; keep its checkout, Quarto, Pandoc, R, dependency, `Leave CLAUDE.md off the site`, and `Build site` steps (lines 28-53), then upload `docs/` with `actions/upload-artifact` and `include-hidden-files: true`, since the action skips hidden files such as `docs/.nojekyll` by default. Add a `deploy` job (`needs: build`, `if: github.ref == 'refs/heads/main'`, `permissions: contents: write`) that runs `actions/checkout` (the deploy action works from the git repository in the workspace), downloads the artifact to `docs/`, and runs the deploy step (lines 58-66) unchanged. Rewrite the opening comment (lines 1-4) to name each job's access.
 - [x] T2: Push the branch and make the AC2 manual run; read its jobs, the build job's `Set up job` log, and its artifacts.
-- [ ] T3: Commit the probe, which differs from the branch head only in the deploy job's `if:` (also admitting the branch) and an added `dry-run: true` on the deploy step; push, make one manual run, read the deploy job's steps, then revert the probe in its own commit and push.
+- [x] T3: Commit the probe, which differs from the branch head only in the deploy job's `if:` (also admitting the branch) and an added `dry-run: true` on the deploy step; push, make one manual run, read the deploy job's steps, then revert the probe in its own commit and push.
 - [x] T4: Update the pkgdown paragraph at `cairn/DESIGN.md:279-287` to name the two jobs and their access.
-- [ ] T5: Run the verify slot (`Rscript -e 'devtools::test()'`) on the branch.
+- [x] T5: Run the verify slot (`Rscript -e 'devtools::test()'`) on the branch.
 
 ## Work log
 
@@ -62,6 +62,10 @@ Run every build of the package site with a read-only token, so that only the dep
 - 2026-10-25: T1 done: `build` job (`contents: read`) uploads `docs/` as artifact `site` with `actions/upload-artifact@v7` (`include-hidden-files: true`, `if-no-files-found: error`, `retention-days: 1`); `deploy` job (`needs: build`, main only, `contents: write`) runs `actions/checkout@v7`, `actions/download-artifact@v8` to `docs`, then the unchanged deploy step; concurrency at workflow level; opening comment rewritten. Chose the latest majors (upload v7.0.2, download v8.0.2) to match `checkout@v7`'s tag pinning; the one-day retention keeps storage low, since only the same run's deploy job reads the artifact.
 - 2026-10-25: T4 done ahead of T2 (minor reorder, so the branch is pushed once with both): DESIGN.md's pkgdown paragraph names the `build` job's read access on every trigger and the main-only `deploy` job's write access.
 - 2026-10-25: T2 done: manual run 40227803304 at e345861 ended `success`, build job `success`, deploy job `skipped`; the build job's Set up job log lists `Contents: read` and `Metadata: read` only; artifact `site` (1,189,779 bytes) downloaded holds `site/.nojekyll` and `site/articles/publishing.html`.
+- 2026-10-25: T3 done: probe commit e8a8ccc (deploy job `if:` also admits the branch, `dry-run: true`) ran as manual run 40228005061, `success`; the deploy job's checkout, `Download site`, and `Deploy to GitHub Pages` steps all `success`, with `Contents: write` in its Set up job log and "Dry run complete" in the deploy log. `gh-pages` stayed at c11de34, the 19:45 deploy from main 35493be, before the probe. The revert restores the workflow to e345861's bytes (`git diff e345861 -- .github/workflows/pkgdown.yaml` is empty).
+- 2026-10-25: T5 done: `devtools::test()` on the branch, 391 tests, 0 failed, 10 skipped.
+- 2026-10-25: claim audit: not owed — internal tier.
+- 2026-10-25: implement complete; status set to review. The probe revert is commit 9d31e99.
 
 ## Decisions
 
