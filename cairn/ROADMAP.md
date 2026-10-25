@@ -1,7 +1,7 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-25 (M057 review: graduated "Pin the deploy job's actions by SHA", pruned the M054 row; LESSONS holds 38 lessons, over the 25 limit; validate green)_
+_Last hygiene check: 2026-10-25 (lessons pass: dropped by planner test 2026-10-18 (M002), 2026-10-18 (M010), 2026-10-19 (M015), 2026-10-20 (M024), 2026-10-23 (M039); dropped by rank the 2026-10-18 lessons of rank M001, M003, M004, M005, M006, M007 (two), M008 (two), M009 (two), M011, M012; compressed 2026-10-19 (M014) (two), (M016), (M017), (M018) (two), (M018, M030, M031), (M019), 2026-10-20 (M021), (M022) unlink, (M023), (M026), 2026-10-21 (M027), (M028), (M029), 2026-10-22 (M031, M032); LESSONS holds 20 lessons; no decision entry; validate green)_
 
 ## Milestones
 
