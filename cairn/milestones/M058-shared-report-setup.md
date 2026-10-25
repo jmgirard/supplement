@@ -1,6 +1,6 @@
 # M058: Share report setup code through one site file
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -71,6 +71,7 @@ Reports that `add_report()` writes, and the template's example report, get `save
 - 2026-10-25: T4 done: NEWS.md entry, DESIGN.md (add-report paragraph, a `_scripts/report.R` entry, the example's figure and environment text). The stale-output sentences were written after reading `check_stale_output()` and `report_hash()` in `R/check-supplement.R`, which hash the report file alone. The four AC6 phrases return no match in GUIDE.md (`grep -cF`, 0 each).
 - 2026-10-25: claim audit: 55 claims read, 4 corrected — inst/template/GUIDE.md (the `save_png()` example line, which reports call which function, the copy step for older reports), NEWS.md (the render-without-supplement sentence was true before this change). The reader also found that an unedited old example no longer gives a placeholder row; recorded as the candidate row "Flag the old example as a placeholder".
 - 2026-10-25: implement done, status review. Template tests after the claim fixes: 48 results, 0 failed.
+- 2026-10-26: amendment routed: AC6 — the criterion names the help, NEWS.md, and two GUIDE.md sections as each saying five things, but the stale-output and missing-function text lives in GUIDE.md's new "Shared report code" section, and the help and NEWS.md give only the source, stale-output, and render-by-name points.
 
 ## Decisions
 
@@ -84,3 +85,5 @@ Pass 1, 2026-10-25, branch head 1f303ed, level with main at 1659b8a. Full suite 
 - AC4: "the first full render of a new site publishes the example figure" (4 expectations, includes no `docs/_scripts/report.R`), "a site from quarto use template renders the example with the shared report file" (3: the figure, no `docs/_scripts/report.R`, the R version line), "a report from add_report() renders by name with the shared report file" (2: render status, R version line). All 0 failed.
 - AC5: `test-add-report.R`: "a site with no _scripts/report.R gets the template's copy" (4, both forms), "an existing _scripts/report.R is kept as it is" (2), "a _scripts folder or report.R that is not a plain folder and file stops and writes nothing" (9: all four cases ran on macOS, each with its message and `supplement_error_file_exists`, and the outside folder unchanged), "a failed edit of _quarto.yml removes the copied report.R and the _scripts folder it made" (4). All 0 failed. The rollback test went red with each cleanup line removed (implement work log).
 - AC6: FAILS as written. The `grep -F` part passes: 0 matches for each of the four phrases. The five-things part does not: the help of `add_report()` does not give the line an older report adds, NEWS.md gives neither that line nor the missing-`print_environment()` failure, and in GUIDE.md the stale-output and missing-function text sits in the new "Shared report code" section, not in "Computing environment" or "Paper figures".
+- Gate: `cairn_validate` all checks passed; `devtools::document()` no diff; no README.Rmd; `pkgdown::check_pkgdown()` no problems; NEWS.md has the entry; no new top-level file. `devtools::check()`: 0 errors, 0 warnings, 1 NOTE (hidden `.claude`, the local Claude folder, not part of the package; same NOTE as M057).
+- AC6 routed as an amendment return: the docs say the five things, but the criterion's hand-listed sites do not match where the work put them. Reviewers not yet spawned this pass, so the full review runs once on the amended criterion.
