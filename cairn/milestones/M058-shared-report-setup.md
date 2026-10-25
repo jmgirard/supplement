@@ -45,7 +45,7 @@ Reports that `add_report()` writes, and the template's example report, get `save
 - [x] T1: Write `inst/template/_scripts/report.R` with `save_png()` and `print_environment()`, from the code of the example's `save-figure` (lines 59 to 100) and `session-info` (lines 111 to 138) chunks. Point the `save_png()` and home-folder tests of `test-template.R` (lines 364 to 471 and 877 to 967) at the new file.
 - [x] T2: Rewrite the example's `site`, `save-figure`, and `session-info` chunks. Update the render tests and the `quarto use template` file list in `test-template.R`.
 - [x] T3: In `R/add-report.R`, write reports from the new chunks. Copy `_scripts/report.R` when it is missing, and refuse the link, file, and folder cases. Add the copy to the cleanup after a failed write. Update the roxygen and the tests in `test-add-report.R`, with one render by name.
-- [ ] T4: Update `inst/template/GUIDE.md`, `NEWS.md`, and the architecture text of `cairn/DESIGN.md`. Read `report_hash()` and the stale-output check in `R/check-supplement.R` before you write the stale-output sentence.
+- [x] T4: Update `inst/template/GUIDE.md`, `NEWS.md`, and the architecture text of `cairn/DESIGN.md`. Read `report_hash()` and the stale-output check in `R/check-supplement.R` before you write the stale-output sentence.
 
 ## Work log
 
@@ -68,6 +68,7 @@ Reports that `add_report()` writes, and the template's example report, get `save
 
 - 2026-10-25: T1, T2 done: `_scripts/report.R` holds both functions, the example calls them, and `test-template.R` runs them from the file (new test: a `quarto use template` site renders the example with it). GUIDE.md's guide-code block and its "Shared report code", "Computing environment", and "Paper figures" text moved here from T4, because a T2 test reads that block. `_gitignore`'s comment names the new file. Full suite: 392 results, 0 failed, 10 skipped.
 - 2026-10-25: T3 done: `add_report()` refuses a `_scripts` that is a file or link and a `report.R` that is a link or folder (own messages, `supplement_error_file_exists`), copies the template's file when it is missing, and tells the user when it copied. A new report has 40 lines; the example's Computing environment paragraph was rewrapped to keep it there. The rollback test went red with each cleanup line removed. Full suite: 398 results, 0 failed, 10 skipped.
+- 2026-10-25: T4 done: NEWS.md entry, DESIGN.md (add-report paragraph, a `_scripts/report.R` entry, the example's figure and environment text). The stale-output sentences were written after reading `check_stale_output()` and `report_hash()` in `R/check-supplement.R`, which hash the report file alone. The four AC6 phrases return no match in GUIDE.md (`grep -cF`, 0 each).
 
 ## Decisions
 

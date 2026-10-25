@@ -1,5 +1,18 @@
 # supplement 0.0.0.9000
 
+* Reports now share their setup code through one file in the site,
+  `_scripts/report.R`, which the template ships. It defines `save_png()`,
+  which saves a figure in `figures/`, and `print_environment()`, which
+  prints the Computing environment section. The last line of each
+  report's `site` chunk reads the file:
+  `source(file.path(site, "_scripts", "report.R"), local = TRUE)`. So a
+  report from `add_report()` no longer holds that code, and a render does
+  not need supplement installed. When a site made earlier has no
+  `_scripts/report.R`, `add_report()` copies the template's file into it,
+  and it never replaces a file that is there. Older reports keep their
+  own code and still render. `check_supplement()` does not read
+  `_scripts/report.R`, so after a change to that file, render each report
+  by name.
 * The help pages, the guide "Publish a supplement site", and this news
   file are built into a pkgdown website for
   <https://jmgirard.github.io/supplement/>, which DESCRIPTION's `URL` field

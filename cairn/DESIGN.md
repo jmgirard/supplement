@@ -97,7 +97,10 @@ on Unix starts a shell that runs `which`; no looked-up tool is run.
 in `analyses/`, starting with the example report's `site` chunk
 (`site_chunk()`) and ending with its "Computing environment" section
 (`environment_section()`), both read from the installed template, and
-adds it to the Analyses menu in `_quarto.yml`;
+adds it to the Analyses menu in `_quarto.yml`. When the site has no
+`_scripts/report.R`, it copies the template's file there first, making
+`_scripts/` when it is missing, and it refuses a `_scripts` that is a file
+or a link and a `report.R` that is a folder or a link (D-028, M058);
 `add_data()` copies a file into `data/` and adds it to the `data` list in
 `_supplement.yml`. Both check every argument and the target file before
 the first write, and refuse a linked `analyses/` or `data/` folder. Both
@@ -202,6 +205,13 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
 - `_scripts/nojekyll.lua` (post-render): writes `.nojekyll` into the output
   folder that `QUARTO_PROJECT_OUTPUT_DIR` names. A render starts no Deno
   process for either script (D-023).
+- `_scripts/report.R`: the R functions that the reports share,
+  `save_png()` and `print_environment()`. Each report reads it with
+  `source(..., local = TRUE)` at the end of its `site` chunk, so a report
+  calls no supplement function (D-028, M058). Quarto does not publish
+  files whose path starts with `_`, so `docs/` gets no copy. The stored
+  output's hash covers the report file alone, so a change to this file
+  gives no `check_supplement()` row.
 - `_supplement.yml`: the `supplement:` map (title, citation, authors,
   licenses, Zenodo DOIs, data files), loaded through `metadata-files`.
 - `_extensions/supplement/supplement.lua`: shortcodes `supplement-doi`,
@@ -224,13 +234,14 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   example report finds the site in its `site` chunk: `QUARTO_PROJECT_DIR`
   if it is not empty, else `.` or `..`, whichever holds `_quarto.yml`, else
   a stop (M034). `add_report()` copies that chunk to the start of each new
-  report (`site_chunk()` in `R/add-report.R`). The example stops when
-  `figures` is a link (a non-empty `Sys.readlink()`, or a folder whose `normalizePath()` differs in lower case from the
-  site's plus `figures`, which finds a Windows junction) and then when it is a file (M046). It makes `figures/` when it
-  is missing and saves the figure again with `save_png()`, which renames a temporary file into place only when the file
-  ends with the 12-byte PNG `IEND` chunk (D-018, M046). It ends with a "Computing
-  environment" section, a collapsed callout whose chunk prints
-  `sessioninfo::session_info()` or, without sessioninfo,
+  report (`site_chunk()` in `R/add-report.R`). The example saves the figure
+  again with `save_png()` from `_scripts/report.R`. That function stops when its folder
+  is a link (a non-empty `Sys.readlink()`, or a folder whose `normalizePath()` differs in lower case from its
+  parent's normalized path plus its name, which finds a Windows junction) and then when it is a file (M046, M058). It makes `figures/` when it
+  is missing, and it renames a temporary file into place only when the file
+  ends with the 12-byte PNG `IEND` chunk (D-018, M046). The example ends with a "Computing
+  environment" section, a collapsed callout whose chunk calls
+  `print_environment()`, which prints `sessioninfo::session_info()` or, without sessioninfo,
   `utils::sessionInfo()`, with the home folder shown as `~`.
 
 Tests in `tests/testthat/` build a site from the template in a temporary
