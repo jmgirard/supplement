@@ -76,6 +76,7 @@ Reports that `add_report()` writes, and the template's example report, get `save
 - 2026-10-26: re-audit: AC6 (full) — satisfiable on disk; minor: GUIDE.md's "a report that calls a missing function" has no "does not define itself" clause; answered, not reworded: a report that defines the function does not call a missing one.
 - 2026-10-26: amendment return: AC6 — "`inst/template/GUIDE.md` says five things. … A report that calls a function which the site's `_scripts/report.R` lacks, and does not define itself, fails to render. The help of `add_report()` and `NEWS.md` each say the first three of these."
 - 2026-10-26: implement done after the AC6 amendment, status review.
+- 2026-10-26: step-7 approval: m058-shared-report-setup approved for merge
 
 ## Decisions
 
