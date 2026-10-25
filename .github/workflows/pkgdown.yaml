@@ -70,6 +70,15 @@ jobs:
           retention-days: 1
 
   deploy:
+    # This is the one job with write access, so it pins each action to a
+    # full commit hash, with that commit's release tag in a comment. A tag
+    # can be moved to other code, and a hash cannot. The build job and
+    # R-CMD-check.yaml use version tags, and the build job makes the site
+    # that this job publishes, so these pins guard the write token, not
+    # the site's content. To update a pin, read the commit of the new full
+    # release tag (such as v7.0.1, not v7) from the action's own repository,
+    # and put that tag in the comment:
+    #   gh api repos/<owner>/<repo>/commits/<tag> --jq .sha
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
@@ -77,10 +86,10 @@ jobs:
       contents: write
     steps:
       # The deploy action works from the git repository in the workspace.
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Download site
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: site
           path: docs
