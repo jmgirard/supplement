@@ -284,11 +284,11 @@ and manual runs. Its `build` job runs on every trigger with read access
 access (`contents: write`), which pushes that artifact to the `gh-pages`
 branch with `clean: true`, so files the build did not make are deleted
 there (D-025, D-026; M056). Because the deploy job has write access, it
-pins each action to a full commit hash with the release tag in a comment,
-and the build job and the check workflow use version tags (D-027). The
-build job's actions still make the artifact that the deploy job publishes.
-The build job deletes
-`CLAUDE.md` from its checkout before the build. A local
+pins each action to a full commit hash with the release tag in a comment.
+The build job and the check workflow use version tags (D-027). The build
+job's actions still make the artifact that the deploy job publishes, so
+the pins guard the write token, not the site's content. The build job
+deletes `CLAUDE.md` from its checkout before the build. A local
 `pkgdown::build_site()` still puts `CLAUDE.md` in `docs/` pages,
 `search.json`, and `sitemap.xml`, so only the site that the workflow
 builds and deploys is for publishing.
