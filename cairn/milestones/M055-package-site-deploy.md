@@ -1,6 +1,6 @@
 # M055: Tighten the package site and its deploy
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -40,7 +40,7 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - [x] T1: In `.github/workflows/pkgdown.yaml`, remove the `release` trigger (lines 9-10), set the deploy step's `if:` to `github.ref == 'refs/heads/main'` (line 57), set `clean: true` (line 60), and rewrite the opening comment (lines 1-4) to name the deploy events.
 - [x] T2: Point the guide link at README.md:15 to `https://jmgirard.github.io/supplement/articles/publishing.html`.
 - [x] T3: Append a D-entry that supersedes D-025's list of deploy events (only a push to main or a manual run on main; no release deploy; clean deploys), and update the pkgdown paragraph at `cairn/DESIGN.md:279-285`.
-- [ ] T4: Run the verify slot (`Rscript -e 'devtools::test()'`) on the branch.
+- [x] T4: Run the verify slot (`Rscript -e 'devtools::test()'`) on the branch.
 
 ## Work log
 
@@ -59,7 +59,8 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - 2026-10-25: T1 done: `release` trigger removed, deploy `if:` is `github.ref == 'refs/heads/main'`, `clean: true` with a comment from the action's `action.yml` (v4.8.0, line 52); the shared concurrency group of non-PR runs is left as it is, so a manual run on a branch can still wait behind a deploy.
 - 2026-10-25: T2 done: README.md:15 links the guide at `https://jmgirard.github.io/supplement/articles/publishing.html`; README.md has no README.Rmd source, so no render step.
 - 2026-10-25: T3 done: D-026 supersedes D-025's list of deploy events; the DESIGN.md pkgdown paragraph names the three triggers, the main-only deploy, and `clean: true`. The Conventions line at DESIGN.md:52-54 cites D-025 for the gh-pages push and stays true.
-- 2026-10-25: claim audit: 10 claims read, 1 corrected — .github/workflows/pkgdown.yaml (the clean comment now says the action keeps `.git`, `.github`, and a CNAME the build does not write, read from the action's `src/git.ts` lines 172-194 at d92aa23), README.md.
+- 2026-10-25: claim audit: 10 claims read, 1 corrected — .github/workflows/pkgdown.yaml (the clean comment now says the action keeps `.git`, `.github`, and a CNAME the build does not write, read from the action's `src/git.ts` lines 172-194 at d92aa23), README.md. The re-read of the corrected comment found that it holds.
+- 2026-10-25: T4 done: `devtools::test()` on the Mac at c1e0858 gave 391 tests, 0 failed, 0 errors, 10 skipped; d1b374c after it changes a workflow comment only. Status set to review.
 
 ## Decisions
 

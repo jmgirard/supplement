@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-25 (M054 done: graduated "Build a package site with
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M055 | Tighten the package site and its deploy | in-progress | — | normal | milestones/M055-package-site-deploy.md |
+| M055 | Tighten the package site and its deploy | review | — | normal | milestones/M055-package-site-deploy.md |
 | M054 | Build a package site with pkgdown | done | — | normal | milestones/archive/M054-pkgdown-site.md |
 | M053 | Keep test writes in temp folders and show failed command output | done | — | normal | milestones/archive/M053-test-output-and-temp-folders.md |
 | M052 | Drop the Windows Quarto cache in tests | done | — | high | milestones/archive/M052-drop-windows-quarto-cache.md |
