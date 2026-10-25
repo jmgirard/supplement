@@ -49,7 +49,9 @@ Status and order live in `ROADMAP.md`.
 - The package never runs `git tag`, `git push`, or a GitHub release. It
   prints those commands for the author to run. It never runs Docker or
   renv either: `write_dockerfile()` writes the recipe, and the help and
-  the template guide (`GUIDE.md`, M050) show the commands (M032).
+  the template guide (`GUIDE.md`, M050) show the commands (M032). This
+  covers package code: the repo's pkgdown workflow pushes the package
+  site to `gh-pages` (D-025).
 - No oracle-verification rule for numeric results (declined at init,
   2026-10-18).
 
@@ -237,7 +239,8 @@ such as quarto, git, or a png device, is missing.
 The metadata writer tests need no Quarto.
 The one Docker test in `tests/testthat/test-write-dockerfile.R` builds the
 image and renders a report in it only when `SUPPLEMENT_TEST_DOCKER=true`;
-the CI workflow does not set it, so that test runs only on a local machine.
+`R-CMD-check.yaml` does not set it, so that test runs only on a local
+machine.
 In `tests/testthat/test-template.R`, each exit-status check of a command
 shows everything the command printed when it fails, through
 `expect_status()` or `expect_command_fails()` (`helper-template.R`), or
@@ -272,6 +275,14 @@ large fixtures: on ubuntu-26.04 it is a 7.9 GB tmpfs with a user quota
 output that R CMD check keeps, with no second test run, and fails on a skip
 for a missing tool. A last step runs `tests/testthat/test-source.R`, whose
 tests read the package's R files, from the checkout (D-020).
+
+`.github/workflows/pkgdown.yaml` builds the package site from
+`_pkgdown.yml` on Ubuntu with Quarto 1.10, and on events other than a pull
+request pushes `docs/` to the `gh-pages` branch (D-025). It deletes
+`CLAUDE.md` from its checkout before the build, so a local
+`pkgdown::build_site()` still puts `CLAUDE.md` in `docs/` pages,
+`search.json`, and `sitemap.xml`, and only the workflow's build is for
+publishing.
 
 ## Known issues
 

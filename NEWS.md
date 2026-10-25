@@ -1,5 +1,9 @@
 # supplement 0.0.0.9000
 
+* The help pages, the guide "Publish a supplement site", and this news
+  file are built into a pkgdown website for
+  <https://jmgirard.github.io/supplement/>, which DESCRIPTION's `URL` field
+  lists first.
 * A new site's `README.md` is now a short page for the people who read the
   site's repository: the citation, the site address, the contents, and the
   licenses. The guide for the site's authors is a separate file,
