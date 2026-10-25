@@ -1,13 +1,13 @@
 # M055: Tighten the package site and its deploy
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the published package site and the README that package users read
-- **Branch/PR:** —
+- **Branch/PR:** m055-package-site-deploy
 
 ## Goal
 
@@ -37,7 +37,7 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 
 ## Tasks
 
-- [ ] T1: In `.github/workflows/pkgdown.yaml`, remove the `release` trigger (lines 9-10), set the deploy step's `if:` to `github.ref == 'refs/heads/main'` (line 57), set `clean: true` (line 60), and rewrite the opening comment (lines 1-4) to name the deploy events.
+- [x] T1: In `.github/workflows/pkgdown.yaml`, remove the `release` trigger (lines 9-10), set the deploy step's `if:` to `github.ref == 'refs/heads/main'` (line 57), set `clean: true` (line 60), and rewrite the opening comment (lines 1-4) to name the deploy events.
 - [ ] T2: Point the guide link at README.md:15 to `https://jmgirard.github.io/supplement/articles/publishing.html`.
 - [ ] T3: Append a D-entry that supersedes D-025's list of deploy events (only a push to main or a manual run on main; no release deploy; clean deploys), and update the pkgdown paragraph at `cairn/DESIGN.md:279-285`.
 - [ ] T4: Run the verify slot (`Rscript -e 'devtools::test()'`) on the branch.
@@ -55,6 +55,8 @@ Make the package site on `gh-pages` match the latest build from main, with the R
 - 2026-10-25: plan gate chose dropping the `release` trigger and deploying only when `github.ref` is main over keeping release deploys gated on the newest tag, because a release is cut from main, whose push already deploys; falsified by a release from a non-main ref that the site must show.
 - 2026-10-25: plan gate chose an absolute site URL in README over a separate `pkgdown/index.md` home page, because pkgdown 2.2.1.9000 rewrites only relative `.md` links (`tweak_link_md`) and a second home page would repeat README; falsified by a pkgdown setting that rewrites a README link to a vignette source.
 - 2026-10-25: changelog: no NEWS entry, since the change touches the workflow and README only and no package behavior; test scope: no new test, since no R code changes.
+- 2026-10-25: implement started on branch m055-package-site-deploy, cut from main at 6c27ec2.
+- 2026-10-25: T1 done: `release` trigger removed, deploy `if:` is `github.ref == 'refs/heads/main'`, `clean: true` with a comment from the action's `action.yml` (v4.8.0, line 52); the shared concurrency group of non-PR runs is left as it is, so a manual run on a branch can still wait behind a deploy.
 
 ## Decisions
 
