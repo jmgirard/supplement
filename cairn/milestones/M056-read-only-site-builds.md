@@ -26,7 +26,7 @@ Run every build of the package site with a read-only token, so that only the dep
 - [x] AC3: One manual run on the branch of the deploy job as it stands at the branch head, admitted on the branch and set to dry-run mode, ends with its artifact download step and its `Deploy to GitHub Pages` step `success` (`gh run view <id> --json jobs`).
 - [x] AC4: The deploy step keeps `clean: true`, `branch: gh-pages`, `folder: docs`, and the action pinned at `d92aa235d04922e8f08b40ce78cc5442fcfbfa2f`, and the build job runs the `Leave CLAUDE.md off the site` step before `Build site`. Shown by reading the file.
 - [x] AC5: The workflow's opening comment and the pkgdown paragraph of `cairn/DESIGN.md` each state that the build runs with read access on every trigger and that only the deploy job, which runs on main, has write access. Shown by reading both.
-- [ ] AC6: The profile's verify slot is clean: `Rscript -e 'devtools::test()'` reports 0 failures.
+- [x] AC6: The profile's verify slot is clean: `Rscript -e 'devtools::test()'` reports 0 failures.
 
 ## Coverage
 
@@ -92,4 +92,5 @@ Run every build of the package site with a read-only token, so that only the dep
 - ripple #1: DESIGN.md's "only the workflow's build is for publishing" can read as the build job, which publishes nothing — fix now (same rewrite as diff-bug #6), fixed 4eaa49d.
 - ripple #2: DESIGN.md:53-54 says the workflow pushes the site from runs on main without naming the job — reject, false: the sentence is true of the workflow, and DESIGN.md:283-284 names the deploy job.
 - ripple #3: a required status check named for the old job id `pkgdown` would break — reject, false: `gh api repos/jmgirard/supplement/branches/main/protection` reports "Branch not protected" and the repo has 0 rulesets.
+- AC6 evidence: `devtools::test()` started at 496f36e: 391 tests, 0 failed, 10 skipped. The commits after it change only `.github/workflows/pkgdown.yaml` comments and files under `cairn/`, so no R code or test changed. Pass.
 - AC5 evidence: the workflow's lines 1-6 say the build job runs on every trigger with a read-only token, and that only a push to main or a manual run on main also runs the deploy job, "the one job with write access". `cairn/DESIGN.md:281-286` says the `build` job runs on every trigger with read access and that only a run on main also runs the `deploy` job, "the one job with write access (`contents: write`)". Pass.
