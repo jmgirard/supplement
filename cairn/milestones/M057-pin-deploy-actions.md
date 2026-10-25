@@ -36,7 +36,7 @@ Pin each action that the site's deploy job runs to a full commit hash, so that a
 ## Tasks
 
 - [x] T1: In `.github/workflows/pkgdown.yaml`, read each tag's commit from the action's own repository (`gh api repos/actions/checkout/commits/v7 --jq .sha`, and the same for `download-artifact` at `v8`; on 2026-10-25 these read `3d3c42e5…` and `9000827c…`). Find the full release tag at that commit with `gh api repos/actions/<name>/git/matching-refs/tags/v` (`v7.0.1` and `v8.0.2` on 2026-10-25). Replace the deploy job's two `uses:` lines (lines 80 and 83) with `<owner>/<name>@<hash> # <tag>`. Add a comment at the top of the deploy job that states the rule and the update command. Leave the build job's tags as they are.
-- [ ] T2: Add one sentence on the rule to the pkgdown paragraph at `cairn/DESIGN.md:279-291`.
+- [x] T2: Add one sentence on the rule to the pkgdown paragraph at `cairn/DESIGN.md:279-291`.
 - [ ] T3: Commit a probe that differs from the branch head only in the deploy job's `if:` (also admitting the branch) and an added `dry-run: true` on the deploy step. Push, run `gh workflow run pkgdown.yaml --ref <branch>` once the user allows manual runs, watch the run in the background, and read `gh run view <id> --json jobs`. Then revert the probe in its own commit and push.
 
 ## Work log
@@ -55,6 +55,7 @@ Pin each action that the site's deploy job runs to a full commit hash, so that a
 - 2026-10-25: criteria audit (reduced mode, fresh Opus reader): 2 findings on AC1, 2 on AC3, all fixed. AC1's "tag on the day of the pin" gave a different answer later, so it now checks the hash against the release tag in the comment. AC3 bound the probe and its revert, so those moved to T3, and AC2 now allows only `uses:` and comment lines, which fails a probe left in. AC2 and AC4 passed.
 - 2026-10-25: known limit, recorded in D-027: an action in the build job still runs by tag and could change the site artifact that the deploy job publishes, so the pins protect the write token, not the site's content.
 - 2026-10-25: T1 done: `v7` and `v8` read `3d3c42e5aac5ba805825da76410c181273ba90b1` and `9000827ccba6bdab643e8b6fd33ac0654aef8333` from the actions' own repositories, the release tags at those commits are `v7.0.1` and `v8.0.2`, and the deploy job now pins both with tag comments; the rule comment sits under `deploy:`, so the diff stays inside the job. R's yaml reads the three deploy `uses:` values as hash pins.
+- 2026-10-25: T2 done: DESIGN.md's pkgdown paragraph states the pin rule with D-027 and notes that the build job's actions still make the artifact the deploy job publishes.
 
 ## Decisions
 
