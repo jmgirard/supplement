@@ -60,6 +60,7 @@ Pin each action that the site's deploy job runs to a full commit hash, so that a
 - 2026-10-25: T3 done: probe abc2f87 (deploy `if:` also admits the branch, `dry-run: true`) pushed; run 40233620162 on abc2f87 ended `success`, and every deploy-job step, `Run actions/checkout@3d3c42e5…` and `Download site` included, was `success`; the deploy log shows `dry-run: true` and "Dry run complete", and `gh-pages` stayed at a57adeb. Reverted in 1cb2390; `git diff main...HEAD -- .github/` now holds only the rule comment and the two `uses:` lines.
 - 2026-10-25: claim audit: not owed — internal tier.
 - 2026-10-25: verify slot not run, as the plan's test-scope line says: no R file or file the tests read changed. Status set to `review`.
+- 2026-10-25: step-7 approval: m057-pin-deploy-actions approved for merge
 
 ## Decisions
 
