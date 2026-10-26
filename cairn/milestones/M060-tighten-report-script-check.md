@@ -46,7 +46,7 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 ## Tasks
 <!-- owner: plan (create) / implement (check-off, minor edits); substantive change is amend-via-gate. -->
 
-- [ ] T1: Write the tests first. Add the AC1 row lines and no-row lines and the AC2 lines to the missing-script tests in `tests/testthat/test-check-supplement.R` (near lines 656 to 727). Run them on the current code and record which fail.
+- [x] T1: Write the tests first. Add the AC1 row lines and no-row lines and the AC2 lines to the missing-script tests in `tests/testthat/test-check-supplement.R` (near lines 656 to 727). Run them on the current code and record which fail.
 - [ ] T2: Rewrite `names_script()` (`R/check-supplement.R:758`) as one PCRE pattern with possessive runs for the spaces and tabs and no `.*`, and update its comment. Run `devtools::test()`.
 - [ ] T3: In the link test (`test-check-supplement.R:688`), replace `skip_on_os("windows")` with `symlink_or_skip()` (`tests/testthat/helper-files.R:150`). Add a test with a file link to an existing file. In `check_missing_script()`, the file also counts as missing if `is_link()` is TRUE and `fs::is_file()`, which follows the link, is FALSE. Review reads the Windows CI job's test output to see that the link tests ran there.
 - [ ] T4: Update the `"missing-script"` help text (`R/check-supplement.R:109` to `133`) and run `devtools::document()`. Update the missing-script lines of `cairn/DESIGN.md` (near line 168). Run `devtools::check()`.
@@ -65,6 +65,8 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - 2026-10-26: plan gate chose to state in the help page that a `.` after `report.R` stops the match over widening the match to sentence ends, toward the narrower promise; falsified by a site whose reports name the file only in prose that ends a sentence.
 - 2026-10-26: changelog: no NEWS.md change; the M059 bullet covers the unreleased check and stays true.
 - 2026-10-26: criteria audit (full mode, fresh Opus reader): 10 findings, all fixed. AC1 now binds `check_supplement()` and not `names_script()` or the test file, allows a `/`, `\`, or `\\` before the quote form, lets any `_scripts` start the match, adds probes for `\\`, a tab, mixed quotes, a trailing `/` before the quote, two `_scripts` on one line, `report.R.bak`, and a sentence-end `.`, and names the existing test's seven cases. The Goal names the AC1 forms and the link case. AC2 places the `source()` line first and last and adds a 5 MB run of spaces and tabs. AC3 scopes both sentences to the three systems. AC4 names the old rule text to drop and the sentence-end stop. AC5 adds the CI workflow on three systems. Reachability: `symlink_or_skip()` already makes file links on the Windows runner. Proportionality: no finding.
+- 2026-10-26: started on branch m060-tighten-report-script-check.
+- 2026-10-26: T1: added the AC1 row and no-row lines and the AC2 long lines as three tests with `script_site()` and `script_rows_for()` helpers; on the current code the three no-row cases `_scripts_old/report.R`, `_scripts/old-report.R`, and `"_scripts", "x", "report.R"` fail, and the rest pass.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

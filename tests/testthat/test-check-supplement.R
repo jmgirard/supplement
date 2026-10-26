@@ -676,13 +676,59 @@ test_that("reports that name a missing _scripts/report.R give one missing-script
   expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
 })
 
-test_that("a long line that names a missing _scripts/report.R gives a missing-script row", {
-  site <- new_site()
+# A site with no _scripts/report.R and no report yet.
+script_site <- function(env = parent.frame()) {
+  site <- new_site(env)
   unlink(script_of(site))
   unlink(file.path(site, "analyses", "example.qmd"))
-  report_lines(site, "long", paste(source_line, strrep("x", 5e6)))
-  expect_no_warning(rows <- rows_of(check_quiet(site), "missing-script"))
-  expect_identical(rows$file, "_scripts/report.R")
+  site
+}
+
+# The missing-script rows of `site` once its one report holds `line`.
+script_rows_for <- function(site, line) {
+  report_lines(site, "case", line)
+  rows_of(check_quiet(site), "missing-script")
+}
+
+test_that("lines that join _scripts and report.R by a separator give a missing-script row", {
+  site <- script_site()
+  lines <- c(
+    source_line,
+    "source(file.path(site, '_scripts' , 'report.R'))",
+    "_scripts\\report.R",
+    'source("_scripts\\\\report.R")',
+    'file.path(site, "_scripts/", "report.R")',
+    "\"_scripts\",\t'report.R'",
+    "_scripts_old/x and _scripts/report.R"
+  )
+  for (line in lines) {
+    expect_identical(script_rows_for(site, line)$file, "_scripts/report.R", info = line)
+  }
+})
+
+test_that("lines that do not join _scripts and report.R by a separator give no missing-script row", {
+  site <- script_site()
+  lines <- c(
+    'source("_scripts_old/report.R")',
+    'source("_scripts/old-report.R")',
+    'file.path("_scripts", "x", "report.R")',
+    'source("_scripts/report.R.bak")',
+    "See _scripts/report.R."
+  )
+  for (line in lines) {
+    expect_identical(nrow(script_rows_for(site, line)), 0L, info = line)
+  }
+})
+
+test_that("a long line that names a missing _scripts/report.R gives a missing-script row", {
+  site <- script_site()
+  for (line in c(paste(source_line, strrep("x", 5e6)), paste(strrep("x", 5e6), source_line))) {
+    expect_no_warning(rows <- script_rows_for(site, line))
+    expect_identical(rows$file, "_scripts/report.R")
+  }
+
+  expect_no_warning(rows <- script_rows_for(site, paste0('"_scripts" ,', strrep(" \t", 2.5e6))))
+  expect_identical(nrow(rows), 0L)
 })
 
 test_that("a link to a missing _scripts/report.R gives a missing-script row", {
