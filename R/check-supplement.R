@@ -106,6 +106,27 @@
 #'   same name, such as `<name>.R`, hides a leftover folder. So does a
 #'   report whose name differs only in letter case, as after a report is
 #'   renamed only in letter case on Linux.
+#' * `"missing-script"`: the site has no file `_scripts/report.R`, and a
+#'   `.qmd` report directly in `analyses/`, from the same list of reports,
+#'   reads it. The template's example report and each report from
+#'   [add_report()] read it. The file counts as missing when `file.exists()`
+#'   is `FALSE` for it or when it is a folder. A report reads it when one of
+#'   its lines holds `_scripts` and, later on that line, `report.R`, where
+#'   neither has an ASCII letter, digit, `_`, or `.` right before it and
+#'   `report.R` has none right after it, as in
+#'   `source(file.path(site, "_scripts", "report.R"), local = TRUE)`. A line
+#'   of prose or a comment also counts. One row names each such report by
+#'   its path from the site folder, in byte order, between double quotes,
+#'   and says to copy the template's file from
+#'   `system.file("template", "_scripts", "report.R", package = "supplement")`
+#'   and commit it. A site made before the template had the file gives no
+#'   row when its reports do not name it. A line in a file that the report
+#'   includes is not read, a line of another form, such as
+#'   `source("report.R")`, does not count, and reports in folders inside
+#'   `analyses/` are not read. On Windows a file link to a missing file
+#'   reads as an existing file, and on a disk that ignores letter case a
+#'   file such as `_scripts/Report.R` reads as `_scripts/report.R`, so
+#'   neither gives a row there.
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no
