@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M059: Flag a missing _scripts/report.R file
 
-- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
@@ -77,6 +77,7 @@
 - 2026-10-26: claim audit fixes: the `script_line` comment now states the boundaries as the help page does; the `add_report()` help and GUIDE.md say the row comes only when a report names the file; the row text says "which these reports name, so a render of them can fail" (prose lines count, so "read" and "cannot render" overstated), and NEWS.md says "whose render can fail".
 - 2026-10-26: claim audit: 31 claims read, 3 corrected — R/check-supplement.R, R/add-report.R, man/add_report.Rd, inst/template/GUIDE.md, NEWS.md; the re-read found all three true, and "a letter" in the `script_line` comment became "an ASCII letter".
 - 2026-10-26: T5 a first run, started before the row-text fix and edited under, gave 4 failures that it did not name; the rerun on 88ffee6 gave `devtools::test()` 0 failed, 0 errors, 10 skipped, 403 tests, and `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude`, local only, as in M058); `devtools::document()` left no diff. Status → review.
+- 2026-10-26: review return 1: a report line that names `_scripts` and runs past about 3 to 5 MB makes `grepl(script_line, …)` hit PCRE's match limit, so it warns and the report gets no `"missing-script"` row, which fails AC1 (diff-bug #1, prior-review #1). Fix: match `_scripts` and `report.R` with separate searches and compare their positions, and add a regression test with such a line. Status → in-progress.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
@@ -88,23 +89,23 @@ Review pass 1 (2026-10-26), on 01a86dc; the evidence run was stopped once a find
 
 - spawned: diff-bug, blame-history, prior-review, ripple
 - diff-bug #1: a report line that names `_scripts` and runs past about 3 to 5 MB makes `script_line` hit PCRE's match limit, so `grepl()` warns and the report gets no row — floor return (AC1 fails inside its domain), review return 1.
-- diff-bug #2: DESIGN.md says "each a whole name", but `_scripts` has no right boundary and `-` may precede `report.R` — fix now.
+- diff-bug #2: DESIGN.md says "each a whole name", but `_scripts` has no right boundary and `-` may precede `report.R` — fix now, fixed 63cd7e6.
 - diff-bug #3: a site without the file whose reports source `_scripts_old/report.R` or `_scripts/old-report.R` gets a row naming a file they do not use — follow-up, candidate row "Match report.R names as whole paths" (AC1 (b) as planned allows these lines).
-- diff-bug #4: the row says to copy into `_scripts/report.R` when `_scripts` is a file, and its folder sentence covers only a folder — fix now (the sentence names both).
-- diff-bug #5: the README.md and GUIDE.md list items say reports "read" the file, though prose lines count — fix now.
-- diff-bug #6: the help page does not say that a report that cannot be read names nothing — fix now.
-- diff-bug #7: the new section header put `fold_case()`, a leftover-output helper, under "Shared report code" — fix now (section moved before Links).
+- diff-bug #4: the row says to copy into `_scripts/report.R` when `_scripts` is a file, and its folder sentence covers only a folder — fix now, fixed 63cd7e6 (the sentence names both).
+- diff-bug #5: the README.md and GUIDE.md list items say reports "read" the file, though prose lines count — fix now, fixed 63cd7e6.
+- diff-bug #6: the help page does not say that a report that cannot be read names nothing — fix now, fixed 63cd7e6.
+- diff-bug #7: the new section header put `fold_case()`, a leftover-output helper, under "Shared report code" — fix now, fixed 63cd7e6 (section moved before Links).
 - diff-bug #8: the release test's list of stopping checks omits `"missing-script"` — reject, false: the release gate has no branch per check, so the value would repeat one code path, which "What gets a test" excludes.
-- diff-bug #9: GUIDE.md's "After you change it" starts mid-paragraph with an unclear "it" — fix now.
-- diff-bug #10: two expectations compare the whole row text, repeating the naming path that the byte-order test checks — fix now (they compare `$file`).
-- diff-bug #11: two test comments restate the code — fix now (one names the end-of-line probe, one removed).
+- diff-bug #9: GUIDE.md's "After you change it" starts mid-paragraph with an unclear "it" — fix now, fixed 63cd7e6.
+- diff-bug #10: two expectations compare the whole row text, repeating the naming path that the byte-order test checks — fix now, fixed 63cd7e6 (they compare `$file`).
+- diff-bug #11: two test comments restate the code — fix now, fixed 63cd7e6 (one names the end-of-line probe, one removed).
 - diff-bug #12: `missing_script_text()` copies the row text by hand — reject, false: check discrimination keeps the expected text stated apart from the code.
-- blame-history #1: a `source()` call that puts `_scripts` and `report.R` on two lines gives no row, and the help page does not say so — fix now.
-- blame-history #2: the README.md and GUIDE.md list items read with the wrong subject — fix now (as diff-bug #5).
+- blame-history #1: a `source()` call that puts `_scripts` and `report.R` on two lines gives no row, and the help page does not say so — fix now, fixed 63cd7e6.
+- blame-history #2: the README.md and GUIDE.md list items read with the wrong subject — fix now, fixed 63cd7e6 (as diff-bug #5).
 - blame-history #3: the release test list omits the new value — reject, false (as diff-bug #8).
-- blame-history #4: GUIDE.md breaks the paragraph mid-sentence — fix now (as diff-bug #9).
+- blame-history #4: GUIDE.md breaks the paragraph mid-sentence — fix now, fixed 63cd7e6 (as diff-bug #9).
 - prior-review #1: the PCRE match limit of LESSONS 2026-10-20 (M021) is not guarded — floor return (as diff-bug #1).
-- prior-review #2: the help page does not say that the letter case of `_scripts` and `report.R` in the report text must match — fix now.
+- prior-review #2: the help page does not say that the letter case of `_scripts` and `report.R` in the report text must match — fix now, fixed 63cd7e6.
 - prior-review #3: Windows link and folder cases match M018 and M045 — no finding.
 - prior-review #4: byte order and quoting match M029 and M043 — no finding.
 - prior-review #5: the change-after-render limit matches M058 — no finding.
