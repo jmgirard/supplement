@@ -1,6 +1,6 @@
 # M062: Flag old and re-saved example files
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -66,6 +66,8 @@
 - 2026-10-26: T4 done: four tests. Plants: with the old `report_hash()` comparison, 7 of 8 versions and 5 of 6 editor-save cases failed; with a normalizer that also drops every BOM byte and spaces before LF, both no-row probes failed. Full suite 422 tests, 0 failed, 10 skipped.
 - 2026-10-26: T5 done: roxygen bullet and older-template sentence, `man/check_supplement.Rd` regenerated, a `NEWS.md` bullet at the top, `cairn/DESIGN.md` placeholder paragraph and Known issues entry (pointer removed, "narrowed M062").
 - 2026-10-26: T6 done: `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude`, local only, as at M058).
+- 2026-10-26: claim audit: 20 claims read, 0 corrected — NEWS.md, R/check-supplement.R, man/check_supplement.Rd, tests/testthat/test-check-supplement.R
+- 2026-10-26: implement done; status review.
 
 ## Decisions
 
