@@ -1,5 +1,11 @@
 # supplement 0.0.0.9000
 
+* `check_supplement()` gives the `"placeholder"` row for the example
+  report of an earlier version of the template, so a site made before the
+  example last changed still gets it. An unchanged example file also gets
+  the row after an editor saves it with small changes. These are a
+  UTF-8 byte order mark at its start, CR LF or CR line ends, or no line
+  break at its end.
 * Reports now share their setup code through one file in the site,
   `_scripts/report.R`, which the template ships. It defines `save_png()`,
   which saves a figure in `figures/`, and `print_environment()`, which

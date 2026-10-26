@@ -280,13 +280,18 @@
 #'     missing, a folder, not UTF-8 text, or that cannot be read gives no
 #'     row.
 #'   * `analyses/example.qmd` and `data/example.csv` each get a row when
-#'     their text equals the template's copy, with each CR LF read as LF. A
-#'     file that cannot be read gives no row.
+#'     their text equals the template's copy. `analyses/example.qmd` also
+#'     gets one when its text equals the example report of an earlier
+#'     version of the template. The text counts as equal when it differs
+#'     only by a UTF-8 byte order mark at its start, CR LF or CR line ends
+#'     in place of LF, or no line break at its end, as an editor can save
+#'     an unchanged file. A file that cannot be read gives no row.
 #'
 #'   Only a whole value or a whole line counts, so a value that keeps part
 #'   of a placeholder, such as a citation with `(Year)` in it, gives no row.
 #'   A site made from an older version of the template, whose placeholders
-#'   differ from the installed ones, gives no row for them.
+#'   differ from the installed ones, gives no row for them. The example
+#'   report is the exception.
 #'
 #' The `"large-file"` and `"saved-object"` checks look at the files that git
 #' tracks or does not ignore, which
