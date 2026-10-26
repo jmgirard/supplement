@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M059: Flag a missing _scripts/report.R file
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
@@ -55,7 +55,7 @@
 - [x] T2: Tests first in `tests/testthat/test-check-supplement.R` for AC1 to AC3 (red before T1), using `new_site()` and `report_lines()`. Run the existing `check_supplement()` and `release_supplement()` tests and fix any that now see the new row.
 - [x] T3: Add the `"missing-script"` bullet to the `check_supplement()` roxygen after `"leftover-output"`, with the AC1 conditions and the AC4 limits; run `devtools::document()`.
 - [x] T4: Update the check lists in GUIDE.md and README.md, GUIDE.md's "Shared report code" section, the `add_report()` help, and a new NEWS.md bullet; reword the M058 NEWS.md sentence per AC4; add the git-ignored case to the "Release check edge cases" entry in DESIGN.md Known issues and the new check to DESIGN.md's `R/check-supplement.R` paragraph. As a review aid, run `grep -rn "report\.R" R/ inst/template/ NEWS.md README.md vignettes/` and read each hit's sentence.
-- [ ] T5: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
+- [x] T5: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -76,6 +76,7 @@
 - 2026-10-26: T4 the `add_report()` help, GUIDE.md "Shared report code", and the M058 NEWS.md bullet now say that `check_supplement()` looks only at whether `_scripts/report.R` exists; GUIDE.md and README.md check lists and a new NEWS.md bullet name the row; DESIGN.md gained the architecture lines and the git-ignored case. The review-aid grep's 50 hits hold no other sentence about `check_supplement()` and the file.
 - 2026-10-26: claim audit fixes: the `script_line` comment now states the boundaries as the help page does; the `add_report()` help and GUIDE.md say the row comes only when a report names the file; the row text says "which these reports name, so a render of them can fail" (prose lines count, so "read" and "cannot render" overstated), and NEWS.md says "whose render can fail".
 - 2026-10-26: claim audit: 31 claims read, 3 corrected — R/check-supplement.R, R/add-report.R, man/add_report.Rd, inst/template/GUIDE.md, NEWS.md; the re-read found all three true, and "a letter" in the `script_line` comment became "an ASCII letter".
+- 2026-10-26: T5 a first run, started before the row-text fix and edited under, gave 4 failures that it did not name; the rerun on 88ffee6 gave `devtools::test()` 0 failed, 0 errors, 10 skipped, 403 tests, and `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude`, local only, as in M058); `devtools::document()` left no diff. Status → review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
