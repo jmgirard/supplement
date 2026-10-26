@@ -2012,6 +2012,8 @@ test_that("a site with no docs folder has no web addresses", {
   expect_identical(nrow(web_addresses(new_site())), 0L)
 })
 
+check_quiet_web <- function(path, web_links) suppressMessages(check_supplement(path, web_links = web_links))
+
 # Mock url_status() to record each address it gets and return
 # `result(address)`.
 mock_status <- function(result = function(url) 200L, env = parent.frame()) {
@@ -2068,6 +2070,27 @@ test_that("a row for a status that servers give scripts says the link can work i
     "https://example.org/401" = TRUE, "https://example.org/403" = TRUE, "https://example.org/405" = TRUE,
     "https://example.org/429" = TRUE, "https://example.org/404" = FALSE, "https://example.org/error" = FALSE
   ))
+})
+
+test_that("web_links must be TRUE or FALSE", {
+  site <- new_site()
+  for (bad in list(NA, c(TRUE, TRUE), "TRUE", 1, NULL)) {
+    expect_error(check_quiet_web(site, bad), class = "supplement_error_argument")
+  }
+})
+
+test_that("by default check_supplement() requests no web address", {
+  site <- web_site()
+  local_mocked_bindings(url_status = function(url) stop("url_status() was called"))
+  expect_identical(nrow(rows_of(check_quiet(site), "web-link")), 0L)
+})
+
+test_that("web_links = TRUE requests each web address on the pages once", {
+  site <- web_site()
+  calls <- mock_status()
+  check_quiet_web(site, TRUE)
+  expect_setequal(calls$urls, names(web_expected))
+  expect_false(anyDuplicated(calls$urls) > 0)
 })
 
 test_that("url_status() follows redirects with a timeout and gives the status or the error message", {

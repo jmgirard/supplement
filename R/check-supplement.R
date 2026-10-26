@@ -335,8 +335,14 @@
 #' problems <- check_supplement(site)
 #' problems$check
 #' unlink(site, recursive = TRUE)
-check_supplement <- function(path = ".") {
+check_supplement <- function(path = ".", web_links = FALSE) {
   check_path(path)
+  if (!isTRUE(web_links) && !isFALSE(web_links)) {
+    cli::cli_abort(
+      "{.arg web_links} must be {.code TRUE} or {.code FALSE}.",
+      class = c("supplement_error_argument", "supplement_error")
+    )
+  }
   path <- drop_trailing_sep(path)
   meta <- read_supplement(path)
 
@@ -350,6 +356,7 @@ check_supplement <- function(path = ".") {
     check_leftover_output(path),
     check_missing_script(path),
     check_links(path),
+    if (web_links) check_web_links(path),
     check_unpublished_figures(path),
     check_dois(path, meta, call = environment()),
     check_placeholders(path, meta)
