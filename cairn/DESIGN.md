@@ -175,6 +175,15 @@ separator is `/`, `\`, or `\\`, or a quote, a comma with spaces or tabs,
 and a quote after an optional `/`, `\`, or `\\` (M060). It is one PCRE
 pattern with no `.*` between the names, since a `.*` there passed PCRE's
 match limit on a line of a few MB (M059 review).
+Its stale-script check (`check_stale_script()`, M061, D-029) reads the
+hash lines that `print_environment()` in `_scripts/report.R` prints:
+`stored_script_hashes()` takes the top-level `result.markdown` of each
+`.json` file that `check_stale_output()` also reads (both parse through
+`stored_json()`), finds `Shared report code: _scripts/report.R, MD5 ` by a
+fixed-text `gregexpr()`, and keeps the 32 characters after it when they
+are lowercase hex. A report gets a row when one of them differs from
+`report_hash()` of the site's file. A missing file or a folder in its
+place gives no row.
 `R/release-supplement.R`: `release_supplement()` checks `bump`, reads
 `_supplement.yml` once, and from that read checks the current
 `supplement.version` and the `version:` line. It builds the new

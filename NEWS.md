@@ -11,10 +11,16 @@
   reports still call no supplement function. When a site made earlier has no
   `_scripts/report.R`, `add_report()` copies the template's file into it,
   and it never replaces a file that is there. Older reports keep their
-  own code and still render. `check_supplement()` compares each report's
-  own text with its stored output. Of `_scripts/report.R` it looks only at
-  whether the file exists, so a change to that file gives no stale-output
-  row. To take the change, render each report by name.
+  own code and still render. After a change to `_scripts/report.R`, render
+  each report by name to take the change.
+* `print_environment()` in `_scripts/report.R` ends the Computing
+  environment section with a line that gives the MD5 of the file. If the
+  stored output of a report directly in `analyses/` gives another MD5
+  than the site's `_scripts/report.R` has now, `check_supplement()` gives
+  a `"stale-script"` row. So `release_supplement()` stops before it
+  releases that output. A report whose
+  stored output gives no MD5, such as one rendered before the site had
+  this version of the file, gets no row.
 * If the site has no `_scripts/report.R` file and a report directly in
   `analyses/` names it, as the template's `source()` line does,
   `check_supplement()` gives a `"missing-script"` row. So

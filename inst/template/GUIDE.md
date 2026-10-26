@@ -56,9 +56,12 @@ report from `add_report()` calls `print_environment()`. If you edit
 calls a missing function fails to render.
 
 `check_supplement()` compares the text of each report with the hash in its
-stored output. Of `_scripts/report.R` it looks only at whether the file
-is there. If a report names the file and the file is missing, it gives a
-row, and a change to the file gives none. After you change
+stored output. If a report names `_scripts/report.R` and the file is
+missing, it gives a row. `print_environment()` also prints the MD5 of
+`_scripts/report.R`. `check_supplement()` gives a row for each report
+whose stored output gives another MD5 than the file has now. A report
+rendered before the site had this version of the file gives no MD5, so it
+gets no row. After you change
 `_scripts/report.R`, render each report by name, for
 example `quarto render analyses/models.qmd`. Then render the whole site
 with `quarto render`, and commit the reports with `_freeze/`, `docs/`, and
@@ -80,7 +83,9 @@ zone, and some folders on your computer: the R library folders, Pandoc,
 and Quarto with sessioninfo, and the BLAS and LAPACK files without it. The
 function shows your home folder as `~`, in each spelling that R gives for
 it. Folders outside your home folder show in full, so read the output
-before you publish it.
+before you publish it. The last line gives the MD5 of `_scripts/report.R`,
+which `check_supplement()` compares with the file (see "Shared report
+code").
 
 To add the section to an older report, follow these steps. If the site
 has no `_scripts/report.R`, copy it in as "Shared report code" says. Then
@@ -204,6 +209,8 @@ data frame. It finds:
   `_freeze/`
 - reports directly in `analyses/` whose stored output in `_freeze/` came
   from other text than the report holds now, or whose source hash cannot be read
+- reports directly in `analyses/` whose stored output gives another MD5 of
+  `_scripts/report.R` than the file has now
 - folders in `_freeze/analyses/` that no file or folder in `analyses/`
   names, as after a report is deleted or renamed
 - reports directly in `analyses/` that name a missing

@@ -107,6 +107,28 @@ that the files that differ can be from a format that the report no
 longer renders. If so, delete them, render the whole site, and commit
 the report with \verb{_freeze/}, \verb{docs/}, and \verb{figures/}. If not, follow
 the render steps that the row gives after the hint.
+\item \code{"stale-script"}: a \code{.qmd} report directly in \verb{analyses/}, from the
+same list of reports, whose stored output was made with other text of
+\verb{_scripts/report.R} than the site holds now. \code{print_environment()} in
+the template's \verb{_scripts/report.R} ends the Computing environment
+section with the line \verb{Shared report code: _scripts/report.R, MD5 }
+and the file's MD5, with each CR LF pair read as LF. The check reads
+the same \code{.json} files as the \code{"stale-output"} check. In the top-level
+\code{result.markdown} text of each, it finds that text and the 32
+characters after it, when they are lowercase hex. The report gets one
+row when one of these hashes differs from the MD5 of the site's
+\verb{_scripts/report.R}, read the same way. The row names the files that
+hold such a hash, in the same way as the \code{"stale-output"} row, and
+gives the render steps. When another of these files holds only
+hashes that match, it also says that the files that differ can be from
+a format that the report no longer renders, with the same delete steps
+as the \code{"stale-output"} row. A report whose stored output holds no such
+hash gets no row, for example a report without the Computing
+environment section, or one rendered before the site had a
+\verb{_scripts/report.R} that prints the line. A file that does not parse
+or has no \code{result.markdown} text holds no hash. When the site has no
+\verb{_scripts/report.R}, or a folder in its place, the check gives no row.
+The hash covers only \verb{_scripts/report.R}, not files that it reads.
 \item \code{"leftover-output"}: a folder directly in \verb{_freeze/analyses/}, whose
 name does not start with \code{.}, that no file or folder in \verb{analyses/}
 names. A name in \verb{analyses/} names the folder when, cut before its

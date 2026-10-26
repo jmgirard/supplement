@@ -61,7 +61,7 @@
 - [x] T1: In `inst/template/_scripts/report.R`, make `print_environment()` print the hash line after the home-folder loop. Use base R only: `readBin()`, drop each CR before LF, and `tools::md5sum()` on a temporary file. Add the AC1 test beside the home-folder tests.
 - [x] T2: Add `check_stale_script()` to `R/check-supplement.R` after `check_stale_output()`, and call it from `check_supplement()`. It reads each execute-results `.json` file with jsonlite, finds the hash text with a fixed-string `gregexpr()`, not PCRE, and compares each hash with `report_hash()` of `_scripts/report.R`. Add the AC2, AC3, and AC5 tests to `tests/testthat/test-check-supplement.R`.
 - [x] T3: Add the AC4 render test to `tests/testthat/test-add-render.R`.
-- [ ] T4: Update the `check_supplement()` and `add_report()` help, GUIDE.md "Shared report code", README.md, NEWS.md (the M058 bullet and a new bullet), and DESIGN.md. Run `devtools::document()`. Also search `grep -rn "report.R\|stale" R/ man/ inst/template/ README.md NEWS.md` and read the lines around each hit for other sentences that the row makes false.
+- [x] T4: Update the `check_supplement()` and `add_report()` help, GUIDE.md "Shared report code", README.md, NEWS.md (the M058 bullet and a new bullet), and DESIGN.md. Run `devtools::document()`. Also search `grep -rn "report.R\|stale" R/ man/ inst/template/ README.md NEWS.md` and read the lines around each hit for other sentences that the row makes false.
 - [ ] T5: Run `devtools::test()` and `devtools::check()` until both are clean.
 
 ## Work log
@@ -85,6 +85,7 @@
 - 2026-10-26: T2 done: `check_stale_script()` and `stored_script_hashes()` in `R/check-supplement.R`; `stored_json()` now holds the JSON read that `stored_hash()` used, so both share it. Four tests cover AC2, AC3, and AC5; test-check-supplement.R passes. Planted defect: dropping the `[0-9a-f]{32}` filter turned the uppercase, short, and no-line cases red.
 - 2026-10-26: correction to the T2 line: the no-line case turned red because `script_json()` built the hash text with no hash (`paste0()` keeps its prefix for an empty vector), so it did not test AC3's first case. The helper now writes no such line for no hashes, and the case passes; the planted defect showed the uppercase and short cases red.
 - 2026-10-26: T3 done: the render test in test-add-render.R passes on macOS with Quarto; the row after the report.R change shows that the render stored the hash line.
+- 2026-10-26: T4 done: `"stale-script"` item in the `check_supplement()` help; the `add_report()` help, GUIDE.md "Shared report code", and the M058 NEWS.md bullet drop "a change gives none"; GUIDE.md "Computing environment" names the hash line; README.md and GUIDE.md check lists and a new NEWS.md bullet; DESIGN.md architecture lines. The T4 search found no other outdated sentence; the vignette names no report.R. The simple-english lint flags the new check-list bullet as part of a long sentence because the list has no end periods; the list keeps its style.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
