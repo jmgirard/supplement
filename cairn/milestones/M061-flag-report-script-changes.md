@@ -83,6 +83,7 @@
 - 2026-10-26: implement started on branch m061-flag-report-script-changes.
 - 2026-10-26: T1 done: `print_environment()` computes the hash inline, with no new function name in report.R. `run_session_code()` in test-template.R now sets `site` to the template folder, since `print_environment()` reads `site`. The new test runs in process with `source(local = env)`; the four session tests still pass.
 - 2026-10-26: T2 done: `check_stale_script()` and `stored_script_hashes()` in `R/check-supplement.R`; `stored_json()` now holds the JSON read that `stored_hash()` used, so both share it. Four tests cover AC2, AC3, and AC5; test-check-supplement.R passes. Planted defect: dropping the `[0-9a-f]{32}` filter turned the uppercase, short, and no-line cases red.
+- 2026-10-26: correction to the T2 line: the no-line case turned red because `script_json()` built the hash text with no hash (`paste0()` keeps its prefix for an empty vector), so it did not test AC3's first case. The helper now writes no such line for no hashes, and the case passes; the planted defect showed the uppercase and short cases red.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

@@ -596,7 +596,7 @@ test_that("a stale-output row puts each file it names in double quotes", {
 # The JSON of a stored output file whose markdown holds a line naming each
 # hash in `hashes` of _scripts/report.R, after the text in `before`.
 script_json <- function(hashes = character(), before = "x") {
-  lines <- paste0("Shared report code: _scripts/report.R, MD5 ", hashes)
+  lines <- if (length(hashes) > 0) paste0("Shared report code: _scripts/report.R, MD5 ", hashes)
   markdown <- paste(c(before, lines), collapse = "\n")
   as.character(jsonlite::toJSON(list(hash = "h", result = list(markdown = markdown)), auto_unbox = TRUE))
 }
