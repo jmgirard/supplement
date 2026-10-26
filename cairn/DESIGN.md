@@ -167,9 +167,11 @@ then other letters with `tolower()`, and lowers only the ASCII capital
 letters of a name that is not valid UTF-8.
 Its missing-script check (`check_missing_script()`, M059) gives one row when
 `_scripts/report.R` is missing or a folder and a report from
-`analysis_reports()` has a `script_line` match: `_scripts`, then
-`report.R` later on the line, with no ASCII letter, digit, `_`, or `.`
-before either or after `report.R`.
+`analysis_reports()` has a line where `names_script()` finds `_scripts`,
+then `report.R` later on the line, with no ASCII letter, digit, `_`, or
+`.` before either or after `report.R`. It finds each name with its own
+search, since one pattern with `.*` between them passed PCRE's match
+limit on a line of a few MB (M059 review).
 `R/release-supplement.R`: `release_supplement()` checks `bump`, reads
 `_supplement.yml` once, and from that read checks the current
 `supplement.version` and the `version:` line. It builds the new

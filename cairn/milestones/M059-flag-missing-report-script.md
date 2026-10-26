@@ -42,7 +42,7 @@
 ## Coverage
 <!-- owner: plan · create/amend-via-gate -->
 
-- AC1 → T1, T2
+- AC1 → T1, T2, T6
 - AC2 → T1, T2
 - AC3 → T2
 - AC4 → T3, T4
@@ -56,6 +56,7 @@
 - [x] T3: Add the `"missing-script"` bullet to the `check_supplement()` roxygen after `"leftover-output"`, with the AC1 conditions and the AC4 limits; run `devtools::document()`.
 - [x] T4: Update the check lists in GUIDE.md and README.md, GUIDE.md's "Shared report code" section, the `add_report()` help, and a new NEWS.md bullet; reword the M058 NEWS.md sentence per AC4; add the git-ignored case to the "Release check edge cases" entry in DESIGN.md Known issues and the new check to DESIGN.md's `R/check-supplement.R` paragraph. As a review aid, run `grep -rn "report\.R" R/ inst/template/ NEWS.md README.md vignettes/` and read each hit's sentence.
 - [x] T5: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
+- [x] T6: Review return 1: replace `script_line` with `names_script()`, which finds `_scripts` and `report.R` with separate searches and compares the first `_scripts` with the last `report.R`, so a line of a few MB stays under PCRE's match limit; regression test with a 5 MB line, red first.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -78,6 +79,7 @@
 - 2026-10-26: claim audit: 31 claims read, 3 corrected — R/check-supplement.R, R/add-report.R, man/add_report.Rd, inst/template/GUIDE.md, NEWS.md; the re-read found all three true, and "a letter" in the `script_line` comment became "an ASCII letter".
 - 2026-10-26: T5 a first run, started before the row-text fix and edited under, gave 4 failures that it did not name; the rerun on 88ffee6 gave `devtools::test()` 0 failed, 0 errors, 10 skipped, 403 tests, and `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude`, local only, as in M058); `devtools::document()` left no diff. Status → review.
 - 2026-10-26: review return 1: a report line that names `_scripts` and runs past about 3 to 5 MB makes `grepl(script_line, …)` hit PCRE's match limit, so it warns and the report gets no `"missing-script"` row, which fails AC1 (diff-bug #1, prior-review #1). Fix: match `_scripts` and `report.R` with separate searches and compare their positions, and add a regression test with such a line. Status → in-progress.
+- 2026-10-26: implement resumed on review return 1; minor amendment: added T6 for the return and mapped AC1 → T6. The 5 MB regression test failed first with the PCRE "match limit exceeded" warning and no row; after `names_script()` the test-check-supplement.R file passes (0 failed, 76 tests).
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

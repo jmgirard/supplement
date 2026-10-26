@@ -670,6 +670,15 @@ test_that("reports that read a missing _scripts/report.R give one missing-script
   expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
 })
 
+test_that("a long line that names a missing _scripts/report.R gives a missing-script row", {
+  site <- new_site()
+  unlink(script_of(site))
+  unlink(file.path(site, "analyses", "example.qmd"))
+  report_lines(site, "long", paste(source_line, strrep("x", 5e6)))
+  expect_no_warning(rows <- rows_of(check_quiet(site), "missing-script"))
+  expect_identical(rows$file, "_scripts/report.R")
+})
+
 test_that("a link to a missing _scripts/report.R gives a missing-script row", {
   # On Windows a file link to a missing file reads as an existing file.
   skip_on_os("windows")

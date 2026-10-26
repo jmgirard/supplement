@@ -748,10 +748,17 @@ stored_hash <- function(file) {
 
 # Shared report code ----------------------------------------------------------
 
-# A line that holds `_scripts` and, later on the line, `report.R`, where
-# neither has an ASCII letter, digit, `_`, or `.` right before it and `report.R`
-# has none right after it, as the template's source() line and its prose do.
-script_line <- "(?<![A-Za-z0-9_.])_scripts.*(?<![A-Za-z0-9_.])report\\.R(?![A-Za-z0-9_.])"
+# TRUE when a line holds `_scripts` and, later on the line, `report.R`,
+# where neither has an ASCII letter, digit, `_`, or `.` right before it and
+# `report.R` has none right after it, as the template's source() line and
+# its prose do. One pattern with `.*` between the two names would pass
+# PCRE's match limit on a line of a few MB, so each name is found alone and
+# the first `_scripts` is compared with the last `report.R`.
+names_script <- function(lines) {
+  first <- regexpr("(?<![A-Za-z0-9_.])_scripts", lines, perl = TRUE, useBytes = TRUE)
+  ends <- gregexpr("(?<![A-Za-z0-9_.])report\\.R(?![A-Za-z0-9_.])", lines, perl = TRUE, useBytes = TRUE)
+  any(first > 0 & vapply(ends, max, numeric(1)) > first)
+}
 
 # A site made before the template had _scripts/report.R lacks the file,
 # and its reports do not name it, so only reports that name it give a row.
@@ -762,7 +769,7 @@ check_missing_script <- function(path) {
   }
   reports <- analysis_reports(path)
   reads <- vapply(reports, function(report) {
-    any(grepl(script_line, read_report_lines(report), perl = TRUE, useBytes = TRUE))
+    names_script(read_report_lines(report))
   }, logical(1), USE.NAMES = FALSE)
   if (!any(reads)) {
     return(problem_rows())
