@@ -645,14 +645,15 @@ missing_script_text <- function(paths) {
          paths, ". Copy the template's file from ",
          'system.file("template", "_scripts", "report.R", package = "supplement")',
          " to _scripts/report.R, or restore your own copy, then commit _scripts/report.R.",
-         " If a file named _scripts or a folder named _scripts/report.R is in the way, move it first.")
+         " If a file named _scripts or a folder named _scripts/report.R is in the way, move it first,",
+         " and make the _scripts folder if it is missing.")
 }
 
 script_of <- function(site) file.path(site, "_scripts", "report.R")
 
 source_line <- 'source(file.path(site, "_scripts", "report.R"), local = TRUE)'
 
-test_that("reports that read a missing _scripts/report.R give one missing-script row", {
+test_that("reports that name a missing _scripts/report.R give one missing-script row", {
   site <- new_site()
   unlink(script_of(site))
   expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
@@ -667,6 +668,11 @@ test_that("reports that read a missing _scripts/report.R give one missing-script
   unlink(script_of(site))
   unlink(file.path(site, "analyses", "example.qmd"))
   report_lines(site, "last", c("Text.", "# _scripts/report.R"))
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+
+  # A `report.R` before `_scripts` does not hide a later one.
+  unlink(file.path(site, "analyses", "last.qmd"))
+  report_lines(site, "both", "report.R, then _scripts/report.R")
   expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
 })
 
@@ -714,6 +720,7 @@ test_that("no missing-script row when the file is there or no report names it", 
   report_lines(site, "rmd", "See _scripts/report.Rmd.")
   report_lines(site, "my-scripts", 'source("my_scripts/report.R")')
   report_lines(site, "myreport", 'source(file.path(site, "_scripts", "myreport.R"))')
+  report_lines(site, "order", "report.R comes before _scripts here.")
   dir.create(file.path(site, "analyses", "sub"))
   writeLines(source_line, file.path(site, "analyses", "sub", "inner.qmd"))
   expect_identical(nrow(rows_of(check_quiet(site), "missing-script")), 0L)

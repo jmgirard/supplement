@@ -114,3 +114,23 @@ Review pass 1 (2026-10-26), on 01a86dc; the evidence run was stopped once a find
 - prior-review #5: the change-after-render limit matches M058 — no finding.
 - ripple #1: the ROADMAP row "Flag a missing _scripts/report.R file" still says no row is given — reject, planned change: the row graduates at hygiene.
 - ripple #2: the release test list omits the new value — reject, false (as diff-bug #8).
+
+Review pass 2 (2026-10-26), on 110744f after review return 1.
+
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: no test runs the order comparison of `names_script()`, so `> 0` for `> first` or `min` for `max` passes every test — fix now (a negative `report.R … _scripts` report and a positive `report.R, then _scripts/report.R` report; each planted defect turned the file red).
+- diff-bug #2: the help page and a test title still say a report "reads" the file, while the row, NEWS, and README say "name" — fix now.
+- diff-bug #3: the help page leaves out the `\` before each `\` and `"` in the quoted names, which AC2 states — fix now.
+- diff-bug #4: the 5 MB regression test also compares `$file` after `expect_no_warning()` — reject, false: the two expectations show different facts (no warning, and a row).
+- diff-bug #5: the NEWS bullet's last "it" reads as the site — fix now (names `check_supplement()`).
+- diff-bug #6: the row's copy step fails when the `_scripts` folder is missing — fix now (the row says to make the folder).
+- diff-bug #7: `gregexpr()` runs on every line, 0.27 s for 200,000 lines — reject, false: no defect at that cost.
+- blame-history #1: a file link to a missing `_scripts/report.R` gives no row on Windows — follow-up, candidate row "Flag dangling report.R links on Windows" (Scope Out accepted it; `is_link()` could find it).
+- blame-history #2: a `_scripts/report.R` that git ignores gives no row — reject, planned change: Scope Out and DESIGN.md Known issues record it.
+- blame-history #3: the "Shared report code" header holds a check and its helper — reject, style.
+- prior-review #1: the Windows dangling link of LESSONS 2026-10-19 (M018) — follow-up (as blame-history #1).
+- prior-review #2: no test names a report whose name is not valid UTF-8 — reject, false: the naming runs `sort_bytes()` and `show_text()` unchanged, whose such names the stale-output and leftover-output tests already cover.
+- prior-review #3: no test puts a nul byte in a line that names the file — reject, false: `read_report_lines()` is unchanged and its nul handling has its own test ("a nul byte or other line ends do not hide a chunk").
+- prior-review #4: a later quantifier in `names_script()` could bring the PCRE warning back — no finding now.
+- ripple #1: the release test list omits the new value — reject, false (as pass 1 diff-bug #8).
+- ripple #2: "looks only at whether the file exists" leaves out a folder at that path — reject, false: a folder there is not the file, so the file does not exist.

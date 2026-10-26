@@ -20,7 +20,7 @@
   `check_supplement()` gives a `"missing-script"` row. So
   `release_supplement()` stops before it releases reports whose render
   can fail. If a site made before the template had the file has
-  reports that do not name it, it gives no row.
+  reports that do not name it, `check_supplement()` gives no row.
 * The help pages, the guide "Publish a supplement site", and this news
   file are built into a pkgdown website for
   <https://jmgirard.github.io/supplement/>, which DESCRIPTION's `URL` field

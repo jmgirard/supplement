@@ -126,16 +126,17 @@ report whose name differs only in letter case, as after a report is
 renamed only in letter case on Linux.
 \item \code{"missing-script"}: the site has no file \verb{_scripts/report.R}, and a
 \code{.qmd} report directly in \verb{analyses/}, from the same list of reports,
-reads it. The template's example report and each report from
+names it. The template's example report and each report from
 \code{\link[=add_report]{add_report()}} read it. The file counts as missing when \code{file.exists()}
-is \code{FALSE} for it or when it is a folder. A report reads it when one of
+is \code{FALSE} for it or when it is a folder. A report names it when one of
 its lines holds \verb{_scripts} and, later on that line, \code{report.R}, where
 neither has an ASCII letter, digit, \verb{_}, or \code{.} right before it and
 \code{report.R} has none right after it, as in
 \code{source(file.path(site, "_scripts", "report.R"), local = TRUE)}. A line
 of prose or a comment also counts. One row names each such report by
-its path from the site folder, in byte order, between double quotes,
-and says to copy the template's file from
+its path from the site folder, in byte order, between double quotes
+with a \verb{\\} before each \verb{\\} and \verb{"} in it, and says to copy the
+template's file from
 \code{system.file("template", "_scripts", "report.R", package = "supplement")}
 and commit it. A site made before the template had the file gives no
 row when its reports do not name it. A line in a file that the report
