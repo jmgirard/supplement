@@ -1,13 +1,13 @@
 # M062: Flag old and re-saved example files
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — it changes which rows `check_supplement()` gives, and so when `release_supplement()` stops
-- **Branch/PR:** —
+- **Branch/PR:** m062-flag-old-example-files
 
 ## Goal
 

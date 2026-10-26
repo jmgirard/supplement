@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-26 (M061 review: archived; graduated "Flag reports 
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M062 | Flag old and re-saved example files | planned | — | normal | milestones/M062-flag-old-example-files.md |
+| M062 | Flag old and re-saved example files | in-progress | — | normal | milestones/M062-flag-old-example-files.md |
 | M061 | Flag reports after report.R changes | done | — | normal | milestones/archive/M061-flag-report-script-changes.md |
 | M060 | Tighten the missing report.R check | done | — | normal | milestones/archive/M060-tighten-report-script-check.md |
 | M059 | Flag a missing _scripts/report.R file | done | — | normal | milestones/archive/M059-flag-missing-report-script.md |
