@@ -112,3 +112,33 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - ripple #5: the `R/supplement-yml.R:309` comment says `file.exists()` is FALSE for a dangling link — reject (false: its parenthesis limits the Windows case to junctions and folder links).
 - ripple #6: README.md and GUIDE.md list "reports ... that name a missing `_scripts/report.R` file" — reject (false: still true).
 - ripple #7: the M059 NEWS bullet does not name the Windows link case — reject (false: the bullet stays true for the unreleased check).
+- Pass 1 fix-now items: diff-bug #1, #2, #3, #4, #7 and prior-review #1, #2 fixed 9de47dc (review return 1, T5).
+
+Pass 2 (2026-10-26), resumed after a pause; the paused pass's reports were discarded and every lens ran again.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: on Windows a dangling link that `fs::path_real()` fails on with a class other than `ENOENT` or `ELOOP` (macOS gives `ENOTDIR` for a link to `real.R/x`; permission errors) falls to the TRUE default and gives no row — fix now: any fs error counts as no file.
+- diff-bug #2: the help does not say what an fs error or a path that is not valid UTF-8 counts as — fix now (with #1).
+- diff-bug #3: the help's loop case is untested and on Windows rests on libuv's `ELOOP` mapping — fix now: a loop test, and #1 makes any error class count as no file.
+- diff-bug #4: the second half of the link-to-link test (chain to a missing file) runs the same path as the dangling-link test — fix now: drop it.
+- diff-bug #5: the AC2 long lines do not guard the possessive runs — reject (planned change: AC2 names the inputs; the comment no longer credits the runs).
+- diff-bug #6: the two helper comments restate the helpers — reject (style: the file's helpers such as `report_lines()` carry the same one-line comments).
+- diff-bug #7: two roxygen lines of 86 and 97 characters — reject (style); rewrapped with #2.
+- diff-bug #8: `path.expand()` can warn on a path over PATH_MAX — reject (false: `file.exists()` is FALSE first on Unix, and `fs_link()` already expands the same path on Windows).
+- diff-bug #9: the UTF-8 branch is dead because `file.path()` rejects a bytes-encoded path — reject (false: a native string with byte 0xE9 passes `file.path()` and fails `validUTF8()`, checked on macOS).
+- blame-history #1: the T5 work log says a Windows run showed another error class, so the fix is incomplete — reject (false: that line names the class of evidence that would falsify the choice, not an observed run).
+- blame-history #2: `link_ends_on_file()` repeats `fs_link()`'s guards with the opposite fallback — fix now (with diff-bug #1: the fs-error fallback becomes FALSE; the UTF-8 fallback stays TRUE because fs cannot read such a path).
+- blame-history #3: the new fs call has no wrapper, so its error branch cannot be tested, unlike `fs_is_link()` from M045 — fix now: an `fs_path_real()` wrapper and a mocked-error test.
+- blame-history #4: no record covers fs use on macOS and Linux — reject (false: D-022 imports fs, and DESIGN.md's missing-script line records `fs::path_real()`).
+- blame-history #5: no lesson records that `fs::is_file()` never returns on a link to a link — follow-up: a lesson at hygiene.
+- prior-review #1: the guards in `link_ends_on_file()` are untested — fix now (with blame-history #3).
+- prior-review #2: the Windows row rests on `ENOENT` being the class there — fix now (with diff-bug #1).
+- prior-review #3: the optional `slash?` group is not possessive, against the M021 lesson — reject (false: a group of at most two characters gives PCRE no long run to backtrack into).
+- prior-review #4: "(corrected M060)" is an appended note — reject (false: tracking-rules marks an in-place correction that way).
+- prior-review #5: `names_script()` does not catch a match-limit warning — reject (false: no `.*` remains, and 9 MB probes in two lenses gave no warning).
+- ripple #1: the `R/supplement-yml.R:328` comment says R expands `~` from R_USER while the new comment says R_USER or HOME — fix now.
+- ripple #2: the M059 lesson still says a possessive repeat cannot help — reject (false: it speaks of the `.*` pattern, where that holds).
+- ripple #3: the M059 NEWS bullet says "has no `_scripts/report.R` file" — reject (false: a link that ends on no file is no file).
+- ripple #4: `fs_link()` and `link_ends_on_file()` default in opposite directions — fix now (with diff-bug #1).
+- Outside the diff: the Windows job of the main run on 4fad253 (a tracking-only commit) crashed in `test-create-supplement.R` with exit -1073741819, where the run on 918a2d6 passed — follow-up: a candidate row.
