@@ -176,3 +176,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** D-028 states that the stored output of a report does not track `_scripts/report.R`, so `check_supplement()` cannot tell when a report was rendered with older shared code. Quarto's stored hash covers the report file alone.
 **Decision:** `print_environment()` in the template's `_scripts/report.R` prints the file's MD5, with each CR LF read as LF, as the last line of the Computing environment section. `check_supplement()` compares that line in each report's stored output with the site's file now. The user chose this at the M061 plan over a comparison of git commit times.
 **Consequences:** Readers see which version of the shared file made each report. A report whose stored output holds no such line, such as one without the Computing environment section or one rendered before its site copied the new file, gets no row. D-028's other consequences stand.
+
+### D-030 (2026-10-26): Checks that request web addresses are opt-in and do not stop the release
+
+**Context:** Every row that `check_supplement()` gives stops `release_supplement()`. A check of web links on the rendered site needs a network, and a site that is down or a server that refuses scripts gives a row that the author cannot fix.
+**Decision:** The web link check runs only when the author calls `check_supplement(web_links = TRUE)`. Its default is `FALSE`, and `release_supplement()` does not turn it on, so its rows never stop a release. The user chose this at the M063 plan over an opt-in check that can stop the release and over a check that always runs.
+**Consequences:** A release can go ahead with dead web links on the site, and authors who want the check run it themselves. `check_supplement()` with its defaults makes no web request, which keeps its tests and examples off the network.
