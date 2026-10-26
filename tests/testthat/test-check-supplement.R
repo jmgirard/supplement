@@ -2052,7 +2052,7 @@ test_that("each address that fails gives one web-link row on its first page", {
   expect_identical(rows$file, c("docs/index.html", "docs/analyses/report.html", "docs/index.html",
                                 "docs/index.html"))
   for (i in seq_along(failing)) expect_match(rows$problem[i], paste0("`", failing[i], "`"), fixed = TRUE)
-  expect_match(rows$problem[2], "status 404", fixed = TRUE)
+  for (i in 1:3) expect_match(rows$problem[i], paste("status", c(400, 404, 500)[i]), fixed = TRUE)
   expect_match(rows$problem[4], "could not be requested: libcurl error code 6: Could not resolve host", fixed = TRUE)
 })
 
@@ -2102,7 +2102,14 @@ test_that("url_status() follows redirects with a timeout and gives the status or
   expect_identical(url_status("https://example.org/x"), 404L)
   expect_identical(got$url, "https://example.org/x")
   expect_true(got$redirect)
-  expect_true(is.numeric(got$timeout) && length(got$timeout) == 1 && got$timeout > 0)
+  # curlGetHeaders() takes `timeout` from R 4.1.0 on.
+  if ("timeout" %in% names(formals(base::curlGetHeaders))) {
+    expect_true(is.numeric(got$timeout) && length(got$timeout) == 1 && got$timeout > 0)
+  } else {
+    expect_null(got$timeout)
+  }
+  url_status("https://example.org/a b")
+  expect_identical(got$url, "https://example.org/a%20b")
 
   local_mocked_bindings(curlGetHeaders = function(url, ...) stop("libcurl error code 6:\n\tno host\n"))
   expect_identical(url_status("https://example.org/x"), "libcurl error code 6: no host")

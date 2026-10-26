@@ -189,7 +189,8 @@
 #'   link or junction that resolves to `docs/` or a place in it gives no row
 #'   of its own. Links
 #'   that start with `/`, `#`, or a scheme such as
-#'   `https:` are not checked, and no web address is requested. GitHub
+#'   `https:` are not checked here. Only the `"web-link"` check, with
+#'   `web_links = TRUE`, requests web addresses. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
 #'   name counts as broken, also on a disk that ignores case. A link that
 #'   also differs from the name in Unicode form (for example `é` written
@@ -242,8 +243,12 @@
 #'   `docs/` that fails. The check reads the same pages and values as the
 #'   `"broken-link"` check, in the same way, and keeps each value that
 #'   starts with `http:` or `https:` in any letter case, with any `#` part
-#'   removed. A page that the `"broken-link"` check cannot read gives no
-#'   `"web-link"` row. Each address is requested once, one after another,
+#'   removed. So the cases above where that check reads a page differently
+#'   from a browser apply here too: a reference such as `&eacute;` stays as
+#'   written, and the address is requested with it. A link that starts with
+#'   `//` has no scheme and is not requested. A space in an address is sent
+#'   as `%20`, as a browser sends it. A page that the `"broken-link"` check
+#'   cannot read gives no `"web-link"` row. Each address is requested once, one after another,
 #'   with a HEAD request that follows redirects and, on R 4.1.0 or later,
 #'   waits up to 10 seconds. A site with many addresses can take minutes.
 #'   An address gets a row when the request fails, such as for an unknown
@@ -591,9 +596,13 @@ plain_paths <- function(path, files) {
 # sort stops on a string with no encoding mark that is not valid UTF-8, so
 # the sort keys are marked as bytes.
 sort_bytes <- function(x) {
+  x[order_bytes(x)]
+}
+
+order_bytes <- function(x) {
   keys <- x
   Encoding(keys) <- "bytes"
-  x[order(keys, method = "radix")]
+  order(keys, method = "radix")
 }
 
 # Stored output ---------------------------------------------------------------
@@ -1170,9 +1179,7 @@ check_web_links <- function(path) {
   if (nrow(found) == 0) {
     return(NULL)
   }
-  keys <- found$address
-  Encoding(keys) <- "bytes"
-  found <- found[order(keys, method = "radix"), , drop = FALSE]
+  found <- found[order_bytes(found$address), , drop = FALSE]
   cli::cli_alert_info("Requesting {nrow(found)} web address{?es}, one at a time.")
   problems <- vapply(found$address, function(url) web_problem(url, url_status(url)), character(1),
                      USE.NAMES = FALSE)
@@ -1216,11 +1223,12 @@ web_timeout <- 10L
 # redirects, or the error message when the request fails, such as for an
 # unknown host, a timeout, or a certificate error. libcurl breaks its
 # messages with a line break and a tab, so each run of spaces becomes one
-# space. curlGetHeaders() takes `timeout` from R 4.1.0 on, so before that
-# it waits as long as libcurl does. do.call() takes the name, which finds
-# the base function or a test's mock, not the NULL binding above.
+# space. libcurl refuses a space in an address, which a browser sends as
+# %20. curlGetHeaders() takes `timeout` from R 4.1.0 on, so before that it
+# is called without one. do.call() takes the name, which finds the base
+# function or a test's mock, not the NULL binding above.
 url_status <- function(url) {
-  args <- list(url, redirect = TRUE)
+  args <- list(gsub(" ", "%20", url, fixed = TRUE), redirect = TRUE)
   if ("timeout" %in% names(formals(base::curlGetHeaders))) args$timeout <- web_timeout
   tryCatch(
     attr(do.call("curlGetHeaders", args), "status"),
