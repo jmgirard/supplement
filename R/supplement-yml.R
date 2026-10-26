@@ -325,7 +325,7 @@ is_link <- function(paths) {
 # TRUE for each path that fs::is_link() reports as a link. On Windows fs
 # reads the link itself, so it finds a file link to a missing file, which
 # file.exists() reads as an existing file there. fs expands `~` from
-# USERPROFILE and R from R_USER, so R expands it first. A path that is not
+# USERPROFILE and R from R_USER or HOME, so R expands it first. A path that is not
 # valid UTF-8, or that fs stops on, gives FALSE.
 fs_link <- function(paths) {
   found <- logical(length(paths))

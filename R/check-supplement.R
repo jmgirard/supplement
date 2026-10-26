@@ -110,13 +110,24 @@
 #'   `.qmd` report directly in `analyses/`, from the same list of reports,
 #'   names it. The template's example report and each report from
 #'   [add_report()] read it. The file counts as missing when `file.exists()`
-#'   is `FALSE` for it or when it is a folder. A report names it when one of
-#'   its lines holds `_scripts` and, later on that line, `report.R`, where
-#'   neither has an ASCII letter, digit, `_`, or `.` right before it and
-#'   `report.R` has none right after it, as in
-#'   `source(file.path(site, "_scripts", "report.R"), local = TRUE)`. A line
-#'   of prose or a comment also counts. One row names each such report by
-#'   its path from the site folder, in byte order, between double quotes
+#'   is `FALSE` for it, when it is a folder, or when it is a link whose chain
+#'   of links ends on a missing file, a folder, or a loop, or one that
+#'   `fs::path_real()` cannot resolve. So a file link to a missing file
+#'   counts as missing on Windows too, where `file.exists()` is `TRUE` for
+#'   it. A link whose path is not valid UTF-8 counts as there. A report
+#'   names the file when one of its lines holds `_scripts`, with no ASCII
+#'   letter, digit, `_`, or `.` right before it, then a separator, then
+#'   `report.R`, with no ASCII letter, digit, `_`, or `.` right after it.
+#'   Each such `_scripts` on the line can start the match, so
+#'   `_scripts_old/x and _scripts/report.R` names the file. The separator
+#'   is `/`, `\`, or `\\`, or it is a `"` or `'`, a `,` with any spaces or
+#'   tabs on each side, and a `"` or `'`, after an optional `/`, `\`, or
+#'   `\\`. So `source(file.path(site, "_scripts", "report.R"), local = TRUE)`
+#'   and `_scripts/report.R` name the file, and `_scripts_old/report.R`,
+#'   `_scripts/old-report.R`, and `file.path("_scripts", "x", "report.R")`
+#'   do not. A `.` right after `report.R`, as at the end of a sentence,
+#'   stops the match. A line of prose or a comment also counts. One row
+#'   names each such report by its path from the site folder, in byte order, between double quotes
 #'   with a `\` before each `\` and `"` in it, and says to copy the
 #'   template's file from
 #'   `system.file("template", "_scripts", "report.R", package = "supplement")`
@@ -127,10 +138,8 @@
 #'   two lines, does not count, and the letter case of both names must
 #'   match. Reports in folders inside `analyses/` are not read, and a report
 #'   that cannot be read, such as a link to a missing file, names nothing.
-#'   On Windows a file link to a missing file
-#'   reads as an existing file, and on a disk that ignores letter case a
-#'   file such as `_scripts/Report.R` reads as `_scripts/report.R`, so
-#'   neither gives a row there.
+#'   On a disk that ignores letter case a file such as `_scripts/Report.R`
+#'   reads as `_scripts/report.R`, so it gives no row there.
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no
@@ -749,23 +758,45 @@ stored_hash <- function(file) {
 
 # Shared report code ----------------------------------------------------------
 
-# TRUE when a line holds `_scripts` and, later on the line, `report.R`,
-# where neither has an ASCII letter, digit, `_`, or `.` right before it and
-# `report.R` has none right after it, as the template's source() line and
-# its prose do. One pattern with `.*` between the two names would pass
-# PCRE's match limit on a line of a few MB, so each name is found alone and
-# the first `_scripts` is compared with the last `report.R`.
+# TRUE when a line holds `_scripts`, with no ASCII letter, digit, `_`, or
+# `.` right before it, then a separator, then `report.R`, with none right
+# after it, as the template's source() line and its prose do. The separator
+# is `/`, `\`, or `\\`, or a quote, a comma, and a quote, as between the
+# arguments of file.path(), with an optional `/`, `\`, or `\\` before it.
+# No `.*` lies between the names, as one did in the pattern that passed
+# PCRE's match limit on a line of a few MB.
 names_script <- function(lines) {
-  first <- regexpr("(?<![A-Za-z0-9_.])_scripts", lines, perl = TRUE, useBytes = TRUE)
-  ends <- gregexpr("(?<![A-Za-z0-9_.])report\\.R(?![A-Za-z0-9_.])", lines, perl = TRUE, useBytes = TRUE)
-  any(first > 0 & vapply(ends, max, numeric(1)) > first)
+  slash <- "(?:/|\\\\{1,2}+)"
+  pattern <- paste0("(?<![A-Za-z0-9_.])_scripts(?:", slash, "|", slash, "?[\"'][ \t]*+,[ \t]*+[\"'])",
+                    "report\\.R(?![A-Za-z0-9_.])")
+  any(grepl(pattern, lines, perl = TRUE, useBytes = TRUE))
 }
+
+# FALSE when the chain of links at `path` ends on no file: a missing file,
+# a folder, a loop, or a chain that fs::path_real() stops on, which a
+# render cannot read either. fs::is_file() never returns on a link to a
+# link (fs 2.1.0), so fs::path_real() resolves the chain. On Windows fs
+# expands `~` from USERPROFILE and R from R_USER or HOME, so R expands it
+# first. A path that is not valid UTF-8 gives TRUE, which keeps the answer
+# of file.exists(), since fs cannot read such a path.
+link_ends_on_file <- function(path) {
+  path <- enc2utf8(path)
+  if (!validUTF8(path)) {
+    return(TRUE)
+  }
+  target <- tryCatch(fs_path_real(path.expand(path)), error = function(e) NULL)
+  !is.null(target) && file.exists(target) && !dir.exists(target)
+}
+
+# fs::path_real() under a name of its own, so that a test can make it stop.
+fs_path_real <- function(path) fs::path_real(path)
 
 # A site made before the template had _scripts/report.R lacks the file,
 # and its reports do not name it, so only reports that name it give a row.
 check_missing_script <- function(path) {
   script <- file.path(path, "_scripts", "report.R")
-  if (file.exists(script) && !dir.exists(script)) {
+  # On Windows file.exists() is TRUE for a file link to a missing file.
+  if (file.exists(script) && !dir.exists(script) && (!is_link(script) || link_ends_on_file(script))) {
     return(problem_rows())
   }
   reports <- analysis_reports(path)
