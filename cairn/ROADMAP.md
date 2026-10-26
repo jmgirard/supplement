@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-26 (M058 review: archived; graduated "Shorten the s
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M059 | Flag a missing _scripts/report.R file | planned | — | normal | milestones/M059-flag-missing-report-script.md |
+| M059 | Flag a missing _scripts/report.R file | in-progress | — | normal | milestones/M059-flag-missing-report-script.md |
 | M058 | Share report setup code through one site file | done | — | normal | milestones/archive/M058-shared-report-setup.md |
 | M057 | Pin the deploy job's actions by SHA | done | — | normal | milestones/archive/M057-pin-deploy-actions.md |
 | M056 | Give site builds read-only access | done | — | normal | milestones/archive/M056-read-only-site-builds.md |

@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M059: Flag a missing _scripts/report.R file
 
-- **Status:** planned   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
 - **Principles touched:** —   <!-- owner: plan · create/amend-via-gate; comma-separated IPn/GPn ids this milestone touches, or — -->
 - **Resolves:** —   <!-- owner: plan · create/amend-via-gate; comma-separated GitHub issues the scope absorbs, each `#N closes` (the PR closes it at merge) or `#N partial` (the remainder gets a candidate row), or — ; skill conduct only — no validate check parses it -->
 - **Surface tier:** user-facing — a new row of the exported `check_supplement()`, which `release_supplement()` stops on   <!-- owner: plan · create/amend-via-gate; user-facing | internal — <one-clause reason>; skill conduct only — no validate check parses it -->
-- **Branch/PR:** —   <!-- owner: implement (branch) / review (PR URL) · create; a companion checkout the milestone also works in is one further entry per checkout, `companion: <abs-path> <branch>` (implement), its PR URL appended by review — /milestone-review merges companions first, in listed order -->
+- **Branch/PR:** m059-flag-missing-report-script   <!-- owner: implement (branch) / review (PR URL) · create; a companion checkout the milestone also works in is one further entry per checkout, `companion: <abs-path> <branch>` (implement), its PR URL appended by review — /milestone-review merges companions first, in listed order -->
 
 ## Goal
 <!-- owner: plan · create; a wrong goal returns to plan, never edited in place -->
@@ -51,8 +51,8 @@
 ## Tasks
 <!-- owner: plan (create) / implement (check-off, minor edits); substantive change is amend-via-gate. -->
 
-- [ ] T1: Write `check_missing_script()` in `R/check-supplement.R` near `check_leftover_output()`: test the file with `file.exists()` and `dir.exists()`, read each report from `analysis_reports()` with `read_report_lines()`, match with `perl = TRUE, useBytes = TRUE` and the boundaries of AC1 (b), name the reports with `quote_path()`, `show_text()`, and `sort_bytes()`, and build the row with `problem_rows()`. Call it from `check_supplement()` after `check_leftover_output()`.
-- [ ] T2: Tests first in `tests/testthat/test-check-supplement.R` for AC1 to AC3 (red before T1), using `new_site()` and `report_lines()`. Run the existing `check_supplement()` and `release_supplement()` tests and fix any that now see the new row.
+- [x] T1: Write `check_missing_script()` in `R/check-supplement.R` near `check_leftover_output()`: test the file with `file.exists()` and `dir.exists()`, read each report from `analysis_reports()` with `read_report_lines()`, match with `perl = TRUE, useBytes = TRUE` and the boundaries of AC1 (b), name the reports with `quote_path()`, `show_text()`, and `sort_bytes()`, and build the row with `problem_rows()`. Call it from `check_supplement()` after `check_leftover_output()`.
+- [x] T2: Tests first in `tests/testthat/test-check-supplement.R` for AC1 to AC3 (red before T1), using `new_site()` and `report_lines()`. Run the existing `check_supplement()` and `release_supplement()` tests and fix any that now see the new row.
 - [ ] T3: Add the `"missing-script"` bullet to the `check_supplement()` roxygen after `"leftover-output"`, with the AC1 conditions and the AC4 limits; run `devtools::document()`.
 - [ ] T4: Update the check lists in GUIDE.md and README.md, GUIDE.md's "Shared report code" section, the `add_report()` help, and a new NEWS.md bullet; reword the M058 NEWS.md sentence per AC4; add the git-ignored case to the "Release check edge cases" entry in DESIGN.md Known issues and the new check to DESIGN.md's `R/check-supplement.R` paragraph. As a review aid, run `grep -rn "report\.R" R/ inst/template/ NEWS.md README.md vignettes/` and read each hit's sentence.
 - [ ] T5: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
@@ -70,6 +70,8 @@
 - 2026-10-26: plan gate chose one row on `_scripts/report.R` that names the reports over one row per report, because the fix is one file; falsified by users who cannot tell which reports a row affects.
 - 2026-10-26: check name `"missing-script"` chosen by the agent, in the noun-phrase form of `"no-stored-output"` and `"leftover-output"`.
 - 2026-10-26: criteria audit (full mode, fresh Opus reader): 8 findings, all fixed. AC1 gained a left boundary on `_scripts` and `report.R`, the `analysis_reports()` definition, `file.exists()`/`dir.exists()` as the meaning of missing, prose lines counting, and an end-of-line probe; AC2 probes byte order (`B.qmd`, `a.qmd`) and `"` escaping; AC3 names one site with the example deleted and adds two left-boundary cases; AC4 names the help limits, adds README.md's check list, and names the three stale sentences in place of a per-line grep, which became a T4 review aid. Proportionality: no finding.
+- 2026-10-26: implement started on branch m059-flag-missing-report-script, cut from main at 733bbf6.
+- 2026-10-26: T2 tests written first: 5 tests in test-check-supplement.R, 7 expectations red before T1. T1 `check_missing_script()` returns an empty `problem_rows()` when the file is there or no report names it; the row text says to copy from `system.file()`, or restore your own copy, then commit, and to move a folder of that name first (agent's wording). `devtools::test()`: 0 failed, 0 errors, 10 skipped, 403 tests; no existing test saw the new row.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

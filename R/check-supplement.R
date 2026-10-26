@@ -279,6 +279,7 @@ check_supplement <- function(path = ".") {
     check_stored_output(path),
     check_stale_output(path),
     check_leftover_output(path),
+    check_missing_script(path),
     check_links(path),
     check_unpublished_figures(path),
     check_dois(path, meta, call = environment()),
@@ -667,6 +668,38 @@ check_leftover_output <- function(path) {
                   "If you deleted or renamed the report, also commit its old path and _quarto.yml,",
                   "which holds its menu item."),
             length(leftover))
+  )
+}
+
+# Shared report code ----------------------------------------------------------
+
+# A line that names `_scripts` and, later on the line, `report.R`, each as
+# a whole name, as the template's source() line and its prose do.
+script_line <- "(?<![A-Za-z0-9_.])_scripts.*(?<![A-Za-z0-9_.])report\\.R(?![A-Za-z0-9_.])"
+
+# A site made before the template had _scripts/report.R lacks the file,
+# and its reports do not name it, so only reports that name it give a row.
+check_missing_script <- function(path) {
+  script <- file.path(path, "_scripts", "report.R")
+  if (file.exists(script) && !dir.exists(script)) {
+    return(problem_rows())
+  }
+  reports <- analysis_reports(path)
+  reads <- vapply(reports, function(report) {
+    any(grepl(script_line, read_report_lines(report), perl = TRUE, useBytes = TRUE))
+  }, logical(1), USE.NAMES = FALSE)
+  if (!any(reads)) {
+    return(problem_rows())
+  }
+  named <- paste(quote_path(show_text(sort_bytes(file.path("analyses", basename(reports[reads]))))),
+                 collapse = ", ")
+  problem_rows(
+    "missing-script", "_scripts/report.R",
+    paste0("The site has no file _scripts/report.R, which these reports read, so they cannot render again: ",
+           named, ". Copy the template's file from ",
+           'system.file("template", "_scripts", "report.R", package = "supplement")',
+           " to _scripts/report.R, or restore your own copy, then commit _scripts/report.R.",
+           " If a folder has that name, move it first.")
   )
 }
 
