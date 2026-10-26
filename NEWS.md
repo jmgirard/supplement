@@ -14,7 +14,8 @@
   own code and still render. After a change to `_scripts/report.R`, render
   each report by name to take the change.
 * `print_environment()` in `_scripts/report.R` ends the Computing
-  environment section with a line that gives the MD5 of the file. If the
+  environment section with a line that gives the MD5 of the file, with
+  each CR LF read as LF. If the
   stored output of a report directly in `analyses/` gives another MD5
   than the site's `_scripts/report.R` has now, `check_supplement()` gives
   a `"stale-script"` row. So `release_supplement()` stops before it

@@ -118,16 +118,18 @@ the same \code{.json} files as the \code{"stale-output"} check. In the top-level
 characters after it, when they are lowercase hex. The report gets one
 row when one of these hashes differs from the MD5 of the site's
 \verb{_scripts/report.R}, read the same way. The row names the files that
-hold such a hash, in the same way as the \code{"stale-output"} row, and
-gives the render steps. When another of these files holds only
-hashes that match, it also says that the files that differ can be from
-a format that the report no longer renders, with the same delete steps
-as the \code{"stale-output"} row. A report whose stored output holds no such
+hold a hash that differs, in the same way as the \code{"stale-output"} row,
+and gives the render steps. When another of these files holds at least
+one such hash and all of its hashes match, it also says that the files
+that differ can be from a format that the report no longer renders,
+with the same delete steps as the \code{"stale-output"} row. A report whose stored output holds no such
 hash gets no row, for example a report without the Computing
 environment section, or one rendered before the site had a
 \verb{_scripts/report.R} that prints the line. A file that does not parse
 or has no \code{result.markdown} text holds no hash. When the site has no
-\verb{_scripts/report.R}, or a folder in its place, the check gives no row.
+\verb{_scripts/report.R} that can be read, for example when the file is
+missing, is a folder, is a link to a missing file, or cannot be opened,
+the check gives no row.
 The hash covers only \verb{_scripts/report.R}, not files that it reads.
 \item \code{"leftover-output"}: a folder directly in \verb{_freeze/analyses/}, whose
 name does not start with \code{.}, that no file or folder in \verb{analyses/}

@@ -84,8 +84,8 @@ and Quarto with sessioninfo, and the BLAS and LAPACK files without it. The
 function shows your home folder as `~`, in each spelling that R gives for
 it. Folders outside your home folder show in full, so read the output
 before you publish it. The last line gives the MD5 of `_scripts/report.R`,
-which `check_supplement()` compares with the file (see "Shared report
-code").
+with each CR LF read as LF. `check_supplement()` compares it with the file
+(see "Shared report code").
 
 To add the section to an older report, follow these steps. If the site
 has no `_scripts/report.R`, copy it in as "Shared report code" says. Then
