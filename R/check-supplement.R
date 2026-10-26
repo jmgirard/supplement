@@ -280,13 +280,18 @@
 #'     missing, a folder, not UTF-8 text, or that cannot be read gives no
 #'     row.
 #'   * `analyses/example.qmd` and `data/example.csv` each get a row when
-#'     their text equals the template's copy, with each CR LF read as LF. A
-#'     file that cannot be read gives no row.
+#'     their text equals the template's copy. `analyses/example.qmd` also
+#'     gets one when its text equals the example report of an earlier
+#'     version of the template. The text counts as equal when it differs
+#'     only by a UTF-8 byte order mark at its start, CR LF or CR line ends
+#'     in place of LF, or no line break at its end, as an editor can save
+#'     an unchanged file. A file that cannot be read gives no row.
 #'
 #'   Only a whole value or a whole line counts, so a value that keeps part
 #'   of a placeholder, such as a citation with `(Year)` in it, gives no row.
 #'   A site made from an older version of the template, whose placeholders
-#'   differ from the installed ones, gives no row for them.
+#'   differ from the installed ones, gives no row for them. The example
+#'   report is the exception.
 #'
 #' The `"large-file"` and `"saved-object"` checks look at the files that git
 #' tracks or does not ignore, which
@@ -836,6 +841,31 @@ report_hash <- function(report) {
   }, error = function(e) NULL, warning = function(w) NULL)
 }
 
+# The MD5 of a file's text as an editor may save it unchanged: a UTF-8 BOM
+# at its start is dropped, each CR LF and then each lone CR is read as LF,
+# and one LF at its end is dropped. NULL when the file cannot be read.
+# Unlike `report_hash()`, this is not Quarto's hash.
+text_hash <- function(path) {
+  tryCatch({
+    bytes <- readBin(path, "raw", n = file.size(path))
+    if (length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))) {
+      bytes <- bytes[-(1:3)]
+    }
+    n <- length(bytes)
+    if (n > 1) {
+      cr <- which(bytes[-n] == as.raw(13) & bytes[-1] == as.raw(10))
+      if (length(cr) > 0) bytes <- bytes[-cr]
+    }
+    bytes[bytes == as.raw(13)] <- as.raw(10)
+    n <- length(bytes)
+    if (n > 0 && bytes[n] == as.raw(10)) bytes <- bytes[-n]
+    file <- tempfile("text-")
+    on.exit(unlink(file, expand = FALSE))
+    writeBin(bytes, file)
+    unname(tools::md5sum(file))
+  }, error = function(e) NULL, warning = function(w) NULL)
+}
+
 # The top-level `hash` of a stored output file, or NULL when the file does
 # not parse as JSON, its top level is not an object, or its `hash` is not
 # one text value.
@@ -1338,22 +1368,51 @@ placeholder_example_problems <- c(
   "data/example.csv" = "This is the template's example data. Put your own data in it, or delete it, its entry under data in _supplement.yml, and the example report, which reads it."
 )
 
-# A row for each example file whose text, with each CR LF read as LF,
-# equals the installed template's copy. A missing file, a folder, or a
-# file that cannot be read gives no row. A CR LF copy is at most twice the
-# template's size, so a larger file is not read.
+# The `text_hash()` of each version of the template's example files that
+# the default branch has held, named by commit, so that a site made from
+# an older template also gets its row. Each is `text_hash()` of
+# `git show <commit>:inst/template/<file>` for the commits that
+# `git log --follow -- inst/template/<file>` listed on 2026-10-26. A change
+# to either template file adds its version here, and a test fails until it
+# does.
+example_versions <- list(
+  "analyses/example.qmd" = c(
+    "2db94f2" = "9451ca1c54165f4330b7fffbb11dc6c2",
+    "fbc2cab" = "23d34b8911258f4f45c248f85689b175",
+    "38af327" = "8f89f3479dccb4df43daefa967c4dd56",
+    "11fa634" = "d6a37300a8d28a660fd3b27aed36206e",
+    "0c312a3" = "2896f71bcfbca7b72ee52eb3c0a82d1b",
+    "485be8b" = "098ed269ffa0e7dda0d19b320f2905e9",
+    "9ba7e23" = "91353dee4efe2b8d81ee88e769fe7ed9",
+    "5563744" = "54257d7e1131bc76018770982f85e763"
+  ),
+  "data/example.csv" = c(
+    "5563744" = "2cc069c36b604f65c85f1b4aed6cfc34"
+  )
+)
+
+# The size in bytes of the largest version in `example_versions`: the
+# report at fbc2cab and the data at 5563744, read with `file.size()` of
+# the same `git show` output.
+example_version_bytes <- c("analyses/example.qmd" = 5090, "data/example.csv" = 86)
+
+# A row for each example file whose `text_hash()` equals that of the
+# installed template's copy or of a version in `example_versions`. A
+# missing file, a folder, or a file that cannot be read gives no row. A
+# copy of a known version with CR LF line ends and a BOM is under twice
+# the largest version's size, so a larger file is not read.
 placeholder_example_rows <- function(path) {
   files <- names(placeholder_example_problems)
   template <- system.file("template", package = "supplement", mustWork = TRUE)
   same <- vapply(files, function(file) {
     site_file <- file.path(path, file)
     template_file <- file.path(template, file)
-    if (!file.exists(site_file) || dir.exists(site_file) ||
-        isTRUE(file.size(site_file) > 2 * file.size(template_file))) {
+    largest <- max(example_version_bytes[file], file.size(template_file), na.rm = TRUE)
+    if (!file.exists(site_file) || dir.exists(site_file) || isTRUE(file.size(site_file) > 2 * largest)) {
       return(FALSE)
     }
-    hash <- report_hash(site_file)
-    !is.null(hash) && identical(hash, report_hash(template_file))
+    hash <- text_hash(site_file)
+    !is.null(hash) && hash %in% c(example_versions[[file]], text_hash(template_file))
   }, logical(1))
   problem_rows("placeholder", files[same], placeholder_example_problems[files[same]])
 }

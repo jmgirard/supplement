@@ -1863,7 +1863,7 @@ test_that("each placeholder line is a line of the template's file", {
   expect_setequal(names(placeholder_lines), line_files)
 })
 
-test_that("an example file gives a row only while its text is the template's", {
+test_that("an example file gives a row while its text is the template's", {
   for (file in c("analyses/example.qmd", "data/example.csv")) {
     has_row <- function(site) file %in% placeholder_rows(site)$file
     site <- new_site()
@@ -1882,6 +1882,67 @@ test_that("an example file gives a row only while its text is the template's", {
     expect_false(has_row(site), info = file)
     dir.create(file.path(site, file))
     expect_no_error(expect_false(has_row(site), info = file))
+  }
+})
+
+# data-raw/example-qmd-fixtures.R writes each fixture from git.
+example_fixture <- function(commit) test_path("fixtures", "example-qmd", paste0(commit, ".qmd"))
+
+# Write `bytes` as the site's file and say whether it gets its row.
+example_row_for <- function(site, file, bytes) {
+  writeBin(bytes, file.path(site, file))
+  file %in% placeholder_rows(site)$file
+}
+
+test_that("each version of the example report on the default branch gives its row", {
+  commits <- c("2db94f2", "fbc2cab", "38af327", "11fa634", "0c312a3", "485be8b", "9ba7e23", "5563744")
+  site <- new_site()
+  for (commit in commits) {
+    bytes <- read_bytes(example_fixture(commit))
+    expect_true(example_row_for(site, "analyses/example.qmd", bytes), info = commit)
+  }
+})
+
+test_that("an example file saved with a BOM, CR line ends, or no final line break gives its row", {
+  file <- "analyses/example.qmd"
+  site <- new_site()
+  lf <- read_bytes(file.path(site, file))
+  bom <- as.raw(c(0xef, 0xbb, 0xbf))
+  first <- which(lf == as.raw(10))[1]
+  expect_true(example_row_for(site, file, c(bom, lf)))
+  expect_true(example_row_for(site, file, replace(lf, lf == as.raw(10), as.raw(13))))
+  expect_true(example_row_for(site, file, append(lf, as.raw(13), first - 1)))
+  expect_true(example_row_for(site, file, lf[-length(lf)]))
+
+  old <- read_bytes(example_fixture("fbc2cab"))
+  old <- old[-length(old)]
+  crlf <- unlist(lapply(old, function(b) if (b == as.raw(10)) as.raw(c(13, 10)) else b))
+  expect_true(example_row_for(site, file, c(bom, crlf)))
+
+  data <- "data/example.csv"
+  expect_true(example_row_for(site, data, c(bom, read_bytes(file.path(site, data)))))
+})
+
+test_that("an example file with other changed text gives no row", {
+  file <- "analyses/example.qmd"
+  site <- new_site()
+  lf <- read_bytes(file.path(site, file))
+  first <- which(lf == as.raw(10))[1]
+  expect_false(example_row_for(site, file, append(lf, as.raw(c(0xef, 0xbb, 0xbf)), first)))
+  expect_false(example_row_for(site, file, append(lf, charToRaw(" "), first - 1)))
+
+  old <- rawToChar(read_bytes(example_fixture("fbc2cab")))
+  expect_false(example_row_for(site, file, charToRaw(sub("a", "b", old, fixed = TRUE))))
+
+  data <- "data/example.csv"
+  csv <- rawToChar(read_bytes(file.path(site, data)))
+  expect_false(example_row_for(site, data, charToRaw(sub("[0-9]", "9", csv))))
+})
+
+test_that("the installed template's example files are among the known versions", {
+  template <- system.file("template", package = "supplement", mustWork = TRUE)
+  for (file in names(placeholder_example_problems)) {
+    expect_contains(example_versions[[file]], text_hash(file.path(template, file)))
   }
 })
 

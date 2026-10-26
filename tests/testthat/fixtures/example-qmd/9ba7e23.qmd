@@ -1,0 +1,27 @@
+---
+title: "Example Analysis"
+description: "A short example report. Replace it with your own."
+---
+
+This report shows the parts of an analysis page. Replace it with your own
+report, and keep one `.qmd` file per report in this folder.
+
+## Data
+
+```{r}
+#| label: data
+dat <- read.csv(file.path("..", "data", "example.csv"))
+summary(dat)
+```
+
+## Bootstrap Means
+
+Seed every random draw, so that each render gives the same numbers and the
+same figures.
+
+```{r}
+#| label: bootstrap
+set.seed(2026)
+boot_means <- replicate(200, mean(sample(dat$score, replace = TRUE)))
+hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
+```
