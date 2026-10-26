@@ -266,10 +266,11 @@ the same name is also read.
 starts with \verb{http:} or \verb{https:} in any letter case, with any \verb{#} part
 removed. A page that the \code{"broken-link"} check cannot read gives no
 \code{"web-link"} row. Each address is requested once, one after another,
-with a HEAD request that follows redirects and waits up to 10 seconds.
-A site with many addresses can take minutes. An address gets a row
-when no response comes, such as for an unknown host or a timeout, or
-when the last response has a status of 400 or above. The row names
+with a HEAD request that follows redirects and, on R 4.1.0 or later,
+waits up to 10 seconds. A site with many addresses can take minutes.
+An address gets a row when the request fails, such as for an unknown
+host, a timeout, or a certificate error, or when the last response has
+a status of 400 or above. The row names
 the first page, in byte order of path, that links the address. For
 status 401, 403, 405, or 429, the row says that the server refused the
 check's request and that the link can still work in a browser, since

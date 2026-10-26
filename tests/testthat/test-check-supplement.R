@@ -2053,7 +2053,7 @@ test_that("each address that fails gives one web-link row on its first page", {
                                 "docs/index.html"))
   for (i in seq_along(failing)) expect_match(rows$problem[i], paste0("`", failing[i], "`"), fixed = TRUE)
   expect_match(rows$problem[2], "status 404", fixed = TRUE)
-  expect_match(rows$problem[4], "Could not resolve host: example.invalid", fixed = TRUE)
+  expect_match(rows$problem[4], "could not be requested: libcurl error code 6: Could not resolve host", fixed = TRUE)
 })
 
 test_that("a row for a status that servers give scripts says the link can work in a browser", {

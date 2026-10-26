@@ -244,10 +244,11 @@
 #'   starts with `http:` or `https:` in any letter case, with any `#` part
 #'   removed. A page that the `"broken-link"` check cannot read gives no
 #'   `"web-link"` row. Each address is requested once, one after another,
-#'   with a HEAD request that follows redirects and waits up to 10 seconds.
-#'   A site with many addresses can take minutes. An address gets a row
-#'   when no response comes, such as for an unknown host or a timeout, or
-#'   when the last response has a status of 400 or above. The row names
+#'   with a HEAD request that follows redirects and, on R 4.1.0 or later,
+#'   waits up to 10 seconds. A site with many addresses can take minutes.
+#'   An address gets a row when the request fails, such as for an unknown
+#'   host, a timeout, or a certificate error, or when the last response has
+#'   a status of 400 or above. The row names
 #'   the first page, in byte order of path, that links the address. For
 #'   status 401, 403, 405, or 429, the row says that the server refused the
 #'   check's request and that the link can still work in a browser, since
@@ -1161,8 +1162,8 @@ web_addresses <- function(path) {
 
 web_addresses_none <- function() data.frame(address = character(), page = character(), stringsAsFactors = FALSE)
 
-# A web-link row for each address that web_addresses() finds and that gives
-# no response or a status of 400 or above, in byte order of address. The
+# A web-link row for each address that web_addresses() finds and whose
+# request fails or gives a status of 400 or above, in byte order of address. The
 # addresses are requested one after another.
 check_web_links <- function(path) {
   found <- web_addresses(path)
@@ -1188,7 +1189,10 @@ refused_statuses <- c(401L, 403L, 405L, 429L)
 # address works.
 web_problem <- function(url, result) {
   if (is.character(result)) {
-    return(sprintf("The page links to `%s`, which gave no response: %s", url, result))
+    return(sprintf("The page links to `%s`, which could not be requested: %s", url, result))
+  }
+  if (!is.numeric(result) || length(result) != 1 || is.na(result)) {
+    return(sprintf("The page links to `%s`, whose response had no HTTP status.", url))
   }
   if (result < 400) {
     return(NA_character_)
@@ -1209,12 +1213,17 @@ curlGetHeaders <- NULL
 web_timeout <- 10L
 
 # The HTTP status of the last response to a HEAD request for `url`, after
-# redirects, or the error message when no response came, such as for an
-# unknown host or a timeout. libcurl breaks its messages with a line break
-# and a tab, so each run of spaces becomes one space.
+# redirects, or the error message when the request fails, such as for an
+# unknown host, a timeout, or a certificate error. libcurl breaks its
+# messages with a line break and a tab, so each run of spaces becomes one
+# space. curlGetHeaders() takes `timeout` from R 4.1.0 on, so before that
+# it waits as long as libcurl does. do.call() takes the name, which finds
+# the base function or a test's mock, not the NULL binding above.
 url_status <- function(url) {
+  args <- list(url, redirect = TRUE)
+  if ("timeout" %in% names(formals(base::curlGetHeaders))) args$timeout <- web_timeout
   tryCatch(
-    attr(curlGetHeaders(url, redirect = TRUE, timeout = web_timeout), "status"),
+    attr(do.call("curlGetHeaders", args), "status"),
     error = function(e) trimws(gsub("[[:space:]]+", " ", conditionMessage(e)))
   )
 }

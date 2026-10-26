@@ -2,8 +2,8 @@
 
 * `check_supplement()` has a new argument, `web_links`. With
   `web_links = TRUE`, it requests each `http` and `https` address on the
-  pages in `docs/`. An address that gives no response, or a status of 400
-  or above, gets a `"web-link"` row. For status 401, 403, 405, or
+  pages in `docs/`. An address whose request fails, or that gives a status
+  of 400 or above, gets a `"web-link"` row. For status 401, 403, 405, or
   429, the row says that the link can still work in a browser. The
   default is `FALSE`, which makes no web request, and
   `release_supplement()` does not run this check.
