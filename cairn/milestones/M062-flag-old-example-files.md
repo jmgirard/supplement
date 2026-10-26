@@ -46,7 +46,7 @@
 - [x] T3: In `placeholder_example_rows()` (`R/check-supplement.R:1345`), compare the site file's normalized MD5 with a list of known normalized MD5s per file (the eight report versions, the one data version) and with the installed template's copy. Set the size bound from the largest known version's byte size, not the current template's. A comment beside the list names the commits and the procedure that produced each MD5 (derived-figures rule).
 - [x] T4: Tests in `tests/testthat/test-check-supplement.R`: each fixture gives the row (AC1); the AC2 plants; the AC3 no-row cases, keeping the existing added-line-break case at line 1866; a test that fails when the installed template's report or data is not in the known list, so a later change to the example must add its MD5.
 - [x] T5: Update the roxygen `"placeholder"` bullet and the older-template sentence (`R/check-supplement.R:281-289`), run `devtools::document()`, add a `NEWS.md` bullet, and update `cairn/DESIGN.md` (the placeholder paragraph near line 158, the Known issues entry at line 348).
-- [ ] T6: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
+- [x] T6: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
 ## Work log
 
@@ -65,6 +65,7 @@
 - 2026-10-26: T3 done: `example_versions` (MD5s by commit) and `example_version_bytes` (5090 and 86) in `R/check-supplement.R`; the size bound is twice the larger of the largest version and the installed copy.
 - 2026-10-26: T4 done: four tests. Plants: with the old `report_hash()` comparison, 7 of 8 versions and 5 of 6 editor-save cases failed; with a normalizer that also drops every BOM byte and spaces before LF, both no-row probes failed. Full suite 422 tests, 0 failed, 10 skipped.
 - 2026-10-26: T5 done: roxygen bullet and older-template sentence, `man/check_supplement.Rd` regenerated, a `NEWS.md` bullet at the top, `cairn/DESIGN.md` placeholder paragraph and Known issues entry (pointer removed, "narrowed M062").
+- 2026-10-26: T6 done: `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude`, local only, as at M058).
 
 ## Decisions
 
