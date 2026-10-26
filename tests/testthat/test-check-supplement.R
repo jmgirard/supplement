@@ -2011,3 +2011,76 @@ test_that("web addresses are read once each, with the first page in byte order",
 test_that("a site with no docs folder has no web addresses", {
   expect_identical(nrow(web_addresses(new_site())), 0L)
 })
+
+# Mock url_status() to record each address it gets and return
+# `result(address)`.
+mock_status <- function(result = function(url) 200L, env = parent.frame()) {
+  calls <- new.env()
+  calls$urls <- character()
+  local_mocked_bindings(url_status = function(url) {
+    calls$urls <- c(calls$urls, url)
+    result(url)
+  }, .env = env)
+  calls
+}
+
+# A site whose index.html links each name of `results`, and the web-link
+# rows when url_status() gives each address its value in `results`.
+web_rows_for <- function(results, env = parent.frame()) {
+  site <- new_site(env)
+  write_page(site, "index.html", sprintf('<a href="%s">x</a>', names(results)))
+  mock_status(function(url) results[[url]], env = env)
+  suppressMessages(check_web_links(site))
+}
+
+test_that("each address that fails gives one web-link row on its first page", {
+  results <- list(
+    "https://example.org/500" = 500L, "https://example.org/200" = 200L, "https://example.org/301" = 301L,
+    "https://example.org/399" = 399L, "https://example.org/404" = 404L, "https://example.org/400" = 400L,
+    "https://example.org/error" = "libcurl error code 6: Could not resolve host: example.invalid"
+  )
+  site <- new_site()
+  write_page(site, "index.html", sprintf('<a href="%s">x</a>', names(results)))
+  write_page(site, "analyses/report.html", '<a href="https://example.org/404">x</a>')
+  mock_status(function(url) results[[url]])
+  rows <- suppressMessages(check_web_links(site))
+  failing <- c("https://example.org/400", "https://example.org/404", "https://example.org/500",
+               "https://example.org/error")
+  expect_identical(rows$check, rep("web-link", 4))
+  expect_identical(rows$file, c("docs/index.html", "docs/analyses/report.html", "docs/index.html",
+                                "docs/index.html"))
+  for (i in seq_along(failing)) expect_match(rows$problem[i], paste0("`", failing[i], "`"), fixed = TRUE)
+  expect_match(rows$problem[2], "status 404", fixed = TRUE)
+  expect_match(rows$problem[4], "Could not resolve host: example.invalid", fixed = TRUE)
+})
+
+test_that("a row for a status that servers give scripts says the link can work in a browser", {
+  refused <- "The server refused the check's request, so the link can still work in a browser."
+  results <- list(
+    "https://example.org/401" = 401L, "https://example.org/403" = 403L, "https://example.org/405" = 405L,
+    "https://example.org/429" = 429L, "https://example.org/404" = 404L,
+    "https://example.org/error" = "Operation timed out"
+  )
+  rows <- web_rows_for(results)
+  says <- grepl(refused, rows$problem, fixed = TRUE)
+  names(says) <- regmatches(rows$problem, regexpr("https://example.org/[a-z0-9]+", rows$problem))
+  expect_identical(says[names(results)], c(
+    "https://example.org/401" = TRUE, "https://example.org/403" = TRUE, "https://example.org/405" = TRUE,
+    "https://example.org/429" = TRUE, "https://example.org/404" = FALSE, "https://example.org/error" = FALSE
+  ))
+})
+
+test_that("url_status() follows redirects with a timeout and gives the status or the error message", {
+  got <- NULL
+  local_mocked_bindings(curlGetHeaders = function(url, ...) {
+    got <<- list(url = url, ...)
+    structure("HTTP/2 404", status = 404L)
+  })
+  expect_identical(url_status("https://example.org/x"), 404L)
+  expect_identical(got$url, "https://example.org/x")
+  expect_true(got$redirect)
+  expect_true(is.numeric(got$timeout) && length(got$timeout) == 1 && got$timeout > 0)
+
+  local_mocked_bindings(curlGetHeaders = function(url, ...) stop("libcurl error code 6:\n\tno host\n"))
+  expect_identical(url_status("https://example.org/x"), "libcurl error code 6: no host")
+})

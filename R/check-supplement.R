@@ -1134,6 +1134,64 @@ web_addresses <- function(path) {
 
 web_addresses_none <- function() data.frame(address = character(), page = character(), stringsAsFactors = FALSE)
 
+# A web-link row for each address that web_addresses() finds and that gives
+# no response or a status of 400 or above, in byte order of address. The
+# addresses are requested one after another.
+check_web_links <- function(path) {
+  found <- web_addresses(path)
+  if (nrow(found) == 0) {
+    return(NULL)
+  }
+  keys <- found$address
+  Encoding(keys) <- "bytes"
+  found <- found[order(keys, method = "radix"), , drop = FALSE]
+  cli::cli_alert_info("Requesting {nrow(found)} web address{?es}, one at a time.")
+  problems <- vapply(found$address, function(url) web_problem(url, url_status(url)), character(1),
+                     USE.NAMES = FALSE)
+  bad <- !is.na(problems)
+  problem_rows("web-link", file.path("docs", found$page[bad]), problems[bad])
+}
+
+# Statuses that a server can give a script, such as this check, and not a
+# browser: it can ask for a login, refuse the HEAD request, or limit the
+# number of requests.
+refused_statuses <- c(401L, 403L, 405L, 429L)
+
+# The problem text for `url` from its url_status() result, or NA when the
+# address works.
+web_problem <- function(url, result) {
+  if (is.character(result)) {
+    return(sprintf("The page links to `%s`, which gave no response: %s", url, result))
+  }
+  if (result < 400) {
+    return(NA_character_)
+  }
+  text <- sprintf("The page links to `%s`, which gave HTTP status %d.", url, as.integer(result))
+  if (result %in% refused_statuses) {
+    text <- paste(text, "The server refused the check's request, so the link can still work in a browser.",
+                  "Open it in a browser to see.")
+  }
+  text
+}
+
+# Base R's curlGetHeaders(), bound here so that tests can mock it. A call
+# skips this NULL and finds the base function.
+curlGetHeaders <- NULL
+
+# The seconds that url_status() waits for each address.
+web_timeout <- 10L
+
+# The HTTP status of the last response to a HEAD request for `url`, after
+# redirects, or the error message when no response came, such as for an
+# unknown host or a timeout. libcurl breaks its messages with a line break
+# and a tab, so each run of spaces becomes one space.
+url_status <- function(url) {
+  tryCatch(
+    attr(curlGetHeaders(url, redirect = TRUE, timeout = web_timeout), "status"),
+    error = function(e) trimws(gsub("[[:space:]]+", " ", conditionMessage(e)))
+  )
+}
+
 # Parts of the patterns that read start tags, after the HTML standard's
 # tokenizer: an attribute name runs to a space, `/`, `>`, or `=`, and an
 # unquoted value runs to a space or `>`.

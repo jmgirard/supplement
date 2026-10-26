@@ -60,7 +60,7 @@
 <!-- owner: plan (create) / implement (check-off, minor edits) -->
 
 - [x] T1: Tests first, then an internal `web_addresses(path)` in `R/check-supplement.R`. It walks the pages as `check_links()` does (`docs_entries()`, `outside_links()`, `sort_bytes()`), reads each with `read_page_text()`, `tag_links()`, and `decode_refs()`, keeps the `http` and `https` values, drops fragments, and maps each address to its first page. Share the decode-and-trim step with `page_links()` rather than copying it.
-- [ ] T2: Tests first, then `url_status(url)` with a package-level `curlGetHeaders` binding for the mock, and `check_web_links(path)`, which builds the rows of AC3 and AC4.
+- [x] T2: Tests first, then `url_status(url)` with a package-level `curlGetHeaders` binding for the mock, and `check_web_links(path)`, which builds the rows of AC3 and AC4.
 - [ ] T3: Tests first, then the `web_links` argument and its check in `check_supplement()`. Add the release test of AC6 to `tests/testthat/test-release-supplement.R`, with `skip_if_no_git()`.
 - [ ] T4: Roxygen `@param web_links` and a help section, then `devtools::document()`. Write the NEWS.md entry, the README.md and `inst/template/GUIDE.md` lines, and DESIGN.md's account of the checks.
 - [ ] T5: Run `devtools::check()` and fix any note that the change caused.
@@ -82,6 +82,7 @@
 - 2026-10-26: sizing: 8 criteria pass the 7-criterion tripwire, after the audit added the url_status() criterion. Kept as one milestone, since all eight cover one argument in one file and one PR, and no part ships alone.
 - 2026-10-26: implement started on branch m063-check-web-links, cut from main at 19ca1e7.
 - 2026-10-26: T1 done. page_values() now holds the read, decode, and trim steps that page_links() used, and site_pages() the page list of check_links(). web_addresses() returns a data frame of address and first page. The test site mocks read_page_text() and tag_links() for the unreadable-page and PCRE-warning cases. devtools::test(): 424 tests, 0 failed.
+- 2026-10-26: T2 done. url_status() calls curlGetHeaders(redirect = TRUE, timeout = 10) through a NULL namespace binding that tests mock, and folds libcurl's line breaks in error messages into spaces. check_web_links() sorts addresses in byte order and prints one info line with their count. A real request to a missing r-project.org page gave libcurl error 92 (HTTP/2 stream not closed cleanly), not 404, so such a page gets a no-response row. Planted defects (429 dropped from the refused statuses, 400 read as working) turned both row tests red. devtools::test(): 427 tests, 0 failed.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
