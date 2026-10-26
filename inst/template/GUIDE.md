@@ -56,8 +56,9 @@ report from `add_report()` calls `print_environment()`. If you edit
 calls a missing function fails to render.
 
 `check_supplement()` compares the text of each report with the hash in its
-stored output. It does not read `_scripts/report.R`, so a change to that
-file gives no row. After you change it, render each report by name, for
+stored output. Of `_scripts/report.R` it looks only at whether the file
+exists, so a missing file gives a row and a change to the file gives none.
+After you change it, render each report by name, for
 example `quarto render analyses/models.qmd`. Then render the whole site
 with `quarto render`, and commit the reports with `_freeze/`, `docs/`, and
 `figures/`.
@@ -204,6 +205,8 @@ data frame. It finds:
   from other text than the report holds now, or whose source hash cannot be read
 - folders in `_freeze/analyses/` that no file or folder in `analyses/`
   names, as after a report is deleted or renamed
+- a missing `_scripts/report.R` file that reports directly in `analyses/`
+  read
 - a missing `docs/` folder
 - relative `href`, `src`, and `xlink:href` links in `docs/` to files that
   are not in `docs/`, or to folders there with no `index.html`

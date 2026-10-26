@@ -132,6 +132,8 @@ links that it does not test. It finds:
   be read
 - folders in `_freeze/analyses/` that no file or folder in `analyses/`
   names, as after a report is deleted or renamed
+- a missing `_scripts/report.R` file that reports directly in `analyses/`
+  read
 - a site with no `docs/` folder
 - relative `href`, `src`, and `xlink:href` links in `docs/` to files that
   are not in `docs/`, or to folders there with no `index.html`

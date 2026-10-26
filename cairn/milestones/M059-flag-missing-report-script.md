@@ -54,7 +54,7 @@
 - [x] T1: Write `check_missing_script()` in `R/check-supplement.R` near `check_leftover_output()`: test the file with `file.exists()` and `dir.exists()`, read each report from `analysis_reports()` with `read_report_lines()`, match with `perl = TRUE, useBytes = TRUE` and the boundaries of AC1 (b), name the reports with `quote_path()`, `show_text()`, and `sort_bytes()`, and build the row with `problem_rows()`. Call it from `check_supplement()` after `check_leftover_output()`.
 - [x] T2: Tests first in `tests/testthat/test-check-supplement.R` for AC1 to AC3 (red before T1), using `new_site()` and `report_lines()`. Run the existing `check_supplement()` and `release_supplement()` tests and fix any that now see the new row.
 - [x] T3: Add the `"missing-script"` bullet to the `check_supplement()` roxygen after `"leftover-output"`, with the AC1 conditions and the AC4 limits; run `devtools::document()`.
-- [ ] T4: Update the check lists in GUIDE.md and README.md, GUIDE.md's "Shared report code" section, the `add_report()` help, and a new NEWS.md bullet; reword the M058 NEWS.md sentence per AC4; add the git-ignored case to the "Release check edge cases" entry in DESIGN.md Known issues and the new check to DESIGN.md's `R/check-supplement.R` paragraph. As a review aid, run `grep -rn "report\.R" R/ inst/template/ NEWS.md README.md vignettes/` and read each hit's sentence.
+- [x] T4: Update the check lists in GUIDE.md and README.md, GUIDE.md's "Shared report code" section, the `add_report()` help, and a new NEWS.md bullet; reword the M058 NEWS.md sentence per AC4; add the git-ignored case to the "Release check edge cases" entry in DESIGN.md Known issues and the new check to DESIGN.md's `R/check-supplement.R` paragraph. As a review aid, run `grep -rn "report\.R" R/ inst/template/ NEWS.md README.md vignettes/` and read each hit's sentence.
 - [ ] T5: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
 ## Work log
@@ -73,6 +73,7 @@
 - 2026-10-26: implement started on branch m059-flag-missing-report-script, cut from main at 733bbf6.
 - 2026-10-26: T2 tests written first: 5 tests in test-check-supplement.R, 7 expectations red before T1. T1 `check_missing_script()` returns an empty `problem_rows()` when the file is there or no report names it; the row text says to copy from `system.file()`, or restore your own copy, then commit, and to move a folder of that name first (agent's wording). `devtools::test()`: 0 failed, 0 errors, 10 skipped, 403 tests; no existing test saw the new row.
 - 2026-10-26: T3 `"missing-script"` bullet added to the `check_supplement()` roxygen after `"leftover-output"`, with the AC1 conditions and the AC4 limits; `devtools::document()` rewrote `man/check_supplement.Rd` only.
+- 2026-10-26: T4 the `add_report()` help, GUIDE.md "Shared report code", and the M058 NEWS.md bullet now say that `check_supplement()` looks only at whether `_scripts/report.R` exists; GUIDE.md and README.md check lists and a new NEWS.md bullet name the row; DESIGN.md gained the architecture lines and the git-ignored case. The review-aid grep's 50 hits hold no other sentence about `check_supplement()` and the file.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
