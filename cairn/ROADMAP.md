@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-26 (M058 review: archived; graduated "Shorten the setup code in new reports"; pruned the M055 row; one lesson captured, three marked used; LESSONS holds 21 lessons; validate green)_
+_Last hygiene check: 2026-10-26 (M059 review: archived; graduated "Flag a missing _scripts/report.R file"; pruned the M056 row; one lesson captured, four marked used; LESSONS holds 22 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M059 | Flag a missing _scripts/report.R file | review | — | normal | milestones/M059-flag-missing-report-script.md |
+| M059 | Flag a missing _scripts/report.R file | done | — | normal | milestones/archive/M059-flag-missing-report-script.md |
 | M058 | Share report setup code through one site file | done | — | normal | milestones/archive/M058-shared-report-setup.md |
 | M057 | Pin the deploy job's actions by SHA | done | — | normal | milestones/archive/M057-pin-deploy-actions.md |
-| M056 | Give site builds read-only access | done | — | normal | milestones/archive/M056-read-only-site-builds.md |
 
 ## Candidates
 
@@ -36,7 +35,6 @@ _Last hygiene check: 2026-10-26 (M058 review: archived; graduated "Shorten the s
 - Read report names that are not UTF-8: from the M042 review. `analysis_reports()` lists `analyses/` with `list.files(pattern =)`, and `check_stored_output()` and `check_stale_output()` run `sub()` on each report name without `useBytes`, which stops with "input string is invalid" on a name that is not valid UTF-8 (possible on Linux); whether a `.qmd` name with such bytes stops `check_supplement()` was not checked. `check_leftover_output()` (M042) cuts names with `useBytes = TRUE`. — added 2026-10-23
 - Measure Sass lock reruns on Windows: from the M052 review. Since M052, Windows test processes share Quarto's Sass cache, as macOS and Linux ones did, and `run_in()` and `run_split()` rerun a render once on "database is locked"; no Windows lock rate is on record (macOS: 1 of 18 parallel first renders, M033). See also "Log render retries after a cache lock". — added 2026-10-24
 - Flag the old example as a placeholder: from the M058 claim audit. `placeholder_example_rows()` compares a site's `analyses/example.qmd` with the installed template's copy, so an unedited example from a site made before M058 no longer gives a `placeholder` row once the package updates. It could also compare with the earlier example's hash. See also "Match example files after editor saves". — added 2026-10-25
-- Flag a missing _scripts/report.R file: from the M058 review. Since M058 every report sources `_scripts/report.R`, but `check_supplement()` and `release_supplement()` give no row when it is missing, so a release can pass a site whose reports cannot render. See also "Flag reports after report.R changes". — added 2026-10-26 — started M059
 - Flag reports after report.R changes: from the M058 plan. `check_supplement()` compares each report's own text with its stored output, so a change to the shared `_scripts/report.R` gives no stale-output row, and each report must be rendered by name. A check could store the file's hash at each render and give a row when it differs. — added 2026-10-25
 - Match report.R names as whole paths: from the M059 review. The `"missing-script"` row of `check_supplement()` takes a line where `_scripts` has no boundary after it and `-` or `/` may come before `report.R`, so a site without `_scripts/report.R` whose reports source `_scripts_old/report.R` or `_scripts/old-report.R` gets a row that says to restore a file they do not use. Requiring `_scripts` then `/` or `", "` then `report.R` would narrow it. See also "Flag reports after report.R changes". — added 2026-10-26
 - Flag dangling report.R links on Windows: from the M059 review. The `"missing-script"` check of `check_supplement()` tests `_scripts/report.R` with `file.exists()`, which on Windows is TRUE for a file link to a missing file, so such a link gives no row there and the help page states it. `is_link()` through `fs_link()` (M045), which `add_report()` already uses to refuse a linked `report.R`, could find it. See also "Report broken Quarto links on Windows". — added 2026-10-26
