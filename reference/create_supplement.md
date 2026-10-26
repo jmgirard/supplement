@@ -98,9 +98,9 @@ for the citation files.
 ``` r
 site <- file.path(tempdir(), "my-supplement")
 create_supplement(site, repo = "jdoe/my-supplement")
-#> ✔ Made a supplement site in /tmp/RtmpTEBvOi/my-supplement.
+#> ✔ Made a supplement site in /tmp/RtmpjuQfnq/my-supplement.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpTEBvOi/my-supplement once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpjuQfnq/my-supplement once before your first
 #>   commit.
 list.files(site, recursive = TRUE)
 #>  [1] "GUIDE.md"                             
@@ -112,11 +112,12 @@ list.files(site, recursive = TRUE)
 #>  [7] "_gitignore"                           
 #>  [8] "_quarto.yml"                          
 #>  [9] "_scripts/nojekyll.lua"                
-#> [10] "_scripts/setup.lua"                   
-#> [11] "_supplement.yml"                      
-#> [12] "analyses/example.qmd"                 
-#> [13] "data/example.csv"                     
-#> [14] "figures/bootstrap-means.png"          
-#> [15] "index.qmd"                            
+#> [10] "_scripts/report.R"                    
+#> [11] "_scripts/setup.lua"                   
+#> [12] "_supplement.yml"                      
+#> [13] "analyses/example.qmd"                 
+#> [14] "data/example.csv"                     
+#> [15] "figures/bootstrap-means.png"          
+#> [16] "index.qmd"                            
 unlink(site, recursive = TRUE)
 ```

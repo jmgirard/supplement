@@ -47,16 +47,30 @@ template's example report, which sets `site` to the site folder. If
 `QUARTO_PROJECT_DIR` is not empty, as in a render, `site` is its value.
 Otherwise `site` is `"."` or `".."`, the first of the two that holds
 `_quarto.yml`, and the chunk stops with an error if neither holds it.
-The report's text says to read a data file as
+The chunk then reads `_scripts/report.R` with
+`source(file.path(site, "_scripts", "report.R"), local = TRUE)`. That
+file defines `save_png()`, which saves a figure in `figures/`, and
+`print_environment()`. The report's text says to read a data file as
 `file.path(site, "data", "<file name>")`.
 
+A site made before the template had `_scripts/report.R` lacks the file.
+When the site has no `_scripts/report.R`, the function copies the
+template's file there, and it makes the `_scripts` folder when that is
+missing. It never replaces a `_scripts/report.R` that the site has. A
+report fails to render when that file lacks `print_environment()`.
+
 The new report ends with a "Computing environment" section, the same as
-the template's example report. It prints the R and package versions of
-the render, with
+the template's example report. It calls `print_environment()`, which
+prints the R and package versions of the render, with
 [`sessioninfo::session_info()`](https://sessioninfo.r-lib.org/reference/session_info.html)
 when the sessioninfo package is installed and with
 [`utils::sessionInfo()`](https://rdrr.io/r/utils/sessionInfo.html)
 otherwise. It shows the home folder as `~`.
+
+[`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+compares the text of each report with the hash in its stored output and
+does not read `_scripts/report.R`. So after a change to that file, it
+gives no row. Render each report by name to take the change.
 
 The function adds lines to `_quarto.yml` as text, so the other lines of
 the file, its comments included, stay as they are. It finds the menu as
@@ -95,8 +109,10 @@ The function writes nothing when it stops. Its own errors have the class
 
 - `supplement_error_file_exists`: the report file exists, or a file
   whose name differs from it only in letter case; `analyses` is not a
-  folder or is a link; or `_freeze/analyses/<name>` exists, which holds
-  the stored output of an earlier report of that name.
+  folder or is a link; `_scripts` is not a folder or is a link;
+  `_scripts/report.R` is a folder or a link; or
+  `_freeze/analyses/<name>` exists, which holds the stored output of an
+  earlier report of that name.
 
 - `supplement_error_no_menu`: `_quarto.yml` has no Analyses menu in
   block style. The error shows the lines to add by hand.
@@ -108,13 +124,15 @@ The function writes nothing when it stops. Its own errors have the class
 - `supplement_error_encoding`: `title`, `description`, or `_quarto.yml`
   is not UTF-8 text.
 
-- `supplement_error_write`: the `analyses` folder could not be made, or
-  a write failed after its file was opened, for example on a full disk.
-  A `_quarto.yml` whose write failed gets its old text back.
+- `supplement_error_write`: the `analyses` or `_scripts` folder could
+  not be made, or a write failed after its file was opened, for example
+  on a full disk. A `_quarto.yml` whose write failed gets its old text
+  back.
 
 When a file cannot be opened for writing, for example a read-only
 `_quarto.yml`, R's own error is shown. After any failed write, the
-function removes the report file and any folder it made.
+function removes the report file, a `_scripts/report.R` that it copied,
+and any folder it made.
 
 ## See also
 
@@ -128,15 +146,15 @@ to make a site.
 ``` r
 site <- file.path(tempdir(), "report-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpTEBvOi/report-example.
+#> ✔ Made a supplement site in /tmp/RtmpjuQfnq/report-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpTEBvOi/report-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpjuQfnq/report-example once before your first
 #>   commit.
 add_report("models", "Model Comparison", "Fits and compares the models.", path = site)
 #> ✔ Wrote analyses/models.qmd and added it to the Analyses menu in _quarto.yml.
-#> ℹ Run `quarto render analyses/models.qmd` in /tmp/RtmpTEBvOi/report-example to
+#> ℹ Run `quarto render analyses/models.qmd` in /tmp/RtmpjuQfnq/report-example to
 #>   run the report.
 cat(readLines(file.path(site, "analyses", "models.qmd")), sep = "\n")
 #> ---
@@ -156,6 +174,7 @@ cat(readLines(file.path(site, "analyses", "models.qmd")), sep = "\n")
 #> if (is.null(site)) {
 #>   stop("Run this code from the site folder or from its analyses/ folder.")
 #> }
+#> source(file.path(site, "_scripts", "report.R"), local = TRUE)
 #> ```
 #> 
 #> ```{r}
@@ -165,40 +184,17 @@ cat(readLines(file.path(site, "analyses", "models.qmd")), sep = "\n")
 #> 
 #> ## Computing environment
 #> 
-#> This section shows the versions of R and of each package that the last
-#> render of this report used. The site stores this output with the rest, so
-#> the page keeps the versions that made its results. Your home folder shows
-#> as `~`. Read the output before you publish it, because a folder outside
-#> your home folder shows in full.
+#> This section shows the versions of R and of each package that the last render
+#> of this report used, from `print_environment()` in `_scripts/report.R`. The
+#> site stores this output with the rest, so the page keeps the versions that
+#> made its results. Your home folder shows as `~`. Read the output before you
+#> publish it, because a folder outside your home folder shows in full.
 #> 
 #> ::: {.callout-note collapse="true" title="R and package versions"}
 #> ```{r}
 #> #| label: session-info
 #> #| cache: false
-#> local({
-#>   info <- if (requireNamespace("sessioninfo", quietly = TRUE)) {
-#>     sessioninfo::session_info()
-#>   } else {
-#>     utils::sessionInfo()
-#>   }
-#>   # Each spelling of the home folder, longest first.
-#>   windows <- .Platform$OS.type == "windows"
-#>   homes <- Sys.getenv(c("USERPROFILE", "HOME"))
-#>   homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
-#>   if (windows) homes <- c(homes, utils::shortPathName(homes))
-#>   homes <- c(chartr("\\", "/", homes), chartr("/", "\\", homes))
-#>   homes <- unique(sub("[/\\\\]+$", "", homes))
-#>   homes <- homes[!grepl("^([A-Za-z]:)?$", homes)]
-#>   homes <- homes[order(-nchar(homes))]
-#>   # Show the home folder as ~ where a path starts with the whole folder.
-#>   lines <- utils::capture.output(print(info))
-#>   for (home in homes) {
-#>     literal <- gsub("([][{}()|^$.*+?\\\\])", "\\\\\\1", home)
-#>     pattern <- paste0("(?<!\\S)", literal, "(?=[/\\\\]|\\s|$)")
-#>     lines <- gsub(pattern, "~", lines, perl = TRUE, ignore.case = windows)
-#>   }
-#>   writeLines(lines)
-#> })
+#> print_environment()
 #> ```
 #> :::
 unlink(site, recursive = TRUE)
