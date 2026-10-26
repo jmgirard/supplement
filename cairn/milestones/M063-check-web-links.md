@@ -90,6 +90,8 @@
 - 2026-10-26: review checkpoint: evidence recorded for AC1–AC4 and AC6–AC8. AC5 is held, since its "fixed positive timeout" cannot hold on R before 4.1.0. Four reviewers are running.
 - 2026-10-26: review pass 1: four lenses gave 30 findings. 12 were fixed now in 44341af, 3 went to follow-up rows ("Read each page once for web links", "Request web addresses with invalid bytes", and an addition to "Retry refused web links with GET"), and 15 were rejected (8 false, 5 planned change, 2 style).
 - 2026-10-26: amendment routed: AC5 — "a fixed positive `timeout`" cannot hold on R before 4.1.0, where curlGetHeaders() has no `timeout` argument, and the test the criterion names runs only on the R in use. Status in-progress for the AC5 amendment alone.
+- 2026-10-26: correction to the review pass 1 line: the 15 rejects were 9 false, 4 planned change, and 2 style, as the Review section lists them.
+- 2026-10-26: re-audit: AC5 (full) — the first amended wording ("with a fixed positive `timeout` where `curlGetHeaders()` takes that argument") left out the trim of white space at the ends that the code and test do, and still claimed every R version while the test runs on one R and testthat 3.3 needs R 4.1.0, so the before-4.1.0 branch cannot run. Wording narrowed to R 4.1.0 and later, with the trim stated.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
