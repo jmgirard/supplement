@@ -114,6 +114,34 @@ The checks, by the value in the `check` column:
   report with `_freeze/`, `docs/`, and `figures/`. If not, follow the
   render steps that the row gives after the hint.
 
+- `"stale-script"`: a `.qmd` report directly in `analyses/`, from the
+  same list of reports, whose stored output was made with other text of
+  `_scripts/report.R` than the site holds now. `print_environment()` in
+  the template's `_scripts/report.R` ends the Computing environment
+  section with the line `Shared report code: _scripts/report.R, MD5 `
+  and the file's MD5, with each CR LF pair read as LF. The check reads
+  the same `.json` files as the `"stale-output"` check. In the top-level
+  `result.markdown` text of each, it finds that text and the 32
+  characters after it, when they are lowercase hex. The report gets one
+  row when one of these hashes differs from the MD5 of the site's
+  `_scripts/report.R`, read the same way. The row names the files that
+  hold a hash that differs, in the same way as the `"stale-output"` row,
+  and gives the render steps. When another of these files holds at least
+  one such hash and all of its hashes match, it also says that the files
+  that differ can be from a format that the report no longer renders,
+  with the same delete steps as the `"stale-output"` row. A report whose
+  stored output holds no such hash gets no row, for example a report
+  without the Computing environment section, or one rendered before the
+  site had a `_scripts/report.R` that prints the line. A file that does
+  not parse or has no `result.markdown` text holds no hash. Such a line
+  anywhere in `result.markdown` counts, also one that the report prints
+  from other text, such as the stored output of another report. A report
+  that cannot be read, such as a link to a missing file, gives no row.
+  When the site has no `_scripts/report.R` that can be read, for example
+  when the file is missing, is a folder, is a link to a missing file, or
+  cannot be opened, the check gives no row. The hash covers only
+  `_scripts/report.R`, not files that it reads.
+
 - `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
   name does not start with `.`, that no file or folder in `analyses/`
   names. A name in `analyses/` names the folder when, cut before its
@@ -339,17 +367,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpVNKJoE/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpN62RpN/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpVNKJoE/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpN62RpN/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpVNKJoE/check-example:
+#> ✖ 11 problems found in /tmp/RtmpN62RpN/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report

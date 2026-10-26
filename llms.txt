@@ -140,6 +140,8 @@ not test. It finds:
 - reports directly in `analyses/` whose stored output in `_freeze/` came
   from other text than the report holds now, or whose source hash cannot
   be read
+- reports directly in `analyses/` whose stored output gives another MD5
+  of `_scripts/report.R` than the file has now
 - folders in `_freeze/analyses/` that no file or folder in `analyses/`
   names, as after a report is deleted or renamed
 - reports directly in `analyses/` that name a missing

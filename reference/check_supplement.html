@@ -155,6 +155,35 @@ that the files that differ can be from a format that the report no
 longer renders. If so, delete them, render the whole site, and commit
 the report with <code>_freeze/</code>, <code>docs/</code>, and <code>figures/</code>. If not, follow
 the render steps that the row gives after the hint.</p></li>
+<li><p><code>"stale-script"</code>: a <code>.qmd</code> report directly in <code>analyses/</code>, from the
+same list of reports, whose stored output was made with other text of
+<code>_scripts/report.R</code> than the site holds now. <code>print_environment()</code> in
+the template's <code>_scripts/report.R</code> ends the Computing environment
+section with the line <code>Shared report code: _scripts/report.R, MD5 </code>
+and the file's MD5, with each CR LF pair read as LF. The check reads
+the same <code>.json</code> files as the <code>"stale-output"</code> check. In the top-level
+<code>result.markdown</code> text of each, it finds that text and the 32
+characters after it, when they are lowercase hex. The report gets one
+row when one of these hashes differs from the MD5 of the site's
+<code>_scripts/report.R</code>, read the same way. The row names the files that
+hold a hash that differs, in the same way as the <code>"stale-output"</code> row,
+and gives the render steps. When another of these files holds at least
+one such hash and all of its hashes match, it also says that the files
+that differ can be from a format that the report no longer renders,
+with the same delete steps as the <code>"stale-output"</code> row. A report whose
+stored output holds no such hash gets no row, for example a report
+without the Computing
+environment section, or one rendered before the site had a
+<code>_scripts/report.R</code> that prints the line. A file that does not parse
+or has no <code>result.markdown</code> text holds no hash. Such a line anywhere in
+<code>result.markdown</code> counts, also one that the report prints from other
+text, such as the stored output of another report. A report that
+cannot be read, such as a link to a missing file, gives no row. When
+the site has no
+<code>_scripts/report.R</code> that can be read, for example when the file is
+missing, is a folder, is a link to a missing file, or cannot be opened,
+the check gives no row.
+The hash covers only <code>_scripts/report.R</code>, not files that it reads.</p></li>
 <li><p><code>"leftover-output"</code>: a folder directly in <code>_freeze/analyses/</code>, whose
 name does not start with <code>.</code>, that no file or folder in <code>analyses/</code>
 names. A name in <code>analyses/</code> names the folder when, cut before its
@@ -353,17 +382,17 @@ text value, or <code>zenodo</code> is not a map.</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"check-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpVNKJoE/check-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpN62RpN/check-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpVNKJoE/check-example</span> once before your first</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpN62RpN/check-example</span> once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="co"># A new site has not been rendered, its example report has no stored</span></span></span>
 <span class="r-in"><span><span class="co"># output yet, and it still holds the template's placeholder values.</span></span></span>
 <span class="r-in"><span><span class="va">problems</span> <span class="op">&lt;-</span> <span class="fu">check_supplement</span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Skipped the <span style="color: #0000BB;">"large-file"</span>, <span style="color: #0000BB;">"saved-object"</span>, and <span style="color: #0000BB;">"ignored-output"</span> checks: `git rev-parse` failed, or the folder is not in a git work tree.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpVNKJoE/check-example</span>:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpN62RpN/check-example</span>:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> <span style="font-weight: bold;">no-stored-output</span> <span style="color: #0000BB;">analyses/example.qmd</span>: The report has code and no stored</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   output in _freeze/. Render the report by name, render the whole site, then</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit the report with _freeze/, docs/, and figures/. If you added the report</span>
