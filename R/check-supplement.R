@@ -111,22 +111,23 @@
 #'   names it. The template's example report and each report from
 #'   [add_report()] read it. The file counts as missing when `file.exists()`
 #'   is `FALSE` for it, when it is a folder, or when it is a link whose chain
-#'   of links, as `fs::path_real()` resolves it, ends on a missing file, a
-#'   folder, or a loop. So a file link to a missing file counts as missing
-#'   on Windows too, where `file.exists()` is `TRUE` for it. A report names
-#'   the file when one of its lines holds `_scripts`, with no ASCII letter,
-#'   digit, `_`, or `.` right before it, then a separator, then `report.R`,
-#'   with no ASCII letter, digit, `_`, or `.` right after it. Each such
-#'   `_scripts` on the line can start the match, so
-#'   `_scripts_old/x and _scripts/report.R` names the file. The separator is `/`, `\`,
-#'   or `\\`, or it is a `"` or `'`, a `,` with any spaces or tabs on each
-#'   side, and a `"` or `'`, after an optional `/`, `\`, or `\\`. So
-#'   `source(file.path(site, "_scripts", "report.R"), local = TRUE)` and
-#'   `_scripts/report.R` name the file, and `_scripts_old/report.R`,
+#'   of links ends on a missing file, a folder, or a loop, or one that
+#'   `fs::path_real()` cannot resolve. So a file link to a missing file
+#'   counts as missing on Windows too, where `file.exists()` is `TRUE` for
+#'   it. A link whose path is not valid UTF-8 counts as there. A report
+#'   names the file when one of its lines holds `_scripts`, with no ASCII
+#'   letter, digit, `_`, or `.` right before it, then a separator, then
+#'   `report.R`, with no ASCII letter, digit, `_`, or `.` right after it.
+#'   Each such `_scripts` on the line can start the match, so
+#'   `_scripts_old/x and _scripts/report.R` names the file. The separator
+#'   is `/`, `\`, or `\\`, or it is a `"` or `'`, a `,` with any spaces or
+#'   tabs on each side, and a `"` or `'`, after an optional `/`, `\`, or
+#'   `\\`. So `source(file.path(site, "_scripts", "report.R"), local = TRUE)`
+#'   and `_scripts/report.R` name the file, and `_scripts_old/report.R`,
 #'   `_scripts/old-report.R`, and `file.path("_scripts", "x", "report.R")`
 #'   do not. A `.` right after `report.R`, as at the end of a sentence,
-#'   stops the match. A line of prose or a comment also counts. One row names each such report by
-#'   its path from the site folder, in byte order, between double quotes
+#'   stops the match. A line of prose or a comment also counts. One row
+#'   names each such report by its path from the site folder, in byte order, between double quotes
 #'   with a `\` before each `\` and `"` in it, and says to copy the
 #'   template's file from
 #'   `system.file("template", "_scripts", "report.R", package = "supplement")`
@@ -772,24 +773,23 @@ names_script <- function(lines) {
 }
 
 # FALSE when the chain of links at `path` ends on no file: a missing file,
-# a folder, or a loop. fs::is_file() never returns on a link to a link
-# (fs 2.1.0), so fs::path_real() resolves the chain. On Windows fs expands
-# `~` from USERPROFILE and R from R_USER or HOME, so R expands it first.
-# A path that is not valid UTF-8, or that fs stops on for another reason,
-# gives TRUE, which keeps the answer of file.exists().
+# a folder, a loop, or a chain that fs::path_real() stops on, which a
+# render cannot read either. fs::is_file() never returns on a link to a
+# link (fs 2.1.0), so fs::path_real() resolves the chain. On Windows fs
+# expands `~` from USERPROFILE and R from R_USER or HOME, so R expands it
+# first. A path that is not valid UTF-8 gives TRUE, which keeps the answer
+# of file.exists(), since fs cannot read such a path.
 link_ends_on_file <- function(path) {
   path <- enc2utf8(path)
   if (!validUTF8(path)) {
     return(TRUE)
   }
-  target <- tryCatch(fs::path_real(path.expand(path)),
-                     ENOENT = function(e) NA_character_, ELOOP = function(e) NA_character_,
-                     error = function(e) NULL)
-  if (is.null(target)) {
-    return(TRUE)
-  }
-  !is.na(target) && file.exists(target) && !dir.exists(target)
+  target <- tryCatch(fs_path_real(path.expand(path)), error = function(e) NULL)
+  !is.null(target) && file.exists(target) && !dir.exists(target)
 }
+
+# fs::path_real() under a name of its own, so that a test can make it stop.
+fs_path_real <- function(path) fs::path_real(path)
 
 # A site made before the template had _scripts/report.R lacks the file,
 # and its reports do not name it, so only reports that name it give a row.

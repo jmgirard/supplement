@@ -745,15 +745,31 @@ test_that("a link to an existing _scripts/report.R gives no missing-script row",
   expect_identical(nrow(rows_of(check_quiet(site), "missing-script")), 0L)
 })
 
-test_that("a link to a link gives a missing-script row only when the chain ends on no file", {
+test_that("a link to a link to an existing _scripts/report.R gives no missing-script row", {
   site <- new_site()
   file.rename(script_of(site), file.path(site, "real.R"))
   symlink_or_skip(file.path(site, "real.R"), file.path(site, "mid.R"))
   symlink_or_skip(file.path(site, "mid.R"), script_of(site))
   expect_identical(nrow(rows_of(check_quiet(site), "missing-script")), 0L)
+})
 
-  unlink(file.path(site, "real.R"))
+test_that("a loop of links or a link that fs cannot resolve gives a missing-script row", {
+  site <- new_site()
+  unlink(script_of(site))
+  symlink_or_skip(file.path(site, "loop.R"), script_of(site))
+  symlink_or_skip(script_of(site), file.path(site, "loop.R"))
   expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+
+  site <- new_site()
+  file.rename(script_of(site), file.path(site, "real.R"))
+  symlink_or_skip(file.path(site, "real.R"), script_of(site))
+  local_mocked_bindings(fs_path_real = function(path) stop("planted failure"))
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+})
+
+test_that("a link path that is not valid UTF-8 counts as there", {
+  # "a", then a Latin-1 e with an acute accent.
+  expect_true(link_ends_on_file(rawToChar(as.raw(c(0x61, 0xe9)))))
 })
 
 test_that("the missing-script row names its reports in byte order", {
