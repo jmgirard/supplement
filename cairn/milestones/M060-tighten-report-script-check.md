@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M060: Tighten the missing report.R check
 
-- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
@@ -73,9 +73,36 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - 2026-10-26: T4 done: `devtools::test()` 407 tests, 0 failures, 1 warning (the macOS `file.create()` warning of T2); `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`).
 - 2026-10-26: claim audit: 16 claims read, 3 corrected — R/check-supplement.R, man/check_supplement.Rd (the `names_script()` comment no longer calls the separator bounded, and the help and a comment say `fs::is_file()` is not TRUE rather than FALSE; the re-read found all three hold; the two Windows claims rest on the Windows CI run at review).
 - 2026-10-26: all tasks done; status set to review.
+- 2026-10-26: review return 1: `check_missing_script()` hangs on a `_scripts/report.R` that links to a link, because `fs::is_file()` (fs 2.1.0) loops on such a chain; the same call skips `fs_link()`'s `~` expansion, UTF-8 check, and error catch. Fix those, narrow the possessive-run claim in the `names_script()` comment and DESIGN.md to "no `.*`", add to the help that any boundary `_scripts` can start the match, and correct the LESSONS.md M059 line.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
 
 ## Review
 <!-- owner: review · exclusive. -->
+
+Pass 1 (2026-10-26). Gate before the lenses: `devtools::document()` left no change; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`). No criterion was ticked in this pass, because the diff-bug lens found a hang that returns the milestone.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: `fs::is_file()` (fs 2.1.0) loops forever on a link to a link, so `check_supplement()` hangs when `_scripts/report.R` links to a link to an existing file; reproduced with a 5 s time limit — fix now, review return 1.
+- diff-bug #2: `fs::is_file()` gets the raw path, and on Windows fs expands `~` from USERPROFILE, not R_USER, so `check_supplement("~/site")` can give a false row — fix now (the review return 1 fix).
+- diff-bug #3: the new fs call has no guard for a path that is not valid UTF-8 or for an fs error — fix now (the review return 1 fix).
+- diff-bug #4: the 5 MB `"_scripts" ,` test still passes with every possessive `+` removed, so the comment and DESIGN.md line that credit the possessive runs are not backed — fix now: the claim narrows to "no `.*`".
+- diff-bug #5: `report.R.bak` and the sentence-end `.` run one path, and the first and last `source()` placements run one path — reject (planned change: AC1 and AC2 name each input).
+- diff-bug #6: AC3 on Windows has no evidence if the runner cannot make links — reject (false: `.github/scripts/check-skips.R` fails the job on the "cannot make a symbolic link here" skip).
+- diff-bug #7: the help page does not say that any boundary `_scripts` on a line can start the match, which AC4 needs — fix now.
+- diff-bug #8: one rewrapped roxygen line is about 97 characters, and DESIGN.md says "possessive space runs" — reject (style); the DESIGN.md line changes with #4.
+- blame-history #1: the rule drops lines such as `file.path("_scripts", site, "report.R")` and prose "The _scripts folder holds report.R" — reject (planned change: the user chose the separator rule at the plan).
+- blame-history #2: a Windows runner without link rights could skip the link tests — reject (false: the CI skip check fails on that skip reason).
+- blame-history #3: an uneven roxygen line — reject (style).
+- blame-history #4: "A line of prose or a comment also counts" reads broader than the rule — reject (false: a prose or comment line that fits the rule counts).
+- prior-review #1: the fs call skips the guards of `fs_link()` that M045 set (path expansion, UTF-8 check, error catch) — fix now (the review return 1 fix).
+- prior-review #2: LESSONS.md 2026-10-26 (M059) says to find each name with its own search "as `names_script()` does", which no longer holds — fix now: correct the lesson in place.
+- ripple #1: the candidate row "Flag dangling report.R links on Windows" says the case gives no row — reject (planned change: hygiene graduates the row).
+- ripple #2: the candidate row "Match report.R names as whole paths" describes the fixed bug — reject (planned change: hygiene graduates the row).
+- ripple #3: `R/add-report.R:34`, `man/add_report.Rd`, and GUIDE.md say the check "looks only at whether the file is there" — reject (false: a link to a missing file is a missing file, so the sentence holds).
+- ripple #4: NEWS.md says the same of the unreleased stale-output bullet — reject (false, as #3).
+- ripple #5: the `R/supplement-yml.R:309` comment says `file.exists()` is FALSE for a dangling link — reject (false: its parenthesis limits the Windows case to junctions and folder links).
+- ripple #6: README.md and GUIDE.md list "reports ... that name a missing `_scripts/report.R` file" — reject (false: still true).
+- ripple #7: the M059 NEWS bullet does not name the Windows link case — reject (false: the bullet stays true for the unreleased check).
