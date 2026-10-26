@@ -68,6 +68,7 @@
 - 2026-10-26: T6 done: `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude`, local only, as at M058).
 - 2026-10-26: claim audit: 20 claims read, 0 corrected — NEWS.md, R/check-supplement.R, man/check_supplement.Rd, tests/testthat/test-check-supplement.R
 - 2026-10-26: implement done; status review.
+- 2026-10-26: step-7 approval: m062-flag-old-example-files approved for merge
 
 ## Decisions
 
