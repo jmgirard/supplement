@@ -318,13 +318,18 @@ The checks, by the value in the `check` column:
     text, or that cannot be read gives no row.
 
   - `analyses/example.qmd` and `data/example.csv` each get a row when
-    their text equals the template's copy, with each CR LF read as LF. A
-    file that cannot be read gives no row.
+    their text equals the template's copy. `analyses/example.qmd` also
+    gets one when its text equals the example report of an earlier
+    version of the template. The text counts as equal when it differs
+    only by a UTF-8 byte order mark at its start, CR LF or CR line ends
+    in place of LF, or no line break at its end, as an editor can save
+    an unchanged file. A file that cannot be read gives no row.
 
   Only a whole value or a whole line counts, so a value that keeps part
   of a placeholder, such as a citation with `(Year)` in it, gives no
   row. A site made from an older version of the template, whose
   placeholders differ from the installed ones, gives no row for them.
+  The example report is the exception.
 
 The `"large-file"` and `"saved-object"` checks look at the files that
 git tracks or does not ignore, which
@@ -367,17 +372,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpABsK2Q/check-example.
+#> ✔ Made a supplement site in /tmp/RtmptirSNY/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpABsK2Q/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmptirSNY/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpABsK2Q/check-example:
+#> ✖ 11 problems found in /tmp/RtmptirSNY/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report

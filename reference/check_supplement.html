@@ -343,12 +343,17 @@ carriage return at the ends of a line are ignored. A file that is
 missing, a folder, not UTF-8 text, or that cannot be read gives no
 row.</p></li>
 <li><p><code>analyses/example.qmd</code> and <code>data/example.csv</code> each get a row when
-their text equals the template's copy, with each CR LF read as LF. A
-file that cannot be read gives no row.</p></li>
+their text equals the template's copy. <code>analyses/example.qmd</code> also
+gets one when its text equals the example report of an earlier
+version of the template. The text counts as equal when it differs
+only by a UTF-8 byte order mark at its start, CR LF or CR line ends
+in place of LF, or no line break at its end, as an editor can save
+an unchanged file. A file that cannot be read gives no row.</p></li>
 </ul><p>Only a whole value or a whole line counts, so a value that keeps part
 of a placeholder, such as a citation with <code>(Year)</code> in it, gives no row.
 A site made from an older version of the template, whose placeholders
-differ from the installed ones, gives no row for them.</p></li>
+differ from the installed ones, gives no row for them. The example
+report is the exception.</p></li>
 </ul><p>The <code>"large-file"</code> and <code>"saved-object"</code> checks look at the files that git
 tracks or does not ignore, which
 <code>git ls-files --cached --others --exclude-standard</code> lists, so files that
@@ -382,17 +387,17 @@ text value, or <code>zenodo</code> is not a map.</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"check-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpABsK2Q/check-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmptirSNY/check-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpABsK2Q/check-example</span> once before your first</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmptirSNY/check-example</span> once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="co"># A new site has not been rendered, its example report has no stored</span></span></span>
 <span class="r-in"><span><span class="co"># output yet, and it still holds the template's placeholder values.</span></span></span>
 <span class="r-in"><span><span class="va">problems</span> <span class="op">&lt;-</span> <span class="fu">check_supplement</span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Skipped the <span style="color: #0000BB;">"large-file"</span>, <span style="color: #0000BB;">"saved-object"</span>, and <span style="color: #0000BB;">"ignored-output"</span> checks: `git rev-parse` failed, or the folder is not in a git work tree.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpABsK2Q/check-example</span>:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmptirSNY/check-example</span>:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> <span style="font-weight: bold;">no-stored-output</span> <span style="color: #0000BB;">analyses/example.qmd</span>: The report has code and no stored</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   output in _freeze/. Render the report by name, render the whole site, then</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit the report with _freeze/, docs/, and figures/. If you added the report</span>
