@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-26 (M060 review: archived; graduated "Match report.R names as whole paths" and "Flag dangling report.R links on Windows"; added "Trace the Windows crash in create tests"; pruned the M057 row; one lesson captured, three marked used; LESSONS holds 23 lessons; validate green)_
+_Last hygiene check: 2026-10-26 (M061 review: archived; graduated "Flag reports after report.R changes"; pruned the M058 row; two lessons captured, four marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M061 | Flag reports after report.R changes | review | — | normal | milestones/M061-flag-report-script-changes.md |
+| M061 | Flag reports after report.R changes | done | — | normal | milestones/archive/M061-flag-report-script-changes.md |
 | M060 | Tighten the missing report.R check | done | — | normal | milestones/archive/M060-tighten-report-script-check.md |
 | M059 | Flag a missing _scripts/report.R file | done | — | normal | milestones/archive/M059-flag-missing-report-script.md |
-| M058 | Share report setup code through one site file | done | — | normal | milestones/archive/M058-shared-report-setup.md |
 
 ## Candidates
 
@@ -36,7 +35,6 @@ _Last hygiene check: 2026-10-26 (M060 review: archived; graduated "Match report.
 - Read report names that are not UTF-8: from the M042 review. `analysis_reports()` lists `analyses/` with `list.files(pattern =)`, and `check_stored_output()` and `check_stale_output()` run `sub()` on each report name without `useBytes`, which stops with "input string is invalid" on a name that is not valid UTF-8 (possible on Linux); whether a `.qmd` name with such bytes stops `check_supplement()` was not checked. `check_leftover_output()` (M042) cuts names with `useBytes = TRUE`. — added 2026-10-23
 - Measure Sass lock reruns on Windows: from the M052 review. Since M052, Windows test processes share Quarto's Sass cache, as macOS and Linux ones did, and `run_in()` and `run_split()` rerun a render once on "database is locked"; no Windows lock rate is on record (macOS: 1 of 18 parallel first renders, M033). See also "Log render retries after a cache lock". — added 2026-10-24
 - Flag the old example as a placeholder: from the M058 claim audit. `placeholder_example_rows()` compares a site's `analyses/example.qmd` with the installed template's copy, so an unedited example from a site made before M058 no longer gives a `placeholder` row once the package updates. It could also compare with the earlier example's hash. See also "Match example files after editor saves". — added 2026-10-25
-- Flag reports after report.R changes: from the M058 plan. `check_supplement()` compares each report's own text with its stored output, so a change to the shared `_scripts/report.R` gives no stale-output row, and each report must be rendered by name. A check could store the file's hash at each render and give a row when it differs. — added 2026-10-25 — started M061
 - Trace the Windows crash in create tests: from the M060 review. The windows-latest job of CI run 40310323002, on main at 4fad253 (a commit that changed only `cairn/` files), failed when the R session of `test-create-supplement.R` exited with -1073741819 (an access violation), where the run on 918a2d6 passed. No cause was looked for; a rerun shows whether it comes again. See also "Measure Sass lock reruns on Windows". — added 2026-10-26
 - [low] Keep tests within the Suggests floors: nothing stops a new test from calling a testthat function newer than the DESCRIPTION floor, and the withr, knitr, renv, rmarkdown, and sessioninfo entries in Suggests have no floor (renv corrected M031). A CI job on the floor versions, or a test that compares the functions the tests call with the floor's exports, would catch it. From the M013 plan. From the M025 review: yaml in Imports has no floor either, and the code needs its `eval.expr` argument. — added 2026-10-18
 - [parked] Recommend a pinned tag in the README: template install from GitHub: recommend a pinned tag (`@vX.Y.Z`) in the README once a release exists. Narrowed 2026-10-18: the untagged route ran after the M003 merge and rendered. From the M003 review. — added 2026-10-18
