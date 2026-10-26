@@ -593,6 +593,100 @@ test_that("a stale-output row puts each file it names in double quotes", {
   expect_identical(text('q"r'), stale_text(paths = '"_freeze/analyses/q\\"r/execute-results/html.json"'))
 })
 
+# The JSON of a stored output file whose markdown holds a line naming each
+# hash in `hashes` of _scripts/report.R, after the text in `before`.
+script_json <- function(hashes = character(), before = "x") {
+  lines <- paste0("Shared report code: _scripts/report.R, MD5 ", hashes)
+  markdown <- paste(c(before, lines), collapse = "\n")
+  as.character(jsonlite::toJSON(list(hash = "h", result = list(markdown = markdown)), auto_unbox = TRUE))
+}
+
+# The MD5 of the site's _scripts/report.R as create_supplement() writes it.
+site_script_md5 <- function(site) md5_of(read_bytes(file.path(site, "_scripts", "report.R")))
+
+# The problem text of a stale-script row whose files `files` of report
+# `name` differ, with the format hint when `hint` is TRUE.
+script_text <- function(name, files, hint = FALSE) {
+  stale <- paste0("Its stored output was made with other text of _scripts/report.R than the site holds now: ",
+                  quoted_paths(name, files), ".")
+  if (!hint) {
+    return(paste(stale, rerender_steps))
+  }
+  paste(stale,
+        "Other stored output of the report matches _scripts/report.R, so these files can be from a format",
+        "that the report no longer renders. If so, delete them, render the whole site, and commit the report",
+        "with _freeze/, docs/, and figures/.",
+        "If not, take these steps.", rerender_steps)
+}
+
+test_that("stored output made with other report.R text gives a stale-script row", {
+  site <- new_site()
+  current <- site_script_md5(site)
+  other <- md5_of("other text")
+  report <- function(name, ...) {
+    report_bytes(site, name, stale_lf)
+    files <- list(...)
+    for (file in names(files)) stored_file(site, name, file, files[[file]])
+  }
+  report("differs", html.json = script_json(other))
+  report("format-differs", html.json = script_json(current), docx.json = script_json(other))
+  report("one-file-both", html.json = script_json(c(current, other)))
+  report("matches", html.json = script_json(current))
+  report("no-line", html.json = script_json())
+  report("upper", html.json = script_json(toupper(other)))
+  report("short", html.json = script_json(substring(other, 1, 31)))
+  report("not-json", html.json = "{")
+  report("no-markdown", html.json = '{"hash": "h", "result": {}}')
+  report("no-stored", NULL)
+  # A hidden file is not read.
+  report("hidden", .html.json = script_json(other))
+
+  expect_no_error(rows <- rows_of(check_quiet(site), "stale-script"))
+  expect_setequal(rows$file, paste0("analyses/", c("differs", "format-differs", "one-file-both"), ".qmd"))
+  expect_identical(nrow(rows), 3L)
+  text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
+  expect_identical(text("differs"), script_text("differs", "html.json"))
+  expect_identical(text("format-differs"), script_text("format-differs", "docx.json", hint = TRUE))
+  expect_identical(text("one-file-both"), script_text("one-file-both", "html.json"))
+})
+
+test_that("a report.R with CR LF line ends matches the hash of its LF text", {
+  site <- new_site()
+  script <- file.path(site, "_scripts", "report.R")
+  lf <- read_bytes(script)
+  writeBin(charToRaw(gsub("\n", "\r\n", rawToChar(lf), fixed = TRUE)), script)
+  report_bytes(site, "lf-hash", stale_lf)
+  stored_file(site, "lf-hash", "html.json", script_json(md5_of(lf)))
+  report_bytes(site, "other-hash", stale_lf)
+  stored_file(site, "other-hash", "html.json", script_json(md5_of("other text")))
+  expect_identical(rows_of(check_quiet(site), "stale-script")$file, "analyses/other-hash.qmd")
+})
+
+test_that("a missing report.R or a folder in its place gives no stale-script row", {
+  site <- new_site()
+  report_bytes(site, "differs", stale_lf)
+  stored_file(site, "differs", "html.json", script_json(md5_of("other text")))
+  expect_identical(rows_of(check_quiet(site), "stale-script")$file, "analyses/differs.qmd")
+  script <- file.path(site, "_scripts", "report.R")
+  unlink(script)
+  expect_identical(nrow(rows_of(check_quiet(site), "stale-script")), 0L)
+  dir.create(script)
+  expect_identical(nrow(rows_of(check_quiet(site), "stale-script")), 0L)
+})
+
+test_that("a hash line after 5 MB of text on one line gives a stale-script row", {
+  site <- new_site()
+  long <- strrep("a", 5e6)
+  report_bytes(site, "next-line", stale_lf)
+  stored_file(site, "next-line", "html.json", script_json(md5_of("other text"), before = long))
+  report_bytes(site, "same-line", stale_lf)
+  json <- script_json(md5_of("other text"), before = "")
+  stored_file(site, "same-line", "html.json", sub('"markdown":"\\n', paste0('"markdown":"', long), json,
+                                                    fixed = TRUE))
+  expect_no_warning(rows <- rows_of(check_quiet(site), "stale-script"))
+  expect_setequal(rows$file, c("analyses/next-line.qmd", "analyses/same-line.qmd"))
+})
+
 test_that("a folder in _freeze/analyses/ that nothing in analyses/ names gives a leftover-output row", {
   site <- new_site()
   expect_identical(nrow(rows_of(check_quiet(site), "leftover-output")), 0L)

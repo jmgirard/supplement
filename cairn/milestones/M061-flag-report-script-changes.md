@@ -59,7 +59,7 @@
 <!-- owner: plan (create) / implement (check-off, minor edits) -->
 
 - [x] T1: In `inst/template/_scripts/report.R`, make `print_environment()` print the hash line after the home-folder loop. Use base R only: `readBin()`, drop each CR before LF, and `tools::md5sum()` on a temporary file. Add the AC1 test beside the home-folder tests.
-- [ ] T2: Add `check_stale_script()` to `R/check-supplement.R` after `check_stale_output()`, and call it from `check_supplement()`. It reads each execute-results `.json` file with jsonlite, finds the hash text with a fixed-string `gregexpr()`, not PCRE, and compares each hash with `report_hash()` of `_scripts/report.R`. Add the AC2, AC3, and AC5 tests to `tests/testthat/test-check-supplement.R`.
+- [x] T2: Add `check_stale_script()` to `R/check-supplement.R` after `check_stale_output()`, and call it from `check_supplement()`. It reads each execute-results `.json` file with jsonlite, finds the hash text with a fixed-string `gregexpr()`, not PCRE, and compares each hash with `report_hash()` of `_scripts/report.R`. Add the AC2, AC3, and AC5 tests to `tests/testthat/test-check-supplement.R`.
 - [ ] T3: Add the AC4 render test to `tests/testthat/test-add-render.R`.
 - [ ] T4: Update the `check_supplement()` and `add_report()` help, GUIDE.md "Shared report code", README.md, NEWS.md (the M058 bullet and a new bullet), and DESIGN.md. Run `devtools::document()`. Also search `grep -rn "report.R\|stale" R/ man/ inst/template/ README.md NEWS.md` and read the lines around each hit for other sentences that the row makes false.
 - [ ] T5: Run `devtools::test()` and `devtools::check()` until both are clean.
@@ -82,6 +82,7 @@
 - 2026-10-26: criteria audit (full mode, fresh Opus reader): 8 findings, 7 fixed. AC1 prints after the home-folder loop. AC2 names lowercase hex, skips hidden files, takes any differing line, and gives the dropped-format text that `"stale-output"` gives. AC3 now says "only `.json` file" so it does not contradict AC2, and adds the uppercase and short-hash cases. AC5 has two line shapes. AC6 binds three named texts, not a grep (the grep moved to T4). D-028's consequence gets D-029. The `release_supplement()` stop is inherited (line above). AC4: no finding.
 - 2026-10-26: implement started on branch m061-flag-report-script-changes.
 - 2026-10-26: T1 done: `print_environment()` computes the hash inline, with no new function name in report.R. `run_session_code()` in test-template.R now sets `site` to the template folder, since `print_environment()` reads `site`. The new test runs in process with `source(local = env)`; the four session tests still pass.
+- 2026-10-26: T2 done: `check_stale_script()` and `stored_script_hashes()` in `R/check-supplement.R`; `stored_json()` now holds the JSON read that `stored_hash()` used, so both share it. Four tests cover AC2, AC3, and AC5; test-check-supplement.R passes. Planted defect: dropping the `[0-9a-f]{32}` filter turned the uppercase, short, and no-line cases red.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

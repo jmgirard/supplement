@@ -312,6 +312,7 @@ check_supplement <- function(path = ".") {
     if (!is.null(git$files)) check_ignored_output(path, git$ignored),
     check_stored_output(path),
     check_stale_output(path),
+    check_stale_script(path),
     check_leftover_output(path),
     check_missing_script(path),
     check_links(path),
@@ -674,6 +675,72 @@ check_stale_output <- function(path) {
   problem_rows("stale-output", file.path("analyses", basename(reports[hit])), problem[hit])
 }
 
+# The text before the hash of `_scripts/report.R` that print_environment()
+# in the template's report.R prints into the output of each report.
+script_hash_text <- "Shared report code: _scripts/report.R, MD5 "
+
+# A row for each report whose stored output names another hash of
+# `_scripts/report.R` than the MD5 of the file now, with each CR LF read as
+# LF. Stored output that names no hash gives no row.
+check_stale_script <- function(path) {
+  script <- file.path(path, "_scripts", "report.R")
+  current <- if (file.exists(script) && !dir.exists(script)) report_hash(script)
+  if (is.null(current)) {
+    return(problem_rows())
+  }
+  reports <- analysis_reports(path)
+  problem <- vapply(reports, function(report) {
+    name <- sub("\\.qmd$", "", basename(report))
+    dir <- file.path("_freeze", "analyses", name, "execute-results")
+    files <- list.files(file.path(path, dir), pattern = "\\.json$")
+    files <- files[!startsWith(files, ".") & !dir.exists(file.path(path, dir, files))]
+    hashes <- lapply(file.path(path, dir, files), stored_script_hashes)
+    differs <- vapply(hashes, function(x) any(x != current), logical(1))
+    if (!any(differs)) {
+      return(NA_character_)
+    }
+    named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")
+    stale <- paste0("Its stored output was made with other text of _scripts/report.R than the site holds now: ",
+                    named, ".")
+    matches <- vapply(hashes, function(x) length(x) > 0 && all(x == current), logical(1))
+    if (!any(matches)) {
+      return(paste(stale, rerender_steps))
+    }
+    # Quarto keeps the file of a format that the report no longer renders.
+    paste(stale,
+          "Other stored output of the report matches _scripts/report.R, so these files can be from a format",
+          "that the report no longer renders. If so, delete them, render the whole site, and commit the report",
+          "with _freeze/, docs/, and figures/.",
+          "If not, take these steps.", rerender_steps)
+  }, character(1), USE.NAMES = FALSE)
+  hit <- !is.na(problem)
+  problem_rows("stale-script", file.path("analyses", basename(reports[hit])), problem[hit])
+}
+
+# The hashes of `_scripts/report.R` that the top-level `result.markdown`
+# of a stored output file names after `script_hash_text`, each 32
+# characters in [0-9a-f]. A file that does not parse, or that has no such
+# text value, names none. The search is for fixed text, so a long line
+# does not reach PCRE's match limit.
+stored_script_hashes <- function(file) {
+  json <- stored_json(file)
+  result <- if (!is.null(json)) json[["result"]]
+  if (!is.list(result) || is.null(names(result))) {
+    return(character())
+  }
+  markdown <- result[["markdown"]]
+  if (!is.character(markdown) || length(markdown) != 1 || is.na(markdown)) {
+    return(character())
+  }
+  at <- gregexpr(script_hash_text, markdown, fixed = TRUE)[[1]]
+  if (at[1] == -1) {
+    return(character())
+  }
+  start <- at + nchar(script_hash_text)
+  hashes <- substring(markdown, start, start + 31)
+  hashes[grepl("^[0-9a-f]{32}$", hashes)]
+}
+
 # A path between double quotes, with `\` before each `\` and `"` in it, so
 # that a name holding `, ` or `"` reads as one path in a list.
 quote_path <- function(x) {
@@ -742,11 +809,8 @@ report_hash <- function(report) {
 # not parse as JSON, its top level is not an object, or its `hash` is not
 # one text value.
 stored_hash <- function(file) {
-  json <- tryCatch({
-    bytes <- readBin(file, "raw", n = file.size(file))
-    jsonlite::parse_json(rawToChar(bytes), simplifyVector = FALSE)
-  }, error = function(e) NULL, warning = function(w) NULL)
-  if (!is.list(json) || is.null(names(json))) {
+  json <- stored_json(file)
+  if (is.null(json)) {
     return(NULL)
   }
   hash <- json[["hash"]]
@@ -754,6 +818,19 @@ stored_hash <- function(file) {
     return(NULL)
   }
   hash
+}
+
+# A stored output file parsed as JSON, or NULL when it does not parse or
+# its top level is not an object.
+stored_json <- function(file) {
+  json <- tryCatch({
+    bytes <- readBin(file, "raw", n = file.size(file))
+    jsonlite::parse_json(rawToChar(bytes), simplifyVector = FALSE)
+  }, error = function(e) NULL, warning = function(w) NULL)
+  if (!is.list(json) || is.null(names(json))) {
+    return(NULL)
+  }
+  json
 }
 
 # Shared report code ----------------------------------------------------------
