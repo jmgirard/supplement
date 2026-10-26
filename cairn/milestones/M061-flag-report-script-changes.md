@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M061: Flag reports after report.R changes
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
@@ -62,7 +62,7 @@
 - [x] T2: Add `check_stale_script()` to `R/check-supplement.R` after `check_stale_output()`, and call it from `check_supplement()`. It reads each execute-results `.json` file with jsonlite, finds the hash text with a fixed-string `gregexpr()`, not PCRE, and compares each hash with `report_hash()` of `_scripts/report.R`. Add the AC2, AC3, and AC5 tests to `tests/testthat/test-check-supplement.R`.
 - [x] T3: Add the AC4 render test to `tests/testthat/test-add-render.R`.
 - [x] T4: Update the `check_supplement()` and `add_report()` help, GUIDE.md "Shared report code", README.md, NEWS.md (the M058 bullet and a new bullet), and DESIGN.md. Run `devtools::document()`. Also search `grep -rn "report.R\|stale" R/ man/ inst/template/ README.md NEWS.md` and read the lines around each hit for other sentences that the row makes false.
-- [ ] T5: Run `devtools::test()` and `devtools::check()` until both are clean.
+- [x] T5: Run `devtools::test()` and `devtools::check()` until both are clean.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -87,6 +87,7 @@
 - 2026-10-26: T3 done: the render test in test-add-render.R passes on macOS with Quarto; the row after the report.R change shows that the render stored the hash line.
 - 2026-10-26: T4 done: `"stale-script"` item in the `check_supplement()` help; the `add_report()` help, GUIDE.md "Shared report code", and the M058 NEWS.md bullet drop "a change gives none"; GUIDE.md "Computing environment" names the hash line; README.md and GUIDE.md check lists and a new NEWS.md bullet; DESIGN.md architecture lines. The T4 search found no other outdated sentence; the vignette names no report.R. The simple-english lint flags the new check-list bullet as part of a long sentence because the list has no end periods; the list keeps its style.
 - 2026-10-26: claim audit: 41 claims read, 4 corrected — R/check-supplement.R (the files the row names, the hint condition, an unreadable report.R gives no row), NEWS.md and inst/template/GUIDE.md (the MD5 reads CR LF as LF); the reader's re-read found all corrected sentences true. Left as is: a `"stale-script"` row can name a report that is a link to a missing file, where `"stale-output"` skips it; the help claims nothing about it.
+- 2026-10-26: T5 done: `devtools::test()` 416 tests, 0 failed, 10 skipped (macOS, before the doc-only claim corrections); `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`). Status set to review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

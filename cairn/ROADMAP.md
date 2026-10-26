@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-26 (M060 review: archived; graduated "Match report.
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M061 | Flag reports after report.R changes | in-progress | — | normal | milestones/M061-flag-report-script-changes.md |
+| M061 | Flag reports after report.R changes | review | — | normal | milestones/M061-flag-report-script-changes.md |
 | M060 | Tighten the missing report.R check | done | — | normal | milestones/archive/M060-tighten-report-script-check.md |
 | M059 | Flag a missing _scripts/report.R file | done | — | normal | milestones/archive/M059-flag-missing-report-script.md |
 | M058 | Share report setup code through one site file | done | — | normal | milestones/archive/M058-shared-report-setup.md |
