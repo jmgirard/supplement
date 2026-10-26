@@ -143,3 +143,4 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - ripple #3: the M059 NEWS bullet says "has no `_scripts/report.R` file" — reject (false: a link that ends on no file is no file).
 - ripple #4: `fs_link()` and `link_ends_on_file()` default in opposite directions — fix now (with diff-bug #1).
 - Outside the diff: the Windows job of the main run on 4fad253 (a tracking-only commit) crashed in `test-create-supplement.R` with exit -1073741819, where the run on 918a2d6 passed — follow-up: a candidate row.
+- Pass 2 fix-now items: diff-bug #1, #2, #3, #4, blame-history #2, #3, prior-review #1, #2, and ripple #1, #4 fixed c059498. Follow-ups: the candidate row "Trace the Windows crash in create tests" (e895ff3), and blame-history #5 as a lesson at hygiene.
