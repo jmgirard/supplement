@@ -749,16 +749,19 @@ stored_hash <- function(file) {
 
 # Shared report code ----------------------------------------------------------
 
-# TRUE when a line holds `_scripts` and, later on the line, `report.R`,
-# where neither has an ASCII letter, digit, `_`, or `.` right before it and
-# `report.R` has none right after it, as the template's source() line and
-# its prose do. One pattern with `.*` between the two names would pass
-# PCRE's match limit on a line of a few MB, so each name is found alone and
-# the first `_scripts` is compared with the last `report.R`.
+# TRUE when a line holds `_scripts`, with no ASCII letter, digit, `_`, or
+# `.` right before it, then a separator, then `report.R`, with none right
+# after it, as the template's source() line and its prose do. The separator
+# is `/`, `\`, or `\\`, or a quote, a comma, and a quote, as between the
+# arguments of file.path(), with an optional `/`, `\`, or `\\` before it.
+# Only a bounded separator lies between the names, and the runs of spaces
+# and tabs are possessive, so a line of a few MB stays within PCRE's match
+# limit.
 names_script <- function(lines) {
-  first <- regexpr("(?<![A-Za-z0-9_.])_scripts", lines, perl = TRUE, useBytes = TRUE)
-  ends <- gregexpr("(?<![A-Za-z0-9_.])report\\.R(?![A-Za-z0-9_.])", lines, perl = TRUE, useBytes = TRUE)
-  any(first > 0 & vapply(ends, max, numeric(1)) > first)
+  slash <- "(?:/|\\\\{1,2}+)"
+  pattern <- paste0("(?<![A-Za-z0-9_.])_scripts(?:", slash, "|", slash, "?[\"'][ \t]*+,[ \t]*+[\"'])",
+                    "report\\.R(?![A-Za-z0-9_.])")
+  any(grepl(pattern, lines, perl = TRUE, useBytes = TRUE))
 }
 
 # A site made before the template had _scripts/report.R lacks the file,
