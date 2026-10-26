@@ -66,4 +66,18 @@ print_environment <- function() {
     lines <- gsub(pattern, "~", lines, perl = TRUE, ignore.case = windows)
   }
   writeLines(lines)
+  # The MD5 of this file, with each CR LF read as LF, so that a copy with
+  # Windows line ends gives the same hash. check_supplement() compares it
+  # with the file to find reports rendered with other text of it.
+  file <- file.path(site, "_scripts", "report.R")
+  bytes <- readBin(file, "raw", file.size(file))
+  n <- length(bytes)
+  if (n > 1) {
+    cr <- which(bytes[-n] == as.raw(13) & bytes[-1] == as.raw(10))
+    if (length(cr) > 0) bytes <- bytes[-cr]
+  }
+  tmp <- tempfile()
+  on.exit(unlink(tmp))
+  writeBin(bytes, tmp)
+  writeLines(paste0("Shared report code: _scripts/report.R, MD5 ", unname(tools::md5sum(tmp))))
 }

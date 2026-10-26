@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M061: Flag reports after report.R changes
 
-- **Status:** planned   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
 - **Principles touched:** —   <!-- owner: plan · create/amend-via-gate -->
 - **Resolves:** —   <!-- owner: plan · create/amend-via-gate -->
 - **Surface tier:** user-facing — a new `check_supplement()` row and a new line in the output of each report
-- **Branch/PR:** —   <!-- owner: implement (branch) / review (PR URL) · create -->
+- **Branch/PR:** m061-flag-report-script-changes   <!-- owner: implement (branch) / review (PR URL) · create -->
 
 ## Goal
 <!-- owner: plan · create -->
@@ -58,7 +58,7 @@
 ## Tasks
 <!-- owner: plan (create) / implement (check-off, minor edits) -->
 
-- [ ] T1: In `inst/template/_scripts/report.R`, make `print_environment()` print the hash line after the home-folder loop. Use base R only: `readBin()`, drop each CR before LF, and `tools::md5sum()` on a temporary file. Add the AC1 test beside the home-folder tests.
+- [x] T1: In `inst/template/_scripts/report.R`, make `print_environment()` print the hash line after the home-folder loop. Use base R only: `readBin()`, drop each CR before LF, and `tools::md5sum()` on a temporary file. Add the AC1 test beside the home-folder tests.
 - [ ] T2: Add `check_stale_script()` to `R/check-supplement.R` after `check_stale_output()`, and call it from `check_supplement()`. It reads each execute-results `.json` file with jsonlite, finds the hash text with a fixed-string `gregexpr()`, not PCRE, and compares each hash with `report_hash()` of `_scripts/report.R`. Add the AC2, AC3, and AC5 tests to `tests/testthat/test-check-supplement.R`.
 - [ ] T3: Add the AC4 render test to `tests/testthat/test-add-render.R`.
 - [ ] T4: Update the `check_supplement()` and `add_report()` help, GUIDE.md "Shared report code", README.md, NEWS.md (the M058 bullet and a new bullet), and DESIGN.md. Run `devtools::document()`. Also search `grep -rn "report.R\|stale" R/ man/ inst/template/ README.md NEWS.md` and read the lines around each hit for other sentences that the row makes false.
@@ -80,6 +80,8 @@
 - 2026-10-26: `release_supplement()` stops on any row of `check_supplement()`, so the goal's stop needs no criterion of its own.
 - 2026-10-26: changelog: one new NEWS.md bullet for the row, and the M058 bullet loses its "gives no stale-output row" clause.
 - 2026-10-26: criteria audit (full mode, fresh Opus reader): 8 findings, 7 fixed. AC1 prints after the home-folder loop. AC2 names lowercase hex, skips hidden files, takes any differing line, and gives the dropped-format text that `"stale-output"` gives. AC3 now says "only `.json` file" so it does not contradict AC2, and adds the uppercase and short-hash cases. AC5 has two line shapes. AC6 binds three named texts, not a grep (the grep moved to T4). D-028's consequence gets D-029. The `release_supplement()` stop is inherited (line above). AC4: no finding.
+- 2026-10-26: implement started on branch m061-flag-report-script-changes.
+- 2026-10-26: T1 done: `print_environment()` computes the hash inline, with no new function name in report.R. `run_session_code()` in test-template.R now sets `site` to the template folder, since `print_environment()` reads `site`. The new test runs in process with `source(local = env)`; the four session tests still pass.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
