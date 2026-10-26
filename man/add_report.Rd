@@ -38,14 +38,29 @@ template's example report, which sets \code{site} to the site folder. If
 \code{QUARTO_PROJECT_DIR} is not empty, as in a render, \code{site} is its value.
 Otherwise \code{site} is \code{"."} or \code{".."}, the first of the two that holds
 \verb{_quarto.yml}, and the chunk stops with an error if neither holds it.
-The report's text says to read a data file as
+The chunk then reads \verb{_scripts/report.R} with
+\code{source(file.path(site, "_scripts", "report.R"), local = TRUE)}. That
+file defines \code{save_png()}, which saves a figure in \verb{figures/}, and
+\code{print_environment()}. The report's text says to read a data file as
 \code{file.path(site, "data", "<file name>")}.
 
+A site made before the template had \verb{_scripts/report.R} lacks the file.
+When the site has no \verb{_scripts/report.R}, the function copies the
+template's file there, and it makes the \verb{_scripts} folder when that is
+missing. It never replaces a \verb{_scripts/report.R} that the site has. A
+report fails to render when that file lacks \code{print_environment()}.
+
 The new report ends with a "Computing environment" section, the same as
-the template's example report. It prints the R and package versions of
-the render, with \code{sessioninfo::session_info()} when the sessioninfo
-package is installed and with \code{utils::sessionInfo()} otherwise. It shows
-the home folder as \code{~}.
+the template's example report. It calls \code{print_environment()}, which
+prints the R and package versions of the render, with
+\code{sessioninfo::session_info()} when the sessioninfo package is installed
+and with \code{utils::sessionInfo()} otherwise. It shows the home folder as
+\code{~}.
+
+\code{check_supplement()} compares the text of each report with the hash in
+its stored output and does not read \verb{_scripts/report.R}. So after a
+change to that file, it gives no row. Render each report by name to
+take the change.
 
 The function adds lines to \verb{_quarto.yml} as text, so the other lines of
 the file, its comments included, stay as they are. It finds the menu as
@@ -79,8 +94,10 @@ with a tab, and a key given twice in one map. The message names the file and
 gives the message of the yaml package.
 \item \code{supplement_error_file_exists}: the report file exists, or a file
 whose name differs from it only in letter case; \code{analyses} is not a
-folder or is a link; or \verb{_freeze/analyses/<name>} exists, which holds
-the stored output of an earlier report of that name.
+folder or is a link; \verb{_scripts} is not a folder or is a link;
+\verb{_scripts/report.R} is a folder or a link; or
+\verb{_freeze/analyses/<name>} exists, which holds the stored output of an
+earlier report of that name.
 \item \code{supplement_error_no_menu}: \verb{_quarto.yml} has no Analyses menu in
 block style. The error shows the lines to add by hand.
 \item \code{supplement_error_yaml}: the yaml package does not read the changed
@@ -88,14 +105,16 @@ block style. The error shows the lines to add by hand.
 the lines to add by hand.
 \item \code{supplement_error_encoding}: \code{title}, \code{description}, or
 \verb{_quarto.yml} is not UTF-8 text.
-\item \code{supplement_error_write}: the \code{analyses} folder could not be made, or
-a write failed after its file was opened, for example on a full disk.
-A \verb{_quarto.yml} whose write failed gets its old text back.
+\item \code{supplement_error_write}: the \code{analyses} or \verb{_scripts} folder could
+not be made, or a write failed after its file was opened, for example
+on a full disk. A \verb{_quarto.yml} whose write failed gets its old text
+back.
 }
 
 When a file cannot be opened for writing, for example a read-only
 \verb{_quarto.yml}, R's own error is shown. After any failed write, the
-function removes the report file and any folder it made.
+function removes the report file, a \verb{_scripts/report.R} that it copied,
+and any folder it made.
 }
 
 \examples{

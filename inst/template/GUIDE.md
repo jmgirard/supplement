@@ -29,6 +29,39 @@ menu. The new report ends with the "Computing environment" section below.
 `add_data()` copies the file into `data/` and adds it to the `data` list in
 `_supplement.yml`.
 
+### Shared report code
+
+`_scripts/report.R` holds the functions that the reports share:
+`save_png()` (see "Paper figures") and `print_environment()` (see
+"Computing environment"). Each report reads the file in its `site` chunk,
+after the lines that set `site`:
+
+```r
+source(file.path(site, "_scripts", "report.R"), local = TRUE)
+```
+
+A site made before this file existed does not have it. `add_report()`
+copies the template's file into such a site, and never replaces a file
+that is there. Commit `_scripts/report.R` with the first report that
+uses it, because a clone without the file cannot render the report. To
+copy it yourself, R prints the path of the template's copy:
+
+```r
+system.file("template", "_scripts", "report.R", package = "supplement")
+```
+
+The example report calls `save_png()` and `print_environment()`, and each
+report from `add_report()` calls `print_environment()`. If you edit
+`_scripts/report.R`, keep both functions in it, because a report that
+calls a missing function fails to render.
+
+`check_supplement()` compares the text of each report with the hash in its
+stored output. It does not read `_scripts/report.R`, so a change to that
+file gives no row. After you change it, render each report by name, for
+example `quarto render analyses/models.qmd`. Then render the whole site
+with `quarto render`, and commit the reports with `_freeze/`, `docs/`, and
+`figures/`.
+
 ### Computing environment
 
 The example report and each report that `add_report()` writes end with a
@@ -37,28 +70,34 @@ package that the report's last render used. A full render reuses the
 stored output in `_freeze/`. So when `_freeze/` holds output for a report,
 its page keeps the versions of the render that made its results.
 
-If the sessioninfo package is installed, the section prints
+The section calls `print_environment()` from `_scripts/report.R`. If the
+sessioninfo package is installed, the function prints
 `sessioninfo::session_info()`. Otherwise it prints `utils::sessionInfo()`,
 which comes with R. The output also shows your operating system, your time
 zone, and some folders on your computer: the R library folders, Pandoc,
 and Quarto with sessioninfo, and the BLAS and LAPACK files without it. The
-section shows your home folder as `~`, in each spelling that R gives for
+function shows your home folder as `~`, in each spelling that R gives for
 it. Folders outside your home folder show in full, so read the output
 before you publish it.
 
-To add the section to an older report, copy the lines from the
-`## Computing environment` heading to the end of `analyses/example.qmd`.
-If you removed the example, R prints the path of the template's copy:
+To add the section to an older report, follow these steps. If the site
+has no `_scripts/report.R`, copy it in as "Shared report code" says. Then
+add the `source()` line from that section to the report's `site` chunk.
+Then paste the section of `analyses/example.qmd`, from its
+`## Computing environment` heading to the end of the file, at the end of
+the report. If you removed the example, R prints the path of the
+template's copy:
 
 ```r
 system.file("template", "analyses", "example.qmd", package = "supplement")
 ```
 
-Paste the lines at the end of the report. Then render the report by name,
-for example `quarto render analyses/models.qmd`. Then render the whole
-site with `quarto render`, and commit the report with `_freeze/`, `docs/`,
-and `figures/`. A full render alone reuses the old stored output, so it
-does not show the new section.
+Then render the report by name, for example
+`quarto render analyses/models.qmd`. Then render the whole site with
+`quarto render`, and commit the report with `_freeze/`, `docs/`, and
+`figures/`. If you copied `_scripts/report.R` in, commit it too. A full render
+alone reuses the old stored output, so it does not show the new section. An older report whose section holds the
+full code, and no `print_environment()` call, still renders as it is.
 
 ## Paper facts in `_supplement.yml`
 
@@ -451,27 +490,32 @@ if (!nzchar(site)) {
 if (is.null(site)) {
   stop("Run this code from the site folder or from its analyses/ folder.")
 }
+source(file.path(site, "_scripts", "report.R"), local = TRUE)
 ```
 
 These lines are the `site` chunk of the example report. `add_report()`
 writes the same chunk as the first chunk of each new report. If
-`_quarto.yml` sets `execute-dir: project`, this path also works.
+`_quarto.yml` sets `execute-dir: project`, this path also works. The last
+line reads `_scripts/report.R` (see "Shared report code").
 
-To save figures in your own reports, copy the whole `save-figure` chunk
-of the example report. Put it after the `site` chunk and after the chunks
-that make your plot's data. Then replace its last `save_png()` call,
-which saves the example figure, with your own.
+To save a figure in your own report, call `save_png()` after the chunks
+that make your plot's data. For example, this line saves a plot of a
+model `fit`:
 
-The chunk sets `figures` to the `figures/` folder of the site. If
-`figures` is a link, or on Windows a junction, the chunk stops with a
-message. A link can send the figures outside the site, and git commits a
-symbolic link without the figures. If `figures` is a file and not a
-folder, the chunk also stops. If the folder is missing, as in a new clone,
-the chunk makes it, because git does not keep empty folders.
+```r
+save_png("model-fit.png", function() plot(fit))
+```
 
-The chunk's `save_png()` function saves `figures/bootstrap-means.png` in
-the example. It takes a function that draws the plot. For a ggplot `p`,
-pass `function() print(p)`. It draws into a temporary file in `figures/`.
+`save_png()` saves into the `figures/` folder of the site. If `figures` is
+a link, or on Windows a junction, the function stops with a message. A
+link can send the figures outside the site, and git commits a symbolic
+link without the figures. If `figures` is a file and not a folder, the
+function also stops. If the folder is missing, as in a new clone, the
+function makes it, because git does not keep empty folders.
+
+In the example, `save_png()` saves `figures/bootstrap-means.png`. It takes
+a function that draws the plot. For a ggplot `p`, pass
+`function() print(p)`. It draws into a temporary file in `figures/`.
 Then it checks the end of the file. A whole PNG file ends with the PNG
 end chunk, its last 12 bytes. The function gives the file its name only
 after the plot succeeds and the file has that end. Otherwise it stops

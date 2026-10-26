@@ -14,7 +14,8 @@ the code by hand, the variable is usually missing. If it is missing or
 empty, the code looks for `_quarto.yml` in the current folder and then in
 the folder above it. It uses the first folder that holds the file. If
 neither folder holds it, the code stops with an error. So run it from the
-site folder or from `analyses/`.
+site folder or from `analyses/`. Then the code reads `_scripts/report.R`,
+which holds the functions that the reports share.
 
 ```{r}
 #| label: site
@@ -25,6 +26,7 @@ if (!nzchar(site)) {
 if (is.null(site)) {
   stop("Run this code from the site folder or from its analyses/ folder.")
 }
+source(file.path(site, "_scripts", "report.R"), local = TRUE)
 ```
 
 ## Data
@@ -50,50 +52,15 @@ hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
 ## Paper Figures
 
 Save each figure for the paper in `figures/`, which git tracks and the site
-publishes. The chunk stops when `figures` is a link or a file. `save_png()`
-runs a function that draws the plot. It draws into a temporary file in
+publishes. `save_png()`, from `_scripts/report.R`, runs a function that
+draws the plot. For a ggplot `p`, pass `function() print(p)`. It stops
+when `figures` is a link or a file. It draws into a temporary file in
 `figures/`. It gives that file its name only when the plot succeeds and the
 file ends as a whole PNG file does. So a failed plot, or a file cut short,
 leaves no partial file there.
 
 ```{r}
 #| label: save-figure
-figures <- file.path(site, "figures")
-# A link, or on Windows a junction, can send the figures outside the
-# site, and git commits a symbolic link without the figures.
-link <- Sys.readlink(figures)
-inside <- file.path(normalizePath(site, winslash = "/"), "figures")
-if ((!is.na(link) && nzchar(link)) || (dir.exists(figures) &&
-    tolower(normalizePath(figures, winslash = "/")) != tolower(inside))) {
-  stop("`figures` is a link. Replace it with a folder, then render again.")
-}
-if (file.exists(figures) && !dir.exists(figures)) {
-  stop("`figures` is a file, not a folder. Rename it, then render again.")
-}
-dir.create(figures, showWarnings = FALSE)
-
-# For a ggplot `p`, pass function() print(p) as `draw`.
-save_png <- function(file, draw, dir = figures) {
-  if (!is.function(draw)) stop("Pass the plot as a function, such as function() print(p).")
-  target <- file.path(dir, file)
-  if (dir.exists(target)) stop(target, " is a folder.")
-  tmp <- tempfile(".save-", tmpdir = dir, fileext = ".png")
-  on.exit(unlink(tmp))
-  old <- dev.cur()
-  png(tmp, width = 6, height = 4, units = "in", res = 300)
-  device <- dev.cur()
-  tryCatch(draw(), finally = {
-    dev.off(device)
-    if (old != 1) dev.set(old)
-  })
-  # A whole PNG file ends with its IEND chunk. A full disk can cut it short.
-  size <- file.size(tmp)
-  end <- if (isTRUE(size >= 12)) readBin(tmp, "raw", size)[(size - 11):size] else raw(0)
-  if (!identical(end, as.raw(c(0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82)))) {
-    stop("Could not write a whole PNG file for ", target, ".")
-  }
-  if (!file.rename(tmp, target)) stop("Could not write ", target, ".")
-}
 save_png("bootstrap-means.png", function() {
   hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
 })
@@ -101,39 +68,16 @@ save_png("bootstrap-means.png", function() {
 
 ## Computing environment
 
-This section shows the versions of R and of each package that the last
-render of this report used. The site stores this output with the rest, so
-the page keeps the versions that made its results. Your home folder shows
-as `~`. Read the output before you publish it, because a folder outside
-your home folder shows in full.
+This section shows the versions of R and of each package that the last render
+of this report used, from `print_environment()` in `_scripts/report.R`. The
+site stores this output with the rest, so the page keeps the versions that
+made its results. Your home folder shows as `~`. Read the output before you
+publish it, because a folder outside your home folder shows in full.
 
 ::: {.callout-note collapse="true" title="R and package versions"}
 ```{r}
 #| label: session-info
 #| cache: false
-local({
-  info <- if (requireNamespace("sessioninfo", quietly = TRUE)) {
-    sessioninfo::session_info()
-  } else {
-    utils::sessionInfo()
-  }
-  # Each spelling of the home folder, longest first.
-  windows <- .Platform$OS.type == "windows"
-  homes <- Sys.getenv(c("USERPROFILE", "HOME"))
-  homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
-  if (windows) homes <- c(homes, utils::shortPathName(homes))
-  homes <- c(chartr("\\", "/", homes), chartr("/", "\\", homes))
-  homes <- unique(sub("[/\\\\]+$", "", homes))
-  homes <- homes[!grepl("^([A-Za-z]:)?$", homes)]
-  homes <- homes[order(-nchar(homes))]
-  # Show the home folder as ~ where a path starts with the whole folder.
-  lines <- utils::capture.output(print(info))
-  for (home in homes) {
-    literal <- gsub("([][{}()|^$.*+?\\\\])", "\\\\\\1", home)
-    pattern <- paste0("(?<!\\S)", literal, "(?=[/\\\\]|\\s|$)")
-    lines <- gsub(pattern, "~", lines, perl = TRUE, ignore.case = windows)
-  }
-  writeLines(lines)
-})
+print_environment()
 ```
 :::
