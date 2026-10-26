@@ -1,0 +1,69 @@
+---
+title: "Example Analysis"
+description: "A short example report. Replace it with your own."
+---
+
+This report shows the parts of an analysis page. Replace it with your own
+report, and keep one `.qmd` file per report in this folder.
+
+## Data
+
+Quarto sets `QUARTO_PROJECT_DIR` to the site folder during a render. When
+you run the code by hand from `analyses/`, it is not set, so the site folder
+is `..`.
+
+```{r}
+#| label: data
+site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
+dat <- read.csv(file.path(site, "data", "example.csv"))
+summary(dat)
+```
+
+## Bootstrap Means
+
+Seed every random draw, so that each render gives the same numbers and the
+same figures.
+
+```{r}
+#| label: bootstrap
+set.seed(2026)
+boot_means <- replicate(200, mean(sample(dat$score, replace = TRUE)))
+hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
+```
+
+## Paper Figures
+
+Save each figure for the paper in `figures/`, which git tracks and the site
+publishes. `save_png()` runs a function that draws the plot. It draws into a
+temporary file in `figures/` and gives that file its name only when the
+plot succeeds, so a failed plot leaves no partial file there.
+
+```{r}
+#| label: save-figure
+site <- Sys.getenv("QUARTO_PROJECT_DIR", "..")
+figures <- file.path(site, "figures")
+if (file.exists(figures) && !dir.exists(figures)) {
+  stop("`figures` is a file, not a folder. Rename it, then render again.")
+}
+dir.create(figures, showWarnings = FALSE)
+
+# For a ggplot `p`, pass function() print(p) as `draw`.
+save_png <- function(file, draw, dir = figures) {
+  if (!is.function(draw)) stop("Pass the plot as a function, such as function() print(p).")
+  target <- file.path(dir, file)
+  if (dir.exists(target)) stop(target, " is a folder.")
+  tmp <- tempfile(".save-", tmpdir = dir, fileext = ".png")
+  on.exit(unlink(tmp))
+  old <- dev.cur()
+  png(tmp, width = 6, height = 4, units = "in", res = 300)
+  device <- dev.cur()
+  tryCatch(draw(), finally = {
+    dev.off(device)
+    if (old != 1) dev.set(old)
+  })
+  if (!file.rename(tmp, target)) stop("Could not write ", target, ".")
+}
+save_png("bootstrap-means.png", function() {
+  hist(boot_means, main = "Bootstrap means of score", xlab = "Mean score")
+})
+```

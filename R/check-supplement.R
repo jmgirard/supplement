@@ -836,6 +836,31 @@ report_hash <- function(report) {
   }, error = function(e) NULL, warning = function(w) NULL)
 }
 
+# The MD5 of a file's text as an editor may save it unchanged: a UTF-8 BOM
+# at its start is dropped, each CR LF and then each lone CR is read as LF,
+# and one LF at its end is dropped. NULL when the file cannot be read.
+# Unlike `report_hash()`, this is not Quarto's hash.
+text_hash <- function(path) {
+  tryCatch({
+    bytes <- readBin(path, "raw", n = file.size(path))
+    if (length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))) {
+      bytes <- bytes[-(1:3)]
+    }
+    n <- length(bytes)
+    if (n > 1) {
+      cr <- which(bytes[-n] == as.raw(13) & bytes[-1] == as.raw(10))
+      if (length(cr) > 0) bytes <- bytes[-cr]
+    }
+    bytes[bytes == as.raw(13)] <- as.raw(10)
+    n <- length(bytes)
+    if (n > 0 && bytes[n] == as.raw(10)) bytes <- bytes[-n]
+    file <- tempfile("text-")
+    on.exit(unlink(file, expand = FALSE))
+    writeBin(bytes, file)
+    unname(tools::md5sum(file))
+  }, error = function(e) NULL, warning = function(w) NULL)
+}
+
 # The top-level `hash` of a stored output file, or NULL when the file does
 # not parse as JSON, its top level is not an object, or its `hash` is not
 # one text value.
