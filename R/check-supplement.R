@@ -1399,15 +1399,15 @@ example_version_bytes <- c("analyses/example.qmd" = 5090, "data/example.csv" = 8
 # A row for each example file whose `text_hash()` equals that of the
 # installed template's copy or of a version in `example_versions`. A
 # missing file, a folder, or a file that cannot be read gives no row. A
-# CR LF copy with a BOM is at most twice the largest version's size, so a
-# larger file is not read.
+# copy of a known version with CR LF line ends and a BOM is under twice
+# the largest version's size, so a larger file is not read.
 placeholder_example_rows <- function(path) {
   files <- names(placeholder_example_problems)
   template <- system.file("template", package = "supplement", mustWork = TRUE)
   same <- vapply(files, function(file) {
     site_file <- file.path(path, file)
     template_file <- file.path(template, file)
-    largest <- max(example_version_bytes[[file]], file.size(template_file), na.rm = TRUE)
+    largest <- max(example_version_bytes[file], file.size(template_file), na.rm = TRUE)
     if (!file.exists(site_file) || dir.exists(site_file) || isTRUE(file.size(site_file) > 2 * largest)) {
       return(FALSE)
     }

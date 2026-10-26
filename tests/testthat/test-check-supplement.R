@@ -1863,7 +1863,7 @@ test_that("each placeholder line is a line of the template's file", {
   expect_setequal(names(placeholder_lines), line_files)
 })
 
-test_that("an example file gives a row only while its text is the template's", {
+test_that("an example file gives a row while its text is the template's", {
   for (file in c("analyses/example.qmd", "data/example.csv")) {
     has_row <- function(site) file %in% placeholder_rows(site)$file
     site <- new_site()
@@ -1885,6 +1885,7 @@ test_that("an example file gives a row only while its text is the template's", {
   }
 })
 
+# data-raw/example-qmd-fixtures.R writes each fixture from git.
 example_fixture <- function(commit) test_path("fixtures", "example-qmd", paste0(commit, ".qmd"))
 
 # Write `bytes` as the site's file and say whether it gets its row.
@@ -1940,7 +1941,7 @@ test_that("an example file with other changed text gives no row", {
 
 test_that("the installed template's example files are among the known versions", {
   template <- system.file("template", package = "supplement", mustWork = TRUE)
-  for (file in names(example_versions)) {
+  for (file in names(placeholder_example_problems)) {
     expect_contains(example_versions[[file]], text_hash(file.path(template, file)))
   }
 })
