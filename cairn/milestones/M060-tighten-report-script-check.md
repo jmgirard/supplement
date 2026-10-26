@@ -69,6 +69,7 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - 2026-10-26: T1: added the AC1 row and no-row lines and the AC2 long lines as three tests with `script_site()` and `script_rows_for()` helpers; on the current code the three no-row cases `_scripts_old/report.R`, `_scripts/old-report.R`, and `"_scripts", "x", "report.R"` fail, and the rest pass.
 - 2026-10-26: T2: `names_script()` is one `grepl()` pattern, a `/`, `\`, or `\\` run or an optional such run then quote, comma, quote with possessive `[ \t]*+` runs; test-check-supplement.R gives 0 failures, and its one warning comes from `file.create()` in the untouched non-UTF-8 name test on macOS before its skip.
 - 2026-10-26: T3: `check_missing_script()` also needs `isTRUE(fs::is_file(script))` when `is_link()` is TRUE; the dangling-link test uses `symlink_or_skip()` with no Windows skip, and a new test links `_scripts/report.R` to an existing file. A planted `!is_link(script)` alone fails the existing-link test on macOS. The Windows dangling case is seen only on CI.
+- 2026-10-26: T4 checkpoint (half-done): help text and `man/check_supplement.Rd` rebuilt, DESIGN.md missing-script lines updated; full `devtools::test()` and `devtools::check()` still to run.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

@@ -110,12 +110,20 @@
 #'   `.qmd` report directly in `analyses/`, from the same list of reports,
 #'   names it. The template's example report and each report from
 #'   [add_report()] read it. The file counts as missing when `file.exists()`
-#'   is `FALSE` for it or when it is a folder. A report names it when one of
-#'   its lines holds `_scripts` and, later on that line, `report.R`, where
-#'   neither has an ASCII letter, digit, `_`, or `.` right before it and
-#'   `report.R` has none right after it, as in
-#'   `source(file.path(site, "_scripts", "report.R"), local = TRUE)`. A line
-#'   of prose or a comment also counts. One row names each such report by
+#'   is `FALSE` for it, when it is a folder, or when it is a link and
+#'   `fs::is_file()`, which follows the link, is `FALSE` for it. So a file
+#'   link to a missing file counts as missing on Windows too, where
+#'   `file.exists()` is `TRUE` for it. A report names the file when one of
+#'   its lines holds `_scripts`, with no ASCII letter, digit, `_`, or `.`
+#'   right before it, then a separator, then `report.R`, with no ASCII
+#'   letter, digit, `_`, or `.` right after it. The separator is `/`, `\`,
+#'   or `\\`, or it is a `"` or `'`, a `,` with any spaces or tabs on each
+#'   side, and a `"` or `'`, after an optional `/`, `\`, or `\\`. So
+#'   `source(file.path(site, "_scripts", "report.R"), local = TRUE)` and
+#'   `_scripts/report.R` name the file, and `_scripts_old/report.R`,
+#'   `_scripts/old-report.R`, and `file.path("_scripts", "x", "report.R")`
+#'   do not. A `.` right after `report.R`, as at the end of a sentence,
+#'   stops the match. A line of prose or a comment also counts. One row names each such report by
 #'   its path from the site folder, in byte order, between double quotes
 #'   with a `\` before each `\` and `"` in it, and says to copy the
 #'   template's file from
@@ -127,10 +135,8 @@
 #'   two lines, does not count, and the letter case of both names must
 #'   match. Reports in folders inside `analyses/` are not read, and a report
 #'   that cannot be read, such as a link to a missing file, names nothing.
-#'   On Windows a file link to a missing file
-#'   reads as an existing file, and on a disk that ignores letter case a
-#'   file such as `_scripts/Report.R` reads as `_scripts/report.R`, so
-#'   neither gives a row there.
+#'   On a disk that ignores letter case a file such as `_scripts/Report.R`
+#'   reads as `_scripts/report.R`, so it gives no row there.
 #' * `"not-rendered"`: the site has no `docs/` folder.
 #' * `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
 #'   `docs/` to a file that is not in `docs/`, or to a folder there with no

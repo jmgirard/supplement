@@ -128,12 +128,20 @@ renamed only in letter case on Linux.
 \code{.qmd} report directly in \verb{analyses/}, from the same list of reports,
 names it. The template's example report and each report from
 \code{\link[=add_report]{add_report()}} read it. The file counts as missing when \code{file.exists()}
-is \code{FALSE} for it or when it is a folder. A report names it when one of
-its lines holds \verb{_scripts} and, later on that line, \code{report.R}, where
-neither has an ASCII letter, digit, \verb{_}, or \code{.} right before it and
-\code{report.R} has none right after it, as in
-\code{source(file.path(site, "_scripts", "report.R"), local = TRUE)}. A line
-of prose or a comment also counts. One row names each such report by
+is \code{FALSE} for it, when it is a folder, or when it is a link and
+\code{fs::is_file()}, which follows the link, is \code{FALSE} for it. So a file
+link to a missing file counts as missing on Windows too, where
+\code{file.exists()} is \code{TRUE} for it. A report names the file when one of
+its lines holds \verb{_scripts}, with no ASCII letter, digit, \verb{_}, or \code{.}
+right before it, then a separator, then \code{report.R}, with no ASCII
+letter, digit, \verb{_}, or \code{.} right after it. The separator is \code{/}, \verb{\\},
+or \verb{\\\\}, or it is a \verb{"} or \verb{'}, a \verb{,} with any spaces or tabs on each
+side, and a \verb{"} or \verb{'}, after an optional \code{/}, \verb{\\}, or \verb{\\\\}. So
+\code{source(file.path(site, "_scripts", "report.R"), local = TRUE)} and
+\verb{_scripts/report.R} name the file, and \verb{_scripts_old/report.R},
+\verb{_scripts/old-report.R}, and \code{file.path("_scripts", "x", "report.R")}
+do not. A \code{.} right after \code{report.R}, as at the end of a sentence,
+stops the match. A line of prose or a comment also counts. One row names each such report by
 its path from the site folder, in byte order, between double quotes
 with a \verb{\\} before each \verb{\\} and \verb{"} in it, and says to copy the
 template's file from
@@ -145,10 +153,8 @@ includes is not read, a line of another form, such as
 two lines, does not count, and the letter case of both names must
 match. Reports in folders inside \verb{analyses/} are not read, and a report
 that cannot be read, such as a link to a missing file, names nothing.
-On Windows a file link to a missing file
-reads as an existing file, and on a disk that ignores letter case a
-file such as \verb{_scripts/Report.R} reads as \verb{_scripts/report.R}, so
-neither gives a row there.
+On a disk that ignores letter case a file such as \verb{_scripts/Report.R}
+reads as \verb{_scripts/report.R}, so it gives no row there.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
 \item \code{"broken-link"}: an \code{href}, \code{src}, or \code{xlink:href} link on a page in
 \verb{docs/} to a file that is not in \verb{docs/}, or to a folder there with no
