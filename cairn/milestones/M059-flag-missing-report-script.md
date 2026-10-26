@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M059: Flag a missing _scripts/report.R file
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
@@ -80,6 +80,7 @@
 - 2026-10-26: T5 a first run, started before the row-text fix and edited under, gave 4 failures that it did not name; the rerun on 88ffee6 gave `devtools::test()` 0 failed, 0 errors, 10 skipped, 403 tests, and `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude`, local only, as in M058); `devtools::document()` left no diff. Status → review.
 - 2026-10-26: review return 1: a report line that names `_scripts` and runs past about 3 to 5 MB makes `grepl(script_line, …)` hit PCRE's match limit, so it warns and the report gets no `"missing-script"` row, which fails AC1 (diff-bug #1, prior-review #1). Fix: match `_scripts` and `report.R` with separate searches and compare their positions, and add a regression test with such a line. Status → in-progress.
 - 2026-10-26: implement resumed on review return 1; minor amendment: added T6 for the return and mapped AC1 → T6. The 5 MB regression test failed first with the PCRE "match limit exceeded" warning and no row; after `names_script()` the test-check-supplement.R file passes (0 failed, 76 tests).
+- 2026-10-26: verify on bdea916: `devtools::document()` no diff; `devtools::test()` 0 failed, 0 errors, 10 skipped, 404 tests; `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude`). claim audit: not rerun for the return, since its stopping rule allows one pass; the prose added at review pass 1 and T6 goes to the pass 2 reviewers. Status → review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
