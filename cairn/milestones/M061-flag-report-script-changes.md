@@ -88,6 +88,7 @@
 - 2026-10-26: T4 done: `"stale-script"` item in the `check_supplement()` help; the `add_report()` help, GUIDE.md "Shared report code", and the M058 NEWS.md bullet drop "a change gives none"; GUIDE.md "Computing environment" names the hash line; README.md and GUIDE.md check lists and a new NEWS.md bullet; DESIGN.md architecture lines. The T4 search found no other outdated sentence; the vignette names no report.R. The simple-english lint flags the new check-list bullet as part of a long sentence because the list has no end periods; the list keeps its style.
 - 2026-10-26: claim audit: 41 claims read, 4 corrected — R/check-supplement.R (the files the row names, the hint condition, an unreadable report.R gives no row), NEWS.md and inst/template/GUIDE.md (the MD5 reads CR LF as LF); the reader's re-read found all corrected sentences true. Left as is: a `"stale-script"` row can name a report that is a link to a missing file, where `"stale-output"` skips it; the help claims nothing about it.
 - 2026-10-26: T5 done: `devtools::test()` 416 tests, 0 failed, 10 skipped (macOS, before the doc-only claim corrections); `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`). Status set to review.
+- 2026-10-26: step-7 approval: m061-flag-report-script-changes approved for merge
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
