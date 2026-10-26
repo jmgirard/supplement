@@ -168,7 +168,8 @@ letters of a name that is not valid UTF-8.
 Its missing-script check (`check_missing_script()`, M059) gives one row when
 `_scripts/report.R` is missing or a folder and a report from
 `analysis_reports()` has a `script_line` match: `_scripts`, then
-`report.R` later on the line, each a whole name.
+`report.R` later on the line, with no ASCII letter, digit, `_`, or `.`
+before either or after `report.R`.
 `R/release-supplement.R`: `release_supplement()` checks `bump`, reads
 `_supplement.yml` once, and from that read checks the current
 `supplement.version` and the `version:` line. It builds the new

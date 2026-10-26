@@ -140,8 +140,11 @@ and says to copy the template's file from
 and commit it. A site made before the template had the file gives no
 row when its reports do not name it. A line in a file that the report
 includes is not read, a line of another form, such as
-\code{source("report.R")}, does not count, and reports in folders inside
-\verb{analyses/} are not read. On Windows a file link to a missing file
+\code{source("report.R")} or a call that puts \verb{_scripts} and \code{report.R} on
+two lines, does not count, and the letter case of both names must
+match. Reports in folders inside \verb{analyses/} are not read, and a report
+that cannot be read, such as a link to a missing file, names nothing.
+On Windows a file link to a missing file
 reads as an existing file, and on a disk that ignores letter case a
 file such as \verb{_scripts/Report.R} reads as \verb{_scripts/report.R}, so
 neither gives a row there.

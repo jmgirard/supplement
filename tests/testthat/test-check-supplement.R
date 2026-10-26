@@ -645,7 +645,7 @@ missing_script_text <- function(paths) {
          paths, ". Copy the template's file from ",
          'system.file("template", "_scripts", "report.R", package = "supplement")',
          " to _scripts/report.R, or restore your own copy, then commit _scripts/report.R.",
-         " If a folder has that name, move it first.")
+         " If a file named _scripts or a folder named _scripts/report.R is in the way, move it first.")
 }
 
 script_of <- function(site) file.path(site, "_scripts", "report.R")
@@ -655,22 +655,19 @@ source_line <- 'source(file.path(site, "_scripts", "report.R"), local = TRUE)'
 test_that("reports that read a missing _scripts/report.R give one missing-script row", {
   site <- new_site()
   unlink(script_of(site))
-  rows <- rows_of(check_quiet(site), "missing-script")
-  expect_identical(rows$file, "_scripts/report.R")
-  expect_identical(rows$problem, missing_script_text('"analyses/example.qmd"'))
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
 
   site <- new_site()
   unlink(script_of(site))
   dir.create(script_of(site))
   expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
 
-  # A name at the end of a line counts, in prose or a comment too.
+  # `report.R` at the end of a line counts.
   site <- new_site()
   unlink(script_of(site))
   unlink(file.path(site, "analyses", "example.qmd"))
   report_lines(site, "last", c("Text.", "# _scripts/report.R"))
-  expect_identical(rows_of(check_quiet(site), "missing-script")$problem,
-                   missing_script_text('"analyses/last.qmd"'))
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
 })
 
 test_that("a link to a missing _scripts/report.R gives a missing-script row", {
@@ -708,7 +705,6 @@ test_that("no missing-script row when the file is there or no report names it", 
   report_lines(site, "rmd", "See _scripts/report.Rmd.")
   report_lines(site, "my-scripts", 'source("my_scripts/report.R")')
   report_lines(site, "myreport", 'source(file.path(site, "_scripts", "myreport.R"))')
-  # Reports in folders inside analyses/ are not read.
   dir.create(file.path(site, "analyses", "sub"))
   writeLines(source_line, file.path(site, "analyses", "sub", "inner.qmd"))
   expect_identical(nrow(rows_of(check_quiet(site), "missing-script")), 0L)

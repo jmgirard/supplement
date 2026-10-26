@@ -122,8 +122,11 @@
 #'   and commit it. A site made before the template had the file gives no
 #'   row when its reports do not name it. A line in a file that the report
 #'   includes is not read, a line of another form, such as
-#'   `source("report.R")`, does not count, and reports in folders inside
-#'   `analyses/` are not read. On Windows a file link to a missing file
+#'   `source("report.R")` or a call that puts `_scripts` and `report.R` on
+#'   two lines, does not count, and the letter case of both names must
+#'   match. Reports in folders inside `analyses/` are not read, and a report
+#'   that cannot be read, such as a link to a missing file, names nothing.
+#'   On Windows a file link to a missing file
 #'   reads as an existing file, and on a disk that ignores letter case a
 #'   file such as `_scripts/Report.R` reads as `_scripts/report.R`, so
 #'   neither gives a row there.
@@ -692,39 +695,6 @@ check_leftover_output <- function(path) {
   )
 }
 
-# Shared report code ----------------------------------------------------------
-
-# A line that holds `_scripts` and, later on the line, `report.R`, where
-# neither has an ASCII letter, digit, `_`, or `.` right before it and `report.R`
-# has none right after it, as the template's source() line and its prose do.
-script_line <- "(?<![A-Za-z0-9_.])_scripts.*(?<![A-Za-z0-9_.])report\\.R(?![A-Za-z0-9_.])"
-
-# A site made before the template had _scripts/report.R lacks the file,
-# and its reports do not name it, so only reports that name it give a row.
-check_missing_script <- function(path) {
-  script <- file.path(path, "_scripts", "report.R")
-  if (file.exists(script) && !dir.exists(script)) {
-    return(problem_rows())
-  }
-  reports <- analysis_reports(path)
-  reads <- vapply(reports, function(report) {
-    any(grepl(script_line, read_report_lines(report), perl = TRUE, useBytes = TRUE))
-  }, logical(1), USE.NAMES = FALSE)
-  if (!any(reads)) {
-    return(problem_rows())
-  }
-  named <- paste(quote_path(show_text(sort_bytes(file.path("analyses", basename(reports[reads]))))),
-                 collapse = ", ")
-  problem_rows(
-    "missing-script", "_scripts/report.R",
-    paste0("The site has no file _scripts/report.R, which these reports name, so a render of them can fail: ",
-           named, ". Copy the template's file from ",
-           'system.file("template", "_scripts", "report.R", package = "supplement")',
-           " to _scripts/report.R, or restore your own copy, then commit _scripts/report.R.",
-           " If a folder has that name, move it first.")
-  )
-}
-
 # Lower case: ASCII letters first, with chartr(), since tolower() follows
 # the locale, where `I` need not lower to `i` (Turkish). tolower() stops on
 # a name that is not valid UTF-8, so only the ASCII capitals of such a name
@@ -774,6 +744,39 @@ stored_hash <- function(file) {
     return(NULL)
   }
   hash
+}
+
+# Shared report code ----------------------------------------------------------
+
+# A line that holds `_scripts` and, later on the line, `report.R`, where
+# neither has an ASCII letter, digit, `_`, or `.` right before it and `report.R`
+# has none right after it, as the template's source() line and its prose do.
+script_line <- "(?<![A-Za-z0-9_.])_scripts.*(?<![A-Za-z0-9_.])report\\.R(?![A-Za-z0-9_.])"
+
+# A site made before the template had _scripts/report.R lacks the file,
+# and its reports do not name it, so only reports that name it give a row.
+check_missing_script <- function(path) {
+  script <- file.path(path, "_scripts", "report.R")
+  if (file.exists(script) && !dir.exists(script)) {
+    return(problem_rows())
+  }
+  reports <- analysis_reports(path)
+  reads <- vapply(reports, function(report) {
+    any(grepl(script_line, read_report_lines(report), perl = TRUE, useBytes = TRUE))
+  }, logical(1), USE.NAMES = FALSE)
+  if (!any(reads)) {
+    return(problem_rows())
+  }
+  named <- paste(quote_path(show_text(sort_bytes(file.path("analyses", basename(reports[reads]))))),
+                 collapse = ", ")
+  problem_rows(
+    "missing-script", "_scripts/report.R",
+    paste0("The site has no file _scripts/report.R, which these reports name, so a render of them can fail: ",
+           named, ". Copy the template's file from ",
+           'system.file("template", "_scripts", "report.R", package = "supplement")',
+           " to _scripts/report.R, or restore your own copy, then commit _scripts/report.R.",
+           " If a file named _scripts or a folder named _scripts/report.R is in the way, move it first.")
+  )
 }
 
 # Links -----------------------------------------------------------------------
