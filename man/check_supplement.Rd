@@ -129,7 +129,7 @@ renamed only in letter case on Linux.
 names it. The template's example report and each report from
 \code{\link[=add_report]{add_report()}} read it. The file counts as missing when \code{file.exists()}
 is \code{FALSE} for it, when it is a folder, or when it is a link and
-\code{fs::is_file()}, which follows the link, is \code{FALSE} for it. So a file
+\code{fs::is_file()}, which follows the link, is not \code{TRUE} for it. So a file
 link to a missing file counts as missing on Windows too, where
 \code{file.exists()} is \code{TRUE} for it. A report names the file when one of
 its lines holds \verb{_scripts}, with no ASCII letter, digit, \verb{_}, or \code{.}

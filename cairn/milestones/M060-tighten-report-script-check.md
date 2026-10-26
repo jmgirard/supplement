@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M060: Tighten the missing report.R check
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
@@ -71,6 +71,8 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - 2026-10-26: T3: `check_missing_script()` also needs `isTRUE(fs::is_file(script))` when `is_link()` is TRUE; the dangling-link test uses `symlink_or_skip()` with no Windows skip, and a new test links `_scripts/report.R` to an existing file. A planted `!is_link(script)` alone fails the existing-link test on macOS. The Windows dangling case is seen only on CI.
 - 2026-10-26: T4 checkpoint (half-done): help text and `man/check_supplement.Rd` rebuilt, DESIGN.md missing-script lines updated; full `devtools::test()` and `devtools::check()` still to run.
 - 2026-10-26: T4 done: `devtools::test()` 407 tests, 0 failures, 1 warning (the macOS `file.create()` warning of T2); `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`).
+- 2026-10-26: claim audit: 16 claims read, 3 corrected — R/check-supplement.R, man/check_supplement.Rd (the `names_script()` comment no longer calls the separator bounded, and the help and a comment say `fs::is_file()` is not TRUE rather than FALSE; the re-read found all three hold; the two Windows claims rest on the Windows CI run at review).
+- 2026-10-26: all tasks done; status set to review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

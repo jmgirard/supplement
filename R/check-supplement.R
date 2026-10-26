@@ -111,7 +111,7 @@
 #'   names it. The template's example report and each report from
 #'   [add_report()] read it. The file counts as missing when `file.exists()`
 #'   is `FALSE` for it, when it is a folder, or when it is a link and
-#'   `fs::is_file()`, which follows the link, is `FALSE` for it. So a file
+#'   `fs::is_file()`, which follows the link, is not `TRUE` for it. So a file
 #'   link to a missing file counts as missing on Windows too, where
 #'   `file.exists()` is `TRUE` for it. A report names the file when one of
 #'   its lines holds `_scripts`, with no ASCII letter, digit, `_`, or `.`
@@ -760,9 +760,9 @@ stored_hash <- function(file) {
 # after it, as the template's source() line and its prose do. The separator
 # is `/`, `\`, or `\\`, or a quote, a comma, and a quote, as between the
 # arguments of file.path(), with an optional `/`, `\`, or `\\` before it.
-# Only a bounded separator lies between the names, and the runs of spaces
-# and tabs are possessive, so a line of a few MB stays within PCRE's match
-# limit.
+# No `.*` lies between the names, and the runs of spaces and tabs and of
+# `\` are possessive, so PCRE never backtracks into them and a line of a
+# few MB stays within its match limit.
 names_script <- function(lines) {
   slash <- "(?:/|\\\\{1,2}+)"
   pattern <- paste0("(?<![A-Za-z0-9_.])_scripts(?:", slash, "|", slash, "?[\"'][ \t]*+,[ \t]*+[\"'])",
@@ -775,7 +775,7 @@ names_script <- function(lines) {
 check_missing_script <- function(path) {
   script <- file.path(path, "_scripts", "report.R")
   # On Windows file.exists() is TRUE for a file link to a missing file.
-  # fs::is_file() follows the link, so it is FALSE for one.
+  # fs::is_file() follows the link, so it is not TRUE for one.
   if (file.exists(script) && !dir.exists(script) && (!is_link(script) || isTRUE(fs::is_file(script)))) {
     return(problem_rows())
   }
