@@ -75,6 +75,7 @@
 - 2026-10-26: T3 `"missing-script"` bullet added to the `check_supplement()` roxygen after `"leftover-output"`, with the AC1 conditions and the AC4 limits; `devtools::document()` rewrote `man/check_supplement.Rd` only.
 - 2026-10-26: T4 the `add_report()` help, GUIDE.md "Shared report code", and the M058 NEWS.md bullet now say that `check_supplement()` looks only at whether `_scripts/report.R` exists; GUIDE.md and README.md check lists and a new NEWS.md bullet name the row; DESIGN.md gained the architecture lines and the git-ignored case. The review-aid grep's 50 hits hold no other sentence about `check_supplement()` and the file.
 - 2026-10-26: claim audit fixes: the `script_line` comment now states the boundaries as the help page does; the `add_report()` help and GUIDE.md say the row comes only when a report names the file; the row text says "which these reports name, so a render of them can fail" (prose lines count, so "read" and "cannot render" overstated), and NEWS.md says "whose render can fail".
+- 2026-10-26: claim audit: 31 claims read, 3 corrected — R/check-supplement.R, R/add-report.R, man/add_report.Rd, inst/template/GUIDE.md, NEWS.md; the re-read found all three true, and "a letter" in the `script_line` comment became "an ASCII letter".
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
