@@ -102,3 +102,44 @@
 - AC4: test "a render by name clears the stale-script row that a changed report.R gives" (test-add-render.R): 5 expectations, 0 failed, not skipped (Quarto 1.10.19). No row after the first render by name, a row on `analyses/models.qmd` after a comment line is appended to `_scripts/report.R`, none after a second render by name.
 - AC5: test "a hash line after 5 MB of text on one line gives a stale-script row": 2 expectations, 0 failed. `expect_no_warning()` wraps the check, and both "next-line" (5 MB, line break, hash line) and "same-line" (5 MB, then the hash text on that line) get the row.
 - AC6: read on f4cef35. The `add_report()` help (R/add-report.R:33-38) and GUIDE.md "Shared report code" (lines 27-33 of the section) say that `check_supplement()` gives a row for a report whose stored output gives another MD5, and the M058 NEWS.md bullet now says only to render each report by name; none says a change gives no row. The `check_supplement()` help lists `"stale-script"` (R/check-supplement.R:92) and says a report whose stored output holds no such hash gets no row. NEWS.md has the `"stale-script"` bullet (lines 15-24).
+- gate on f4cef35: `cairn_validate` all checks passed; `devtools::document()` no diff; no README.Rmd; `pkgdown::check_pkgdown()` no problems; NEWS.md has the bullet; no new top-level file; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`, as in M058-M060). No principle changed, so no `cairn_impact` run.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: `print_environment()` reads `site` at call time, so a report that sets `site <- "Boston"` fails its render — fix now, fixed 934fed2 (hash taken when report.R is sourced; regression test fails on the old code with "cannot open the connection").
+- diff-bug #2: a report that is a link to a missing file gets a stale-script row it cannot clear — fix now, fixed 934fed2 (skip when `report_hash()` is NULL; "dangling" case; fails with the skip removed).
+- diff-bug #3: a live format file gets the format hint after `--to html` — fix now, fixed 934fed2 (DESIGN.md Known issues "Format hint on a live file" now names `"stale-script"`).
+- diff-bug #4: one report can get both stale rows — reject (planned change: the plan chose a separate check id).
+- diff-bug #5: 32 hex characters are taken with no end boundary — reject (planned change: AC2 reads 32 characters; an MD5 is 32).
+- diff-bug #6: a hash line from other output, such as another report's stored text, also counts — fix now, fixed 934fed2 (help states it).
+- diff-bug #7: the AC5 same-line fixture's `sub()` is not checked — fix now, fixed 934fed2 (`stopifnot`).
+- diff-bug #8: `skip_on_cran()` on the in-process test is not needed — reject (style; it runs `session_info()` like the other session tests).
+- diff-bug #9: `expect_match(expected, ...)` tests `tools::md5sum()` — fix now, fixed 934fed2 (removed).
+- diff-bug #10: `expect_true(any(crlf == 13))` tests the fixture — fix now, fixed 934fed2 (removed).
+- diff-bug #11: `expect_no_error()` before exact checks — fix now, fixed 934fed2 (removed).
+- diff-bug #12: `nrow(rows) == 3` is covered by the exact text checks — fix now, fixed 934fed2 (removed).
+- diff-bug #13: the positive control in the missing-file test repeats the "differs" case — reject (false: it shows that the later no-row results are not empty by default, per check discrimination).
+- diff-bug #14: "upper"/"short" and the two AC5 tests run one code path — reject (planned change: AC3 and AC5 name each case).
+- diff-bug #15: the "A hidden file is not read." comment restates the name — fix now, fixed 934fed2 (removed).
+- blame-history #1: DESIGN.md says a report.R change gives no row, against D-029 — fix now, fixed 19c1400.
+- blame-history #2: `print_environment()` now depends on `site` at render time — fix now, fixed 934fed2 (same fix as diff-bug #1).
+- blame-history #3: `run_session_code()` sets `site`, so no test runs without it — reject (false: the harness follows the documented use, where the `site` chunk sets it; the new test covers a later change of `site`).
+- blame-history #4-#6: replaced M059 limit text, `stored_json()` refactor, CR LF handling — noted (no finding).
+- blame-history #7: the ROADMAP candidate row still describes the gap — reject (planned change: post-merge hygiene graduates it).
+- prior-review #1: a dangling report link gets a row, against the M035/M045 link rule — fix now, fixed 934fed2 (same fix as diff-bug #2).
+- prior-review #2: the documented link-to-missing `report.R` case has no test — fix now, fixed 934fed2 (case added).
+- prior-review #3: byte order of the named files is untested for this row — fix now, fixed 934fed2 (en_US.UTF-8 order test).
+- prior-review #4: a report without `site` fails at the last step — fix now, fixed 934fed2 (same fix as diff-bug #1).
+- prior-review #5: `expect_match(expected, ...)` checks the built string — fix now, fixed 934fed2 (same as diff-bug #9).
+- prior-review #6: no Windows CI evidence yet — reject (false as a defect: CI on Windows, macOS, and Ubuntu runs on the PR before the merge).
+- ripple #1: DESIGN.md:232-233 "gives no row" — fix now, fixed 19c1400.
+- ripple #2: ROADMAP.md row describes the gap as open — reject (planned change: hygiene graduates it).
+- ripple #3: test-release-supplement.R loop omits "stale-script" — reject (false: `release_supplement()` stops on any row through one code path, and "missing-script" is also absent).
+- ripple #4: report.R comment on `print_environment()` omits the MD5 — fix now, fixed 19c1400.
+- ripple #5: DESIGN.md example-section text omits the MD5 line — fix now, fixed 19c1400.
+- ripple #6: NEWS.md:246-248 says the section prints the versions — reject (false: still true; the M061 bullet states the MD5 line).
+- ripple #7: NEWS.md:5-6 M058 bullet — reject (false, same reason).
+- ripple #8: `add_report()` help lines 26-29 — reject (false: lines 33-38 of the same help state the MD5 line).
+- ripple #9: README.md:81-83 — reject (false: still true; the README check list names the row).
+- ripple #10: example.qmd and GUIDE.md section text — reject (planned change for example.qmd, left unchanged so the placeholder row still finds it; the GUIDE.md section now names the MD5 line).
+- ripple #11: NEWS.md:108-132 check list omits the row — reject (false: that bullet records an earlier addition; the M061 bullet records this one).
+- ripple #12: re-render rules name one report only — reject (false: not contradicted; GUIDE.md "Shared report code" gives the steps after a report.R change).
+- after fixes on 934fed2: the AC1-AC5 tests, plus the new site-change and byte-order tests, pass (0 failed). Full `devtools::test()` 418 tests, 0 failed, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`). No snapshot files changed. Open-PR read: 0 open PRs, under the feature cap of 2. Amendments: 0. Findings: 20 fix now (5 repeat another lens's finding), 17 rejected (none on the edge ground), 0 follow-up, 3 noted.
