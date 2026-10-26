@@ -42,30 +42,10 @@ save_png <- function(file, draw, dir = file.path(site, "figures")) {
 }
 
 # Print the versions of R and of each package that the render uses, with
-# the home folder shown as ~, and then the MD5 of this file.
-print_environment <- function() {
-  info <- if (requireNamespace("sessioninfo", quietly = TRUE)) {
-    sessioninfo::session_info()
-  } else {
-    utils::sessionInfo()
-  }
-  # Each spelling of the home folder, longest first.
-  windows <- .Platform$OS.type == "windows"
-  homes <- Sys.getenv(c("USERPROFILE", "HOME"))
-  homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
-  if (windows) homes <- c(homes, utils::shortPathName(homes))
-  homes <- c(chartr("\\", "/", homes), chartr("/", "\\", homes))
-  homes <- unique(sub("[/\\\\]+$", "", homes))
-  homes <- homes[!grepl("^([A-Za-z]:)?$", homes)]
-  homes <- homes[order(-nchar(homes))]
-  # Show the home folder as ~ where a path starts with the whole folder.
-  lines <- utils::capture.output(print(info))
-  for (home in homes) {
-    literal <- gsub("([][{}()|^$.*+?\\\\])", "\\\\\\1", home)
-    pattern <- paste0("(?<!\\S)", literal, "(?=[/\\\\]|\\s|$)")
-    lines <- gsub(pattern, "~", lines, perl = TRUE, ignore.case = windows)
-  }
-  writeLines(lines)
+# the home folder shown as ~, and then the MD5 of this file. The MD5 is
+# taken when the `site` chunk reads this file, so a report that later sets
+# `site` to a value of its own still prints it.
+print_environment <- local({
   # The MD5 of this file, with each CR LF read as LF, so that a copy with
   # Windows line ends gives the same hash. check_supplement() compares it
   # with the file to find reports rendered with other text of it.
@@ -77,7 +57,32 @@ print_environment <- function() {
     if (length(cr) > 0) bytes <- bytes[-cr]
   }
   tmp <- tempfile()
-  on.exit(unlink(tmp))
   writeBin(bytes, tmp)
-  writeLines(paste0("Shared report code: _scripts/report.R, MD5 ", unname(tools::md5sum(tmp))))
-}
+  md5 <- unname(tools::md5sum(tmp))
+  unlink(tmp)
+  function() {
+    info <- if (requireNamespace("sessioninfo", quietly = TRUE)) {
+      sessioninfo::session_info()
+    } else {
+      utils::sessionInfo()
+    }
+    # Each spelling of the home folder, longest first.
+    windows <- .Platform$OS.type == "windows"
+    homes <- Sys.getenv(c("USERPROFILE", "HOME"))
+    homes <- c(homes, normalizePath(homes, winslash = "/", mustWork = FALSE))
+    if (windows) homes <- c(homes, utils::shortPathName(homes))
+    homes <- c(chartr("\\", "/", homes), chartr("/", "\\", homes))
+    homes <- unique(sub("[/\\\\]+$", "", homes))
+    homes <- homes[!grepl("^([A-Za-z]:)?$", homes)]
+    homes <- homes[order(-nchar(homes))]
+    # Show the home folder as ~ where a path starts with the whole folder.
+    lines <- utils::capture.output(print(info))
+    for (home in homes) {
+      literal <- gsub("([][{}()|^$.*+?\\\\])", "\\\\\\1", home)
+      pattern <- paste0("(?<!\\S)", literal, "(?=[/\\\\]|\\s|$)")
+      lines <- gsub(pattern, "~", lines, perl = TRUE, ignore.case = windows)
+    }
+    writeLines(lines)
+    writeLines(paste0("Shared report code: _scripts/report.R, MD5 ", md5))
+  }
+})

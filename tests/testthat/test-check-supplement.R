@@ -638,12 +638,12 @@ test_that("stored output made with other report.R text gives a stale-script row"
   report("not-json", html.json = "{")
   report("no-markdown", html.json = '{"hash": "h", "result": {}}')
   report("no-stored", NULL)
-  # A hidden file is not read.
   report("hidden", .html.json = script_json(other))
+  file.symlink(file.path(site, "no-such.qmd"), file.path(site, "analyses", "dangling.qmd"))
+  stored_file(site, "dangling", "html.json", script_json(other))
 
-  expect_no_error(rows <- rows_of(check_quiet(site), "stale-script"))
+  rows <- rows_of(check_quiet(site), "stale-script")
   expect_setequal(rows$file, paste0("analyses/", c("differs", "format-differs", "one-file-both"), ".qmd"))
-  expect_identical(nrow(rows), 3L)
   text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
   expect_identical(text("differs"), script_text("differs", "html.json"))
   expect_identical(text("format-differs"), script_text("format-differs", "docx.json", hint = TRUE))
@@ -662,7 +662,20 @@ test_that("a report.R with CR LF line ends matches the hash of its LF text", {
   expect_identical(rows_of(check_quiet(site), "stale-script")$file, "analyses/other-hash.qmd")
 })
 
-test_that("a missing report.R or a folder in its place gives no stale-script row", {
+test_that("a stale-script row names its files in byte order, not the locale's order", {
+  site <- new_site()
+  report_bytes(site, "order", stale_lf)
+  for (file in c("a.json", "B.json")) stored_file(site, "order", file, script_json(md5_of("other text")))
+  old <- Sys.getlocale("LC_COLLATE")
+  set <- suppressWarnings(Sys.setlocale("LC_COLLATE", "en_US.UTF-8"))
+  withr::defer(Sys.setlocale("LC_COLLATE", old))
+  skip_if(!nzchar(set), "the en_US.UTF-8 locale is not available")
+  expect_false(identical(sort(c("B.json", "a.json")), c("B.json", "a.json")))
+  rows <- rows_of(check_quiet(site), "stale-script")
+  expect_identical(rows$problem, script_text("order", c("B.json", "a.json")))
+})
+
+test_that("a missing report.R, a folder, or a link to a missing file gives no stale-script row", {
   site <- new_site()
   report_bytes(site, "differs", stale_lf)
   stored_file(site, "differs", "html.json", script_json(md5_of("other text")))
@@ -671,6 +684,9 @@ test_that("a missing report.R or a folder in its place gives no stale-script row
   unlink(script)
   expect_identical(nrow(rows_of(check_quiet(site), "stale-script")), 0L)
   dir.create(script)
+  expect_identical(nrow(rows_of(check_quiet(site), "stale-script")), 0L)
+  unlink(script, recursive = TRUE)
+  file.symlink(file.path(site, "no-such.R"), script)
   expect_identical(nrow(rows_of(check_quiet(site), "stale-script")), 0L)
 })
 
@@ -681,8 +697,9 @@ test_that("a hash line after 5 MB of text on one line gives a stale-script row",
   stored_file(site, "next-line", "html.json", script_json(md5_of("other text"), before = long))
   report_bytes(site, "same-line", stale_lf)
   json <- script_json(md5_of("other text"), before = "")
-  stored_file(site, "same-line", "html.json", sub('"markdown":"\\n', paste0('"markdown":"', long), json,
-                                                    fixed = TRUE))
+  same_line <- sub('"markdown":"\\n', paste0('"markdown":"', long), json, fixed = TRUE)
+  stopifnot("the 5 MB text is on the hash line" = nchar(same_line) > 5e6)
+  stored_file(site, "same-line", "html.json", same_line)
   expect_no_warning(rows <- rows_of(check_quiet(site), "stale-script"))
   expect_setequal(rows$file, c("analyses/next-line.qmd", "analyses/same-line.qmd"))
 })

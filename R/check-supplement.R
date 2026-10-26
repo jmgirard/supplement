@@ -109,7 +109,11 @@
 #'   without the Computing
 #'   environment section, or one rendered before the site had a
 #'   `_scripts/report.R` that prints the line. A file that does not parse
-#'   or has no `result.markdown` text holds no hash. When the site has no
+#'   or has no `result.markdown` text holds no hash. Such a line anywhere in
+#'   `result.markdown` counts, also one that the report prints from other
+#'   text, such as the stored output of another report. A report that
+#'   cannot be read, such as a link to a missing file, gives no row. When
+#'   the site has no
 #'   `_scripts/report.R` that can be read, for example when the file is
 #'   missing, is a folder, is a link to a missing file, or cannot be opened,
 #'   the check gives no row.
@@ -721,7 +725,9 @@ check_stale_script <- function(path) {
     files <- files[!startsWith(files, ".") & !dir.exists(file.path(path, dir, files))]
     hashes <- lapply(file.path(path, dir, files), stored_script_hashes)
     differs <- vapply(hashes, function(x) any(x != current), logical(1))
-    if (!any(differs)) {
+    # A report that cannot be read, such as a link to a missing file,
+    # cannot be rendered again, so it gets no row, as in check_stale_output().
+    if (!any(differs) || is.null(report_hash(report))) {
       return(NA_character_)
     }
     named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")

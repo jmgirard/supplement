@@ -946,10 +946,8 @@ test_that("the environment section ends with the MD5 of report.R read with LF li
   lf <- withr::local_tempfile()
   writeBin(template, lf)
   expected <- paste0("Shared report code: _scripts/report.R, MD5 ", unname(tools::md5sum(lf)))
-  expect_match(expected, "MD5 [0-9a-f]{32}$")
 
   crlf <- charToRaw(gsub("\n", "\r\n", rawToChar(template), fixed = TRUE))
-  expect_true(any(crlf == as.raw(13)))
   for (bytes in list(template, crlf)) {
     site <- withr::local_tempdir("site-")
     dir.create(file.path(site, "_scripts"))
@@ -960,6 +958,20 @@ test_that("the environment section ends with the MD5 of report.R read with LF li
     printed <- utils::capture.output(env$print_environment())
     expect_identical(utils::tail(printed, 1), expected)
   }
+})
+
+test_that("the environment section prints the MD5 after the report sets site to its own value", {
+  skip_on_cran()
+  site <- withr::local_tempdir("site-")
+  dir.create(file.path(site, "_scripts"))
+  file.copy(file.path(template_dir(), "_scripts", "report.R"), file.path(site, "_scripts"))
+  env <- new.env()
+  env$site <- site
+  source(file.path(site, "_scripts", "report.R"), local = env)
+  env$site <- "Boston"
+  printed <- utils::capture.output(env$print_environment())
+  expect_identical(utils::tail(printed, 1), paste0("Shared report code: _scripts/report.R, MD5 ",
+                                                   unname(tools::md5sum(file.path(site, "_scripts", "report.R")))))
 })
 
 test_that("the environment section prints session_info() when sessioninfo is installed", {

@@ -127,7 +127,11 @@ stored output holds no such hash gets no row, for example a report
 without the Computing
 environment section, or one rendered before the site had a
 \verb{_scripts/report.R} that prints the line. A file that does not parse
-or has no \code{result.markdown} text holds no hash. When the site has no
+or has no \code{result.markdown} text holds no hash. Such a line anywhere in
+\code{result.markdown} counts, also one that the report prints from other
+text, such as the stored output of another report. A report that
+cannot be read, such as a link to a missing file, gives no row. When
+the site has no
 \verb{_scripts/report.R} that can be read, for example when the file is
 missing, is a folder, is a link to a missing file, or cannot be opened,
 the check gives no row.
