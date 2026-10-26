@@ -919,11 +919,12 @@ test_that("the example page shows the R and knitr versions of its render", {
 })
 
 # Run the code of the example report's session-info chunk with Rscript, after
-# the lines in `before` and the template's _scripts/report.R, and return all
-# it printed as one string.
+# the lines in `before` and the template's _scripts/report.R, with the
+# template folder as the site, and return all it printed as one string.
 run_session_code <- function(before = character(), env = parent.frame()) {
   code <- chunk_code(file.path(template_dir(), "analyses", "example.qmd"), "session-info")
-  shared <- sprintf("source(%s)", deparse(file.path(template_dir(), "_scripts", "report.R")))
+  shared <- c(sprintf("site <- %s", deparse(template_dir())),
+              sprintf("source(%s)", deparse(file.path(template_dir(), "_scripts", "report.R"))))
   dir <- withr::local_tempdir("session-", .local_envir = env)
   writeLines(c(before, shared, code), file.path(dir, "session.R"))
   out <- run_in(dir, home_rscript(), "session.R")
@@ -936,6 +937,41 @@ test_that("the environment section prints sessionInfo() when sessioninfo is not 
   text <- run_session_code(hide_sessioninfo)
   expect_match(text, "attached base packages", fixed = TRUE)
   expect_no_match(text, "Session info", fixed = TRUE)
+})
+
+test_that("the environment section ends with the MD5 of report.R read with LF line ends", {
+  skip_on_cran()
+  template <- read_bytes(file.path(template_dir(), "_scripts", "report.R"))
+  stopifnot("the template's report.R has LF line ends" = !any(template == as.raw(13)))
+  lf <- withr::local_tempfile()
+  writeBin(template, lf)
+  expected <- paste0("Shared report code: _scripts/report.R, MD5 ", unname(tools::md5sum(lf)))
+
+  crlf <- charToRaw(gsub("\n", "\r\n", rawToChar(template), fixed = TRUE))
+  for (bytes in list(template, crlf)) {
+    site <- withr::local_tempdir("site-")
+    dir.create(file.path(site, "_scripts"))
+    writeBin(bytes, file.path(site, "_scripts", "report.R"))
+    env <- new.env()
+    env$site <- site
+    source(file.path(site, "_scripts", "report.R"), local = env)
+    printed <- utils::capture.output(env$print_environment())
+    expect_identical(utils::tail(printed, 1), expected)
+  }
+})
+
+test_that("the environment section prints the MD5 after the report sets site to its own value", {
+  skip_on_cran()
+  site <- withr::local_tempdir("site-")
+  dir.create(file.path(site, "_scripts"))
+  file.copy(file.path(template_dir(), "_scripts", "report.R"), file.path(site, "_scripts"))
+  env <- new.env()
+  env$site <- site
+  source(file.path(site, "_scripts", "report.R"), local = env)
+  env$site <- "Boston"
+  printed <- utils::capture.output(env$print_environment())
+  expect_identical(utils::tail(printed, 1), paste0("Shared report code: _scripts/report.R, MD5 ",
+                                                   unname(tools::md5sum(file.path(site, "_scripts", "report.R")))))
 })
 
 test_that("the environment section prints session_info() when sessioninfo is installed", {

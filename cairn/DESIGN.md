@@ -175,6 +175,15 @@ separator is `/`, `\`, or `\\`, or a quote, a comma with spaces or tabs,
 and a quote after an optional `/`, `\`, or `\\` (M060). It is one PCRE
 pattern with no `.*` between the names, since a `.*` there passed PCRE's
 match limit on a line of a few MB (M059 review).
+Its stale-script check (`check_stale_script()`, M061, D-029) reads the
+hash lines that `print_environment()` in `_scripts/report.R` prints:
+`stored_script_hashes()` takes the top-level `result.markdown` of each
+`.json` file that `check_stale_output()` also reads (both parse through
+`stored_json()`), finds `Shared report code: _scripts/report.R, MD5 ` by a
+fixed-text `gregexpr()`, and keeps the 32 characters after it when they
+are lowercase hex. A report gets a row when one of them differs from
+`report_hash()` of the site's file. A missing file or a folder in its
+place gives no row.
 `R/release-supplement.R`: `release_supplement()` checks `bump`, reads
 `_supplement.yml` once, and from that read checks the current
 `supplement.version` and the `version:` line. It builds the new
@@ -219,9 +228,11 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   `save_png()` and `print_environment()`. Each report reads it with
   `source(..., local = TRUE)` at the end of its `site` chunk, so a report
   calls no supplement function (D-028, M058). Quarto does not publish
-  files whose path starts with `_`, so `docs/` gets no copy. The stored
-  output's hash covers the report file alone, so a change to this file
-  gives no `check_supplement()` row.
+  files whose path starts with `_`, so `docs/` gets no copy. Quarto's
+  stored hash covers the report file alone, so `print_environment()`
+  prints this file's MD5 into each report's output, and
+  `check_supplement()` gives a `"stale-script"` row when it differs from
+  the file (D-029, M061).
 - `_supplement.yml`: the `supplement:` map (title, citation, authors,
   licenses, Zenodo DOIs, data files), loaded through `metadata-files`.
 - `_extensions/supplement/supplement.lua`: shortcodes `supplement-doi`,
@@ -252,7 +263,8 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   ends with the 12-byte PNG `IEND` chunk (D-018, M046). The example ends with a "Computing
   environment" section, a collapsed callout whose chunk calls
   `print_environment()`, which prints `sessioninfo::session_info()` or, without sessioninfo,
-  `utils::sessionInfo()`, with the home folder shown as `~`.
+  `utils::sessionInfo()`, with the home folder shown as `~`, and then a
+  last line with the MD5 of `_scripts/report.R` (M061).
 
 Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when a tool they need,
@@ -319,7 +331,7 @@ builds and deploys is for publishing.
 - Quarto's .gitignore rewrites left: before each render (`renderProject`, a full render or a render by name), Quarto 1.10.19 (`ensureGitignore` in `quarto.js`) rewrites a `.gitignore` that lacks the trimmed lines `/.quarto/` and `**/*.quarto_ipynb`, or lacks `/_*.local` while a root file matches `^_.*?\.local$`, from its trimmed lines plus the missing ones, with LF line ends (CR LF on Windows). The template's `_gitignore` holds those three lines. Two rewrites remain. An author's own `.gitignore` that lacks those lines is rewritten before setup appends to it. A root `env/` folder that holds `pyvenv.cfg` or `conda-meta` makes Quarto add `/env/`, which the template leaves out because a site may keep other files in `env/`. Added 2026-10-24 — M049.
 - Lua project script limits: on a Windows system whose code page lacks a character in the site's path (code page 1252 and `中`), Quarto 1.10.19 cannot render the site at all, since its own `main.lua` filter stops with "cannot encode character", whatever the project scripts are; `nojekyll.lua` itself opens such a path (tested through `quarto pandoc`). On Windows, a dangling link at `.gitignore` or `README.md` stops the render, since C `rename` does not replace it. A setup name that `io.open()` cannot open for a reason other than "no such file" stops the render. A `.gitignore` line of only Unicode spaces counts as non-blank, since Lua's `%s` matches ASCII spaces only. The scripts are untested below Quarto 1.10 (see "Shortcode edge cases"). Accepted at the M048 review; added 2026-10-24 — M048 review.
 - Leftover output limits: the `"leftover-output"` row of `check_supplement()` reads only the folders directly in `_freeze/analyses/`, so a leftover folder inside a subfolder there, or directly in `_freeze/`, gives no row. Any file or folder in `analyses/` with the folder's name before its last `.`, such as a helper `<name>.R`, hides a leftover, and so does a report whose name differs only in letter case, as after a case-only rename on Linux. The help page states these. Accepted at the M042 plan (the match never tells an author to delete live output); added 2026-10-23 — M042 review. See the candidate row "Match folder names across Unicode forms".
-- Format hint on a live file: the `"stale-output"` row's format hint appears whenever one stored output file of a report matches and another differs. After `quarto render <file> --to html`, a live `docx.json` differs while `html.json` matches, so the hint says it can be from a dropped format. The hint says "can be" and gives the render steps for the other case. Accepted at the M043 question set (the user chose naming the files over reading the formats a report renders); added 2026-10-23 — M043 review.
+- Format hint on a live file: the `"stale-output"` row's format hint appears whenever one stored output file of a report matches and another differs. After `quarto render <file> --to html`, a live `docx.json` differs while `html.json` matches, so the hint says it can be from a dropped format. The hint says "can be" and gives the render steps for the other case. The `"stale-script"` row's hint (M061) works the same way. Accepted at the M043 question set (the user chose naming the files over reading the formats a report renders); added 2026-10-23 — M043 review.
 - YAML insert edge shapes: `add_report()` and `add_data()` edit YAML as text, so some valid shapes at the end of the last item are refused: `#` lines inside a block scalar, and `|+` trailing blank lines. A menu that already lists `analyses/<name>.qmd` with the file gone gets a second item. A file with CR-only line endings reads as one line, so its menu or list reads as missing. A block-scalar value at the very end of a file with no final line break gains a trailing line break after the insert. Accepted under the text-insertion rule (D-010); routed from candidates 2026-10-18; added 2026-10-18 — M007 review.
 - Shortcode edge cases: the home-page shortcodes read `_supplement.yml` values after Markdown parsing, so some values render wrongly or disagree with `write_citation()`. `file` names with `%`, `#`, `--`, or `_x_` break. A `data` map instead of a list renders nothing, and bare strings give `not found: ''`. A path outside the project or an absolute path renders but is not published. A `{{< meta >}}` value that names an existing path is rewritten on subfolder pages, and a description written as `../data` shows as `data` there. A fresh site has an empty paragraph under "Archived Version". `quarto-required: ">=1.4.0"` is untested below 1.10, and so are the template's Lua project scripts, though `check_tools()` accepts Quarto 1.4.0 and later (added M048). The footer cannot see backslash escapes or HTML entities in a license id, or an unquoted number or `yes` in a license value (these render while `write_citation()` refuses them), and the badge reads `--`, `'`, or a non-breaking space in a DOI suffix after Markdown changes it. Narrowed by M014 (`supplement-license` stops unless it has one argument, `code` or `content`). Accepted at the 2026-10-19 triage; routed from candidates 2026-10-19; added 2026-10-18 — M004 review, M014 plan.
 - Footer and badge remainder: more cases where the footer or badge disagrees with `write_citation()`, as in the shortcode entry above. A DOI with Markdown emphasis (`10.5281/*zenodo*.1`) gives a badge for `10.5281/zenodo.1`, while `CITATION.cff` holds the raw text. `license: "MIT"` or `zenodo: "x"` (text where a map belongs) renders an empty footer or no badge, while `write_citation()` raises `supplement_error_field_type`. Unquoted `code: 1.0` shows "1" linked to spdx.org/licenses/1.html. A site that keeps the old footer (`[{{< supplement-license code >}}](…LICENSE.md)`) and copies in the new extension gets a link inside a link. An id that SPDX lists but the footer's table of 8 does not, written in another letter case (`apache-1.1`), may link to a missing page if spdx.org paths depend on case (not checked). The `supplement-download` link joins a two-paragraph `zenodo.archive-url` into one address. Accepted at the 2026-10-19 triage; routed from candidates 2026-10-19; added 2026-10-19 — M014 review.

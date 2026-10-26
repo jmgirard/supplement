@@ -76,6 +76,29 @@ test_that("a render by name clears the stale-output row that a changed report gi
   expect_identical(stale(), character())
 })
 
+test_that("a render by name clears the stale-script row that a changed report.R gives", {
+  skip_if_no_quarto()
+  site <- new_site()
+  suppressMessages(add_report("models", "Model Comparison", "Fits and compares the models.", path = site))
+  stale <- function() {
+    result <- suppressMessages(check_supplement(site))
+    result$file[result$check == "stale-script"]
+  }
+  render <- function() {
+    rendered <- run_in(site, "quarto", c("render", "analyses/models.qmd"))
+    expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  }
+  render()
+  expect_identical(stale(), character())
+
+  script <- file.path(site, "_scripts", "report.R")
+  bytes <- readBin(script, "raw", file.size(script))
+  writeBin(c(bytes, charToRaw("# One more line.\n")), script)
+  expect_identical(stale(), "analyses/models.qmd")
+  render()
+  expect_identical(stale(), character())
+})
+
 test_that("the stale-output row names the stored output of a dropped format until it is deleted", {
   skip_if_no_quarto()
   site <- new_site()
