@@ -640,6 +640,92 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
   expect_identical(rows$file, "_freeze/analyses/deleted")
 })
 
+missing_script_text <- function(paths) {
+  paste0("The site has no file _scripts/report.R, which these reports name, so a render of them can fail: ",
+         paths, ". Copy the template's file from ",
+         'system.file("template", "_scripts", "report.R", package = "supplement")',
+         " to _scripts/report.R, or restore your own copy, then commit _scripts/report.R.",
+         " If a file named _scripts or a folder named _scripts/report.R is in the way, move it first,",
+         " and make the _scripts folder if it is missing.")
+}
+
+script_of <- function(site) file.path(site, "_scripts", "report.R")
+
+source_line <- 'source(file.path(site, "_scripts", "report.R"), local = TRUE)'
+
+test_that("reports that name a missing _scripts/report.R give one missing-script row", {
+  site <- new_site()
+  unlink(script_of(site))
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+
+  site <- new_site()
+  unlink(script_of(site))
+  dir.create(script_of(site))
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+
+  # `report.R` at the end of a line counts.
+  site <- new_site()
+  unlink(script_of(site))
+  unlink(file.path(site, "analyses", "example.qmd"))
+  report_lines(site, "last", c("Text.", "# _scripts/report.R"))
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+
+  # A `report.R` before `_scripts` does not hide a later one.
+  unlink(file.path(site, "analyses", "last.qmd"))
+  report_lines(site, "both", "report.R, then _scripts/report.R")
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+})
+
+test_that("a long line that names a missing _scripts/report.R gives a missing-script row", {
+  site <- new_site()
+  unlink(script_of(site))
+  unlink(file.path(site, "analyses", "example.qmd"))
+  report_lines(site, "long", paste(source_line, strrep("x", 5e6)))
+  expect_no_warning(rows <- rows_of(check_quiet(site), "missing-script"))
+  expect_identical(rows$file, "_scripts/report.R")
+})
+
+test_that("a link to a missing _scripts/report.R gives a missing-script row", {
+  # On Windows a file link to a missing file reads as an existing file.
+  skip_on_os("windows")
+  site <- new_site()
+  unlink(script_of(site))
+  file.symlink(file.path(site, "no-such.R"), script_of(site))
+  expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+})
+
+test_that("the missing-script row names its reports in byte order", {
+  site <- new_site()
+  unlink(script_of(site))
+  report_lines(site, "B", source_line)
+  report_lines(site, "a", source_line)
+  expect_identical(rows_of(check_quiet(site), "missing-script")$problem,
+                   missing_script_text('"analyses/B.qmd", "analyses/a.qmd", "analyses/example.qmd"'))
+
+  # Windows file names cannot hold `"`.
+  skip_on_os("windows")
+  report_lines(site, 'q"r', source_line)
+  expect_identical(rows_of(check_quiet(site), "missing-script")$problem, missing_script_text(paste(
+    '"analyses/B.qmd", "analyses/a.qmd", "analyses/example.qmd",', '"analyses/q\\"r.qmd"'
+  )))
+})
+
+test_that("no missing-script row when the file is there or no report names it", {
+  expect_identical(nrow(rows_of(check_quiet(new_site()), "missing-script")), 0L)
+
+  site <- new_site()
+  unlink(script_of(site))
+  unlink(file.path(site, "analyses", "example.qmd"))
+  report_lines(site, "plain", 'source("report.R")')
+  report_lines(site, "rmd", "See _scripts/report.Rmd.")
+  report_lines(site, "my-scripts", 'source("my_scripts/report.R")')
+  report_lines(site, "myreport", 'source(file.path(site, "_scripts", "myreport.R"))')
+  report_lines(site, "order", "report.R comes before _scripts here.")
+  dir.create(file.path(site, "analyses", "sub"))
+  writeLines(source_line, file.path(site, "analyses", "sub", "inner.qmd"))
+  expect_identical(nrow(rows_of(check_quiet(site), "missing-script")), 0L)
+})
+
 test_that("a site with no docs folder gives one not-rendered row", {
   site <- new_site()
   result <- check_quiet(site)

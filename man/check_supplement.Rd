@@ -124,6 +124,31 @@ in \verb{_freeze/} are not read. A file or folder in \verb{analyses/} of the
 same name, such as \verb{<name>.R}, hides a leftover folder. So does a
 report whose name differs only in letter case, as after a report is
 renamed only in letter case on Linux.
+\item \code{"missing-script"}: the site has no file \verb{_scripts/report.R}, and a
+\code{.qmd} report directly in \verb{analyses/}, from the same list of reports,
+names it. The template's example report and each report from
+\code{\link[=add_report]{add_report()}} read it. The file counts as missing when \code{file.exists()}
+is \code{FALSE} for it or when it is a folder. A report names it when one of
+its lines holds \verb{_scripts} and, later on that line, \code{report.R}, where
+neither has an ASCII letter, digit, \verb{_}, or \code{.} right before it and
+\code{report.R} has none right after it, as in
+\code{source(file.path(site, "_scripts", "report.R"), local = TRUE)}. A line
+of prose or a comment also counts. One row names each such report by
+its path from the site folder, in byte order, between double quotes
+with a \verb{\\} before each \verb{\\} and \verb{"} in it, and says to copy the
+template's file from
+\code{system.file("template", "_scripts", "report.R", package = "supplement")}
+and commit it. A site made before the template had the file gives no
+row when its reports do not name it. A line in a file that the report
+includes is not read, a line of another form, such as
+\code{source("report.R")} or a call that puts \verb{_scripts} and \code{report.R} on
+two lines, does not count, and the letter case of both names must
+match. Reports in folders inside \verb{analyses/} are not read, and a report
+that cannot be read, such as a link to a missing file, names nothing.
+On Windows a file link to a missing file
+reads as an existing file, and on a disk that ignores letter case a
+file such as \verb{_scripts/Report.R} reads as \verb{_scripts/report.R}, so
+neither gives a row there.
 \item \code{"not-rendered"}: the site has no \verb{docs/} folder.
 \item \code{"broken-link"}: an \code{href}, \code{src}, or \code{xlink:href} link on a page in
 \verb{docs/} to a file that is not in \verb{docs/}, or to a folder there with no
