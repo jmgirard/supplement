@@ -122,16 +122,16 @@ to make a site.
 ``` r
 site <- file.path(tempdir(), "data-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpHpEmAD/data-example.
+#> ✔ Made a supplement site in /tmp/Rtmpn38xUw/data-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpHpEmAD/data-example once before your first
+#> ℹ Run `quarto render` in /tmp/Rtmpn38xUw/data-example once before your first
 #>   commit.
 scores <- file.path(tempdir(), "scores.csv")
 write.csv(data.frame(id = 1:3, score = c(4, 7, 5)), scores, row.names = FALSE)
 add_data(scores, "Scores of each participant", path = site)
-#> ✔ Copied /tmp/RtmpHpEmAD/scores.csv to data/scores.csv and added it to the data
+#> ✔ Copied /tmp/Rtmpn38xUw/scores.csv to data/scores.csv and added it to the data
 #>   list in _supplement.yml.
 #> ℹ Every file in data/ is published on the site.
 list.files(file.path(site, "data"))

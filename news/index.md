@@ -17,9 +17,20 @@
   copies the template’s file into it, and it never replaces a file that
   is there. Older reports keep their own code and still render.
   [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
-  compares each report’s own text with its stored output. It does not
-  read `_scripts/report.R`, so a change to that file gives no
-  stale-output row. To take the change, render each report by name.
+  compares each report’s own text with its stored output. Of
+  `_scripts/report.R` it looks only at whether the file exists, so a
+  change to that file gives no stale-output row. To take the change,
+  render each report by name.
+- If the site has no `_scripts/report.R` file and a report directly in
+  `analyses/` names it, as the template’s
+  [`source()`](https://rdrr.io/r/base/source.html) line does,
+  [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+  gives a `"missing-script"` row. So
+  [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
+  stops before it releases reports whose render can fail. If a site made
+  before the template had the file has reports that do not name it,
+  [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+  gives no row.
 - The help pages, the guide “Publish a supplement site”, and this news
   file are built into a pkgdown website for
   <https://jmgirard.github.io/supplement/>, which DESCRIPTION’s `URL`

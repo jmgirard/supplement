@@ -133,6 +133,34 @@ The checks, by the value in the `check` column:
   folder. So does a report whose name differs only in letter case, as
   after a report is renamed only in letter case on Linux.
 
+- `"missing-script"`: the site has no file `_scripts/report.R`, and a
+  `.qmd` report directly in `analyses/`, from the same list of reports,
+  names it. The template's example report and each report from
+  [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md)
+  read it. The file counts as missing when
+  [`file.exists()`](https://rdrr.io/r/base/files.html) is `FALSE` for it
+  or when it is a folder. A report names it when one of its lines holds
+  `_scripts` and, later on that line, `report.R`, where neither has an
+  ASCII letter, digit, `_`, or `.` right before it and `report.R` has
+  none right after it, as in
+  `source(file.path(site, "_scripts", "report.R"), local = TRUE)`. A
+  line of prose or a comment also counts. One row names each such report
+  by its path from the site folder, in byte order, between double quotes
+  with a `\` before each `\` and `"` in it, and says to copy the
+  template's file from
+  `system.file("template", "_scripts", "report.R", package = "supplement")`
+  and commit it. A site made before the template had the file gives no
+  row when its reports do not name it. A line in a file that the report
+  includes is not read, a line of another form, such as
+  `source("report.R")` or a call that puts `_scripts` and `report.R` on
+  two lines, does not count, and the letter case of both names must
+  match. Reports in folders inside `analyses/` are not read, and a
+  report that cannot be read, such as a link to a missing file, names
+  nothing. On Windows a file link to a missing file reads as an existing
+  file, and on a disk that ignores letter case a file such as
+  `_scripts/Report.R` reads as `_scripts/report.R`, so neither gives a
+  row there.
+
 - `"not-rendered"`: the site has no `docs/` folder.
 
 - `"broken-link"`: an `href`, `src`, or `xlink:href` link on a page in
@@ -298,17 +326,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpHpEmAD/check-example.
+#> ✔ Made a supplement site in /tmp/Rtmpn38xUw/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpHpEmAD/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/Rtmpn38xUw/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpHpEmAD/check-example:
+#> ✖ 11 problems found in /tmp/Rtmpn38xUw/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report

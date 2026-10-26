@@ -68,9 +68,11 @@ when the sessioninfo package is installed and with
 otherwise. It shows the home folder as `~`.
 
 [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
-compares the text of each report with the hash in its stored output and
-does not read `_scripts/report.R`. So after a change to that file, it
-gives no row. Render each report by name to take the change.
+compares the text of each report with the hash in its stored output. Of
+`_scripts/report.R` it looks only at whether the file is there. If a
+report names the file and the file is missing, it gives a row, and a
+change to the file gives none. Render each report by name to take the
+change.
 
 The function adds lines to `_quarto.yml` as text, so the other lines of
 the file, its comments included, stay as they are. It finds the menu as
@@ -146,15 +148,15 @@ to make a site.
 ``` r
 site <- file.path(tempdir(), "report-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpHpEmAD/report-example.
+#> ✔ Made a supplement site in /tmp/Rtmpn38xUw/report-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpHpEmAD/report-example once before your first
+#> ℹ Run `quarto render` in /tmp/Rtmpn38xUw/report-example once before your first
 #>   commit.
 add_report("models", "Model Comparison", "Fits and compares the models.", path = site)
 #> ✔ Wrote analyses/models.qmd and added it to the Analyses menu in _quarto.yml.
-#> ℹ Run `quarto render analyses/models.qmd` in /tmp/RtmpHpEmAD/report-example to
+#> ℹ Run `quarto render analyses/models.qmd` in /tmp/Rtmpn38xUw/report-example to
 #>   run the report.
 cat(readLines(file.path(site, "analyses", "models.qmd")), sep = "\n")
 #> ---

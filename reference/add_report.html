@@ -113,9 +113,10 @@ prints the R and package versions of the render, with
 and with <code><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">utils::sessionInfo()</a></code> otherwise. It shows the home folder as
 <code>~</code>.</p>
 <p><code><a href="check_supplement.html">check_supplement()</a></code> compares the text of each report with the hash in
-its stored output and does not read <code>_scripts/report.R</code>. So after a
-change to that file, it gives no row. Render each report by name to
-take the change.</p>
+its stored output. Of <code>_scripts/report.R</code> it looks only at whether the
+file is there. If a report names the file and the file is missing,
+it gives a row, and a change to the file gives none. Render each report
+by name to take the change.</p>
 <p>The function adds lines to <code>_quarto.yml</code> as text, so the other lines of
 the file, its comments included, stay as they are. It finds the menu as
 the item with <code>text: Analyses</code> under <code>website: navbar: left:</code> (or
@@ -177,15 +178,15 @@ make a site.</p></div>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"report-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpHpEmAD/report-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/Rtmpn38xUw/report-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpHpEmAD/report-example</span> once before your first</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/Rtmpn38xUw/report-example</span> once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="fu">add_report</span><span class="op">(</span><span class="st">"models"</span>, <span class="st">"Model Comparison"</span>, <span class="st">"Fits and compares the models."</span>, path <span class="op">=</span> <span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Wrote <span style="color: #0000BB;">analyses/models.qmd</span> and added it to the Analyses menu in <span style="color: #0000BB;">_quarto.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render analyses/models.qmd` in <span style="color: #0000BB;">/tmp/RtmpHpEmAD/report-example</span> to</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render analyses/models.qmd` in <span style="color: #0000BB;">/tmp/Rtmpn38xUw/report-example</span> to</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   run the report.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">site</span>, <span class="st">"analyses"</span>, <span class="st">"models.qmd"</span><span class="op">)</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">"\n"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
