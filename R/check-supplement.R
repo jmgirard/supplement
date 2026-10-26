@@ -238,6 +238,22 @@
 #'   its `>` ends the tag, so an unquoted value keeps the `<e9` part and
 #'   the later attributes of that tag are not read. A second attribute of
 #'   the same name is also read.
+#' * `"web-link"`: only with `web_links = TRUE`, a web address on a page in
+#'   `docs/` that fails. The check reads the same pages and values as the
+#'   `"broken-link"` check, in the same way, and keeps each value that
+#'   starts with `http:` or `https:` in any letter case, with any `#` part
+#'   removed. A page that the `"broken-link"` check cannot read gives no
+#'   `"web-link"` row. Each address is requested once, one after another,
+#'   with a HEAD request that follows redirects and waits up to 10 seconds.
+#'   A site with many addresses can take minutes. An address gets a row
+#'   when no response comes, such as for an unknown host or a timeout, or
+#'   when the last response has a status of 400 or above. The row names
+#'   the first page, in byte order of path, that links the address. For
+#'   status 401, 403, 405, or 429, the row says that the server refused the
+#'   check's request and that the link can still work in a browser, since
+#'   some servers answer a script or a HEAD request that way.
+#'   [release_supplement()] does not run this check, so its rows never
+#'   stop a release.
 #' * `"unpublished-figure"`: a paper figure that the last render did not
 #'   copy into `docs/`. The check takes each regular file in `figures/`, and
 #'   in the folders in it, that is reached without passing through a
@@ -305,6 +321,9 @@
 #' it skips these three checks and says so.
 #'
 #' @param path The folder of the site.
+#' @param web_links `TRUE` to also request each web address on the pages in
+#'   `docs/` and give the `"web-link"` rows. This needs a network. The
+#'   default, `FALSE`, makes no web request.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
@@ -316,7 +335,8 @@
 #' The function stops with an error of class `supplement_error` and one of
 #' these classes:
 #'
-#' * `supplement_error_argument`: `path` is not a single non-empty string.
+#' * `supplement_error_argument`: `path` is not a single non-empty string,
+#'   or `web_links` is not `TRUE` or `FALSE`.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 #' * `supplement_error_parse`: the yaml package cannot read
 #'   `_supplement.yml`, as for [write_citation()].

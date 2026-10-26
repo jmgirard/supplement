@@ -150,7 +150,12 @@ package, M021). `decode_refs()` decodes five named and the number
 character references, and the check resolves each link by path segments
 inside `docs/`, matching each name's
 letter case as GitHub Pages does, and fails a link when a part of its
-path resolves outside `docs/`. A bad DOI in `CITATION.cff` or on the
+path resolves outside `docs/`. With `web_links = TRUE` (M063, D-030),
+`check_web_links()` takes the `http` and `https` values of the same pages
+through `page_values()`, the read-and-trim step that `page_links()` also
+uses, and requests each address once with `url_status()`, a HEAD request
+through base R's `curlGetHeaders()` that follows redirects with a
+10-second timeout. `release_supplement()` never passes the argument. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
 Its placeholder check (`check_placeholders()`, M036) compares four
 `_supplement.yml` values with the installed template's, read through

@@ -172,8 +172,10 @@ In the R console, in the site folder, look for problems:
 supplement::check_supplement()
 ```
 
-Fix each problem that it prints, render again, and run it again. When it
-finds no problem, commit and push in a terminal in the site folder:
+Fix each problem that it prints, render again, and run it again. To also
+test the web addresses on the site's pages, which needs a network, run
+`supplement::check_supplement(web_links = TRUE)`. When it finds no
+problem, commit and push in a terminal in the site folder:
 
 ```sh
 git add -A

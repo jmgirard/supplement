@@ -198,7 +198,9 @@ supplement::check_supplement()
 ```
 
 It changes no file. It prints each problem and returns the problems as a
-data frame. It finds:
+data frame. `supplement::check_supplement(web_links = TRUE)` also requests
+each web address on the site's pages and gives a row for each one that
+fails. This needs a network, and a release does not run it. It finds:
 
 - files larger than 100 MiB, which GitHub refuses
 - `.rds`, `.rda`, `.RData`, `.qs`, and `.qs2` files that git tracks or

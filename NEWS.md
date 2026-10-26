@@ -1,5 +1,12 @@
 # supplement 0.0.0.9000
 
+* `check_supplement()` has a new argument, `web_links`. With
+  `web_links = TRUE`, it requests each `http` and `https` address on the
+  pages in `docs/`. An address that gives no response, or a status of 400
+  or above, gets a `"web-link"` row. For status 401, 403, 405, or
+  429, the row says that the link can still work in a browser. The
+  default is `FALSE`, which makes no web request, and
+  `release_supplement()` does not run this check.
 * `check_supplement()` gives the `"placeholder"` row for the example
   report of an earlier version of the template, so a site made before the
   example last changed still gets it. An unchanged example file also gets
