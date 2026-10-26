@@ -43,8 +43,8 @@
 
 - [x] T1: Add a reader beside `report_hash()` (`R/check-supplement.R:824`) that reads the bytes with `readBin()`, drops a leading `EF BB BF`, turns CR LF and then lone CR into LF, drops one final LF, and returns the MD5, or NULL on a read error or warning. Leave `report_hash()` unchanged.
 - [x] T2: Copy each AC1 version with `git show <commit>:inst/template/analyses/example.qmd` into `tests/testthat/fixtures/example-qmd/<commit>.qmd`, byte for byte.
-- [ ] T3: In `placeholder_example_rows()` (`R/check-supplement.R:1345`), compare the site file's normalized MD5 with a list of known normalized MD5s per file (the eight report versions, the one data version) and with the installed template's copy. Set the size bound from the largest known version's byte size, not the current template's. A comment beside the list names the commits and the procedure that produced each MD5 (derived-figures rule).
-- [ ] T4: Tests in `tests/testthat/test-check-supplement.R`: each fixture gives the row (AC1); the AC2 plants; the AC3 no-row cases, keeping the existing added-line-break case at line 1866; a test that fails when the installed template's report or data is not in the known list, so a later change to the example must add its MD5.
+- [x] T3: In `placeholder_example_rows()` (`R/check-supplement.R:1345`), compare the site file's normalized MD5 with a list of known normalized MD5s per file (the eight report versions, the one data version) and with the installed template's copy. Set the size bound from the largest known version's byte size, not the current template's. A comment beside the list names the commits and the procedure that produced each MD5 (derived-figures rule).
+- [x] T4: Tests in `tests/testthat/test-check-supplement.R`: each fixture gives the row (AC1); the AC2 plants; the AC3 no-row cases, keeping the existing added-line-break case at line 1866; a test that fails when the installed template's report or data is not in the known list, so a later change to the example must add its MD5.
 - [ ] T5: Update the roxygen `"placeholder"` bullet and the older-template sentence (`R/check-supplement.R:281-289`), run `devtools::document()`, add a `NEWS.md` bullet, and update `cairn/DESIGN.md` (the placeholder paragraph near line 158, the Known issues entry at line 348).
 - [ ] T6: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
@@ -62,6 +62,8 @@
 - 2026-10-26: criteria audit (full mode, fresh Opus reader): 5 findings, all fixed. AC1 names `2db94f2` as the current copy; AC2 tests the three differences together on `fbc2cab`, the version nearest the size bound, and T3 bases the bound on the largest version; AC2 probes lone CR and mixed line ends; AC3 adds a BOM after the first line and a trailing space; AC4 removes the Known issues pointer. The auditor confirmed the eight commits, 8 distinct MD5s after normalization, and no conflict with the current 5,486-byte bound.
 - 2026-10-26: T1 done: `text_hash()` added beside `report_hash()`, which is unchanged. Named for what it reads (any text file), since it serves the data file too.
 - 2026-10-26: T2 done: eight fixtures in `tests/testthat/fixtures/example-qmd/<commit>.qmd` from `git show`; `.gitattributes` keeps them LF on every checkout. Their normalized MD5s are 8 distinct values; `2db94f2` equals the installed template's.
+- 2026-10-26: T3 done: `example_versions` (MD5s by commit) and `example_version_bytes` (5090 and 86) in `R/check-supplement.R`; the size bound is twice the larger of the largest version and the installed copy.
+- 2026-10-26: T4 done: four tests. Plants: with the old `report_hash()` comparison, 7 of 8 versions and 5 of 6 editor-save cases failed; with a normalizer that also drops every BOM byte and spaces before LF, both no-row probes failed. Full suite 422 tests, 0 failed, 10 skipped.
 
 ## Decisions
 
