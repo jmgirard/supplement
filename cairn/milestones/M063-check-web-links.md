@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M063: Check web links on the rendered site
 
-- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
@@ -88,6 +88,8 @@
 - 2026-10-26: claim audit: 53 claims read, 2 corrected — R/check-supplement.R, man/check_supplement.Rd, NEWS.md, cairn/DESIGN.md. (1) The 10-second timeout holds only on R 4.1.0 or later, where curlGetHeaders() gained `timeout`, and DESCRIPTION sets no R floor. url_status() now passes `timeout` only when base::curlGetHeaders() has it, calling do.call("curlGetHeaders") so the NULL binding is skipped, and the help says "on R 4.1.0 or later". Chosen over adding `Depends: R (>= 4.1.0)`, a dependency change the plan did not grant. (2) "No response" was wrong for certificate errors and addresses curl rejects ("URL rejected: No host part"), so the row now says "could not be requested". Also added a row for a non-numeric or NA status in web_problem(). Checkpoint: the full check runs again before T5 is ticked.
 - 2026-10-26: T5 done. devtools::check() on f6ac051: 0 errors, 0 warnings, 1 note (the local .claude folder, as at M062), with the tests run inside it. Status set to review.
 - 2026-10-26: review checkpoint: evidence recorded for AC1–AC4 and AC6–AC8. AC5 is held, since its "fixed positive timeout" cannot hold on R before 4.1.0. Four reviewers are running.
+- 2026-10-26: review pass 1: four lenses gave 30 findings. 12 were fixed now in 44341af, 3 went to follow-up rows ("Read each page once for web links", "Request web addresses with invalid bytes", and an addition to "Retry refused web links with GET"), and 15 were rejected (8 false, 5 planned change, 2 style).
+- 2026-10-26: amendment routed: AC5 — "a fixed positive `timeout`" cannot hold on R before 4.1.0, where curlGetHeaders() has no `timeout` argument, and the test the criterion names runs only on the R in use. Status in-progress for the AC5 amendment alone.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
@@ -104,3 +106,39 @@ Evidence gathered 2026-10-26 on m063-check-web-links at ef8ffa5 (R 4.6.1, macOS)
 - AC6: "the release runs the real check without the web link check" passes, 2 expectations, not skipped (git present). checked_site() with an `https` link in docs/index.html releases 1.0.0, and the url_status() mock that counts calls (and would return 404) counts 0. release_supplement() calls `check_supplement(path)` (R/release-supplement.R:205).
 - AC7: man/check_supplement.Rd's "web-link" item names the addresses (http/https values of the broken-link pages, fragment removed), redirects, one-after-another requests with a 10-second wait on R 4.1.0 or later, the failure and 400-or-above rule, the 401/403/405/429 sentence, that unreadable pages give no row, and that release_supplement() does not run it. NEWS.md has one bullet. README.md:121 and inst/template/GUIDE.md:201 name `web_links = TRUE` in the paragraph after the call.
 - AC8: grep of tests/testthat/*.R for `web_links = TRUE`, `check_web_links`, and `url_status(`: each call runs after a url_status() mock (mock_status(), the AC1 stop mock, the AC6 counter) or under a curlGetHeaders mock (the url_status() test). The help example calls `check_supplement(site)` with the default. `devtools::document()` gave no diff. devtools::check() on f6ac051: 0 errors, 0 warnings, 1 note (local .claude folder); ef8ffa5 differs from f6ac051 only in cairn/ files. `pkgdown::check_pkgdown()`: no problems.
+- AC5: held, unticked. On R 4.6.1, "url_status() follows redirects with a timeout and gives the status or the error message" passes: redirect = TRUE, timeout 10, the status, and the folded error message. But since the claim-audit fix, url_status() passes no `timeout` on R before 4.1.0, where curlGetHeaders() has no such argument. The criterion's "a fixed positive `timeout`" cannot hold there for any implementation, and the test it names runs only on R 4.6.1. That is a wrong criterion, not a defect: amendment routed.
+
+Gate: cairn_validate.py all checks passed (1 advisory, the 8-criterion sizing WARN). No principle changed, so cairn_impact.py was not run. `devtools::document()` gave no diff. No README.Rmd. `pkgdown::check_pkgdown()`: no problems. NEWS.md has the entry, with no milestone number. No new top-level file. devtools::check() on f6ac051: 0 errors, 0 warnings, 1 note (the local .claude folder, not in the built package from git). After the fix-now commit 44341af, devtools::test(): 431 tests, 0 failed. The first run of that suite failed "the license shortcode shows nothing for an empty value or no license map" (test-shortcodes.R), which passed alone with NOT_CRAN=true and in a second full run. That test does not touch the changed code.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: test-check-supplement.R:2105 asserts a numeric timeout, which fails on R before 4.1.0 — fix now, fixed 44341af (the assertion holds only where curlGetHeaders() takes `timeout`, else expects none). The AC5 wording goes to an amendment.
+- diff-bug #2: an address with a space is sent raw. libcurl rejects it ("URL rejected: Malformed input to a URL function", run against 127.0.0.1:9), so the row is false. A byte that is not valid UTF-8 is requested as the text `<e9>` — the space part fixed now, fixed 44341af (url_status() sends a space as %20, with a test). The invalid-byte part is a follow-up: new row "Request web addresses with invalid bytes". Non-ASCII UTF-8 reached curl unchanged in the same run.
+- diff-bug #3: a bare `http:` value is requested and gives an error row — reject, false: such a link is broken in a browser too, so the row is right.
+- diff-bug #4: links that start with `//` are checked by neither check, and the help does not say so — fix now, fixed 44341af (help sentence).
+- diff-bug #5: servers that answer HEAD with 400, 404, or 501 get rows with no browser note — follow-up, absorbed into "Retry refused web links with GET".
+- diff-bug #6: the url_status() comment said that before R 4.1.0 it "waits as long as libcurl does", which was not read from any source — fix now, fixed 44341af (comment now says only that no timeout is passed).
+- diff-bug #7: each page is read twice with web_links = TRUE — follow-up, new row "Read each page once for web links".
+- diff-bug #8: a DESIGN.md line is 118 characters — reject, style.
+- diff-bug #9: the AC3 test checked the status text only for 404 — fix now, fixed 44341af (400, 404, and 500 asserted).
+- diff-bug #10: the five bad values, the four refused statuses, and the three statuses below 400 run one code path each — reject, planned change (AC1, AC3, and AC4 name each input).
+- diff-bug #11: the AC2 test and the web_addresses() test assert the same address set — reject, false: the AC2 test records url_status() calls through check_supplement(), and the other reads web_addresses() and its pages.
+- diff-bug #12: three test helper comments restate the code — reject, style.
+- blame-history #1: the "broken-link" help item said "no web address is requested" — fix now, fixed 44341af.
+- blame-history #2: the vignette put the web check under "Fix each problem", though some web rows cannot be fixed — fix now, fixed 44341af (the vignette now says such a row can come from a site the author does not control).
+- blame-history #3: a reference such as `&eacute;` stays encoded, so the request differs from a browser's, and the "web-link" item did not say so — fix now, fixed 44341af (help sentence).
+- blame-history #4: the help title line "problems that can break a release" overstates now that web rows do not stop one — reject, false: a dead web link is a problem in the released site, and the item says release does not run the check.
+- blame-history #5: release_supplement()'s help did not say that it skips the web check — fix now, fixed 44341af.
+- blame-history #6: check_web_links() repeated sort_bytes()'s byte-order code — fix now, fixed 44341af (order_bytes() shared).
+- blame-history #7: grepl() and sub() in web_addresses() lack useBytes — reject, false: the values are valid UTF-8 after show_text(), and page_links() runs grepl() on the same values.
+- blame-history #8: a comment says "page_links() then returns FALSE" — reject, false: it still does, through page_values().
+- blame-history #9: DESIGN.md's "R 4.1.0" for the timeout is unverified — reject, false: the claim audit read `?curlGetHeaders` ("Added in R 4.1.0").
+- prior-review #1: each page is read twice — follow-up, the same row as diff-bug #7.
+- prior-review #2: addresses with spaces or non-ASCII text are sent unencoded — fix now for spaces, fixed 44341af; non-ASCII reached curl unchanged; invalid bytes are a follow-up, as for diff-bug #2.
+- prior-review #3: the README line partly reverses M051's move of check limits to the help page — reject, planned change (AC7 asks for the line).
+- prior-review #4: the new release test starts with skip_if_no_git() — reject, false: checked_site() is a git site that the release's real check needs, and the test ran unskipped.
+- ripple #1: the "broken-link" help item contradicts the new check — fix now, fixed 44341af (as blame-history #1).
+- ripple #2: DESIGN.md's list of check_supplement()'s outside calls omits the network — reject, false: the same paragraph describes the curlGetHeaders() request.
+- ripple #3: the candidate row "Check web links on the rendered site" still asks for this work — reject, planned change: post-merge hygiene graduates it.
+- ripple #4: test mocks of check_supplement() have no web_links formal — reject, false: they stand in for calls that pass only `path`.
+- ripple #5: README.md and GUIDE.md put the web sentence before "It finds:" — reject, planned change (AC7 places the line next to the call).
