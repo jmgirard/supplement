@@ -18,8 +18,8 @@
 * If the site has no `_scripts/report.R` file and a report directly in
   `analyses/` names it, as the template's `source()` line does,
   `check_supplement()` gives a `"missing-script"` row. So
-  `release_supplement()` stops before it releases reports that cannot
-  render again. If a site made before the template had the file has
+  `release_supplement()` stops before it releases reports whose render
+  can fail. If a site made before the template had the file has
   reports that do not name it, it gives no row.
 * The help pages, the guide "Publish a supplement site", and this news
   file are built into a pkgdown website for

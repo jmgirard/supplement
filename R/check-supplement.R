@@ -694,8 +694,9 @@ check_leftover_output <- function(path) {
 
 # Shared report code ----------------------------------------------------------
 
-# A line that names `_scripts` and, later on the line, `report.R`, each as
-# a whole name, as the template's source() line and its prose do.
+# A line that holds `_scripts` and, later on the line, `report.R`, where
+# neither has a letter, digit, `_`, or `.` right before it and `report.R`
+# has none right after it, as the template's source() line and its prose do.
 script_line <- "(?<![A-Za-z0-9_.])_scripts.*(?<![A-Za-z0-9_.])report\\.R(?![A-Za-z0-9_.])"
 
 # A site made before the template had _scripts/report.R lacks the file,
@@ -716,7 +717,7 @@ check_missing_script <- function(path) {
                  collapse = ", ")
   problem_rows(
     "missing-script", "_scripts/report.R",
-    paste0("The site has no file _scripts/report.R, which these reports read, so they cannot render again: ",
+    paste0("The site has no file _scripts/report.R, which these reports name, so a render of them can fail: ",
            named, ". Copy the template's file from ",
            'system.file("template", "_scripts", "report.R", package = "supplement")',
            " to _scripts/report.R, or restore your own copy, then commit _scripts/report.R.",

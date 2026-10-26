@@ -74,6 +74,7 @@
 - 2026-10-26: T2 tests written first: 5 tests in test-check-supplement.R, 7 expectations red before T1. T1 `check_missing_script()` returns an empty `problem_rows()` when the file is there or no report names it; the row text says to copy from `system.file()`, or restore your own copy, then commit, and to move a folder of that name first (agent's wording). `devtools::test()`: 0 failed, 0 errors, 10 skipped, 403 tests; no existing test saw the new row.
 - 2026-10-26: T3 `"missing-script"` bullet added to the `check_supplement()` roxygen after `"leftover-output"`, with the AC1 conditions and the AC4 limits; `devtools::document()` rewrote `man/check_supplement.Rd` only.
 - 2026-10-26: T4 the `add_report()` help, GUIDE.md "Shared report code", and the M058 NEWS.md bullet now say that `check_supplement()` looks only at whether `_scripts/report.R` exists; GUIDE.md and README.md check lists and a new NEWS.md bullet name the row; DESIGN.md gained the architecture lines and the git-ignored case. The review-aid grep's 50 hits hold no other sentence about `check_supplement()` and the file.
+- 2026-10-26: claim audit fixes: the `script_line` comment now states the boundaries as the help page does; the `add_report()` help and GUIDE.md say the row comes only when a report names the file; the row text says "which these reports name, so a render of them can fail" (prose lines count, so "read" and "cannot render" overstated), and NEWS.md says "whose render can fail".
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

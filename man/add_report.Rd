@@ -59,8 +59,9 @@ and with \code{utils::sessionInfo()} otherwise. It shows the home folder as
 
 \code{check_supplement()} compares the text of each report with the hash in
 its stored output. Of \verb{_scripts/report.R} it looks only at whether the
-file exists, so a missing file gives a row and a change to the file
-gives none. Render each report by name to take the change.
+file is there. If a report names the file and the file is missing,
+it gives a row, and a change to the file gives none. Render each report
+by name to take the change.
 
 The function adds lines to \verb{_quarto.yml} as text, so the other lines of
 the file, its comments included, stay as they are. It finds the menu as

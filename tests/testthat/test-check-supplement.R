@@ -641,7 +641,7 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
 })
 
 missing_script_text <- function(paths) {
-  paste0("The site has no file _scripts/report.R, which these reports read, so they cannot render again: ",
+  paste0("The site has no file _scripts/report.R, which these reports name, so a render of them can fail: ",
          paths, ". Copy the template's file from ",
          'system.file("template", "_scripts", "report.R", package = "supplement")',
          " to _scripts/report.R, or restore your own copy, then commit _scripts/report.R.",

@@ -57,7 +57,8 @@ calls a missing function fails to render.
 
 `check_supplement()` compares the text of each report with the hash in its
 stored output. Of `_scripts/report.R` it looks only at whether the file
-exists, so a missing file gives a row and a change to the file gives none.
+is there. If a report names the file and the file is missing, it gives a
+row, and a change to the file gives none.
 After you change it, render each report by name, for
 example `quarto render analyses/models.qmd`. Then render the whole site
 with `quarto render`, and commit the reports with `_freeze/`, `docs/`, and
