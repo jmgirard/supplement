@@ -298,17 +298,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpjuQfnq/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpJMphLP/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpjuQfnq/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpJMphLP/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpjuQfnq/check-example:
+#> ✖ 11 problems found in /tmp/RtmpJMphLP/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report
