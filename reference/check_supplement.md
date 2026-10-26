@@ -138,16 +138,30 @@ The checks, by the value in the `check` column:
   names it. The template's example report and each report from
   [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md)
   read it. The file counts as missing when
-  [`file.exists()`](https://rdrr.io/r/base/files.html) is `FALSE` for it
-  or when it is a folder. A report names it when one of its lines holds
-  `_scripts` and, later on that line, `report.R`, where neither has an
-  ASCII letter, digit, `_`, or `.` right before it and `report.R` has
-  none right after it, as in
-  `source(file.path(site, "_scripts", "report.R"), local = TRUE)`. A
-  line of prose or a comment also counts. One row names each such report
-  by its path from the site folder, in byte order, between double quotes
-  with a `\` before each `\` and `"` in it, and says to copy the
-  template's file from
+  [`file.exists()`](https://rdrr.io/r/base/files.html) is `FALSE` for
+  it, when it is a folder, or when it is a link whose chain of links
+  ends on a missing file, a folder, or a loop, or one that
+  [`fs::path_real()`](https://fs.r-lib.org/reference/path_math.html)
+  cannot resolve. So a file link to a missing file counts as missing on
+  Windows too, where
+  [`file.exists()`](https://rdrr.io/r/base/files.html) is `TRUE` for it.
+  A link whose path is not valid UTF-8 counts as there. A report names
+  the file when one of its lines holds `_scripts`, with no ASCII letter,
+  digit, `_`, or `.` right before it, then a separator, then `report.R`,
+  with no ASCII letter, digit, `_`, or `.` right after it. Each such
+  `_scripts` on the line can start the match, so
+  `_scripts_old/x and _scripts/report.R` names the file. The separator
+  is `/`, `\`, or `\\`, or it is a `"` or `'`, a `,` with any spaces or
+  tabs on each side, and a `"` or `'`, after an optional `/`, `\`, or
+  `\\`. So
+  `source(file.path(site, "_scripts", "report.R"), local = TRUE)` and
+  `_scripts/report.R` name the file, and `_scripts_old/report.R`,
+  `_scripts/old-report.R`, and `file.path("_scripts", "x", "report.R")`
+  do not. A `.` right after `report.R`, as at the end of a sentence,
+  stops the match. A line of prose or a comment also counts. One row
+  names each such report by its path from the site folder, in byte
+  order, between double quotes with a `\` before each `\` and `"` in it,
+  and says to copy the template's file from
   `system.file("template", "_scripts", "report.R", package = "supplement")`
   and commit it. A site made before the template had the file gives no
   row when its reports do not name it. A line in a file that the report
@@ -156,10 +170,9 @@ The checks, by the value in the `check` column:
   two lines, does not count, and the letter case of both names must
   match. Reports in folders inside `analyses/` are not read, and a
   report that cannot be read, such as a link to a missing file, names
-  nothing. On Windows a file link to a missing file reads as an existing
-  file, and on a disk that ignores letter case a file such as
-  `_scripts/Report.R` reads as `_scripts/report.R`, so neither gives a
-  row there.
+  nothing. On a disk that ignores letter case a file such as
+  `_scripts/Report.R` reads as `_scripts/report.R`, so it gives no row
+  there.
 
 - `"not-rendered"`: the site has no `docs/` folder.
 
@@ -326,17 +339,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpZi9j8h/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpTf4Bqj/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpZi9j8h/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpTf4Bqj/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpZi9j8h/check-example:
+#> ✖ 11 problems found in /tmp/RtmpTf4Bqj/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report
