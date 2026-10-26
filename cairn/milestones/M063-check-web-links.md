@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M063: Check web links on the rendered site
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
@@ -63,7 +63,7 @@
 - [x] T2: Tests first, then `url_status(url)` with a package-level `curlGetHeaders` binding for the mock, and `check_web_links(path)`, which builds the rows of AC3 and AC4.
 - [x] T3: Tests first, then the `web_links` argument and its check in `check_supplement()`. Add the release test of AC6 to `tests/testthat/test-release-supplement.R`, with `skip_if_no_git()`.
 - [x] T4: Roxygen `@param web_links` and a help section, then `devtools::document()`. Write the NEWS.md entry, the README.md and `inst/template/GUIDE.md` lines, and DESIGN.md's account of the checks.
-- [ ] T5: Run `devtools::check()` and fix any note that the change caused.
+- [x] T5: Run `devtools::check()` and fix any note that the change caused.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -86,6 +86,7 @@
 - 2026-10-26: T3 done. check_supplement(path, web_links = FALSE) checks the flag with isTRUE()/isFALSE() after check_path() and runs check_web_links() after check_links(). Tests cover the five bad values, no url_status() call by default, the recorded addresses with web_links = TRUE, and a release with the real check that calls url_status() 0 times. devtools::test(): 431 tests, 0 failed.
 - 2026-10-26: T4 done. Help page: @param web_links, a "web-link" bullet, and the argument error. NEWS.md entry, a line beside the call in README.md and inst/template/GUIDE.md, and DESIGN.md's link-check paragraph. Also added a line to vignettes/publishing.Rmd, which shows the same call (beyond AC7's list). devtools::test(): 431 tests, 0 failed.
 - 2026-10-26: claim audit: 53 claims read, 2 corrected — R/check-supplement.R, man/check_supplement.Rd, NEWS.md, cairn/DESIGN.md. (1) The 10-second timeout holds only on R 4.1.0 or later, where curlGetHeaders() gained `timeout`, and DESCRIPTION sets no R floor. url_status() now passes `timeout` only when base::curlGetHeaders() has it, calling do.call("curlGetHeaders") so the NULL binding is skipped, and the help says "on R 4.1.0 or later". Chosen over adding `Depends: R (>= 4.1.0)`, a dependency change the plan did not grant. (2) "No response" was wrong for certificate errors and addresses curl rejects ("URL rejected: No host part"), so the row now says "could not be requested". Also added a row for a non-numeric or NA status in web_problem(). Checkpoint: the full check runs again before T5 is ticked.
+- 2026-10-26: T5 done. devtools::check() on f6ac051: 0 errors, 0 warnings, 1 note (the local .claude folder, as at M062), with the tests run inside it. Status set to review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
