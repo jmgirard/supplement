@@ -42,7 +42,7 @@ save_png <- function(file, draw, dir = file.path(site, "figures")) {
 }
 
 # Print the versions of R and of each package that the render uses, with
-# the home folder shown as ~.
+# the home folder shown as ~, and then the MD5 of this file.
 print_environment <- function() {
   info <- if (requireNamespace("sessioninfo", quietly = TRUE)) {
     sessioninfo::session_info()

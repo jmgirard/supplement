@@ -228,9 +228,11 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   `save_png()` and `print_environment()`. Each report reads it with
   `source(..., local = TRUE)` at the end of its `site` chunk, so a report
   calls no supplement function (D-028, M058). Quarto does not publish
-  files whose path starts with `_`, so `docs/` gets no copy. The stored
-  output's hash covers the report file alone, so a change to this file
-  gives no `check_supplement()` row.
+  files whose path starts with `_`, so `docs/` gets no copy. Quarto's
+  stored hash covers the report file alone, so `print_environment()`
+  prints this file's MD5 into each report's output, and
+  `check_supplement()` gives a `"stale-script"` row when it differs from
+  the file (D-029, M061).
 - `_supplement.yml`: the `supplement:` map (title, citation, authors,
   licenses, Zenodo DOIs, data files), loaded through `metadata-files`.
 - `_extensions/supplement/supplement.lua`: shortcodes `supplement-doi`,
@@ -261,7 +263,8 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   ends with the 12-byte PNG `IEND` chunk (D-018, M046). The example ends with a "Computing
   environment" section, a collapsed callout whose chunk calls
   `print_environment()`, which prints `sessioninfo::session_info()` or, without sessioninfo,
-  `utils::sessionInfo()`, with the home folder shown as `~`.
+  `utils::sessionInfo()`, with the home folder shown as `~`, and then a
+  last line with the MD5 of `_scripts/report.R` (M061).
 
 Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when a tool they need,
