@@ -49,7 +49,7 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - [x] T1: Write the tests first. Add the AC1 row lines and no-row lines and the AC2 lines to the missing-script tests in `tests/testthat/test-check-supplement.R` (near lines 656 to 727). Run them on the current code and record which fail.
 - [x] T2: Rewrite `names_script()` (`R/check-supplement.R:758`) as one PCRE pattern with possessive runs for the spaces and tabs and no `.*`, and update its comment. Run `devtools::test()`.
 - [x] T3: In the link test (`test-check-supplement.R:688`), replace `skip_on_os("windows")` with `symlink_or_skip()` (`tests/testthat/helper-files.R:150`). Add a test with a file link to an existing file. In `check_missing_script()`, the file also counts as missing if `is_link()` is TRUE and `fs::is_file()`, which follows the link, is FALSE. Review reads the Windows CI job's test output to see that the link tests ran there.
-- [ ] T4: Update the `"missing-script"` help text (`R/check-supplement.R:109` to `133`) and run `devtools::document()`. Update the missing-script lines of `cairn/DESIGN.md` (near line 168). Run `devtools::check()`.
+- [x] T4: Update the `"missing-script"` help text (`R/check-supplement.R:109` to `133`) and run `devtools::document()`. Update the missing-script lines of `cairn/DESIGN.md` (near line 168). Run `devtools::check()`.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -70,6 +70,7 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - 2026-10-26: T2: `names_script()` is one `grepl()` pattern, a `/`, `\`, or `\\` run or an optional such run then quote, comma, quote with possessive `[ \t]*+` runs; test-check-supplement.R gives 0 failures, and its one warning comes from `file.create()` in the untouched non-UTF-8 name test on macOS before its skip.
 - 2026-10-26: T3: `check_missing_script()` also needs `isTRUE(fs::is_file(script))` when `is_link()` is TRUE; the dangling-link test uses `symlink_or_skip()` with no Windows skip, and a new test links `_scripts/report.R` to an existing file. A planted `!is_link(script)` alone fails the existing-link test on macOS. The Windows dangling case is seen only on CI.
 - 2026-10-26: T4 checkpoint (half-done): help text and `man/check_supplement.Rd` rebuilt, DESIGN.md missing-script lines updated; full `devtools::test()` and `devtools::check()` still to run.
+- 2026-10-26: T4 done: `devtools::test()` 407 tests, 0 failures, 1 warning (the macOS `file.create()` warning of T2); `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`).
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
