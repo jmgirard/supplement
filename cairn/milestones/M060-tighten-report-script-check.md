@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M060: Tighten the missing report.R check
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate -->
@@ -77,6 +77,8 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - 2026-10-26: review return 1: `check_missing_script()` hangs on a `_scripts/report.R` that links to a link, because `fs::is_file()` (fs 2.1.0) loops on such a chain; the same call skips `fs_link()`'s `~` expansion, UTF-8 check, and error catch. Fix those, narrow the possessive-run claim in the `names_script()` comment and DESIGN.md to "no `.*`", add to the help that any boundary `_scripts` can start the match, and correct the LESSONS.md M059 line.
 - 2026-10-26: resumed for review return 1; added T5 (minor amendment) and mapped it to AC3 and AC4 in Coverage.
 - 2026-10-26: T5: new `link_ends_on_file()` resolves the link chain with `fs::path_real()` after `path.expand()`; `ENOENT` and `ELOOP` count as no file, and a path that is not valid UTF-8 or another fs error keeps the `file.exists()` answer. This replaces `fs::is_file()`, which loops on a link to a link (fs 2.1.0); falsified by a Windows CI run where `fs::path_real()` signals a class other than `ENOENT` for a file link to a missing file. New test: a link to a link to an existing file gives no row, and to a missing file gives the row. The `names_script()` comment and DESIGN.md now credit only the absent `.*`; the help says each boundary `_scripts` can start the match; LESSONS.md M059 line corrected in place. `devtools::test()` 408 tests, 0 failures, 1 warning (macOS `file.create()`).
+- 2026-10-26: claim audit: 13 claims read, 1 corrected — R/check-supplement.R (the `link_ends_on_file()` comment now says the `~` expansion differs on Windows and that R reads R_USER or HOME; the re-read found it holds).
+- 2026-10-26: all tasks done; status set to review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

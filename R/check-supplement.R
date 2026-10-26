@@ -773,10 +773,10 @@ names_script <- function(lines) {
 
 # FALSE when the chain of links at `path` ends on no file: a missing file,
 # a folder, or a loop. fs::is_file() never returns on a link to a link
-# (fs 2.1.0), so fs::path_real() resolves the chain. fs expands `~` from
-# USERPROFILE and R from R_USER, so R expands it first. A path that is not
-# valid UTF-8, or that fs stops on for another reason, gives TRUE, which
-# keeps the answer of file.exists().
+# (fs 2.1.0), so fs::path_real() resolves the chain. On Windows fs expands
+# `~` from USERPROFILE and R from R_USER or HOME, so R expands it first.
+# A path that is not valid UTF-8, or that fs stops on for another reason,
+# gives TRUE, which keeps the answer of file.exists().
 link_ends_on_file <- function(path) {
   path <- enc2utf8(path)
   if (!validUTF8(path)) {
