@@ -128,13 +128,15 @@ renamed only in letter case on Linux.
 \code{.qmd} report directly in \verb{analyses/}, from the same list of reports,
 names it. The template's example report and each report from
 \code{\link[=add_report]{add_report()}} read it. The file counts as missing when \code{file.exists()}
-is \code{FALSE} for it, when it is a folder, or when it is a link and
-\code{fs::is_file()}, which follows the link, is not \code{TRUE} for it. So a file
-link to a missing file counts as missing on Windows too, where
-\code{file.exists()} is \code{TRUE} for it. A report names the file when one of
-its lines holds \verb{_scripts}, with no ASCII letter, digit, \verb{_}, or \code{.}
-right before it, then a separator, then \code{report.R}, with no ASCII
-letter, digit, \verb{_}, or \code{.} right after it. The separator is \code{/}, \verb{\\},
+is \code{FALSE} for it, when it is a folder, or when it is a link whose chain
+of links, as \code{fs::path_real()} resolves it, ends on a missing file, a
+folder, or a loop. So a file link to a missing file counts as missing
+on Windows too, where \code{file.exists()} is \code{TRUE} for it. A report names
+the file when one of its lines holds \verb{_scripts}, with no ASCII letter,
+digit, \verb{_}, or \code{.} right before it, then a separator, then \code{report.R},
+with no ASCII letter, digit, \verb{_}, or \code{.} right after it. Each such
+\verb{_scripts} on the line can start the match, so
+\verb{_scripts_old/x and _scripts/report.R} names the file. The separator is \code{/}, \verb{\\},
 or \verb{\\\\}, or it is a \verb{"} or \verb{'}, a \verb{,} with any spaces or tabs on each
 side, and a \verb{"} or \verb{'}, after an optional \code{/}, \verb{\\}, or \verb{\\\\}. So
 \code{source(file.path(site, "_scripts", "report.R"), local = TRUE)} and

@@ -39,8 +39,8 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 
 - AC1 → T1, T2
 - AC2 → T1, T2
-- AC3 → T3
-- AC4 → T4
+- AC3 → T3, T5
+- AC4 → T4, T5
 - AC5 → T4
 
 ## Tasks
@@ -50,6 +50,7 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - [x] T2: Rewrite `names_script()` (`R/check-supplement.R:758`) as one PCRE pattern with possessive runs for the spaces and tabs and no `.*`, and update its comment. Run `devtools::test()`.
 - [x] T3: In the link test (`test-check-supplement.R:688`), replace `skip_on_os("windows")` with `symlink_or_skip()` (`tests/testthat/helper-files.R:150`). Add a test with a file link to an existing file. In `check_missing_script()`, the file also counts as missing if `is_link()` is TRUE and `fs::is_file()`, which follows the link, is FALSE. Review reads the Windows CI job's test output to see that the link tests ran there.
 - [x] T4: Update the `"missing-script"` help text (`R/check-supplement.R:109` to `133`) and run `devtools::document()`. Update the missing-script lines of `cairn/DESIGN.md` (near line 168). Run `devtools::check()`.
+- [x] T5: Review return 1. Replace the `fs::is_file()` link test in `check_missing_script()` with one that ends on a chain of links, expands `~` as R does, and keeps the `file.exists()` answer for a path that is not valid UTF-8 or that fs stops on. Add tests for a link to a link to an existing file and to a missing file. Narrow the possessive-run claim in the `names_script()` comment and DESIGN.md to "no `.*`", add to the help that any boundary `_scripts` can start the match, and correct the LESSONS.md 2026-10-26 (M059) line.
 
 ## Work log
 <!-- owner: any skill · append-only; one line per entry; absolute dates. -->
@@ -74,6 +75,8 @@ The `"missing-script"` row of `check_supplement()` counts a report line as namin
 - 2026-10-26: claim audit: 16 claims read, 3 corrected — R/check-supplement.R, man/check_supplement.Rd (the `names_script()` comment no longer calls the separator bounded, and the help and a comment say `fs::is_file()` is not TRUE rather than FALSE; the re-read found all three hold; the two Windows claims rest on the Windows CI run at review).
 - 2026-10-26: all tasks done; status set to review.
 - 2026-10-26: review return 1: `check_missing_script()` hangs on a `_scripts/report.R` that links to a link, because `fs::is_file()` (fs 2.1.0) loops on such a chain; the same call skips `fs_link()`'s `~` expansion, UTF-8 check, and error catch. Fix those, narrow the possessive-run claim in the `names_script()` comment and DESIGN.md to "no `.*`", add to the help that any boundary `_scripts` can start the match, and correct the LESSONS.md M059 line.
+- 2026-10-26: resumed for review return 1; added T5 (minor amendment) and mapped it to AC3 and AC4 in Coverage.
+- 2026-10-26: T5: new `link_ends_on_file()` resolves the link chain with `fs::path_real()` after `path.expand()`; `ENOENT` and `ELOOP` count as no file, and a path that is not valid UTF-8 or another fs error keeps the `file.exists()` answer. This replaces `fs::is_file()`, which loops on a link to a link (fs 2.1.0); falsified by a Windows CI run where `fs::path_real()` signals a class other than `ENOENT` for a file link to a missing file. New test: a link to a link to an existing file gives no row, and to a missing file gives the row. The `names_script()` comment and DESIGN.md now credit only the absent `.*`; the help says each boundary `_scripts` can start the match; LESSONS.md M059 line corrected in place. `devtools::test()` 408 tests, 0 failures, 1 warning (macOS `file.create()`).
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->

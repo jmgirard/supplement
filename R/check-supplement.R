@@ -110,13 +110,15 @@
 #'   `.qmd` report directly in `analyses/`, from the same list of reports,
 #'   names it. The template's example report and each report from
 #'   [add_report()] read it. The file counts as missing when `file.exists()`
-#'   is `FALSE` for it, when it is a folder, or when it is a link and
-#'   `fs::is_file()`, which follows the link, is not `TRUE` for it. So a file
-#'   link to a missing file counts as missing on Windows too, where
-#'   `file.exists()` is `TRUE` for it. A report names the file when one of
-#'   its lines holds `_scripts`, with no ASCII letter, digit, `_`, or `.`
-#'   right before it, then a separator, then `report.R`, with no ASCII
-#'   letter, digit, `_`, or `.` right after it. The separator is `/`, `\`,
+#'   is `FALSE` for it, when it is a folder, or when it is a link whose chain
+#'   of links, as `fs::path_real()` resolves it, ends on a missing file, a
+#'   folder, or a loop. So a file link to a missing file counts as missing
+#'   on Windows too, where `file.exists()` is `TRUE` for it. A report names
+#'   the file when one of its lines holds `_scripts`, with no ASCII letter,
+#'   digit, `_`, or `.` right before it, then a separator, then `report.R`,
+#'   with no ASCII letter, digit, `_`, or `.` right after it. Each such
+#'   `_scripts` on the line can start the match, so
+#'   `_scripts_old/x and _scripts/report.R` names the file. The separator is `/`, `\`,
 #'   or `\\`, or it is a `"` or `'`, a `,` with any spaces or tabs on each
 #'   side, and a `"` or `'`, after an optional `/`, `\`, or `\\`. So
 #'   `source(file.path(site, "_scripts", "report.R"), local = TRUE)` and
@@ -760,9 +762,8 @@ stored_hash <- function(file) {
 # after it, as the template's source() line and its prose do. The separator
 # is `/`, `\`, or `\\`, or a quote, a comma, and a quote, as between the
 # arguments of file.path(), with an optional `/`, `\`, or `\\` before it.
-# No `.*` lies between the names, and the runs of spaces and tabs and of
-# `\` are possessive, so PCRE never backtracks into them and a line of a
-# few MB stays within its match limit.
+# No `.*` lies between the names, as one did in the pattern that passed
+# PCRE's match limit on a line of a few MB.
 names_script <- function(lines) {
   slash <- "(?:/|\\\\{1,2}+)"
   pattern <- paste0("(?<![A-Za-z0-9_.])_scripts(?:", slash, "|", slash, "?[\"'][ \t]*+,[ \t]*+[\"'])",
@@ -770,13 +771,32 @@ names_script <- function(lines) {
   any(grepl(pattern, lines, perl = TRUE, useBytes = TRUE))
 }
 
+# FALSE when the chain of links at `path` ends on no file: a missing file,
+# a folder, or a loop. fs::is_file() never returns on a link to a link
+# (fs 2.1.0), so fs::path_real() resolves the chain. fs expands `~` from
+# USERPROFILE and R from R_USER, so R expands it first. A path that is not
+# valid UTF-8, or that fs stops on for another reason, gives TRUE, which
+# keeps the answer of file.exists().
+link_ends_on_file <- function(path) {
+  path <- enc2utf8(path)
+  if (!validUTF8(path)) {
+    return(TRUE)
+  }
+  target <- tryCatch(fs::path_real(path.expand(path)),
+                     ENOENT = function(e) NA_character_, ELOOP = function(e) NA_character_,
+                     error = function(e) NULL)
+  if (is.null(target)) {
+    return(TRUE)
+  }
+  !is.na(target) && file.exists(target) && !dir.exists(target)
+}
+
 # A site made before the template had _scripts/report.R lacks the file,
 # and its reports do not name it, so only reports that name it give a row.
 check_missing_script <- function(path) {
   script <- file.path(path, "_scripts", "report.R")
   # On Windows file.exists() is TRUE for a file link to a missing file.
-  # fs::is_file() follows the link, so it is not TRUE for one.
-  if (file.exists(script) && !dir.exists(script) && (!is_link(script) || isTRUE(fs::is_file(script)))) {
+  if (file.exists(script) && !dir.exists(script) && (!is_link(script) || link_ends_on_file(script))) {
     return(problem_rows())
   }
   reports <- analysis_reports(path)

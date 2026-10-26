@@ -166,14 +166,15 @@ with `chartr()` first, since `tolower()` follows the locale (Turkish `I`),
 then other letters with `tolower()`, and lowers only the ASCII capital
 letters of a name that is not valid UTF-8.
 Its missing-script check (`check_missing_script()`, M059) gives one row when
-`_scripts/report.R` is missing, a folder, or a link that `fs::is_file()`
-does not follow to a file (a file link to a missing file on Windows,
-M060), and a report from `analysis_reports()` has a line where
+`_scripts/report.R` is missing, a folder, or a link whose chain
+`link_ends_on_file()` resolves with `fs::path_real()` to no file (a file
+link to a missing file on Windows, M060; `fs::is_file()` never returns on
+a link to a link in fs 2.1.0), and a report from `analysis_reports()` has a line where
 `names_script()` finds `_scripts`, a separator, and `report.R`. The
 separator is `/`, `\`, or `\\`, or a quote, a comma with spaces or tabs,
 and a quote after an optional `/`, `\`, or `\\` (M060). It is one PCRE
-pattern with possessive space runs and no `.*`, since a `.*` between the
-names passed PCRE's match limit on a line of a few MB (M059 review).
+pattern with no `.*` between the names, since a `.*` there passed PCRE's
+match limit on a line of a few MB (M059 review).
 `R/release-supplement.R`: `release_supplement()` checks `bump`, reads
 `_supplement.yml` once, and from that read checks the current
 `supplement.version` and the `version:` line. It builds the new
