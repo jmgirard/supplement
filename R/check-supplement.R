@@ -768,7 +768,9 @@ names_script <- function(lines) {
 # and its reports do not name it, so only reports that name it give a row.
 check_missing_script <- function(path) {
   script <- file.path(path, "_scripts", "report.R")
-  if (file.exists(script) && !dir.exists(script)) {
+  # On Windows file.exists() is TRUE for a file link to a missing file.
+  # fs::is_file() follows the link, so it is FALSE for one.
+  if (file.exists(script) && !dir.exists(script) && (!is_link(script) || isTRUE(fs::is_file(script)))) {
     return(problem_rows())
   }
   reports <- analysis_reports(path)

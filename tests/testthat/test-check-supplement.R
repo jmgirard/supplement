@@ -732,12 +732,17 @@ test_that("a long line that names a missing _scripts/report.R gives a missing-sc
 })
 
 test_that("a link to a missing _scripts/report.R gives a missing-script row", {
-  # On Windows a file link to a missing file reads as an existing file.
-  skip_on_os("windows")
   site <- new_site()
   unlink(script_of(site))
-  file.symlink(file.path(site, "no-such.R"), script_of(site))
+  symlink_or_skip(file.path(site, "no-such.R"), script_of(site))
   expect_identical(rows_of(check_quiet(site), "missing-script")$file, "_scripts/report.R")
+})
+
+test_that("a link to an existing _scripts/report.R gives no missing-script row", {
+  site <- new_site()
+  file.rename(script_of(site), file.path(site, "real.R"))
+  symlink_or_skip(file.path(site, "real.R"), script_of(site))
+  expect_identical(nrow(rows_of(check_quiet(site), "missing-script")), 0L)
 })
 
 test_that("the missing-script row names its reports in byte order", {
