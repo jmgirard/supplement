@@ -1953,3 +1953,61 @@ test_that("the example report's row names its stored output", {
     "in _freeze/analyses/example/, and make the Analyses menu in _quarto.yml list your own reports."
   ))
 })
+
+# Web links -------------------------------------------------------------------
+
+# A site whose pages hold web addresses of each kind that the check reads
+# or leaves out. The page locked.html cannot be read and bad.html makes
+# tag_links() warn, so the addresses only on them are not requested.
+web_site <- function(env = parent.frame()) {
+  site <- new_site(env)
+  write_page(site, "index.html", c(
+    '<a href="https://example.org/a">a</a>',
+    '<a href="https://example.org/a#part">a with a fragment</a>',
+    '<img src="http://example.org/b.png">',
+    '<a href="https://example.org/q?x=1&amp;y=2">query</a>',
+    '<a href="HTTPS://example.org/C">upper-case scheme</a>',
+    '<a href=" https://example.org/d\n">spaces</a>',
+    '<a href="data/x.csv">relative</a>',
+    '<a href="mailto:a@example.org">mail</a>',
+    '<a href="ftp://example.org/f">ftp</a>'
+  ))
+  write_page(site, "analyses/report.html", c(
+    '<a href="https://example.org/a">a again</a>',
+    '<a href="https://example.org/e">e</a>'
+  ))
+  write_page(site, "locked.html", '<a href="https://example.org/locked">x</a>')
+  write_page(site, "bad.html", '<a href="https://example.org/bad">x</a>')
+  real_read <- read_page_text
+  real_tags <- tag_links
+  local_mocked_bindings(
+    read_page_text = function(file) if (basename(file) == "locked.html") NULL else real_read(file),
+    tag_links = function(html) {
+      if (grepl("example.org/bad", html, fixed = TRUE)) warning("PCRE error 'match limit exceeded'")
+      real_tags(html)
+    },
+    .env = env
+  )
+  site
+}
+
+web_expected <- c(
+  "https://example.org/a" = "analyses/report.html",
+  "https://example.org/e" = "analyses/report.html",
+  "http://example.org/b.png" = "index.html",
+  "https://example.org/q?x=1&y=2" = "index.html",
+  "HTTPS://example.org/C" = "index.html",
+  "https://example.org/d" = "index.html"
+)
+
+test_that("web addresses are read once each, with the first page in byte order", {
+  site <- web_site()
+  found <- web_addresses(site)
+  expect_false(anyDuplicated(found$address) > 0)
+  expect_setequal(found$address, names(web_expected))
+  expect_identical(stats::setNames(found$page, found$address)[names(web_expected)], web_expected)
+})
+
+test_that("a site with no docs folder has no web addresses", {
+  expect_identical(nrow(web_addresses(new_site())), 0L)
+})

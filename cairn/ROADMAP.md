@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-26 (M062 review: archived; graduated "Match example
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M063 | Check web links on the rendered site | planned | — | normal | milestones/M063-check-web-links.md |
+| M063 | Check web links on the rendered site | in-progress | — | normal | milestones/M063-check-web-links.md |
 | M062 | Flag old and re-saved example files | done | — | normal | milestones/archive/M062-flag-old-example-files.md |
 | M061 | Flag reports after report.R changes | done | — | normal | milestones/archive/M061-flag-report-script-changes.md |
 | M060 | Tighten the missing report.R check | done | — | normal | milestones/archive/M060-tighten-report-script-check.md |

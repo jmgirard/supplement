@@ -967,13 +967,7 @@ check_links <- function(path) {
   entries <- docs_entries(docs)
   root <- docs_root(docs)
   outside <- outside_links(root, entries$links)
-  # A page that a link outside docs/ points to is not in the published
-  # site, so it is not read.
-  # useBytes keeps a name that is not valid UTF-8 in the match.
-  html <- grepl("\\.html$", entries$files, useBytes = TRUE)
-  # The walk lists a folder's files before its subfolders, so sort the
-  # pages by path, in byte order.
-  pages <- sort_bytes(entries$files[html & !(entries$files %in% outside)])
+  pages <- site_pages(entries, outside)
   rows <- lapply(pages, function(page) {
     links <- page_links(file.path(docs, page))
     if (is.null(links)) {
@@ -1004,6 +998,17 @@ check_links <- function(path) {
             length(outside))
   )
   do.call(rbind, c(list(outside_rows), rows))
+}
+
+# The .html pages among the files of docs_entries(), in byte order of path.
+# A page that a link outside docs/ points to (`outside`) is not in the
+# published site, so it is left out.
+site_pages <- function(entries, outside) {
+  # useBytes keeps a name that is not valid UTF-8 in the match.
+  html <- grepl("\\.html$", entries$files, useBytes = TRUE)
+  # The walk lists a folder's files before its subfolders, so sort the
+  # pages by path, in byte order.
+  sort_bytes(entries$files[html & !(entries$files %in% outside)])
 }
 
 # The files in `docs`, hidden ones included, and its links (symbolic links,
@@ -1071,6 +1076,17 @@ utf8_lower <- function(x) {
 # tag_links(), such as a PCRE match limit, which makes gsub() return its
 # input unchanged.
 page_links <- function(file) {
+  values <- page_values(file)
+  if (!is.character(values)) {
+    return(values)
+  }
+  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
+  unique(values[!skip])
+}
+
+# Every href, src, and xlink:href value on a page, decoded and trimmed, each
+# once, or NULL or FALSE as for page_links().
+page_values <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
     return(NULL)
@@ -1086,9 +1102,37 @@ page_links <- function(file) {
   # parser does.
   values <- gsub("^[\t\n\f\r ]+|[\t\n\f\r ]+$", "", values, perl = TRUE)
   values <- gsub("[\t\n\r]", "", values)
-  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
-  unique(values[!skip])
+  unique(values)
 }
+
+# Web links -------------------------------------------------------------------
+
+# The http and https addresses on the pages that check_links() reads, each
+# once and with any fragment removed, as a data frame with the columns
+# `address` and `page`, the first page in byte order that holds it. A page
+# that page_values() cannot read is left out; check_links() gives its row.
+web_addresses <- function(path) {
+  docs <- file.path(path, "docs")
+  if (!dir.exists(docs)) {
+    return(web_addresses_none())
+  }
+  entries <- docs_entries(docs)
+  pages <- site_pages(entries, outside_links(docs_root(docs), entries$links))
+  found <- lapply(pages, function(page) {
+    values <- page_values(file.path(docs, page))
+    if (!is.character(values)) {
+      return(NULL)
+    }
+    web <- unique(sub("#.*$", "", values[grepl("^[Hh][Tt][Tt][Pp][Ss]?:", values)]))
+    data.frame(address = web, page = rep_len(page, length(web)), stringsAsFactors = FALSE)
+  })
+  found <- do.call(rbind, c(list(web_addresses_none()), found))
+  found <- found[!duplicated(found$address), , drop = FALSE]
+  rownames(found) <- NULL
+  found
+}
+
+web_addresses_none <- function() data.frame(address = character(), page = character(), stringsAsFactors = FALSE)
 
 # Parts of the patterns that read start tags, after the HTML standard's
 # tokenizer: an attribute name runs to a space, `/`, `>`, or `=`, and an

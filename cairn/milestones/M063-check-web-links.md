@@ -4,14 +4,14 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M063: Check web links on the rendered site
 
-- **Status:** planned   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
 - **Principles touched:** —   <!-- owner: plan · create/amend-via-gate; comma-separated IPn/GPn ids this milestone touches, or — -->
 - **Resolves:** —   <!-- owner: plan · create/amend-via-gate; comma-separated GitHub issues the scope absorbs, each `#N closes` (the PR closes it at merge) or `#N partial` (the remainder gets a candidate row), or — ; skill conduct only — no validate check parses it -->
 - **Surface tier:** user-facing — a new argument of the exported `check_supplement()`   <!-- owner: plan · create/amend-via-gate; user-facing | internal — <one-clause reason>; skill conduct only — no validate check parses it -->
-- **Branch/PR:** —   <!-- owner: implement (branch) / review (PR URL) · create; a companion checkout the milestone also works in is one further entry per checkout, `companion: <abs-path> <branch>` (implement), its PR URL appended by review — /milestone-review merges companions first, in listed order -->
+- **Branch/PR:** m063-check-web-links   <!-- owner: implement (branch) / review (PR URL) · create; a companion checkout the milestone also works in is one further entry per checkout, `companion: <abs-path> <branch>` (implement), its PR URL appended by review — /milestone-review merges companions first, in listed order -->
 
 ## Goal
 <!-- owner: plan · create; a wrong goal returns to plan, never edited in place -->
@@ -59,7 +59,7 @@
 ## Tasks
 <!-- owner: plan (create) / implement (check-off, minor edits) -->
 
-- [ ] T1: Tests first, then an internal `web_addresses(path)` in `R/check-supplement.R`. It walks the pages as `check_links()` does (`docs_entries()`, `outside_links()`, `sort_bytes()`), reads each with `read_page_text()`, `tag_links()`, and `decode_refs()`, keeps the `http` and `https` values, drops fragments, and maps each address to its first page. Share the decode-and-trim step with `page_links()` rather than copying it.
+- [x] T1: Tests first, then an internal `web_addresses(path)` in `R/check-supplement.R`. It walks the pages as `check_links()` does (`docs_entries()`, `outside_links()`, `sort_bytes()`), reads each with `read_page_text()`, `tag_links()`, and `decode_refs()`, keeps the `http` and `https` values, drops fragments, and maps each address to its first page. Share the decode-and-trim step with `page_links()` rather than copying it.
 - [ ] T2: Tests first, then `url_status(url)` with a package-level `curlGetHeaders` binding for the mock, and `check_web_links(path)`, which builds the rows of AC3 and AC4.
 - [ ] T3: Tests first, then the `web_links` argument and its check in `check_supplement()`. Add the release test of AC6 to `tests/testthat/test-release-supplement.R`, with `skip_if_no_git()`.
 - [ ] T4: Roxygen `@param web_links` and a help section, then `devtools::document()`. Write the NEWS.md entry, the README.md and `inst/template/GUIDE.md` lines, and DESIGN.md's account of the checks.
@@ -80,6 +80,8 @@
 - 2026-10-26: plan gate chose one row per failing address, on its first page, over one row per page and address because a navbar link is on every page; falsified by authors needing every page that holds a dead link.
 - 2026-10-26: added candidate row "Retry refused web links with GET" for the HEAD-refused case.
 - 2026-10-26: sizing: 8 criteria pass the 7-criterion tripwire, after the audit added the url_status() criterion. Kept as one milestone, since all eight cover one argument in one file and one PR, and no part ships alone.
+- 2026-10-26: implement started on branch m063-check-web-links, cut from main at 19ca1e7.
+- 2026-10-26: T1 done. page_values() now holds the read, decode, and trim steps that page_links() used, and site_pages() the page list of check_links(). web_addresses() returns a data frame of address and first page. The test site mocks read_page_text() and tag_links() for the unreadable-page and PCRE-warning cases. devtools::test(): 424 tests, 0 failed.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
