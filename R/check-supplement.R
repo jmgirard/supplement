@@ -176,10 +176,11 @@
 #'
 #'   `renv.lock` also gets a row of its own when the check reads it but a
 #'   folder or file in its path is listed under another spelling, such as
-#'   `Renv.lock`. renv finds such a file only where the file system ignores
-#'   letter case, as on macOS and Windows, and [write_dockerfile()] refuses
-#'   it. The row names the path as listed and says to rename it. The
-#'   reports still get their rows.
+#'   `Renv.lock`. renv finds such a file only where the file system treats
+#'   both spellings as one name, as macOS and Windows do for letter case by
+#'   default, and [write_dockerfile()] refuses it. The row names the path as
+#'   listed, when it can tell, and says to rename it. The reports still get
+#'   their rows.
 #'
 #'   In this item and the next, `renv.lock` is the lockfile that renv 1.3.1
 #'   picks for the site's renv profile. The profile's name comes from the
@@ -991,8 +992,9 @@ check_renv_lock <- function(path) {
     spelling <- problem_rows("renv-mismatch", shown, paste0(
       if (is.null(listed)) "A folder or file in its path is listed under another spelling" else
         paste0("It is listed as ", quote_path(show_text(listed))),
-      ". renv finds it under that spelling only where the file system ignores letter case, as on macOS and ",
-      "Windows, and write_dockerfile() refuses it. Rename it to ", quote_path(shown), ", then commit the change."
+      ". renv finds it under that spelling only where the file system treats both spellings as one name, as ",
+      "macOS and Windows do for letter case by default, and write_dockerfile() refuses it. Rename it to ",
+      quote_path(shown), ", then commit the change."
     ))
   }
   lock$file <- shown
@@ -1185,9 +1187,9 @@ listed_exactly <- function(path, parts) {
 
 # The path `parts`, from the folder `path`, with each part as its folder
 # lists it, or NULL when a part is not found so. A part is the one name in
-# its folder that differs from it only in ASCII letter case, else the name
-# that fs::path_real() gives it, which is the stored name on macOS and
-# Windows unless the part is a link.
+# its folder that differs from it only in ASCII letter case, else, when it
+# is not a link, the name that fs::path_real() gives it, which is the
+# stored name on macOS and Windows.
 listed_path <- function(path, parts) {
   fold <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", x)
   listed <- character()
@@ -1200,7 +1202,8 @@ listed_path <- function(path, parts) {
     }
     # chartr() stops on text that is not valid in the locale.
     same <- tryCatch(names[fold(names) == fold(part)], error = function(e) character())
-    if (length(same) != 1) {
+    # fs::path_real() follows a link, so it would give the target's name.
+    if (length(same) != 1 && !is_link(file.path(folder, part))) {
       real <- tryCatch(basename(as.character(fs::path_real(file.path(folder, part)))), error = function(e) "")
       same <- if (real %in% names && !is_link(file.path(folder, real))) real
     }

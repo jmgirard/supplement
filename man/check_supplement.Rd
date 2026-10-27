@@ -206,10 +206,11 @@ check, so its rows never stop a release.
 
 \code{renv.lock} also gets a row of its own when the check reads it but a
 folder or file in its path is listed under another spelling, such as
-\code{Renv.lock}. renv finds such a file only where the file system ignores
-letter case, as on macOS and Windows, and \code{\link[=write_dockerfile]{write_dockerfile()}} refuses
-it. The row names the path as listed and says to rename it. The
-reports still get their rows.
+\code{Renv.lock}. renv finds such a file only where the file system treats
+both spellings as one name, as macOS and Windows do for letter case by
+default, and \code{\link[=write_dockerfile]{write_dockerfile()}} refuses it. The row names the path as
+listed, when it can tell, and says to rename it. The reports still get
+their rows.
 
 In this item and the next, \code{renv.lock} is the lockfile that renv 1.3.1
 picks for the site's renv profile. The profile's name comes from the

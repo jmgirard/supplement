@@ -2721,9 +2721,9 @@ test_that("a lockfile path listed under another letter case gets a row of its ow
       rows <- rows_of(result, "renv-mismatch")
       expect_identical(rows$file, c(lock, "analyses/r.qmd"), info = listed)
       expect_identical(rows$problem[1], paste0(
-        'It is listed as "', listed, '". renv finds it under that spelling only where the file system ignores ',
-        "letter case, as on macOS and Windows, and write_dockerfile() refuses it. Rename it to \"", lock,
-        '", then commit the change.'
+        'It is listed as "', listed, '". renv finds it under that spelling only where the file system treats ',
+        "both spellings as one name, as macOS and Windows do for letter case by default, and write_dockerfile() ",
+        "refuses it. Rename it to \"", lock, '", then commit the change.'
       ), info = listed)
       expect_identical(rows$problem[2], lock_text("r", "html.json", paste0("dplyr 1.1.3 (", lock, ": 1.1.4)"),
                                                   lock = lock, active = active), info = listed)

@@ -1,6 +1,6 @@
 # M068: Handle renv lockfile edge cases
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -68,6 +68,8 @@ The lockfile readers of `write_dockerfile()` and `check_supplement(renv_lock = T
 - 2026-10-28: Checkpoint, half-done: T4's tests pass in both files (30 and 126 tests, 0 failed), and with the both-sources branch turned off the three both-sources expectations failed; the full suite is running. T5's help, NEWS, and DESIGN.md text is written; `devtools::document()` and `devtools::check()` have not run yet.
 - 2026-10-28: T4 done: `devtools::test()` at 7feae97 gave 474 tests, 0 failed.
 - 2026-10-28: T5 done: help of `write_dockerfile()` and `check_supplement()`, `cairn/DESIGN.md`, and one sentence in the `renv_lock` NEWS entry; `devtools::document()` rewrote both Rd files; `devtools::check()` on macOS gave 0 errors, 0 warnings, 1 note (the local `.claude` folder).
+- 2026-10-28: claim audit: 55 claims read, 5 corrected — R/check-supplement.R (`listed_path()` followed a link to its target's name, now skipped; row text and help now say "treats both spellings as one name, as macOS and Windows do for letter case by default", which also covers a Unicode-form difference; help says the row names the listed path "when it can tell"), NEWS.md (letter-case condition added). The same reader re-read the 5 and found all hold. `devtools::test()` after the fixes gave 474 tests, 0 failed.
+- 2026-10-28: implement done; status review.
 
 ## Decisions
 
