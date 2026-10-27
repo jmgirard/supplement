@@ -2,7 +2,7 @@
      section ownership". A phase skill never rewrites another phase's section. -->
 # M064: Compare renv.lock with report records
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -78,7 +78,7 @@
 - [x] T3: Add `check_renv_lock(path)`. If `renv_lock = TRUE`, call it from `check_supplement()` after `check_stale_script()`. Build the rows of AC3 and the skip message of AC5. Write the row tests for AC2 to AC5.
 - [x] T4: Write one Quarto test that renders the example report by name and checks it against a `renv.lock` that records another knitr version. It skips without Quarto.
 - [x] T5: Write the AC6 test in `test-release-supplement.R`, after the test "the release runs the real check without the web link check".
-- [ ] T6: Update the help of `check_supplement()` and `release_supplement()`. Update GUIDE.md in the part "Recording R packages with renv" and in its check list. Update NEWS.md and DESIGN.md. Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
+- [x] T6: Update the help of `check_supplement()` and `release_supplement()`. Update GUIDE.md in the part "Recording R packages with renv" and in its check list. Update NEWS.md and DESIGN.md. Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
 ## Work log
 
@@ -104,6 +104,8 @@
 - 2026-10-27: T6 checkpoint, not done. The help of both functions, NEWS.md, README.md, GUIDE.md, the publishing vignette, and DESIGN.md are updated, and `devtools::document()` ran. The GUIDE.md check list names the check as its last item. A style hook flagged one long older list item in README.md and in GUIDE.md, so each became two items. The full test run and `devtools::check()` are still owed.
 - 2026-10-27: full `devtools::test()`: 447 tests, 0 failed, 0 errors, 10 skipped. The first `devtools::check()` gave 0 errors, 1 warning, and 1 note. The warning was a literal `─` in `stored_versions()`, which is now `─`. The note is the local `.claude` folder. A second check is running.
 - 2026-10-27: claim audit (fresh Opus reader): 55 claims read, 6 corrected in NEWS.md, the `check_supplement()` help and Rd, a code comment, the renv.lock row text and its test, and GUIDE.md. The corrected claims are with the same reader for one re-read.
+- 2026-10-27: claim audit re-read: all 6 corrections hold at 00fa984.
+- 2026-10-27: T6 done. The second `devtools::check()` gave 0 errors, 0 warnings, and 1 note (the local `.claude` folder). Its test run passed. Status set to review.
 
 ## Decisions
 
