@@ -180,4 +180,4 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - ripple #3: the README and GUIDE web sentence before "It finds:" — reject, planned change (as diff-bug #6).
 - ripple #4: DESIGN.md's dependency line omitted the R floor — fix now, fixed bfed056.
 
-After bfed056: devtools::test(), 432 tests, 0 failed.
+After bfed056: devtools::test(), 432 tests, 0 failed. devtools::check() on bfed056: 0 errors, 0 warnings, 1 note (the local .claude folder, which is not in git). No changed snapshot file. Open PRs by the operator: 0 (feature cap 2). No Copilot round (PROFILE.md has no `# Copilot review: on` line). The header names no open PR, so the PR-conversation read does not run.
