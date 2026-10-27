@@ -1187,9 +1187,9 @@ check_web_links <- function(path) {
   problem_rows("web-link", file.path("docs", found$page[bad]), problems[bad])
 }
 
-# Statuses that a server can give a script, such as this check, and not a
-# browser: it can ask for a login, refuse the HEAD request, or limit the
-# number of requests.
+# Statuses that a server can give this check where a browser, perhaps
+# after a login, gets the page: it can ask for a login, refuse the HEAD
+# request, or limit the number of requests.
 refused_statuses <- c(401L, 403L, 405L, 429L)
 
 # The problem text for `url` from its url_status() result, or NA when the
