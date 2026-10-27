@@ -1,7 +1,10 @@
-#' Write a Dockerfile from renv.lock
+#' Write a Dockerfile from the renv lockfile
 #'
-#' `write_dockerfile()` reads `renv.lock` in a site set up with renv and
-#' writes a `Dockerfile` and a `.dockerignore` into the same folder. The
+#' `write_dockerfile()` reads the renv lockfile of a site set up with renv and
+#' writes a `Dockerfile` and a `.dockerignore` into the site folder. On this
+#' page, `renv.lock` is that lockfile: `renv.lock` in the site folder, or the
+#' lockfile of the renv profile that renv picks, as the section "renv
+#' profiles" below says. The
 #' image that Docker builds from them holds the R version and the R
 #' packages that `renv.lock` records, and the Quarto version that you give.
 #' You can then render a report in the image with the site folder mounted,
@@ -28,10 +31,34 @@
 #' mounted at `/site`, the site's `renv/activate.R` loads renv from that
 #' library, with no download.
 #'
-#' The `.dockerignore` holds the two lines `*` and `!renv.lock`, so of the
-#' site's files only `renv.lock` can be copied into the image. The image
+#' The `.dockerignore` holds two lines: `*`, and `!` with the path of
+#' `renv.lock` from the site folder, such as `!renv.lock`. So of the site's
+#' files only `renv.lock` can be copied into the image. The image
 #' holds no other site file and no data. Both files are written with LF
 #' line endings on every system.
+#'
+#' @section renv profiles:
+#' An renv profile is a named set of packages with a lockfile of its own.
+#' `write_dockerfile()` picks the lockfile by the rule of renv 1.3.1, which
+#' `check_supplement(renv_lock = TRUE)` also uses. If the `RENV_PROFILE`
+#' environment variable of the R session that runs `write_dockerfile()` is
+#' not empty, it names the profile. Otherwise the first line of
+#' `renv/profile` in the site folder names it, when that file exists. The
+#' name `default`, an empty name, or no name means no profile, and the
+#' lockfile is `renv.lock` in the site folder. With a profile, the lockfile
+#' is `renv/profiles/<name>/renv.lock`, and the function prints a message
+#' that names the lockfile, the profile, and where the name came from.
+#'
+#' With a profile, the `.dockerignore` lets that lockfile into the image.
+#' The `Dockerfile` copies it to the same path and sets the `RENV_PROFILE`
+#' environment variable of the image to the name. renv keeps the packages
+#' of a profile in a library of their own, so the build restores them there,
+#' and each render in the image uses the profile, whatever `renv/profile` in
+#' the mounted site folder names. The name must hold only ASCII letters,
+#' digits, `.`, `_`, and `-`, and must not start with `.`, so that the
+#' `Dockerfile` can hold it. The folder in `renv/profiles` must have the
+#' name with the same letter case, because Docker matches file names with
+#' letter case.
 #'
 #' @section Build and render:
 #' In a terminal, in the site folder, build the image and give it a name:
@@ -78,7 +105,7 @@
 #' `Dockerfile` and the `.dockerignore`: the Zenodo archive of a GitHub
 #' release then holds them, but not the image.
 #'
-#' @param path The site folder that holds `renv.lock`.
+#' @param path The site folder.
 #' @param quarto The Quarto version to install, as three whole numbers
 #'   joined by `.`, such as `"1.10.19"`. `quarto --version` in a terminal
 #'   prints the version that you render with.
@@ -106,8 +133,14 @@
 #'   one string of three whole numbers joined by `.`, each `0` or without
 #'   a leading zero. `digest` is not `NULL` or one string of `sha256:` and
 #'   64 lowercase hex digits. `overwrite` is not `TRUE` or `FALSE`.
+#' * `supplement_error_profile`: `renv/profile` is read and is a folder or
+#'   a file that cannot be opened, or the profile name holds a character
+#'   other than an ASCII letter, a digit, `.`, `_`, or `-`, or starts with
+#'   `.`. The name check comes before any check of a lockfile.
 #' * `supplement_error_no_file`: the folder has no `renv.lock`, or
-#'   `renv.lock` is a folder.
+#'   `renv.lock` is a folder or a link to a missing file. With a profile,
+#'   this is also the error when `renv/profiles` has no folder with the
+#'   profile name in the same letter case.
 #' * `supplement_error_lockfile`: `renv.lock` is not a JSON object, has no
 #'   `R` object with a `Version`, or has no `renv` entry with a `Version`
 #'   under `Packages`, or one of the two versions is not one string of three

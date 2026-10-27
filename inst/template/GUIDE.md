@@ -451,6 +451,14 @@ on a machine that runs Docker with Linux containers on an amd64 processor,
 or on arm64 for R 4.1.0 or later.
 `renv.lock` must record R 4.0.0 or later and renv 1.3.1 or later.
 
+renv can pick a profile for the site, from `RENV_PROFILE` or the first
+line of `renv/profile`. Then the recipe uses the profile's lockfile,
+`renv/profiles/<name>/renv.lock`, in place of `renv.lock`. The image then
+sets `RENV_PROFILE` to the name, so each render in it uses that profile.
+The name can hold only ASCII letters, digits, `.`, `_`, and `-`, and it
+cannot start with `.`. In the steps below, `renv.lock` means the lockfile
+that the recipe uses.
+
 1. Write the recipe. In R, in this folder, run:
 
    ```r
@@ -469,7 +477,7 @@ or on arm64 for R 4.1.0 or later.
    The image starts from `rocker/r-ver` with the R version in
    `renv.lock`. The build installs Quarto, the Ubuntu packages that renv
    lists for the R packages, and the R packages, renv included.
-   `.dockerignore` lets only `renv.lock` of this folder's files into the
+   `.dockerignore` lets only that lockfile of this folder's files into the
    image, so the image holds no other file from this folder and no data.
 3. Render one report in the image, with this folder mounted at `/site`. On
    macOS and Linux, run:

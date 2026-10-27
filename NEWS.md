@@ -130,6 +130,12 @@
   `R.Version`, `Packages.renv`, or `Packages.renv.Version` twice in one
   object. It also writes a `.dockerignore` that lets only `renv.lock` of
   the site's files into the image. `digest` pins the base image.
+  `RENV_PROFILE` or `renv/profile` can name an renv profile. Then
+  `write_dockerfile()` reads the profile's lockfile,
+  `renv/profiles/<name>/renv.lock`, in place of `renv.lock`, and the image
+  sets `RENV_PROFILE` to the name. The name can hold only ASCII letters,
+  digits, `.`, `_`, and `-`, and cannot start with `.`. Another name gives
+  the error class `supplement_error_profile`.
   The template guide shows how to build the image and render a report in
   it.
 * `check_supplement()` lists the problems in a site before a release, and
