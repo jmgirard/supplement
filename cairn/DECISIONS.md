@@ -188,3 +188,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** The web link check of `check_supplement()` (D-030) requests each address with base R's `curlGetHeaders()`, whose `timeout` argument came in R 4.1.0. DESCRIPTION set no R floor, so on older R the call either fails or needs a branch that no test can run, since testthat 3.3, the Suggests floor, itself needs R 4.1.0.
 **Decision:** DESCRIPTION has `Depends: R (>= 4.1.0)`, and `url_status()` always passes the timeout. The user chose this at the M063 review over a criterion limited to the R in use and a version branch in the code.
 **Consequences:** The package no longer installs on R before 4.1.0. Sites still build Docker images for R 4.0.x with `write_dockerfile()`, since the reports call no supplement function (D-028).
+
+### D-032 (2026-10-27): The renv.lock comparison is opt-in and does not stop the release (extends D-030)
+
+**Context:** Every row that `check_supplement()` gives stops `release_supplement()`, except the opt-in web link check (D-030). Freeze is on for the whole project (D-002), so an older report keeps the R and package versions of its own render. After a package update and `renv::snapshot()`, `renv.lock` and those reports differ. GUIDE.md says that this is expected.
+**Decision:** The comparison of `renv.lock` with the versions in stored output runs only when the author calls `check_supplement(renv_lock = TRUE)`. The default is `FALSE`, and `release_supplement()` does not turn it on, so its rows never stop a release. The user chose this at the M064 plan over a check that always runs and stops the release, and over a check that always runs and that the release passes over.
+**Consequences:** A release can go ahead while the stored output of a report and `renv.lock` record other versions. Authors who want the comparison run it themselves. `check_supplement()` with its defaults does not read `renv.lock`.
