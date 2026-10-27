@@ -431,6 +431,10 @@ the report by name. Then render the whole site, and commit the report with
 did not attach gives no row. A package that your R profile attaches during
 a render also gives a row, and these steps do not clear it.
 
+If the site uses an renv profile, these checks read the lockfile of the
+profile, `renv/profiles/<name>/renv.lock`, in place of `renv.lock`. Run
+the renv commands in these steps with that profile active.
+
 A release does not run these checks, so their rows do not stop a release.
 
 ## Running reports in a container

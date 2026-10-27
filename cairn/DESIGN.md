@@ -173,7 +173,12 @@ record's name. A package that is loaded and not attached gives no row,
 since the render tools and not the report's code can load it (the user
 chose attached packages only at the M065 plan). sessioninfo lists no base
 package, and `utils::sessionInfo()` keeps them out of
-`other attached packages:`. `release_supplement()` never
+`other attached packages:`. `lock_source()` (M066) picks the lockfile of
+the active renv profile by renv 1.3.1's rule: `RENV_PROFILE` of the
+checking session, else the first line of `renv/profile`, with `default`
+meaning none. A profile's lockfile is `renv/profiles/<name>/renv.lock`, and
+the rows then name that path and the profile. `RENV_PATHS_LOCKFILE` and
+`RENV_PATHS_RENV` are not read. `release_supplement()` never
 passes this argument either.
 Its placeholder check (`check_placeholders()`, M036) compares four
 `_supplement.yml` values with the installed template's, read through

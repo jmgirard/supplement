@@ -8,7 +8,10 @@
   them match. A report that attached a package that `renv.lock` does not
   name, so that `renv::restore()` does not install it from `renv.lock`, gets a
   `"renv-missing"` row. A package that a report loaded and did not attach
-  gives no row. The default is `FALSE`, which does not read `renv.lock`,
+  gives no row. `RENV_PROFILE` or `renv/profile` can name an renv profile.
+  Then these checks read the profile's lockfile,
+  `renv/profiles/<name>/renv.lock`, in place of `renv.lock`.
+  The default is `FALSE`, which does not read `renv.lock`,
   and `release_supplement()` does not run these checks.
 * `check_supplement()` has a new argument, `web_links`. With
   `web_links = TRUE`, it requests each `http` and `https` address on the

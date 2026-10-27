@@ -171,9 +171,24 @@
 #'   its `Package` text, or by its key when it has none, and a record with
 #'   no `Version` text is left out of the comparison. A site with no `renv.lock` gets no row,
 #'   and the function says that it skipped this check and the
-#'   `"renv-missing"` check. Only `renv.lock` in the site folder is read, not the
-#'   lockfile of an renv profile. [release_supplement()] does not run this
+#'   `"renv-missing"` check. [release_supplement()] does not run this
 #'   check, so its rows never stop a release.
+#'
+#'   In this item and the next, `renv.lock` is the lockfile that renv 1.3.1
+#'   picks for the site's renv profile. The profile's name comes from the
+#'   `RENV_PROFILE` environment variable of the R session that runs the
+#'   check, when it is not empty. Otherwise it comes from the first line of
+#'   `renv/profile` in the site folder, untrimmed, when that file exists. The
+#'   name `default`, an empty name, or no name means no profile, and the
+#'   lockfile is `renv.lock` in the site folder. With a profile, the lockfile
+#'   is `renv/profiles/<name>/renv.lock`, with the name joined as given. The
+#'   function then says which profile it picked and where the name came
+#'   from. The rows name that path where they name `renv.lock`, and they say
+#'   to run the renv commands with the profile active. When `renv/profile`
+#'   is read and is a folder or a file that cannot be opened, it gets one
+#'   row of its own, and no report gets a row. The check does not read
+#'   `RENV_PATHS_LOCKFILE` or `RENV_PATHS_RENV`, which renv reads to move
+#'   the lockfile and the `renv` folder.
 #' * `"renv-missing"`: only with `renv_lock = TRUE`, a report from the same
 #'   list whose stored output shows that it attached a package that the
 #'   site's `renv.lock` does not name under `Packages`, so
@@ -425,8 +440,10 @@
 #' @param renv_lock `TRUE` to also compare the R and package versions in the
 #'   stored output of each report with the site's `renv.lock` and give the
 #'   `"renv-mismatch"` rows, and to give the `"renv-missing"` rows for
-#'   attached packages that `renv.lock` does not name. The default, `FALSE`,
-#'   does not read `renv.lock`.
+#'   attached packages that `renv.lock` does not name. With an renv profile,
+#'   the check reads the profile's lockfile instead, as the
+#'   `"renv-mismatch"` item says. The default, `FALSE`, does not read
+#'   `renv.lock`.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
@@ -1097,7 +1114,8 @@ lock_source <- function(path) {
     file <- file.path(path, "renv", "profile")
     # renv tests the file with file.exists(), so a link to a missing file
     # names no profile, except on Windows, where file.exists() is TRUE for
-    # it. On Linux, readLines() reads a folder as empty.
+    # it. A folder is refused before readLines(), so that it gives the row
+    # on every system.
     lines <- character()
     if (file.exists(file)) {
       lines <- if (!dir.exists(file)) {

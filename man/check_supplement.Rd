@@ -16,8 +16,10 @@ default, \code{FALSE}, makes no web request.}
 \item{renv_lock}{\code{TRUE} to also compare the R and package versions in the
 stored output of each report with the site's \code{renv.lock} and give the
 \code{"renv-mismatch"} rows, and to give the \code{"renv-missing"} rows for
-attached packages that \code{renv.lock} does not name. The default, \code{FALSE},
-does not read \code{renv.lock}.}
+attached packages that \code{renv.lock} does not name. With an renv profile,
+the check reads the profile's lockfile instead, as the
+\code{"renv-mismatch"} item says. The default, \code{FALSE}, does not read
+\code{renv.lock}.}
 }
 \value{
 A data frame with one row per problem and the character columns
@@ -199,9 +201,24 @@ mark at the start of the file is skipped. A package record is named by
 its \code{Package} text, or by its key when it has none, and a record with
 no \code{Version} text is left out of the comparison. A site with no \code{renv.lock} gets no row,
 and the function says that it skipped this check and the
-\code{"renv-missing"} check. Only \code{renv.lock} in the site folder is read, not the
-lockfile of an renv profile. \code{\link[=release_supplement]{release_supplement()}} does not run this
+\code{"renv-missing"} check. \code{\link[=release_supplement]{release_supplement()}} does not run this
 check, so its rows never stop a release.
+
+In this item and the next, \code{renv.lock} is the lockfile that renv 1.3.1
+picks for the site's renv profile. The profile's name comes from the
+\code{RENV_PROFILE} environment variable of the R session that runs the
+check, when it is not empty. Otherwise it comes from the first line of
+\code{renv/profile} in the site folder, untrimmed, when that file exists. The
+name \code{default}, an empty name, or no name means no profile, and the
+lockfile is \code{renv.lock} in the site folder. With a profile, the lockfile
+is \verb{renv/profiles/<name>/renv.lock}, with the name joined as given. The
+function then says which profile it picked and where the name came
+from. The rows name that path where they name \code{renv.lock}, and they say
+to run the renv commands with the profile active. When \code{renv/profile}
+is read and is a folder or a file that cannot be opened, it gets one
+row of its own, and no report gets a row. The check does not read
+\code{RENV_PATHS_LOCKFILE} or \code{RENV_PATHS_RENV}, which renv reads to move
+the lockfile and the \code{renv} folder.
 \item \code{"renv-missing"}: only with \code{renv_lock = TRUE}, a report from the same
 list whose stored output shows that it attached a package that the
 site's \code{renv.lock} does not name under \code{Packages}, so
