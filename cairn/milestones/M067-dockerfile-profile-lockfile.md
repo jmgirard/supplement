@@ -65,7 +65,7 @@
 
 - [x] T1: In `R/write-dockerfile.R`, pick the lockfile with `lock_source()`. Make `read_lockfile_versions()` take the lockfile path and name it in its messages. Add the name check and the exact-case folder check of AC4 with `supplement_error_profile`. Add the message, shown through `show_text()`. Pass the profile to `dockerfile_text()` and to the `.dockerignore` lines. In `tests/testthat/test-write-dockerfile.R`, unset `RENV_PROFILE` at the top of the file with `withr::local_envvar()`. Add the tests of AC1 to AC4.
 - [ ] T2: Add the profile case of AC5 to the gated Docker test. Ask the user to start Docker Desktop, then run the test once on this Mac (macOS arm64).
-- [ ] T3: Update the roxygen help (title, description, `path`, `.dockerignore` text, Errors), then run `devtools::document()`. Update GUIDE.md, README.md, NEWS.md, and DESIGN.md. Then run `devtools::check()`.
+- [x] T3: Update the roxygen help (title, description, `path`, `.dockerignore` text, Errors), then run `devtools::document()`. Update GUIDE.md, README.md, NEWS.md, and DESIGN.md. Then run `devtools::check()`.
 
 ## Work log
 
@@ -90,3 +90,5 @@
 - 2026-10-27: T2: the profile case is in the gated Docker test, which now shares `expect_docker_render()` with the first case. Docker Desktop started at 15:44 but had quit when the run began, so both builds failed with "failed to connect to the docker API". The page sections were the host's renders, with no `/opt/renv/library/` path, so the library checks failed as they must without Docker. The run waits for the user to start Docker.
 - 2026-10-27: claim audit (first pass): about 65 claims read, 4 corrected plus one code comment narrowed. The help said "the rule of renv 1.3.1" for the lockfile, and it now says the profile and states that `RENV_PATHS_LOCKFILE` and `RENV_PATHS_RENV` are not read. README and the help said that renv picks, and now `write_dockerfile()` reads. In DESIGN.md the library reason now goes with `ENV`, not `COPY`. The GUIDE.md scope is now "In this part". The re-read of the corrected claims is pending.
 - 2026-10-27: claim audit: 65 claims read, 4 corrected — R/write-dockerfile.R, man/write_dockerfile.Rd, README.md, inst/template/GUIDE.md, cairn/DESIGN.md. The same reader re-read the corrections once, and all held.
+- 2026-10-27: T3 done: help, GUIDE.md, README.md, NEWS.md, and DESIGN.md updated. `devtools::check()` at 1c6952e: 0 errors, 0 warnings, 1 note (local `.claude`). Later commits change only prose and the regenerated `.Rd`.
+- 2026-10-27: stop: T2's Docker run needs the user to start Docker Desktop. `open -a Docker` started it at 15:44, but it had quit when the tests ran.
