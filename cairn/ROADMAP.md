@@ -1,19 +1,17 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-26 (M062 review: archived; graduated "Match example files after editor saves" and "Flag the old example as a placeholder"; added "Skip FIFOs and other special files"; pruned the M059 row; no lesson captured, two marked used; LESSONS holds 25 lessons; validate green)_
+_Last hygiene check: 2026-10-27 (M063 review: archived; graduated "Check web links on the rendered site"; added "Read each page once for web links" and "Request web addresses with invalid bytes"; extended two rows; pruned the M060 row; one lesson captured, the M013 lesson evicted by rank, three marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M063 | Check web links on the rendered site | review | — | normal | milestones/M063-check-web-links.md |
+| M063 | Check web links on the rendered site | done | — | normal | milestones/archive/M063-check-web-links.md |
 | M062 | Flag old and re-saved example files | done | — | normal | milestones/archive/M062-flag-old-example-files.md |
 | M061 | Flag reports after report.R changes | done | — | normal | milestones/archive/M061-flag-report-script-changes.md |
-| M060 | Tighten the missing report.R check | done | — | normal | milestones/archive/M060-tighten-report-script-check.md |
 ## Candidates
 
-- Check web links on the rendered site: web link check: `check_supplement()` tests only links inside `docs/`. Also request each web address on the site's pages, which needs a network and can fail when a site is down. From the M008 plan. — added 2026-10-18 — started M063
 - Handle short folder names on Windows: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
 - Measure the cost of large data files: from the M018 review. Quarto copies each file the data table links into `docs/`, the size fixtures included (seen on macOS, where the 2 GiB copy stays sparse at 4 KB); the disk cost of the 1 GB, 2 GiB, and 4 GiB fixtures on Linux and Windows was not measured. On Windows the data table counts the bytes of each file of 2 GiB or more on every render, and the time for a 4 GiB file was not measured. — added 2026-10-19
 - Add a test coverage report to CI: coverage report: add the usethis test-coverage workflow, which runs `covr` and uploads to Codecov, beside the check workflow. It needs the repo linked in a Codecov account, and coverage never gates a merge. From the M018 plan. — added 2026-10-19
