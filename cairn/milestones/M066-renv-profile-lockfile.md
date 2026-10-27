@@ -2,7 +2,7 @@
      section ownership". A phase skill never rewrites another phase's section. -->
 # M066: Read the lockfile of the active renv profile
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -53,7 +53,7 @@ With `renv_lock = TRUE`, `check_supplement()` compares the stored output of each
 - [x] T1: Write the AC1 and AC4 tests first. Then add a helper in `R/check-supplement.R` that applies the rule to the site folder. It returns the profile, its source, and the lockfile's path from the site folder, or marks `renv/profile` as unreadable. `lock_versions()` (near line 1060) takes that path. The existing renv tests unset `RENV_PROFILE` with withr.
 - [x] T2: Write the AC2 and AC3 tests first. Then pass the helper's result through `check_renv_lock()`, `mismatch_problem()`, and `missing_problem()`. This covers the row text, the steps with the profile active, the unreadable-lockfile row, the skip message, the profile message, and the `renv/profile` row. Pass the profile name to cli as a value, never in the template.
 - [x] T3: Update the roxygen help and run `devtools::document()`. Edit the unreleased `renv_lock` bullet of NEWS.md, the renv part of GUIDE.md, and the `renv_lock` paragraph of DESIGN.md.
-- [ ] T4: Run `devtools::test()` and `devtools::check()`.
+- [x] T4: Run `devtools::test()` and `devtools::check()`.
 
 ## Work log
 
@@ -70,3 +70,4 @@ With `renv_lock = TRUE`, `check_supplement()` compares the stored output of each
 - 2026-10-27: T1 and T2 done in one commit: `lock_source()` in `R/check-supplement.R` applies the profile rule, `lock_versions()` takes the lockfile path, and `check_renv_lock()` names the lockfile, the profile, and its source. The profile message reads "Picked <lockfile>, the lockfile of the renv profile <name>, which <source> names", so it stays true when the lockfile is missing. A `renv/profile` folder gives the row on every system, since Linux `readLines()` reads a folder as empty. Four planted defects in `lock_source()` (trim, no variable, no `default`, unreadable as no profile) each failed tests. `devtools::test()`: 460 tests, 0 failed.
 - 2026-10-27: T3 done: the `check_supplement()` help gives the profile rule in a paragraph of the "renv-mismatch" item and a sentence in `renv_lock`, NEWS.md, GUIDE.md, and DESIGN.md name the profile lockfile, and `devtools::document()` rewrote `man/check_supplement.Rd`. The AC5 grep finds nothing. Checkpoint before the full `devtools::test()` and `devtools::check()` run of T4, which is still running.
 - 2026-10-27: claim audit: 34 claims read, 3 corrected — R/check-supplement.R (the `lock_source()` header now names `renv_paths_lockfile()` for the path, the `lock_versions()` header says a link to a missing file gives FALSE, and the folder comment no longer claims behavior on other systems). Unchecked here: the Windows `file.exists()` claim, which rests on the 2026-10-19 (M018) lesson.
+- 2026-10-27: T4 done: `devtools::test()` gave 460 tests, 0 failed, 10 skipped. `devtools::check()` gave 0 errors, 0 warnings, 1 note (the local `.claude` folder), both on 4303d92. 4bf6640 changed only plain comments, and `devtools::document()` then left no diff. Status set to review.
