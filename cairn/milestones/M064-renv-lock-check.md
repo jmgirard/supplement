@@ -102,6 +102,8 @@
 - 2026-10-27: T4 done, in `test-add-render.R`. Minor amendment: the test does not skip without sessioninfo, because both printed forms list knitr. The lock records no R version, so the row names knitr alone. The test ran and passed on macOS.
 - 2026-10-27: T5 done. The release test first gets exactly one `"renv-mismatch"` row from the real check, then releases the same site to 1.0.0.
 - 2026-10-27: T6 checkpoint, not done. The help of both functions, NEWS.md, README.md, GUIDE.md, the publishing vignette, and DESIGN.md are updated, and `devtools::document()` ran. The GUIDE.md check list names the check as its last item. A style hook flagged one long older list item in README.md and in GUIDE.md, so each became two items. The full test run and `devtools::check()` are still owed.
+- 2026-10-27: full `devtools::test()`: 447 tests, 0 failed, 0 errors, 10 skipped. The first `devtools::check()` gave 0 errors, 1 warning, and 1 note. The warning was a literal `─` in `stored_versions()`, which is now `─`. The note is the local `.claude` folder. A second check is running.
+- 2026-10-27: claim audit (fresh Opus reader): 55 claims read, 6 corrected in NEWS.md, the `check_supplement()` help and Rd, a code comment, the renv.lock row text and its test, and GUIDE.md. The corrected claims are with the same reader for one re-read.
 
 ## Decisions
 

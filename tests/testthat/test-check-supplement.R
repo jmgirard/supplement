@@ -2136,9 +2136,9 @@ lock_json <- function(packages = character(), r = "4.6.1") {
 write_lock <- function(site, ...) writeLines(lock_json(...), lock_path(site))
 
 lock_unreadable_text <- paste(
-  "It cannot be read as an renv lockfile. It is a folder or a link to a missing file, or it is not",
-  "UTF-8 text that holds a JSON object with a Packages object. Run renv::snapshot() to write it",
-  "again, then commit it."
+  "It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that",
+  "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object. Run",
+  "renv::snapshot() to write it again, then commit it."
 )
 
 test_that("renv_lock must be TRUE or FALSE", {
@@ -2187,7 +2187,7 @@ session_r <- function() {
 # when a package has a problem. The `V` row was loaded at another version
 # than the one on disk.
 flagged_table <- c(
-  "─ Packages ──────",
+  "\u2500 Packages \u2500\u2500\u2500\u2500\u2500\u2500",
   " ! package * version date (UTC) lib source",
   "   cli       3.6.6   2026-04-09 [1] CRAN (R 4.6.0)",
   " V dplyr     1.1.3   2026-01-01 [1] CRAN (R 4.6.0) (on disk 1.1.4)",
@@ -2201,7 +2201,7 @@ test_that("stored_versions() reads the sessioninfo table after either rule", {
   pkgs <- info$packages
   expected <- ifelse(is.na(pkgs$loadedversion), pkgs$ondiskversion, pkgs$loadedversion)
   names(expected) <- pkgs$package
-  for (rule in c("─ Packages", "- Packages")) {
+  for (rule in c("\u2500 Packages", "- Packages")) {
     withr::local_options(cli.unicode = rule != "- Packages", cli.num_colors = 1)
     lines <- utils::capture.output(print(info))
     expect_true(any(startsWith(lines, rule)), info = rule)

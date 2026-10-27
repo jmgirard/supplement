@@ -412,8 +412,9 @@ supplement::check_supplement(renv_lock = TRUE)
 ```
 
 Each such report gets a `"renv-mismatch"` row that names the versions.
-To use the versions in `renv.lock`, run `renv::restore()`, then render the
-report by name. If the library now holds the versions of the report, you
+To use the versions in `renv.lock`, run `renv::restore()`. Then render the
+report by name, render the whole site, and commit the report with
+`_freeze/`, `docs/`, and `figures/`. If the library now holds the versions of the report, you
 can run `renv::snapshot()` and commit `renv.lock` instead. A release does
 not run this check, so these rows do not stop a release.
 

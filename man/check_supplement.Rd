@@ -156,7 +156,8 @@ the \code{package} and \code{version} columns of its header line, and the settin
 line that starts with \code{ version}, spaces, and \verb{R version}. From
 \code{utils::sessionInfo()}, these are each line that starts with
 \verb{R version}, and the \code{name_version} entries on the lines that start
-with \verb{[1]}, \verb{[2]}, and so on, after \verb{other attached packages:} and after
+with \verb{[1]}, \verb{[2]}, and so on, after any spaces, after
+\verb{other attached packages:} and after
 \verb{loaded via a namespace (and not attached):}. A line that holds an ANSI
 escape is not read, and output that knitr prints after a comment prefix
 such as \verb{## } is not found.
@@ -167,9 +168,10 @@ version differs when a stored R version is not equal to the \code{Version}
 under \code{R}. Versions are compared as \code{\link[=package_version]{package_version()}} values, so
 \code{1.0-5} equals \verb{1.0.5}. A package that \code{renv.lock} does not record,
 such as a base package, is not compared. Nor is a version that
-\code{\link[=package_version]{package_version()}} cannot read on either side, such as
-\verb{R Under development (unstable)}, or the R version when \code{renv.lock}
-records none. The report gets one row. It names the files that hold a
+\code{\link[=package_version]{package_version()}} cannot read on either side, such as \code{devel}, or
+the R version when \code{renv.lock} records none. A development build of R
+prints \verb{R Under development (unstable)}, which the check does not read
+as an R version. The report gets one row. It names the files that hold a
 version that differs, in the same way as the \code{"stale-script"} row.
 Then it names the R versions that differ, and each package that
 differs, in byte order of name, each with its stored versions that
@@ -183,9 +185,10 @@ holds no versions, and a report that cannot be read, such as a link to
 a missing file, gives no row.
 
 \code{renv.lock} gets one row of its own, and no report gets a row, when it
-is a folder, a link to a missing file, text that is not valid UTF-8,
-text that is not JSON, or JSON whose top level or \code{Packages} is not an
-object. A package record with no \code{Version} text is left out. A site
+is a folder, a link to a missing file, a file that cannot be opened,
+text that is not valid UTF-8, text that is not JSON, or JSON whose top
+level or \code{Packages} is not an object. A file that starts with a UTF-8
+byte order mark is also not read. A package record with no \code{Version} text is left out. A site
 with no \code{renv.lock} gets no row, and the function says that it skipped
 the check. Only \code{renv.lock} in the site folder is read, not the
 lockfile of an renv profile. \code{\link[=release_supplement]{release_supplement()}} does not run this

@@ -1,8 +1,8 @@
 # supplement 0.0.0.9000
 
 * `check_supplement()` has a new argument, `renv_lock`. With
-  `renv_lock = TRUE`, it compares the R and package versions in the
-  Computing environment section of each report's stored output with the
+  `renv_lock = TRUE`, it compares the R and package versions that
+  `print_environment()` prints into each report's stored output with the
   site's `renv.lock`. A report with a version that differs gets a
   `"renv-mismatch"` row, which names the versions and says how to make
   them match. The default is `FALSE`, which does not read `renv.lock`, and

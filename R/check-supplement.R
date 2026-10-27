@@ -130,7 +130,8 @@
 #'   line that starts with ` version`, spaces, and `R version`. From
 #'   `utils::sessionInfo()`, these are each line that starts with
 #'   `R version`, and the `name_version` entries on the lines that start
-#'   with `[1]`, `[2]`, and so on, after `other attached packages:` and after
+#'   with `[1]`, `[2]`, and so on, after any spaces, after
+#'   `other attached packages:` and after
 #'   `loaded via a namespace (and not attached):`. A line that holds an ANSI
 #'   escape is not read, and output that knitr prints after a comment prefix
 #'   such as `## ` is not found.
@@ -141,9 +142,10 @@
 #'   under `R`. Versions are compared as [package_version()] values, so
 #'   `1.0-5` equals `1.0.5`. A package that `renv.lock` does not record,
 #'   such as a base package, is not compared. Nor is a version that
-#'   [package_version()] cannot read on either side, such as
-#'   `R Under development (unstable)`, or the R version when `renv.lock`
-#'   records none. The report gets one row. It names the files that hold a
+#'   [package_version()] cannot read on either side, such as `devel`, or
+#'   the R version when `renv.lock` records none. A development build of R
+#'   prints `R Under development (unstable)`, which the check does not read
+#'   as an R version. The report gets one row. It names the files that hold a
 #'   version that differs, in the same way as the `"stale-script"` row.
 #'   Then it names the R versions that differ, and each package that
 #'   differs, in byte order of name, each with its stored versions that
@@ -157,9 +159,10 @@
 #'   a missing file, gives no row.
 #'
 #'   `renv.lock` gets one row of its own, and no report gets a row, when it
-#'   is a folder, a link to a missing file, text that is not valid UTF-8,
-#'   text that is not JSON, or JSON whose top level or `Packages` is not an
-#'   object. A package record with no `Version` text is left out. A site
+#'   is a folder, a link to a missing file, a file that cannot be opened,
+#'   text that is not valid UTF-8, text that is not JSON, or JSON whose top
+#'   level or `Packages` is not an object. A file that starts with a UTF-8
+#'   byte order mark is also not read. A package record with no `Version` text is left out. A site
 #'   with no `renv.lock` gets no row, and the function says that it skipped
 #'   the check. Only `renv.lock` in the site folder is read, not the
 #'   lockfile of an renv profile. [release_supplement()] does not run this
@@ -880,9 +883,9 @@ check_renv_lock <- function(path) {
   if (isFALSE(lock)) {
     return(problem_rows(
       "renv-mismatch", "renv.lock",
-      paste("It cannot be read as an renv lockfile. It is a folder or a link to a missing file, or it is not",
-            "UTF-8 text that holds a JSON object with a Packages object. Run renv::snapshot() to write it",
-            "again, then commit it.")
+      paste("It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that",
+            "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object. Run",
+            "renv::snapshot() to write it again, then commit it.")
     ))
   }
   reports <- analysis_reports(path)
@@ -994,9 +997,9 @@ lock_versions <- function(path) {
 # package table after a `─ Packages` or `- Packages` rule of
 # sessioninfo::session_info() and its `version` setting line, and the
 # `R version` line and the two package lists of utils::sessionInfo(). A
-# line that holds an ANSI escape is not read. The patterns run on the first
-# 200 characters of a line, so a long line does not reach PCRE's match
-# limit.
+# line that holds an ANSI escape is not read. The patterns that find lines
+# run on the first 200 characters of a line, so a long line stays fast. The
+# entries of a package list are read from the whole line.
 stored_versions <- function(markdown) {
   lines <- strsplit(markdown, "\n", fixed = TRUE)[[1]]
   lines[grepl("\033", lines, fixed = TRUE)] <- ""
@@ -1009,7 +1012,7 @@ stored_versions <- function(markdown) {
          first_word(sub("^R version ", "", head[first])))
 
   packages <- character()
-  rules <- which(startsWith(head, "─ Packages") | startsWith(head, "- Packages"))
+  rules <- which(startsWith(head, "\u2500 Packages") | startsWith(head, "- Packages"))
   for (rule in rules[rules < length(head)]) {
     header <- head[rule + 1]
     if (!grepl("^ (! +)?package +\\* +version ", header)) next
