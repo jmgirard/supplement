@@ -140,3 +140,4 @@ Pass 2 (2026-10-27, branch head 3dec8e0, then the fix-now test commit):
 - ripple #2: DESIGN.md's renv-missing sentence names `renv.lock` — reject, false, as pass 1 ripple #7.
 - AC6: on 50a4f1a (87ab3f6 changed only `cairn/ROADMAP.md`), `devtools::document()` left no diff, `devtools::test()` gave 461 tests, 0 failed, 0 errors, 11 skipped (the new Linux-only part among them), and `devtools::check()` gave 0 errors, 0 warnings, 1 note (the local `.claude` folder).
 - snapshot: no changed snapshot file.
+- 2026-10-27: step-7 approval: m066-renv-profile-lockfile approved for merge
