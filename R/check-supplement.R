@@ -877,12 +877,14 @@ stored_script_hashes <- function(file) {
 
 # renv.lock -------------------------------------------------------------------
 
-# The rows of the renv.lock comparison. A site with no renv.lock gets a
-# message and no row, and a renv.lock that cannot be read gets one row.
+# The rows of the renv.lock comparison: the "renv-mismatch" rows, then the
+# "renv-missing" rows. A site with no renv.lock gets a message and no row,
+# and a renv.lock that cannot be read gets one row.
 check_renv_lock <- function(path) {
   lock <- lock_versions(path)
   if (is.null(lock)) {
-    cli::cli_alert_info("Skipped the {.val renv-mismatch} check: the site has no {.file renv.lock}.")
+    cli::cli_alert_info(paste("Skipped the {.val renv-mismatch} check: the site has no {.file renv.lock}.",
+                              "Skipped the {.val renv-missing} check too."))
     return(problem_rows())
   }
   if (isFALSE(lock)) {
@@ -894,56 +896,100 @@ check_renv_lock <- function(path) {
     ))
   }
   reports <- analysis_reports(path)
-  problem <- vapply(reports, function(report) {
+  problems <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
     dir <- file.path("_freeze", "analyses", name, "execute-results")
     files <- list.files(file.path(path, dir), pattern = "\\.json$")
     files <- files[!startsWith(files, ".") & !dir.exists(file.path(path, dir, files))]
-    found <- lapply(file.path(path, dir, files), function(file) {
+    stored <- lapply(file.path(path, dir, files), function(file) {
       markdown <- stored_markdown(file)
       if (is.null(markdown)) {
-        return(version_diffs(list(r = character(), packages = character()), lock))
+        return(list(r = character(), packages = character(), attached = character(), listed = FALSE))
       }
-      version_diffs(stored_versions(markdown), lock)
+      stored_versions(markdown)
     })
-    differs <- vapply(found, function(x) length(x$r) > 0 || length(x$packages) > 0, logical(1))
+    problem <- c(mismatch_problem(lapply(stored, version_diffs, lock), files, dir, lock),
+                 missing_problem(stored, files, dir, lock))
     # A report that cannot be read, such as a link to a missing file,
     # cannot be rendered again, so it gets no row, as in check_stale_output().
-    if (!any(differs) || is.null(report_hash(report))) {
-      return(NA_character_)
+    if (all(is.na(problem)) || is.null(report_hash(report))) {
+      return(c(NA_character_, NA_character_))
     }
-    # Each version once, so `1.0-5` and `1.0.5` print as one.
-    in_order <- function(v) {
-      v <- v[order(package_version(v))]
-      paste(v[!duplicated(as.character(package_version(v)))], collapse = " and ")
-    }
-    r <- unlist(lapply(found, `[[`, "r"))
-    packages <- unlist(lapply(found, `[[`, "packages"))
-    entries <- c(
-      if (length(r) > 0) paste0("R ", in_order(r), " (renv.lock: ", lock$r, ")"),
-      vapply(sort_bytes(unique(as.character(names(packages)))), function(p) {
-        paste0(p, " ", in_order(packages[names(packages) == p]), " (renv.lock: ", lock$packages[[p]], ")")
-      }, character(1), USE.NAMES = FALSE)
-    )
-    named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")
-    stale <- paste0("Its stored output was made with other versions than renv.lock records, in ", named, ": ",
-                    paste(entries, collapse = ", "), ".")
-    steps <- paste("To use the versions in renv.lock, run renv::restore(), then take these steps.", rerender_steps,
-                   "If the library now holds the versions of the report, run renv::snapshot() and commit",
-                   "renv.lock instead.")
-    matches <- vapply(found, function(x) x$compared, logical(1)) & !differs
-    if (!any(matches)) {
-      return(paste(stale, steps))
-    }
-    # Quarto keeps the file of a format that the report no longer renders.
-    paste(stale,
-          "Other stored output of the report matches renv.lock, so these files can be from a format that the",
-          "report no longer renders. If so, delete them, render the whole site, and commit the report with",
-          "_freeze/, docs/, and figures/.",
-          "If not, take the steps that follow.", steps)
-  }, character(1), USE.NAMES = FALSE)
-  hit <- !is.na(problem)
-  problem_rows("renv-mismatch", file.path("analyses", basename(reports[hit])), problem[hit])
+    problem
+  }, character(2), USE.NAMES = FALSE)
+  files <- file.path("analyses", basename(reports))
+  mismatch <- !is.na(problems[1, ])
+  missing <- !is.na(problems[2, ])
+  rbind(problem_rows("renv-mismatch", files[mismatch], problems[1, mismatch]),
+        problem_rows("renv-missing", files[missing], problems[2, missing]))
+}
+
+# The problem text of the "renv-mismatch" row of a report whose stored
+# output files `files` in `dir` hold the versions `found`, from
+# version_diffs(), or NA when no version differs.
+mismatch_problem <- function(found, files, dir, lock) {
+  differs <- vapply(found, function(x) length(x$r) > 0 || length(x$packages) > 0, logical(1))
+  if (!any(differs)) {
+    return(NA_character_)
+  }
+  # Each version once, so `1.0-5` and `1.0.5` print as one.
+  in_order <- function(v) {
+    v <- v[order(package_version(v))]
+    paste(v[!duplicated(as.character(package_version(v)))], collapse = " and ")
+  }
+  r <- unlist(lapply(found, `[[`, "r"))
+  packages <- unlist(lapply(found, `[[`, "packages"))
+  entries <- c(
+    if (length(r) > 0) paste0("R ", in_order(r), " (renv.lock: ", lock$r, ")"),
+    vapply(sort_bytes(unique(as.character(names(packages)))), function(p) {
+      paste0(p, " ", in_order(packages[names(packages) == p]), " (renv.lock: ", lock$packages[[p]], ")")
+    }, character(1), USE.NAMES = FALSE)
+  )
+  named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")
+  stale <- paste0("Its stored output was made with other versions than renv.lock records, in ", named, ": ",
+                  paste(entries, collapse = ", "), ".")
+  steps <- paste("To use the versions in renv.lock, run renv::restore(), then take these steps.", rerender_steps,
+                 "If the library now holds the versions of the report, run renv::snapshot() and commit",
+                 "renv.lock instead.")
+  matches <- vapply(found, function(x) x$compared, logical(1)) & !differs
+  if (!any(matches)) {
+    return(paste(stale, steps))
+  }
+  # Quarto keeps the file of a format that the report no longer renders.
+  paste(stale,
+        "Other stored output of the report matches renv.lock, so these files can be from a format that the",
+        "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+        "_freeze/, docs/, and figures/.",
+        "If not, take the steps that follow.", steps)
+}
+
+# The problem text of the "renv-missing" row of a report whose stored
+# output files `files` in `dir` hold the versions `stored`, from
+# stored_versions(), or NA when no file shows an attached package that
+# renv.lock does not name. renv::restore() installs only the packages that
+# renv.lock records.
+missing_problem <- function(stored, files, dir, lock) {
+  missing <- lapply(stored, function(x) setdiff(x$attached, lock$names))
+  shows <- lengths(missing) > 0
+  if (!any(shows)) {
+    return(NA_character_)
+  }
+  named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[shows])))), collapse = ", ")
+  packages <- paste(sort_bytes(unique(unlist(missing))), collapse = ", ")
+  stale <- paste0("Its stored output shows that the report attached packages that renv.lock does not record, in ",
+                  named, ": ", packages, ".")
+  steps <- paste("renv::restore() does not install them. To record them, run renv::snapshot() and commit",
+                 "renv.lock. If the report no longer uses them, take these steps instead.", rerender_steps)
+  listed <- vapply(stored, function(x) x$listed, logical(1)) & !shows
+  if (!any(listed)) {
+    return(paste(stale, steps))
+  }
+  # Quarto keeps the file of a format that the report no longer renders.
+  paste(stale,
+        "Other stored output of the report attaches none of them, so these files can be from a format that the",
+        "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+        "_freeze/, docs/, and figures/.",
+        "If not, take the steps that follow.", steps)
 }
 
 # The versions in `stored`, from stored_versions(), that differ from those
