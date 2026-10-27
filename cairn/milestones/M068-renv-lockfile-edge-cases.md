@@ -39,7 +39,7 @@ The lockfile readers of `write_dockerfile()` and `check_supplement(renv_lock = T
 
 ## Tasks
 
-- [ ] T1: Move the byte order mark drop of `lock_versions()` (`R/check-supplement.R:1174`) into a small helper and call it in `read_lockfile_versions()` (`R/write-dockerfile.R:294`) before `rawToChar()`. Test both lockfiles with `expect_no_warning()` and the bytes of `dockerfile_461` and `dockerfile_dev`.
+- [x] T1: Move the byte order mark drop of `lock_versions()` (`R/check-supplement.R:1174`) into a small helper and call it in `read_lockfile_versions()` (`R/write-dockerfile.R:294`) before `rawToChar()`. Test both lockfiles with `expect_no_warning()` and the bytes of `dockerfile_461` and `dockerfile_dev`.
 - [ ] T2: In `read_lockfile_versions()` run `listed_exactly()` for every lockfile, not only a profile's (`R/write-dockerfile.R:267`), and make the hint at `:271` say "listed under another spelling, such as another letter case". Move `ignores_case()` from `test-write-dockerfile.R:370` into a helper file so T3 can use it. Test `Renv.lock` and `RENV.LOCK`.
 - [ ] T3: In `check_renv_lock()` (`R/check-supplement.R:960`), after `lock_versions()` returns a list, check the path parts with `listed_exactly()` and add one `"renv-mismatch"` row that names the listed path and the path renv picks, then go on with the comparison. Move `listed_exactly()` beside `lock_source()`. Tests: each of the five part positions, profile name from `RENV_PROFILE`; one site with a report holding a mismatch and a missing package; an unreadable wrong-case lockfile (a folder `Renv.lock`) gets only the unreadable row.
 - [ ] T4: In `lock_source()` (`R/check-supplement.R:1104`), when `RENV_PROFILE` names a profile, read the first line of `renv/profile` under the same guards and set `from = "both"` on a byte-for-byte match, leaving `file` and `profile` as they are. Update `inform_lock_source()` (`:1133`) and the name error of `dockerfile_lock_source()` (`R/write-dockerfile.R:234`). Pass names to cli as values (LESSONS M016). Tests in both files for both, missing, empty, other name, and folder; the name-error test uses the ASCII name `a b`.
@@ -62,6 +62,7 @@ The lockfile readers of `write_dockerfile()` and `check_supplement(renv_lock = T
 - 2026-10-28: collision check: absorbs the candidate rows "Read renv.lock with a byte order mark", "Match the letter case of renv.lock", and "Name the real source of a profile name"; extends M066 (`lock_source()`) and M067 (`write_dockerfile()`); D-032 holds, since the new row is a `"renv-mismatch"` row of the opt-in check. Inbox sweep: 0 open issues, 0 open PRs.
 - 2026-10-28: lessons used: 2026-10-27 (M064, used M065), 2026-10-27 (M066, used M067), 2026-10-27 (M067), 2026-10-19 (M018, used M067), 2026-10-19 (M016, used M067).
 - 2026-10-28: implement started on m068-renv-lockfile-edge-cases. Checkpoint, half-done: T1 code and test written; both lockfile cases failed on main with the jsonlite byte order mark warning and pass with `drop_bom()`; the full suite is still running, so T1 is not checked off.
+- 2026-10-28: T1 done: `devtools::test()` at 64f946f gave 470 tests, 0 failed. `drop_bom()` sits beside `lock_versions()`; the copy in the placeholder check (`R/check-supplement.R:1357`) was left as it is.
 
 ## Decisions
 
