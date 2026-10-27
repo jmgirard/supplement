@@ -4,7 +4,7 @@
      cairn_validate's <150 over the plan-owned body. -->
 # M063: Check web links on the rendered site
 
-- **Status:** in-progress   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
+- **Status:** review   <!-- owner: transitioning skill · mirror-update; cairn/ROADMAP.md is the authority -->
 - **Priority:** normal   <!-- owner: plan · create/amend-via-gate; high | normal | low -->
 - **Depends on:** —   <!-- owner: plan · create/amend-via-gate; M<xx>, M<yy> or — -->
 - **Driving RR:** —   <!-- owner: plan · create/amend-via-gate; RR<NN> whose Binding criteria bind this milestone's ACs (binding-criteria check), or — -->
@@ -96,6 +96,7 @@
 - 2026-10-27: stop: AC5 wording — the user chose "Require R 4.1.0" over the reader's narrowed wording. AC5 keeps its planned text, so no amendment is written and no `amendment return:` line counts. Dependency change recorded as D-031.
 - 2026-10-27: DESCRIPTION has `Depends: R (>= 4.1.0)`. url_status() always passes `timeout = web_timeout` and calls curlGetHeaders() directly again (the formals() branch and do.call() are gone). The url_status() test asserts the timeout without a branch. The help says "waits up to 10 seconds", DESIGN.md cites D-031, and NEWS.md says the package now needs R 4.1.0. devtools::test(): 431 tests, 0 failed. CI runs R release only.
 - 2026-10-27: claim audit: 64 claims read, 2 corrected — vignettes/publishing.Rmd (a web row does not stop a release because release_supplement() does not run the check, not because the site is out of the author's control), R/check-supplement.R (the refused-status comment: a browser may need a login too).
+- 2026-10-27: devtools::check() on 08eb269 (with the R floor): 0 errors, 0 warnings, 1 note (local .claude folder). 1b1bcca changed only a comment and a vignette sentence. Status set to review.
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
