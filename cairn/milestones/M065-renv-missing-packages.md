@@ -86,6 +86,7 @@
 - 2026-10-27: implement complete; status set to review.
 - 2026-10-27: step-7 approval: m065-renv-missing-packages approved for merge
 - 2026-10-27: CI wait on PR #66 reached the time limit: ubuntu and build passed, macOS and Windows pending, deploy skipped; nothing merged.
+- 2026-10-27: resume: PR #66 open, every check passed at 510c594, main unmoved; re-entering at step 7 (route c).
 
 ## Decisions
 
@@ -104,6 +105,7 @@ Consistency gate: `cairn_validate.py` all checks passed; `devtools::document()` 
 
 spawned: diff-bug, blame-history, prior-review, ripple
 
+- conversation: PR #66 — empty read on resume (0 reviews, 0 comments, 0 unresolved threads).
 - ripple #1: sessioninfo marks base packages attached, so they would give rows — reject (false: `sessioninfo::session_info()` with `tools` attached listed no base package).
 - ripple #2: help says a package renv.lock does not record "is not compared" with no pointer to the new row — fix now, fixed af33585.
 - ripple #3: help says a record with no `Version` "is left out" — fix now ("left out of the comparison"), fixed af33585.
