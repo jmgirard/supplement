@@ -37,7 +37,7 @@ With `renv_lock = TRUE`, `check_supplement()` compares the stored output of each
 - [x] AC3: When a profile is in use and its lockfile does not exist, `check_supplement(renv_lock = TRUE)` gives no "renv-mismatch" or "renv-missing" row. It prints the skip message with the profile's lockfile, also when `renv.lock` in the site folder exists and differs from the reports. A test covers it.
 - [x] AC4: When `RENV_PROFILE` is empty and `renv/profile` is a folder or a file that cannot be opened, `check_supplement(renv_lock = TRUE)` gives one "renv-mismatch" row with the file `renv/profile` and no report rows. A test asserts that row's exact text for a folder and for a file with no read permission (skipped on Windows and as root). When `RENV_PROFILE` is not empty, the same folder gives no such row, and a test covers it.
 - [x] AC5: The help of `check_supplement()` (the `renv_lock` argument and the "renv-mismatch" and "renv-missing" items) states the profile rule. It also says that the check reads `RENV_PROFILE` from the R session that runs it, and that `RENV_PATHS_LOCKFILE` and `RENV_PATHS_RENV` are not read. NEWS.md's unreleased `renv_lock` bullet, the renv part of `inst/template/GUIDE.md`, and the `renv_lock` paragraph of `cairn/DESIGN.md` say that the check reads the active profile's lockfile. `grep -n 'Only .renv.lock. in the site folder is read' R/check-supplement.R` finds nothing.
-- [ ] AC6: `devtools::document()` leaves no diff, `devtools::test()` reports 0 failures, and `devtools::check()` reports 0 errors and 0 warnings.
+- [x] AC6: `devtools::document()` leaves no diff, `devtools::test()` reports 0 failures, and `devtools::check()` reports 0 errors and 0 warnings.
 
 ## Coverage
 
@@ -138,3 +138,5 @@ Pass 2 (2026-10-27, branch head 3dec8e0, then the fix-now test commit):
 - prior-review: no finding; every pass-1 fix is present at 3dec8e0.
 - ripple #1: GUIDE.md's renv steps name `renv.lock` above the profile paragraph — reject, false: that paragraph, rewritten in pass 1, covers the steps of both checks.
 - ripple #2: DESIGN.md's renv-missing sentence names `renv.lock` — reject, false, as pass 1 ripple #7.
+- AC6: on 50a4f1a (87ab3f6 changed only `cairn/ROADMAP.md`), `devtools::document()` left no diff, `devtools::test()` gave 461 tests, 0 failed, 0 errors, 11 skipped (the new Linux-only part among them), and `devtools::check()` gave 0 errors, 0 warnings, 1 note (the local `.claude` folder).
+- snapshot: no changed snapshot file.
