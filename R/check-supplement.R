@@ -968,8 +968,10 @@ version_diffs <- function(stored, lock) {
 
 # The versions that the site's renv.lock records: NULL when the site has no
 # renv.lock, FALSE when it cannot be read, and otherwise a list of `r`, the
-# R version or NULL, and `packages`, a character vector of versions named
-# by package. A package record with no `Version` text is left out.
+# R version or NULL, `packages`, a character vector of versions named by
+# package, and `names`, the name of each package record. A package record
+# with no `Version` text is left out of `packages` and kept in `names`, and
+# a record whose name is empty is left out of both.
 lock_versions <- function(path) {
   file <- file.path(path, "renv.lock")
   if (!file.exists(file) && !is_link(file)) {
@@ -1016,18 +1018,24 @@ lock_versions <- function(path) {
     return(FALSE)
   }
   r <- text_value(json[["R"]], "Version")
-  list(r = if (!is.na(r)) r, packages = versions[!is.na(versions) & nzchar(names(versions))])
+  list(r = if (!is.na(r)) r, packages = versions[!is.na(versions) & nzchar(names(versions))],
+       names = names(versions)[nzchar(names(versions))])
 }
 
 # The R and package versions that print_environment() printed into stored
-# output text, as a list of `r`, a character vector of R versions, and
-# `packages`, a character vector of versions named by package. It reads the
+# output text, as a list of `r`, a character vector of R versions,
+# `packages`, a character vector of versions named by package, `attached`,
+# the names of the packages that the session attached, and `listed`, TRUE
+# when the text holds a package table or list. It reads the
 # package table after a `─ Packages` or `- Packages` rule of
 # sessioninfo::session_info() and its `version` setting line, and the
 # `R version` line and the two package lists of utils::sessionInfo(). A
-# line that holds an ANSI escape is not read. The patterns that find lines
-# run on the first 200 characters of a line, so a long line stays fast. The
-# entries of a package list are read from the whole line.
+# table line marks an attached package with `*` under the `*` of its
+# header, and utils::sessionInfo() lists them after
+# `other attached packages:`. A line that holds an ANSI escape is not
+# read. The patterns that find lines run on the first 200 characters of a
+# line, so a long line stays fast. The entries of a package list are read
+# from the whole line.
 stored_versions <- function(markdown) {
   lines <- strsplit(markdown, "\n", fixed = TRUE)[[1]]
   cr <- endsWith(lines, "\r")
@@ -1045,11 +1053,15 @@ stored_versions <- function(markdown) {
          if (!is.na(first)) first_word(sub("^R version ", "", head[first])))
 
   packages <- character()
+  attached <- character()
+  listed <- FALSE
   rules <- which(startsWith(head, "\u2500 Packages") | startsWith(head, "- Packages"))
   for (rule in rules[rules < length(head)]) {
     header <- head[rule + 1]
     if (!grepl("^ (! +)?package +\\* +version ", header)) next
+    listed <- TRUE
     name_at <- regexpr("package", header, fixed = TRUE)
+    star_at <- regexpr("*", header, fixed = TRUE)
     version_at <- regexpr("version", header, fixed = TRUE)
     i <- rule + 2
     while (i <= length(head) && nzchar(head[i])) {
@@ -1058,6 +1070,7 @@ stored_versions <- function(markdown) {
       if (grepl("^[A-Za-z][A-Za-z0-9.]*$", name) && nzchar(version)) {
         names(version) <- name
         packages <- c(packages, version)
+        if (substr(head[i], star_at, star_at) == "*") attached <- c(attached, name)
       }
       i <- i + 1
     }
@@ -1065,6 +1078,7 @@ stored_versions <- function(markdown) {
 
   lists <- which(head == "other attached packages:" | head == "loaded via a namespace (and not attached):")
   for (start in lists) {
+    listed <- TRUE
     i <- start + 1
     while (i <= length(head) && grepl("^ *\\[[0-9]+\\] ", head[i])) {
       words <- strsplit(lines[i], " ", fixed = TRUE)[[1]]
@@ -1073,10 +1087,11 @@ stored_versions <- function(markdown) {
       versions <- substring(words, at + 1)
       names(versions) <- substring(words, 1, at - 1)
       packages <- c(packages, versions)
+      if (head[start] == "other attached packages:") attached <- c(attached, names(versions))
       i <- i + 1
     }
   }
-  list(r = r, packages = packages)
+  list(r = r, packages = packages, attached = unique(attached), listed = listed)
 }
 
 # A path between double quotes, with `\` before each `\` and `"` in it, so

@@ -2235,6 +2235,39 @@ test_that("stored_versions() reads utils::sessionInfo() with package lists that 
   expect_identical(got$r, session_r())
 })
 
+# flagged_table with `*` under the header's `*` for dplyr, and a `*` in
+# another column for cli.
+attached_table <- c(
+  flagged_table[1:2],
+  "   cli       3.6.6   2026-04-09 [1] CRAN (R 4.6.0) *",
+  " V dplyr   * 1.1.3   2026-01-01 [1] CRAN (R 4.6.0) (on disk 1.1.4)",
+  flagged_table[5:6]
+)
+
+test_that("stored_versions() reads the attached packages of a sessioninfo table", {
+  skip_if_not_installed("sessioninfo")
+  info <- sessioninfo::session_info()
+  stopifnot("a package is attached" = any(info$packages$attached))
+  withr::local_options(cli.unicode = TRUE, cli.num_colors = 1)
+  got <- stored_versions(paste(utils::capture.output(print(info)), collapse = "\n"))
+  expect_setequal(got$attached, info$packages$package[info$packages$attached])
+  expect_identical(stored_versions(paste(attached_table, collapse = "\n"))$attached, "dplyr")
+  expect_identical(stored_versions(paste(flagged_table, collapse = "\n"))$attached, character())
+})
+
+test_that("stored_versions() reads attached packages from other attached packages only", {
+  info <- utils::sessionInfo()
+  stopifnot("a package is attached" = length(info$otherPkgs) > 0)
+  got <- stored_versions(paste(utils::capture.output(print(info)), collapse = "\n"))
+  expect_setequal(got$attached, names(info$otherPkgs))
+  lines <- c("other attached packages:", "[1] dplyr_1.1.4 ggplot2_3.5.1", "[3] tidyr_1.3.1", "",
+             "loaded via a namespace (and not attached):", "[1] cli_3.6.6")
+  got <- stored_versions(paste(lines, collapse = "\n"))
+  expect_identical(got$attached, c("dplyr", "ggplot2", "tidyr"))
+  expect_true(got$listed)
+  expect_false(stored_versions("x")$listed)
+})
+
 # The JSON of a stored output file whose markdown holds lines in the form
 # of utils::sessionInfo(): R version `r` and the package versions in
 # `packages`, a character vector named by package. The lines end with
