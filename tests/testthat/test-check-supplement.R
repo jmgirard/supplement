@@ -2547,7 +2547,7 @@ profile_active <- function(profile) paste0(' with the renv profile "', profile, 
 # The info messages that check_supplement(renv_lock = TRUE) prints for
 # `site` that name renv, without ANSI codes or Unicode.
 lock_messages <- function(site) {
-  withr::local_options(cli.unicode = FALSE, cli.num_colors = 1)
+  withr::local_options(cli.unicode = FALSE, cli.num_colors = 1, cli.hyperlink = FALSE)
   messages <- character()
   withCallingHandlers(check_supplement(site, renv_lock = TRUE), message = function(m) {
     messages <<- c(messages, conditionMessage(m))
@@ -2562,12 +2562,13 @@ test_that("the renv.lock check reads the lockfile of the renv profile that renv 
   write_profile_lock(site, "dev", c(dplyr = "1.1.4"))
   write_profile_lock(site, "other", c(dplyr = "1.1.2"))
   write_profile_lock(site, " dev ", c(dplyr = "1.1.5"))
+  write_profile_lock(site, "x", c(dplyr = "1.1.6"))
   env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3")))
-  versions <- c("renv.lock" = "1.1.0", dev = "1.1.4", other = "1.1.2", " dev " = "1.1.5", "../.." = "1.1.0")
+  versions <- c("renv.lock" = "1.1.0", dev = "1.1.4", other = "1.1.2", " dev " = "1.1.5", "x/../other" = "1.1.2")
   # Each case: the RENV_PROFILE value (NA to unset it), the bytes of
   # renv/profile (NULL for none), and the profile that renv picks.
   cases <- list(
-    variable = list(NA, NULL, "renv.lock"),
+    none = list(NA, NULL, "renv.lock"),
     variable_set = list("dev", NULL, "dev"),
     file = list(NA, "dev\n", "dev"),
     variable_over_file = list("dev", "other\n", "dev"),
@@ -2577,7 +2578,7 @@ test_that("the renv.lock check reads the lockfile of the renv profile that renv 
     blank_first_line = list(NA, "\ndev\n", "renv.lock"),
     crlf = list(NA, "dev\r\n", "dev"),
     spaces = list(NA, " dev \n", " dev "),
-    dots = list(NA, "../..\n", "../..")
+    dots = list(NA, "x/../other\n", "x/../other")
   )
   for (case in names(cases)) {
     unlink(profile_file(site))
@@ -2591,9 +2592,12 @@ test_that("the renv.lock check reads the lockfile of the renv profile that renv 
                                              lock = lock, active = active), info = case)
   }
 
+  # With no profile, the function names none.
+  unlink(profile_file(site))
+  expect_identical(lock_messages(site), character())
+
   # renv tests renv/profile with file.exists(), which is TRUE on Windows
   # for a link to a missing file.
-  unlink(profile_file(site))
   skip_on_os("windows")
   symlink_or_skip(file.path(site, "no-such-profile"), profile_file(site))
   rows <- rows_of(check_lock(site), "renv-mismatch")
@@ -2648,6 +2652,20 @@ test_that("a missing lockfile of the renv profile skips the checks when renv.loc
   expect_message(result <- check_supplement(site, renv_lock = TRUE),
                  "the site has no .renv/profiles/dev/renv\\.lock.\\. Skipped the \"renv-missing\" check too\\.")
   expect_identical(nrow(result[result$check %in% c("renv-mismatch", "renv-missing"), ]), 0L)
+})
+
+test_that("a profile name that is not valid UTF-8 shows its bytes in the lockfile row", {
+  site <- new_site()
+  name <- rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9)))
+  # macOS and Windows refuse such a name, so this test runs on Linux.
+  made <- tryCatch(dir.create(dirname(profile_lock_path(site, name)), recursive = TRUE),
+                   error = function(e) FALSE, warning = function(w) FALSE)
+  skip_if_not(isTRUE(made), "the file system refuses a name that is not valid UTF-8")
+  writeLines("{", profile_lock_path(site, name))
+  writeBin(c(charToRaw(name), as.raw(0x0a)), profile_file(site))
+  expect_no_error(rows <- rows_of(check_lock(site), "renv-mismatch"))
+  expect_identical(rows$file, "renv/profiles/caf<e9>/renv.lock")
+  expect_identical(rows$problem, lock_unreadable(profile_active("caf<e9>")))
 })
 
 test_that("a renv/profile that cannot be read gets one renv-mismatch row", {

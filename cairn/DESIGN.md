@@ -158,8 +158,8 @@ through base R's `curlGetHeaders()` that follows redirects, with a
 10-second timeout. That argument came in R 4.1.0, which DESCRIPTION
 requires (D-031). `release_supplement()` never passes the argument. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
-With `renv_lock = TRUE` (M064, D-032), `check_renv_lock()` reads the site's
-`renv.lock` with `lock_versions()` and the versions that
+With `renv_lock = TRUE` (M064, D-032), `check_renv_lock()` reads the lockfile
+that `lock_source()` picks with `lock_versions()` and the versions that
 `print_environment()` printed into each report's `result.markdown` with
 `stored_versions()`, which finds lines with patterns on their first 200
 characters. `lock_versions()` refuses a repeated key, as

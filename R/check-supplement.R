@@ -935,7 +935,8 @@ stored_script_hashes <- function(file) {
 
 # The rows of the renv.lock comparison: the "renv-mismatch" rows, then the
 # "renv-missing" rows. The lockfile is that of the site's renv profile,
-# from lock_source(). A site with no lockfile gets a message and no row, a
+# from lock_source(). Rows and messages show its path with show_text(),
+# since a profile name need not be valid UTF-8, and cli stops on such text. A site with no lockfile gets a message and no row, a
 # lockfile that cannot be read gets one row, and so does a renv/profile
 # that cannot be read.
 check_renv_lock <- function(path) {
@@ -971,7 +972,7 @@ check_renv_lock <- function(path) {
   }
   if (isFALSE(lock)) {
     return(problem_rows(
-      "renv-mismatch", source$file,
+      "renv-mismatch", shown,
       paste0("It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that ",
              "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object, or it ",
              "repeats a key. Run renv::snapshot()", active, " to write it again, then commit it.")
@@ -1051,8 +1052,8 @@ mismatch_problem <- function(found, files, dir, lock) {
 # The problem text of the "renv-missing" row of a report whose stored
 # output files `files` in `dir` hold the versions `stored`, from
 # stored_versions(), or NA when no file shows an attached package that
-# renv.lock does not name. renv::restore() does not install such a package
-# from renv.lock.
+# the lockfile `lock` does not name. renv::restore() does not install such
+# a package from the lockfile.
 missing_problem <- function(stored, files, dir, lock) {
   missing <- lapply(stored, function(x) setdiff(x$attached, lock$names))
   shows <- lengths(missing) > 0
@@ -1083,7 +1084,7 @@ missing_problem <- function(stored, files, dir, lock) {
 # differ, `packages`, the package versions that differ, named by package,
 # and `compared`, TRUE when at least one version was compared. A version
 # that package_version() cannot read on either side is not compared, nor
-# is a package that renv.lock does not record.
+# is a package that the lockfile does not record.
 version_diffs <- function(stored, lock) {
   compare <- function(versions, recorded) {
     vapply(seq_along(versions), function(i) {

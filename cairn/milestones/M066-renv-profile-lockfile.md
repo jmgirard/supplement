@@ -41,7 +41,7 @@ With `renv_lock = TRUE`, `check_supplement()` compares the stored output of each
 
 ## Coverage
 
-- AC1 → T1
+- AC1 → T1, T5
 - AC2 → T2
 - AC3 → T2
 - AC4 → T1, T2
@@ -54,6 +54,7 @@ With `renv_lock = TRUE`, `check_supplement()` compares the stored output of each
 - [x] T2: Write the AC2 and AC3 tests first. Then pass the helper's result through `check_renv_lock()`, `mismatch_problem()`, and `missing_problem()`. This covers the row text, the steps with the profile active, the unreadable-lockfile row, the skip message, the profile message, and the `renv/profile` row. Pass the profile name to cli as a value, never in the template.
 - [x] T3: Update the roxygen help and run `devtools::document()`. Edit the unreleased `renv_lock` bullet of NEWS.md, the renv part of GUIDE.md, and the `renv_lock` paragraph of DESIGN.md.
 - [x] T4: Run `devtools::test()` and `devtools::check()`.
+- [x] T5: Review return 1. Give the AC1 `dots` case a `..` name that resolves to another profile's lockfile. Carry the fix-now findings of review pass 1: the `show_text()` path in the unreadable-lockfile row with a Linux regression test, the case rename, a no-message assertion, `cli.hyperlink` in `lock_messages()`, three code comments, and the profile text in DESIGN.md, README.md, the publishing vignette, and GUIDE.md.
 
 ## Work log
 
@@ -115,3 +116,4 @@ Pass 1 (2026-10-27, branch head 4bf6640 plus b339d4d):
 - ripple #6: README.md names only `renv.lock` — fix now, as blame-history #3.
 - ripple #7: DESIGN.md's renv-missing sentence names `renv.lock` — reject, false: the profile paragraph that follows it covers it.
 - ripple #8: code comments in `mismatch_problem()` and `missing_problem()` name `renv.lock` — fix now.
+- 2026-10-27: T5 added for review return 1 (minor amendment: one task, Coverage AC1 → T1, T5) and done. The `dots` case now uses `x/../other`, which resolves to the `other` profile's lockfile (1.1.2) where `renv.lock` records 1.1.0. The unreadable-lockfile row's `file` column is now the `show_text()` path. With the raw path, `report_problems()` stopped with "input string 1 is invalid UTF-8", and with the shown path it printed. The new Linux-only test skips on macOS. The other fix-now findings landed as the Review section lists. `test-check-supplement.R`: 124 tests, 0 failed. `devtools::document()` left no diff.
