@@ -362,11 +362,17 @@
 #' problems <- check_supplement(site)
 #' problems$check
 #' unlink(site, recursive = TRUE)
-check_supplement <- function(path = ".", web_links = FALSE) {
+check_supplement <- function(path = ".", web_links = FALSE, renv_lock = FALSE) {
   check_path(path)
   if (!isTRUE(web_links) && !isFALSE(web_links)) {
     cli::cli_abort(
       "{.arg web_links} must be {.code TRUE} or {.code FALSE}.",
+      class = c("supplement_error_argument", "supplement_error")
+    )
+  }
+  if (!isTRUE(renv_lock) && !isFALSE(renv_lock)) {
+    cli::cli_abort(
+      "{.arg renv_lock} must be {.code TRUE} or {.code FALSE}.",
       class = c("supplement_error_argument", "supplement_error")
     )
   }
@@ -380,6 +386,7 @@ check_supplement <- function(path = ".", web_links = FALSE) {
     check_stored_output(path),
     check_stale_output(path),
     check_stale_script(path),
+    if (renv_lock) check_renv_lock(path),
     check_leftover_output(path),
     check_missing_script(path),
     check_links(path),
@@ -814,6 +821,58 @@ stored_script_hashes <- function(file) {
   start <- at + nchar(script_hash_text)
   hashes <- substring(markdown, start, start + 31)
   hashes[grepl("^[0-9a-f]{32}$", hashes)]
+}
+
+# renv.lock -------------------------------------------------------------------
+
+# The rows of the renv.lock comparison. A site with no renv.lock gets a
+# message and no row, and a renv.lock that cannot be read gets one row.
+check_renv_lock <- function(path) {
+  lock <- lock_versions(path)
+  if (is.null(lock)) {
+    cli::cli_alert_info("Skipped the {.val renv-mismatch} check: the site has no {.file renv.lock}.")
+    return(problem_rows())
+  }
+  if (isFALSE(lock)) {
+    return(problem_rows(
+      "renv-mismatch", "renv.lock",
+      paste("It cannot be read as an renv lockfile. It is a folder or a link to a missing file, or it is not",
+            "UTF-8 text that holds a JSON object with a Packages object. Run renv::snapshot() to write it",
+            "again, then commit it.")
+    ))
+  }
+  problem_rows()
+}
+
+# The versions that the site's renv.lock records: NULL when the site has no
+# renv.lock, FALSE when it cannot be read, and otherwise a list of `r`, the
+# R version or NULL, and `packages`, a character vector of versions named
+# by package. A package record with no `Version` text is left out.
+lock_versions <- function(path) {
+  file <- file.path(path, "renv.lock")
+  if (!file.exists(file) && !is_link(file)) {
+    return(NULL)
+  }
+  if (dir.exists(file)) {
+    return(FALSE)
+  }
+  json <- tryCatch({
+    bytes <- readBin(file, "raw", n = file.size(file))
+    text <- rawToChar(bytes)
+    if (!validUTF8(text)) stop("not UTF-8")
+    jsonlite::parse_json(text, simplifyVector = FALSE)
+  }, error = function(e) NULL, warning = function(w) NULL)
+  packages <- if (is.list(json) && !is.null(names(json))) json[["Packages"]]
+  if (!is.list(packages) || is.null(names(packages))) {
+    return(FALSE)
+  }
+  version_text <- function(record) {
+    version <- if (is.list(record) && !is.null(names(record))) record[["Version"]]
+    if (is.character(version) && length(version) == 1 && !is.na(version)) version else NA_character_
+  }
+  versions <- vapply(packages, version_text, character(1))
+  r <- version_text(json[["R"]])
+  list(r = if (!is.na(r)) r, packages = versions[!is.na(versions) & nzchar(names(versions))])
 }
 
 # A path between double quotes, with `\` before each `\` and `"` in it, so

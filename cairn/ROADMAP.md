@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-27 (M063 review: archived; graduated "Check web lin
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M064 | Compare renv.lock with report records | planned | — | normal | milestones/M064-renv-lock-check.md |
+| M064 | Compare renv.lock with report records | in-progress | — | normal | milestones/M064-renv-lock-check.md |
 | M063 | Check web links on the rendered site | done | — | normal | milestones/archive/M063-check-web-links.md |
 | M062 | Flag old and re-saved example files | done | — | normal | milestones/archive/M062-flag-old-example-files.md |
 | M061 | Flag reports after report.R changes | done | — | normal | milestones/archive/M061-flag-report-script-changes.md |

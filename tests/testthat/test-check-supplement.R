@@ -2117,3 +2117,69 @@ test_that("url_status() follows redirects with a timeout and gives the status or
   local_mocked_bindings(curlGetHeaders = function(url, ...) stop("libcurl error code 6:\n\tno host\n"))
   expect_identical(url_status("https://example.org/x"), "libcurl error code 6: no host")
 })
+
+# renv.lock -------------------------------------------------------------------
+
+check_lock <- function(path) suppressMessages(check_supplement(path, renv_lock = TRUE))
+
+lock_path <- function(site) file.path(site, "renv.lock")
+
+# The JSON of a renv.lock that records R version `r` and the package
+# versions in `packages`, a character vector named by package.
+lock_json <- function(packages = character(), r = "4.6.1") {
+  records <- lapply(names(packages), function(name) list(Package = name, Version = packages[[name]]))
+  names(records) <- as.character(names(packages))
+  json <- list(R = list(Version = r), Packages = records)
+  as.character(jsonlite::toJSON(json, auto_unbox = TRUE, pretty = TRUE))
+}
+
+write_lock <- function(site, ...) writeLines(lock_json(...), lock_path(site))
+
+lock_unreadable_text <- paste(
+  "It cannot be read as an renv lockfile. It is a folder or a link to a missing file, or it is not",
+  "UTF-8 text that holds a JSON object with a Packages object. Run renv::snapshot() to write it",
+  "again, then commit it."
+)
+
+test_that("renv_lock must be TRUE or FALSE", {
+  site <- new_site()
+  for (bad in list(NA, c(TRUE, TRUE), "TRUE", 1, NULL)) {
+    expect_error(check_supplement(site, renv_lock = bad), class = "supplement_error_argument")
+  }
+})
+
+test_that("a site with no renv.lock gets a skip message and no renv-mismatch row", {
+  site <- new_site()
+  expect_message(result <- check_supplement(site, renv_lock = TRUE),
+                 "Skipped the \"renv-mismatch\" check: the site has no .renv\\.lock")
+  expect_identical(nrow(rows_of(result, "renv-mismatch")), 0L)
+  expect_identical(attr(result, "skipped"), attr(check_quiet(site), "skipped"))
+})
+
+test_that("a renv.lock that cannot be read gets one renv-mismatch row", {
+  site <- new_site()
+  lock <- lock_path(site)
+  cases <- list(
+    folder = function() dir.create(lock),
+    dangling = function() file.symlink(file.path(site, "no-such.lock"), lock),
+    latin1 = function() writeBin(c(charToRaw('{"Packages": {"caf'), as.raw(0xe9), charToRaw('": {}}}')), lock),
+    not_json = function() writeLines("{", lock),
+    array = function() writeLines("[]", lock),
+    no_packages = function() writeLines('{"R": {"Version": "4.6.1"}}', lock),
+    packages_array = function() writeLines('{"Packages": []}', lock)
+  )
+  for (case in names(cases)) {
+    unlink(lock, recursive = TRUE)
+    cases[[case]]()
+    rows <- rows_of(check_lock(site), "renv-mismatch")
+    expect_identical(rows$file, "renv.lock", info = case)
+    expect_identical(rows$problem, lock_unreadable_text, info = case)
+  }
+})
+
+test_that("by default check_supplement() does not read renv.lock", {
+  site <- new_site()
+  writeLines("{", lock_path(site))
+  expect_identical(nrow(rows_of(check_quiet(site), "renv-mismatch")), 0L)
+  expect_identical(nrow(rows_of(check_lock(site), "renv-mismatch")), 1L)
+})

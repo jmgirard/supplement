@@ -2,14 +2,14 @@
      section ownership". A phase skill never rewrites another phase's section. -->
 # M064: Compare renv.lock with report records
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — a new argument and check of the exported `check_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m064-renv-lock-check
 
 ## Goal
 
@@ -73,7 +73,7 @@
 
 ## Tasks
 
-- [ ] T1: In `R/check-supplement.R`, add `lock_versions(path)`. It reads `renv.lock` as bytes and refuses text that is not valid UTF-8 (LESSONS M016). It parses the text with jsonlite. It returns the R version and the package versions, or a mark that the file cannot be read. Add the check of the `renv_lock` argument. Write the tests for AC5.
+- [x] T1: In `R/check-supplement.R`, add `lock_versions(path)`. It reads `renv.lock` as bytes and refuses text that is not valid UTF-8 (LESSONS M016). It parses the text with jsonlite. It returns the R version and the package versions, or a mark that the file cannot be read. Add the check of the `renv_lock` argument. Write the tests for AC5.
 - [ ] T2: Add `stored_versions(markdown)`. It finds the version lists of both forms with fixed-string searches and line splits. No PCRE pattern runs across a long line (LESSONS M021, M059). It reads the sessioninfo columns at the positions of the header line. Write the tests from text for AC1, AC2, and AC4.
 - [ ] T3: Add `check_renv_lock(path)`. If `renv_lock = TRUE`, call it from `check_supplement()` after `check_stale_script()`. Build the rows of AC3 and the skip message of AC5. Write the row tests for AC2 to AC5.
 - [ ] T4: Write one Quarto test that renders the example report by name and checks it against a `renv.lock` that records another knitr version. It skips without Quarto or sessioninfo.
@@ -95,6 +95,8 @@
 - 2026-10-27: inbox sweep: 0 open issues, 0 open PRs.
 - 2026-10-27: lessons used: 2026-10-19 (M016), 2026-10-20 (M021), 2026-10-26 (M059), 2026-10-27 (M063).
 - 2026-10-27: added the candidate row "Flag packages missing from renv.lock" for the Out items.
+- 2026-10-27: implement started on branch m064-renv-lock-check.
+- 2026-10-27: T1 done. `lock_versions()` and `check_renv_lock()` read `renv.lock`, and `renv_lock` is checked. The skip message names the check with cli `{.val}` and `{.file}`. Tests cover the argument, the skip, seven unreadable forms, and the default. The warning at test line 746 (a file name that is not UTF-8) also shows on main.
 
 ## Decisions
 
