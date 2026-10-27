@@ -9,7 +9,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — it changes which file the exported `check_supplement()` reads and what its rows say
-- **Branch/PR:** m066-renv-profile-lockfile
+- **Branch/PR:** m066-renv-profile-lockfile, https://github.com/jmgirard/supplement/pull/67
 
 ## Goal
 
