@@ -836,7 +836,76 @@ check_renv_lock <- function(path) {
             "again, then commit it.")
     ))
   }
-  problem_rows()
+  reports <- analysis_reports(path)
+  problem <- vapply(reports, function(report) {
+    name <- sub("\\.qmd$", "", basename(report))
+    dir <- file.path("_freeze", "analyses", name, "execute-results")
+    files <- list.files(file.path(path, dir), pattern = "\\.json$")
+    files <- files[!startsWith(files, ".") & !dir.exists(file.path(path, dir, files))]
+    found <- lapply(file.path(path, dir, files), function(file) {
+      markdown <- stored_markdown(file)
+      if (is.null(markdown)) {
+        return(version_diffs(list(r = character(), packages = character()), lock))
+      }
+      version_diffs(stored_versions(markdown), lock)
+    })
+    differs <- vapply(found, function(x) length(x$r) > 0 || length(x$packages) > 0, logical(1))
+    # A report that cannot be read, such as a link to a missing file,
+    # cannot be rendered again, so it gets no row, as in check_stale_output().
+    if (!any(differs) || is.null(report_hash(report))) {
+      return(NA_character_)
+    }
+    in_order <- function(v) {
+      v <- unique(v)
+      paste(v[order(package_version(v))], collapse = " and ")
+    }
+    r <- unlist(lapply(found, `[[`, "r"))
+    packages <- unlist(lapply(found, `[[`, "packages"))
+    entries <- c(
+      if (length(r) > 0) paste0("R ", in_order(r), " (renv.lock: ", lock$r, ")"),
+      vapply(sort_bytes(unique(as.character(names(packages)))), function(p) {
+        paste0(p, " ", in_order(packages[names(packages) == p]), " (renv.lock: ", lock$packages[[p]], ")")
+      }, character(1), USE.NAMES = FALSE)
+    )
+    named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")
+    stale <- paste0("Its stored output was made with other versions than renv.lock records, in ", named, ": ",
+                    paste(entries, collapse = ", "), ".")
+    steps <- paste("To use the versions in renv.lock, run renv::restore(), then take these steps.", rerender_steps,
+                   "If the library now holds the versions of the report, run renv::snapshot() and commit",
+                   "renv.lock instead.")
+    matches <- vapply(found, function(x) x$compared, logical(1)) & !differs
+    if (!any(matches)) {
+      return(paste(stale, steps))
+    }
+    # Quarto keeps the file of a format that the report no longer renders.
+    paste(stale,
+          "Other stored output of the report matches renv.lock, so these files can be from a format that the",
+          "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+          "_freeze/, docs/, and figures/.",
+          "If not, take the steps that follow.", steps)
+  }, character(1), USE.NAMES = FALSE)
+  hit <- !is.na(problem)
+  problem_rows("renv-mismatch", file.path("analyses", basename(reports[hit])), problem[hit])
+}
+
+# The versions in `stored`, from stored_versions(), that differ from those
+# in `lock`, from lock_versions(): a list of `r`, the R versions that
+# differ, `packages`, the package versions that differ, named by package,
+# and `compared`, TRUE when at least one version was compared. A version
+# that package_version() cannot read on either side is not compared, nor
+# is a package that renv.lock does not record.
+version_diffs <- function(stored, lock) {
+  compare <- function(versions, recorded) {
+    vapply(seq_along(versions), function(i) {
+      a <- package_version(versions[[i]], strict = FALSE)
+      b <- package_version(recorded[[i]], strict = FALSE)
+      if (is.na(a) || is.na(b)) NA else a != b
+    }, logical(1))
+  }
+  r <- compare(stored$r, rep(if (is.null(lock$r)) NA_character_ else lock$r, length(stored$r)))
+  packages <- compare(stored$packages, unname(lock$packages[names(stored$packages)]))
+  list(r = stored$r[r %in% TRUE], packages = stored$packages[packages %in% TRUE],
+       compared = any(!is.na(c(r, packages))))
 }
 
 # The versions that the site's renv.lock records: NULL when the site has no
