@@ -216,9 +216,14 @@ title with the paper’s citation.</li>
 <p>In the R console, in the site folder, look for problems:</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/check_supplement.html">check_supplement</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p>Fix each problem that it prints, render again, and run it again. When
-it finds no problem, commit and push in a terminal in the site
-folder:</p>
+<p>Fix each problem that it prints, render again, and run it again. To
+also test the web addresses on the site’s pages, which needs a network,
+run <code>supplement::check_supplement(web_links = TRUE)</code>. A row
+from that test can come from a site that you do not control, such as one
+that is down. <code><a href="../reference/release_supplement.html">release_supplement()</a></code> does not run this test,
+so its rows do not stop a release.</p>
+<p>When the check finds no problem, commit and push in a terminal in the
+site folder:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
 <span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Add the paper and the reports"</span></span>
 <span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>

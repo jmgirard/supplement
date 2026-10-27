@@ -52,7 +52,7 @@ prints each problem it finds and returns all of them as a data frame.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">check_supplement</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">check_supplement</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span>, web_links <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -61,6 +61,12 @@ prints each problem it finds and returns all of them as a data frame.</p>
 
 <dl><dt id="arg-path">path<a class="anchor" aria-label="anchor" href="#arg-path"></a></dt>
 <dd><p>The folder of the site.</p></dd>
+
+
+<dt id="arg-web-links">web_links<a class="anchor" aria-label="anchor" href="#arg-web-links"></a></dt>
+<dd><p><code>TRUE</code> to also request each web address on the pages in
+<code>docs/</code> and give the <code>"web-link"</code> rows. This needs a network. The
+default, <code>FALSE</code>, makes no web request.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -255,7 +261,8 @@ a folder, the folder's <code>index.html</code> is part of that path. A symbolic
 link or junction that resolves to <code>docs/</code> or a place in it gives no row
 of its own. Links
 that start with <code>/</code>, <code>#</code>, or a scheme such as
-<code>https:</code> are not checked, and no web address is requested. GitHub
+<code>https:</code> are not checked here. Only the <code>"web-link"</code> check, with
+<code>web_links = TRUE</code>, requests web addresses. GitHub
 Pages matches letter case, so a link whose case differs from the file
 name counts as broken, also on a disk that ignores case. A link that
 also differs from the name in Unicode form (for example <code>é</code> written
@@ -302,6 +309,28 @@ valid UTF-8 is read as text such as <code>&lt;e9&gt;</code>; outside a quoted va
 its <code>&gt;</code> ends the tag, so an unquoted value keeps the <code>&lt;e9</code> part and
 the later attributes of that tag are not read. A second attribute of
 the same name is also read.</p></li>
+<li><p><code>"web-link"</code>: only with <code>web_links = TRUE</code>, a web address on a page in
+<code>docs/</code> that fails. The check reads the same pages and values as the
+<code>"broken-link"</code> check, in the same way, and keeps each value that
+starts with <code>http:</code> or <code>https:</code> in any letter case, with any <code>#</code> part
+removed. So the cases above where that check reads a page differently
+from a browser apply here too: a reference such as <code>&amp;eacute;</code> stays as
+written, and the address is requested with it. A link that starts with
+<code>//</code> has no scheme and is not requested. A space in an address is sent
+as <code>%20</code>, as a browser sends it. A page that the <code>"broken-link"</code> check
+cannot read gives no <code>"web-link"</code> row. Each address is requested once
+(addresses that differ only in letter case count as two), one after
+another, with a HEAD request that follows redirects and waits up to 10
+seconds. A site with many addresses can take minutes.
+An address gets a row when the request fails, such as for an unknown
+host, a timeout, or a certificate error, or when the last response has
+a status of 400 or above. The row names
+the first page, in byte order of path, that links the address. For
+status 401, 403, 405, or 429, the row says that the server refused the
+check's request and that the link can still work in a browser, since
+some servers answer a script or a HEAD request that way.
+<code><a href="release_supplement.html">release_supplement()</a></code> does not run this check, so its rows never
+stop a release.</p></li>
 <li><p><code>"unpublished-figure"</code>: a paper figure that the last render did not
 copy into <code>docs/</code>. The check takes each regular file in <code>figures/</code>, and
 in the folders in it, that is reached without passing through a
@@ -369,7 +398,8 @@ it skips these three checks and says so.</p>
 
 
 <p>The function stops with an error of class <code>supplement_error</code> and one of
-these classes:</p><ul><li><p><code>supplement_error_argument</code>: <code>path</code> is not a single non-empty string.</p></li>
+these classes:</p><ul><li><p><code>supplement_error_argument</code>: <code>path</code> is not a single non-empty string,
+or <code>web_links</code> is not <code>TRUE</code> or <code>FALSE</code>.</p></li>
 <li><p><code>supplement_error_no_metadata</code>: <code>path</code> holds no <code>_supplement.yml</code>.</p></li>
 <li><p><code>supplement_error_parse</code>: the yaml package cannot read
 <code>_supplement.yml</code>, as for <code><a href="write_citation.html">write_citation()</a></code>.</p></li>
@@ -387,17 +417,17 @@ text value, or <code>zenodo</code> is not a map.</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"check-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpWycMX2/check-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpZtCq9V/check-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpWycMX2/check-example</span> once before your first</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpZtCq9V/check-example</span> once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="co"># A new site has not been rendered, its example report has no stored</span></span></span>
 <span class="r-in"><span><span class="co"># output yet, and it still holds the template's placeholder values.</span></span></span>
 <span class="r-in"><span><span class="va">problems</span> <span class="op">&lt;-</span> <span class="fu">check_supplement</span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Skipped the <span style="color: #0000BB;">"large-file"</span>, <span style="color: #0000BB;">"saved-object"</span>, and <span style="color: #0000BB;">"ignored-output"</span> checks: `git rev-parse` failed, or the folder is not in a git work tree.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpWycMX2/check-example</span>:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpZtCq9V/check-example</span>:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> <span style="font-weight: bold;">no-stored-output</span> <span style="color: #0000BB;">analyses/example.qmd</span>: The report has code and no stored</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   output in _freeze/. Render the report by name, render the whole site, then</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit the report with _freeze/, docs/, and figures/. If you added the report</span>

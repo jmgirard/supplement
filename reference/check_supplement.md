@@ -8,7 +8,7 @@ prints each problem it finds and returns all of them as a data frame.
 ## Usage
 
 ``` r
-check_supplement(path = ".")
+check_supplement(path = ".", web_links = FALSE)
 ```
 
 ## Arguments
@@ -16,6 +16,12 @@ check_supplement(path = ".")
 - path:
 
   The folder of the site.
+
+- web_links:
+
+  `TRUE` to also request each web address on the pages in `docs/` and
+  give the `"web-link"` rows. This needs a network. The default,
+  `FALSE`, makes no web request.
 
 ## Value
 
@@ -222,11 +228,12 @@ The checks, by the value in the `check` column:
   link to a folder, the folder's `index.html` is part of that path. A
   symbolic link or junction that resolves to `docs/` or a place in it
   gives no row of its own. Links that start with `/`, `#`, or a scheme
-  such as `https:` are not checked, and no web address is requested.
-  GitHub Pages matches letter case, so a link whose case differs from
-  the file name counts as broken, also on a disk that ignores case. A
-  link that also differs from the name in Unicode form (for example `é`
-  written as `e` plus an accent) is not caught.
+  such as `https:` are not checked here. Only the `"web-link"` check,
+  with `web_links = TRUE`, requests web addresses. GitHub Pages matches
+  letter case, so a link whose case differs from the file name counts as
+  broken, also on a disk that ignores case. A link that also differs
+  from the name in Unicode form (for example `é` written as `e` plus an
+  accent) is not caught.
 
   Links are read from start tags only, as a browser reads them.
   Comments, `<!...>` and `<?...>` markup, and the text of `<script>`,
@@ -271,6 +278,29 @@ The checks, by the value in the `check` column:
   `<e9>`; outside a quoted value, its `>` ends the tag, so an unquoted
   value keeps the `<e9` part and the later attributes of that tag are
   not read. A second attribute of the same name is also read.
+
+- `"web-link"`: only with `web_links = TRUE`, a web address on a page in
+  `docs/` that fails. The check reads the same pages and values as the
+  `"broken-link"` check, in the same way, and keeps each value that
+  starts with `http:` or `https:` in any letter case, with any `#` part
+  removed. So the cases above where that check reads a page differently
+  from a browser apply here too: a reference such as `&eacute;` stays as
+  written, and the address is requested with it. A link that starts with
+  `//` has no scheme and is not requested. A space in an address is sent
+  as `%20`, as a browser sends it. A page that the `"broken-link"` check
+  cannot read gives no `"web-link"` row. Each address is requested once
+  (addresses that differ only in letter case count as two), one after
+  another, with a HEAD request that follows redirects and waits up to 10
+  seconds. A site with many addresses can take minutes. An address gets
+  a row when the request fails, such as for an unknown host, a timeout,
+  or a certificate error, or when the last response has a status of 400
+  or above. The row names the first page, in byte order of path, that
+  links the address. For status 401, 403, 405, or 429, the row says that
+  the server refused the check's request and that the link can still
+  work in a browser, since some servers answer a script or a HEAD
+  request that way.
+  [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
+  does not run this check, so its rows never stop a release.
 
 - `"unpublished-figure"`: a paper figure that the last render did not
   copy into `docs/`. The check takes each regular file in `figures/`,
@@ -347,7 +377,8 @@ git work tree, it skips these three checks and says so.
 The function stops with an error of class `supplement_error` and one of
 these classes:
 
-- `supplement_error_argument`: `path` is not a single non-empty string.
+- `supplement_error_argument`: `path` is not a single non-empty string,
+  or `web_links` is not `TRUE` or `FALSE`.
 
 - `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 
@@ -372,17 +403,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpWycMX2/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpZtCq9V/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpWycMX2/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpZtCq9V/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpWycMX2/check-example:
+#> ✖ 11 problems found in /tmp/RtmpZtCq9V/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report

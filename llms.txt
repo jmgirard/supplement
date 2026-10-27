@@ -126,6 +126,11 @@ supplement::check_supplement()
 [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
 changes no file. It prints each problem that it finds and returns the
 problems as a data frame, with one row per problem.
+`supplement::check_supplement(web_links = TRUE)` also requests each web
+address on the site’s pages and gives a row for each one that fails.
+This needs a network, and
+[`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
+does not run it.
 [`?check_supplement`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
 describes each check and its limits, for example the links that it does
 not test. It finds:

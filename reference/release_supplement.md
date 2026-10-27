@@ -45,10 +45,11 @@ The release commands as a character vector, invisibly.
 
 The function stops, and changes no file, when
 [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
-finds a problem or skips its git checks. A `"doi-mismatch"` problem for
-`CITATION.cff` does not stop it, because the release writes that file
-again. A change to `_supplement.yml`, `CITATION.cff`, or `.zenodo.json`
-during the check also stops it, as described below.
+finds a problem or skips its git checks. It runs the check without
+`web_links`, so it requests no web address. A `"doi-mismatch"` problem
+for `CITATION.cff` does not stop it, because the release writes that
+file again. A change to `_supplement.yml`, `CITATION.cff`, or
+`.zenodo.json` during the check also stops it, as described below.
 
 Only the value on the `version:` line of `_supplement.yml` changes, so
 its comments and the rest of its text stay as they are. The new value is

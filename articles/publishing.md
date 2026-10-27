@@ -175,8 +175,15 @@ In the R console, in the site folder, look for problems:
 supplement::check_supplement()
 ```
 
-Fix each problem that it prints, render again, and run it again. When it
-finds no problem, commit and push in a terminal in the site folder:
+Fix each problem that it prints, render again, and run it again. To also
+test the web addresses on the site’s pages, which needs a network, run
+`supplement::check_supplement(web_links = TRUE)`. A row from that test
+can come from a site that you do not control, such as one that is down.
+[`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
+does not run this test, so its rows do not stop a release.
+
+When the check finds no problem, commit and push in a terminal in the
+site folder:
 
 ``` sh
 git add -A
