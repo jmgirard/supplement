@@ -85,9 +85,9 @@ of a profile in a library of their own, so the build restores them there,
 and each render in the image uses the profile, whatever \code{renv/profile} in
 the mounted site folder names. The name must hold only ASCII letters,
 digits, \code{.}, \verb{_}, and \code{-}, and must not start with \code{.}, so that the
-\code{Dockerfile} can hold it. The folder in \code{renv/profiles} must have the
-name with the same letter case, because Docker matches file names with
-letter case.
+\code{Dockerfile} can hold it. Each folder and file in the path
+\verb{renv/profiles/<name>/renv.lock} must have that letter case, because
+Docker matches file names with letter case.
 }
 
 \section{Build and render}{
@@ -137,7 +137,7 @@ release then holds them, but not the image.
 
 \section{Errors}{
 
-The function checks the arguments, \code{renv.lock}, and both target paths
+The function checks the arguments, \code{renv/profile}, \code{renv.lock}, and both target paths
 before it writes a file, so after any error but a failed write the site
 folder is as it was. It writes \code{.dockerignore} first, then the
 \code{Dockerfile}. A failed write, an open that fails included, can leave
@@ -156,8 +156,8 @@ other than an ASCII letter, a digit, \code{.}, \verb{_}, or \code{-}, or starts 
 \code{.}. The name check comes before any check of a lockfile.
 \item \code{supplement_error_no_file}: the folder has no \code{renv.lock}, or
 \code{renv.lock} is a folder or a link to a missing file. With a profile,
-this is also the error when \code{renv/profiles} has no folder with the
-profile name in the same letter case.
+this is also the error when a folder or file in the path
+\verb{renv/profiles/<name>/renv.lock} has another letter case.
 \item \code{supplement_error_lockfile}: \code{renv.lock} is not a JSON object, has no
 \code{R} object with a \code{Version}, or has no \code{renv} entry with a \code{Version}
 under \code{Packages}, or one of the two versions is not one string of three

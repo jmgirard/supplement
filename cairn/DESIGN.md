@@ -122,8 +122,9 @@ Every YAML parse in `R/` goes through `yaml_load_list()` or
 `lock_source()` of `R/check-supplement.R` (M067): `renv.lock`, or with an
 renv profile `renv/profiles/<name>/renv.lock`. It refuses a profile name
 outside `[A-Za-z0-9._-]`, or one that starts with `.`, and an unreadable
-`renv/profile`, with `supplement_error_profile`. A profile folder must be
-listed with the name's exact letter case. It reads the R and renv versions
+`renv/profile`, with `supplement_error_profile`. Each part of a profile
+lockfile's path must be listed with its exact letter case
+(`listed_exactly()`). It reads the R and renv versions
 of the lockfile with jsonlite, refuses a repeated key among the five it
 reads before any value check (M035), refuses R before 4.0.0 and renv before 1.3.1,
 and writes `.dockerignore` (`*`, `!` and the lockfile's path) and then a
@@ -310,9 +311,10 @@ Tests in `tests/testthat/` build a site from the template in a temporary
 folder with the Quarto CLI and skip on CRAN or when a tool they need,
 such as quarto, git, or a png device, is missing.
 The metadata writer tests need no Quarto.
-The one Docker test in `tests/testthat/test-write-dockerfile.R` builds the
-image and renders a report in it only when `SUPPLEMENT_TEST_DOCKER=true`;
-`R-CMD-check.yaml` does not set it, so that test runs only on a local
+The two Docker tests in `tests/testthat/test-write-dockerfile.R`, one with
+`renv.lock` and one with an renv profile (M067), build an image and render
+a report in it only when `SUPPLEMENT_TEST_DOCKER=true`;
+`R-CMD-check.yaml` does not set it, so those tests run only on a local
 machine.
 In `tests/testthat/test-template.R`, each exit-status check of a command
 shows everything the command printed when it fails, through

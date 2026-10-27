@@ -445,6 +445,9 @@ A release does not run these checks, so their rows do not stop a release.
 
 Docker runs a program in a container, an isolated system built from an
 image. After you set up renv, supplement can write the recipe for an image.
+The recipe uses the site's lockfile, which is `renv.lock` unless renv picks
+a profile for the site, as below. In this part, `renv.lock` means the
+lockfile that the recipe uses.
 The image holds the R version and the R packages in `renv.lock`, and Quarto. A
 report that you render in that image runs with those versions. This works
 on a machine that runs Docker with Linux containers on an amd64 processor,
@@ -453,11 +456,9 @@ or on arm64 for R 4.1.0 or later.
 
 renv can pick a profile for the site, from `RENV_PROFILE` or the first
 line of `renv/profile`. Then the recipe uses the profile's lockfile,
-`renv/profiles/<name>/renv.lock`, in place of `renv.lock`. The image then
-sets `RENV_PROFILE` to the name, so each render in it uses that profile.
-The name can hold only ASCII letters, digits, `.`, `_`, and `-`, and it
-cannot start with `.`. In this part, `renv.lock` means the lockfile that
-the recipe uses.
+`renv/profiles/<name>/renv.lock`. The image then sets `RENV_PROFILE` to
+the name, so each render in it uses that profile. The name can hold only
+ASCII letters, digits, `.`, `_`, and `-`, and it cannot start with `.`.
 
 1. Write the recipe. In R, in this folder, run:
 

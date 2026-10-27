@@ -1,4 +1,4 @@
-# write_dockerfile() writes a Dockerfile and a .dockerignore from renv.lock.
+# write_dockerfile() writes a Dockerfile and a .dockerignore from renv.lock or the lockfile of an renv profile.
 
 # A RENV_PROFILE of the session that runs the tests picks another lockfile.
 withr::local_envvar(RENV_PROFILE = NA)
@@ -470,6 +470,9 @@ test_that("the lockfile checks apply to the lockfile of the renv profile", {
   err <- expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
   expect_match(conditionMessage(err), "renv/profiles/dev/renv.lock", fixed = TRUE)
   expect_match(conditionMessage(err), "records R 3.6.3", fixed = TRUE)
+  writeBin(charToRaw("[]"), file.path(site, "renv", "profiles", "dev", "renv.lock"))
+  err <- expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
+  expect_match(conditionMessage(err), 'with the renv profile "dev" active', fixed = TRUE)
 })
 
 test_that("a renv profile name that a Dockerfile cannot hold is refused", {
@@ -508,22 +511,14 @@ test_that("a renv profile name that a Dockerfile cannot hold is refused", {
           paste("RENV_PROFILE cannot hold these names here:", paste(unstored, collapse = ", ")))
 })
 
-test_that("a renv profile name of the allowed characters passes from either source", {
-  for (name in c("Dev-2", "a.b", "_x", "-a")) {
-    for (from in c("RENV_PROFILE", "renv/profile")) {
-      site <- lock_site()
-      write_profile_lock(site, name)
-      if (from == "RENV_PROFILE") {
-        withr::local_envvar(RENV_PROFILE = name)
-      } else {
-        withr::local_envvar(RENV_PROFILE = NA)
-        write_profile_name(site, name)
-      }
-      info <- paste(name, from)
-      expect_no_error(dockerfile_messages(site, quarto = "1.10.19"))
-      expect_identical(readLines(file.path(site, ".dockerignore"))[[2]],
-                       paste0("!renv/profiles/", name, "/renv.lock"), info = info)
-    }
+test_that("a renv profile name of each allowed character passes", {
+  for (name in c("Dev-2.a_b", "-a", "_x")) {
+    site <- lock_site()
+    write_profile_lock(site, name)
+    write_profile_name(site, name)
+    dockerfile_messages(site, quarto = "1.10.19")
+    expect_identical(read_bytes(file.path(site, ".dockerignore")),
+                     charToRaw(paste0("*\n!renv/profiles/", name, "/renv.lock\n")), info = name)
   }
 })
 
@@ -546,6 +541,15 @@ test_that("a missing lockfile of the renv profile is refused, also under another
   shapes <- list(
     "no profile folder" = function(site) NULL,
     "another letter case" = function(site) write_profile_lock(site, "Dev"),
+    "a lockfile name in another letter case" = function(site) {
+      write_profile_lock(site, "dev")
+      file.rename(file.path(site, "renv", "profiles", "dev", "renv.lock"),
+                  file.path(site, "renv", "profiles", "dev", "RENV.LOCK"))
+    },
+    "a profiles folder in another letter case" = function(site) {
+      write_profile_lock(site, "dev")
+      file.rename(file.path(site, "renv", "profiles"), file.path(site, "renv", "Profiles"))
+    },
     "no lockfile in the folder" = function(site) dir.create(file.path(site, "renv", "profiles", "dev"), recursive = TRUE),
     "a folder at the lockfile" = function(site) {
       dir.create(file.path(site, "renv", "profiles", "dev", "renv.lock"), recursive = TRUE)
@@ -561,5 +565,13 @@ test_that("a missing lockfile of the renv profile is refused, also under another
     shapes[[shape]](site)
     err <- expect_refused(site, "supplement_error_no_file", site, quarto = "1.10.19", info = shape)
     expect_match(conditionMessage(err), "No 'renv/profiles/dev/renv.lock' in", fixed = TRUE, info = shape)
+    # Where the file system ignores letter case, the path is found under
+    # another case, and the hint says so.
+    lockfile <- file.path(site, "renv", "profiles", "dev", "renv.lock")
+    if (file.exists(lockfile) && !dir.exists(lockfile)) {
+      expect_match(conditionMessage(err), "has another letter case", fixed = TRUE, info = shape)
+    } else {
+      expect_match(conditionMessage(err), "renv::snapshot()", fixed = TRUE, info = shape)
+    }
   }
 })

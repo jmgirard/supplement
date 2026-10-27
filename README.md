@@ -101,10 +101,10 @@ another machine can install the same versions, use the renv package. The
 supplement does not call renv.
 
 In R, `supplement::write_dockerfile(quarto = "1.10.19")` in the site
-folder reads `renv.lock` and writes a `Dockerfile` and a `.dockerignore`.
-`RENV_PROFILE` or `renv/profile` can name an renv profile. Then
-`write_dockerfile()` reads that profile's lockfile in place of `renv.lock`,
-and the image sets `RENV_PROFILE` to that profile.
+folder reads the site's lockfile and writes a `Dockerfile` and a
+`.dockerignore`. The lockfile is `renv.lock`, unless `RENV_PROFILE` or
+`renv/profile` names an renv profile. Then `write_dockerfile()` reads that
+profile's lockfile, and the image sets `RENV_PROFILE` to that profile.
 Docker builds an image from them. The image holds the R version and the R
 packages in the lockfile, and Quarto. A report can render in it where Docker
 runs Linux containers on amd64, or on arm64 for R 4.1.0 or later. The

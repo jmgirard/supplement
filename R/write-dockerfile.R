@@ -57,9 +57,9 @@
 #' and each render in the image uses the profile, whatever `renv/profile` in
 #' the mounted site folder names. The name must hold only ASCII letters,
 #' digits, `.`, `_`, and `-`, and must not start with `.`, so that the
-#' `Dockerfile` can hold it. The folder in `renv/profiles` must have the
-#' name with the same letter case, because Docker matches file names with
-#' letter case.
+#' `Dockerfile` can hold it. Each folder and file in the path
+#' `renv/profiles/<name>/renv.lock` must have that letter case, because
+#' Docker matches file names with letter case.
 #'
 #' @section Build and render:
 #' In a terminal, in the site folder, build the image and give it a name:
@@ -121,7 +121,7 @@
 #'   invisibly.
 #'
 #' @section Errors:
-#' The function checks the arguments, `renv.lock`, and both target paths
+#' The function checks the arguments, `renv/profile`, `renv.lock`, and both target paths
 #' before it writes a file, so after any error but a failed write the site
 #' folder is as it was. It writes `.dockerignore` first, then the
 #' `Dockerfile`. A failed write, an open that fails included, can leave
@@ -140,8 +140,8 @@
 #'   `.`. The name check comes before any check of a lockfile.
 #' * `supplement_error_no_file`: the folder has no `renv.lock`, or
 #'   `renv.lock` is a folder or a link to a missing file. With a profile,
-#'   this is also the error when `renv/profiles` has no folder with the
-#'   profile name in the same letter case.
+#'   this is also the error when a folder or file in the path
+#'   `renv/profiles/<name>/renv.lock` has another letter case.
 #' * `supplement_error_lockfile`: `renv.lock` is not a JSON object, has no
 #'   `R` object with a `Version`, or has no `renv` entry with a `Version`
 #'   under `Packages`, or one of the two versions is not one string of three
@@ -231,7 +231,11 @@ dockerfile_lock_source <- function(path, call = parent.frame()) {
   if (!grepl("\\A[A-Za-z0-9_-][A-Za-z0-9._-]*\\z", source$profile, perl = TRUE, useBytes = TRUE)) {
     name <- show_text(source$profile)
     profile_error(c(
-      "The renv profile name {.val {name}}, which {.field {source$from}} gives, cannot be written into a Dockerfile.",
+      if (source$from == "RENV_PROFILE") {
+        "The renv profile name {.val {name}}, which {.envvar RENV_PROFILE} gives, cannot be written into a Dockerfile."
+      } else {
+        "The renv profile name {.val {name}}, which {.file renv/profile} gives, cannot be written into a Dockerfile."
+      },
       "i" = "Use a name of ASCII letters, digits, {.code .}, {.code _}, and {.code -} that does not start with {.code .}."
     ))
   }
@@ -255,18 +259,20 @@ is_version_string <- function(x) {
 # dockerfile_lock_source(), names in the site `path`.
 read_lockfile_versions <- function(path, source, call = parent.frame()) {
   file <- file.path(path, source$file)
-  # Docker matches names with letter case, so the profile's folder must
-  # be listed under the exact name, also where the file system ignores
-  # case. On Windows file.exists() is TRUE for a file link to a missing
-  # file.
-  found <- (is.null(source$profile) ||
-              source$profile %in% list.files(file.path(path, "renv", "profiles"), all.files = TRUE)) &&
-    file.exists(file) && !dir.exists(file) && (!is_link(file) || link_ends_on_file(file))
-  if (!found) {
-    hint <- if (is.null(source$profile)) {
+  # On Windows file.exists() is TRUE for a file link to a missing file.
+  exists <- file.exists(file) && !dir.exists(file) && (!is_link(file) || link_ends_on_file(file))
+  # Docker matches names with letter case, so each part of a profile
+  # lockfile's path must be listed under its exact name, also where the
+  # file system ignores case.
+  exact <- is.null(source$profile) || listed_exactly(path, strsplit(source$file, "/", fixed = TRUE)[[1]])
+  active <- if (is.null(source$profile)) "" else " with the renv profile {.val {source$profile}} active"
+  if (!(exists && exact)) {
+    hint <- if (exists) {
+      "A folder or file in that path has another letter case. Rename it to match, because Docker matches names with letter case."
+    } else if (is.null(source$profile)) {
       "Set up renv in the site first, as the part {.emph Recording R packages with renv} of {.file GUIDE.md} shows."
     } else {
-      "Run {.code renv::snapshot()} in the site with the renv profile {.val {source$profile}} active."
+      paste0("Run {.code renv::snapshot()} in the site", active, ".")
     }
     cli::cli_abort(
       c("No {.file {source$file}} in {.path {path}}.", "i" = hint),
@@ -277,7 +283,7 @@ read_lockfile_versions <- function(path, source, call = parent.frame()) {
   # `problem` and `hint` are part of the cli template, so their markup is
   # read.
   lockfile_error <- function(problem,
-                             hint = "Run {.code renv::snapshot()} in the site to write it again.") {
+                             hint = paste0("Run {.code renv::snapshot()} in the site", active, " to write it again.")) {
     cli::cli_abort(
       c(paste("{.path {file}}", problem), "i" = hint),
       class = c("supplement_error_lockfile", "supplement_error"),
@@ -325,7 +331,7 @@ read_lockfile_versions <- function(path, source, call = parent.frame()) {
   if (!is_version_string(renv)) {
     lockfile_error(
       "has no renv version of three whole numbers in {.field Packages.renv.Version}.",
-      "Install a released renv from CRAN, then run {.code renv::snapshot()} in the site."
+      paste0("Install a released renv from CRAN, then run {.code renv::snapshot()} in the site", active, ".")
     )
   }
   # Before 1.3.1, renv::sysreqs() reads the packages from the project's
@@ -333,10 +339,22 @@ read_lockfile_versions <- function(path, source, call = parent.frame()) {
   if (numeric_version(renv) < "1.3.1") {
     lockfile_error(
       "records renv {renv}, and the Dockerfile needs renv 1.3.1 or later.",
-      "Update renv, then run {.code renv::snapshot()} in the site."
+      paste0("Update renv, then run {.code renv::snapshot()} in the site", active, ".")
     )
   }
   list(r = r, renv = renv)
+}
+
+# TRUE when each of `parts`, a path from the folder `path`, is listed in
+# its folder under its exact name, letter case included.
+listed_exactly <- function(path, parts) {
+  for (i in seq_along(parts)) {
+    folder <- do.call(file.path, as.list(c(path, parts[seq_len(i - 1)])))
+    if (!parts[[i]] %in% list.files(folder, all.files = TRUE)) {
+      return(FALSE)
+    }
+  }
+  TRUE
 }
 
 # The lines of the Dockerfile, which reads the lockfile that `source`, from
