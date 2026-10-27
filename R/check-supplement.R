@@ -142,7 +142,8 @@
 #'   version differs when a stored R version is not equal to the `Version`
 #'   under `R`. Versions are compared as [package_version()] values, so
 #'   `1.0-5` equals `1.0.5`. A package that `renv.lock` does not record,
-#'   such as a base package, is not compared. Nor is a version that
+#'   such as a base package, is not compared; the `"renv-missing"` check
+#'   gives a row for such a package that a report attached. Nor is a version that
 #'   [package_version()] cannot read on either side, such as `devel`, or
 #'   the R version when `renv.lock` records none. A development build of R
 #'   prints `R Under development (unstable)`, which the check does not read
@@ -168,8 +169,9 @@
 #'   jsonlite keeps both and renv may read the other. A UTF-8 byte order
 #'   mark at the start of the file is skipped. A package record is named by
 #'   its `Package` text, or by its key when it has none, and a record with
-#'   no `Version` text is left out. A site with no `renv.lock` gets no row,
-#'   and the function says that it skipped the check. Only `renv.lock` in the site folder is read, not the
+#'   no `Version` text is left out of the comparison. A site with no `renv.lock` gets no row,
+#'   and the function says that it skipped this check and the
+#'   `"renv-missing"` check. Only `renv.lock` in the site folder is read, not the
 #'   lockfile of an renv profile. [release_supplement()] does not run this
 #'   check, so its rows never stop a release.
 #' * `"renv-missing"`: only with `renv_lock = TRUE`, a report from the same
@@ -185,7 +187,10 @@
 #'   `loaded via a namespace (and not attached):`, gives no row, since the
 #'   render tools and not the report's code can load it. renv's default
 #'   (implicit) snapshot records the packages that `renv::dependencies()`
-#'   finds in the project, with their dependencies.
+#'   finds in the project, with their dependencies. A package that the
+#'   user's R profile attaches during a render, or that renv's settings
+#'   leave out of `renv.lock`, also gives a row, which `renv::snapshot()`
+#'   and a new render do not clear.
 #'   `renv.lock` names a package when it holds a record under `Packages`
 #'   with that name, whatever its `Version`. A record is named as for the
 #'   `"renv-mismatch"` check, and a record whose name is empty names no

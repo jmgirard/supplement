@@ -170,7 +170,10 @@ characters. `lock_versions()` refuses a repeated key, as
 from the `*` column of the sessioninfo table or the
 `other attached packages:` list, and `lock_versions()` returns every
 record's name. A package that is loaded and not attached gives no row,
-since renv's default snapshot leaves it out. `release_supplement()` never
+since the render tools and not the report's code can load it (the user
+chose attached packages only at the M065 plan). sessioninfo lists no base
+package, and `utils::sessionInfo()` keeps them out of
+`other attached packages:`. `release_supplement()` never
 passes this argument either.
 Its placeholder check (`check_placeholders()`, M036) compares four
 `_supplement.yml` values with the installed template's, read through

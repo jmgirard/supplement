@@ -420,14 +420,16 @@ report by name, render the whole site, and commit the report with
 `_freeze/`, `docs/`, and `figures/`. If the library now holds the versions of the report, you
 can run `renv::snapshot()` and commit `renv.lock` instead.
 
-The same command gives a `"renv-missing"` row for each report whose
-stored output shows an attached package that `renv.lock` does not name.
+`supplement::check_supplement(renv_lock = TRUE)` also gives a
+`"renv-missing"` row for each report whose stored output shows an
+attached package that `renv.lock` does not name.
 An example is a package that the report loads with `library()`.
 `renv::restore()` does not install such a package from `renv.lock`. Run `renv::snapshot()`
 and commit `renv.lock`. If the report no longer uses the package, render
 the report by name. Then render the whole site, and commit the report with
 `_freeze/`, `docs/`, and `figures/`. A package that a report loaded and
-did not attach gives no row.
+did not attach gives no row. A package that your R profile attaches during
+a render also gives a row, and these steps do not clear it.
 
 A release does not run these checks, so their rows do not stop a release.
 
