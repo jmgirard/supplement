@@ -97,6 +97,7 @@
 - 2026-10-27: DESCRIPTION has `Depends: R (>= 4.1.0)`. url_status() always passes `timeout = web_timeout` and calls curlGetHeaders() directly again (the formals() branch and do.call() are gone). The url_status() test asserts the timeout without a branch. The help says "waits up to 10 seconds", DESIGN.md cites D-031, and NEWS.md says the package now needs R 4.1.0. devtools::test(): 431 tests, 0 failed. CI runs R release only.
 - 2026-10-27: claim audit: 64 claims read, 2 corrected — vignettes/publishing.Rmd (a web row does not stop a release because release_supplement() does not run the check, not because the site is out of the author's control), R/check-supplement.R (the refused-status comment: a browser may need a login too).
 - 2026-10-27: devtools::check() on 08eb269 (with the R floor): 0 errors, 0 warnings, 1 note (local .claude folder). 1b1bcca changed only a comment and a vignette sentence. Status set to review.
+- 2026-10-27: review pass 2: four lenses gave 22 findings. 7 were fixed in bfed056 (two of them the same vignette finding), 2 went to follow-up (one already a row, one added to "Keep tests within the Suggests floors"), and 13 were rejected (4 false, 5 planned change counting the two history-record rejects, as IP4 keeps D-014 as written, 3 style, 1 edge).
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
@@ -153,3 +154,30 @@ spawned: diff-bug, blame-history, prior-review, ripple
 Pass 2, 2026-10-27, on d98d5c3 (main still 19ca1e7), after the R floor (D-031) and the fix-now commit 44341af. test-check-supplement.R and test-release-supplement.R: 146 tests, 0 failed, 0 errors, 6 skipped (none of the web tests). The nine web tests pass with the expectation counts of pass 1, except "each address that fails…" (10, with the 400 and 500 status text added) and the url_status() test (6, with the %20 check added). AC1–AC4 and AC6–AC8 hold on this head as recorded above; AC8's grep finds the same mocked calls, and devtools::check() on 08eb269 gave 0 errors, 0 warnings, 1 note (local .claude folder). `devtools::document()` gave no diff, and cairn_validate.py passed.
 
 - AC5: "url_status() follows redirects with a timeout and gives the status or the error message" passes, 6 expectations, with no R-version branch. The mocked curlGetHeaders binding gets the address, `redirect = TRUE`, and `timeout` 10 (numeric, length 1, positive). url_status() returns its `"status"` attribute (404L), and when the mock stops, the error's message folded to one line ("libcurl error code 6: no host"). DESCRIPTION's `Depends: R (>= 4.1.0)` (D-031) makes the `timeout` argument present on every R that installs the package.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: the vignette's "commit and push" sentence lost its colon and was cut off from its `git` block by the web paragraph — fix now, fixed bfed056 (web paragraph first, then "When the check finds no problem, commit and push…:").
+- diff-bug #2: a status of 0, which libcurl gives when no HTTP status came, read as working and gave no row — fix now, fixed bfed056 (a status below 100 gets the no-status row, with a test of 0, NA, and NULL).
+- diff-bug #3: the url_status() test did not show the timeout is fixed — fix now, fixed bfed056 (a second call gets the same timeout).
+- diff-bug #4: each page is read twice — follow-up, already the row "Read each page once for web links".
+- diff-bug #5: the help's "requested once" holds per string, so addresses that differ in letter case are requested twice — fix now, fixed bfed056 (help says so).
+- diff-bug #6: the README and GUIDE web sentence sits before "It finds:" — reject, planned change (as pass 1, ripple #5).
+- diff-bug #7: the comment "The addresses are requested one after another" restates the code — reject, style.
+- diff-bug #8: two tests assert the same address set — reject, false (as pass 1, diff-bug #11).
+- diff-bug #9: web_rows_for() is used once and the AC3 test repeats its setup inline — reject, style.
+- diff-bug #10: two test helper comments restate the code — reject, style.
+- blame-history #1: the R floor blocks R 4.0.x users, and D-031 does not say so — reject, false: D-031's consequences say "The package no longer installs on R before 4.1.0".
+- blame-history #2: no CI job runs the R 4.1.0 floor — follow-up, absorbed into "Keep tests within the Suggests floors".
+- blame-history #3: D-014 says "the package itself declares no R version" — reject, history record (IP4): D-031 is the later entry.
+- blame-history #4: url_status() catches only errors, so a warning from curlGetHeaders() would print mid-check — reject, edge: no case of curlGetHeaders() warning on an http or https address was found, and the effect is a printed warning.
+- blame-history #5: "refused" is the wrong word for 429 — reject, false: a 429 answer refuses the request.
+- prior-review #1: the vignette order — fix now, fixed bfed056 (as diff-bug #1).
+- prior-review #2: write_dockerfile() refuses lockfile R before 4.0.0 while the package needs 4.1.0 — reject, false: one is the image's R, the other the R that installs the package.
+- prior-review #3: D-014's "declares no R version" — reject, history record (as blame-history #3).
+- ripple #1: the candidate row "Check web links on the rendered site" still asks for this work — reject, planned change: hygiene graduates it.
+- ripple #2: the sort_bytes() comment described the byte marking that order_bytes() now does — fix now, fixed bfed056.
+- ripple #3: the README and GUIDE web sentence before "It finds:" — reject, planned change (as diff-bug #6).
+- ripple #4: DESIGN.md's dependency line omitted the R floor — fix now, fixed bfed056.
+
+After bfed056: devtools::test(), 432 tests, 0 failed.
