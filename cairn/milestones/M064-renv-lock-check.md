@@ -105,6 +105,7 @@
 - 2026-10-27: full `devtools::test()`: 447 tests, 0 failed, 0 errors, 10 skipped. The first `devtools::check()` gave 0 errors, 1 warning, and 1 note. The warning was a literal `─` in `stored_versions()`, which is now `─`. The note is the local `.claude` folder. A second check is running.
 - 2026-10-27: claim audit (fresh Opus reader): 55 claims read, 6 corrected in NEWS.md, the `check_supplement()` help and Rd, a code comment, the renv.lock row text and its test, and GUIDE.md. The corrected claims are with the same reader for one re-read.
 - 2026-10-27: claim audit re-read: all 6 corrections hold at 00fa984.
+- 2026-10-27: step-7 approval: m064-renv-lock-check approved for merge
 - 2026-10-27: T6 done. The second `devtools::check()` gave 0 errors, 0 warnings, and 1 note (the local `.claude` folder). Its test run passed. Status set to review.
 
 ## Decisions
