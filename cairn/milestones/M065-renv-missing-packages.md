@@ -98,7 +98,7 @@ Evidence (2026-10-27, branch head before review fixes 2fd76ed; `devtools::test()
 - AC5: "the release goes ahead with a package that renv.lock does not record" passed 2.
 - AC6: the grep lists 9 files (both R files, both .Rd files, README.md, NEWS.md, the vignette, GUIDE.md, DESIGN.md) and `grep -c renv-missing` is at least 1 in each; `man/check_supplement.Rd` says a package loaded and not attached gives no row; `man/release_supplement.Rd` names both rows; NEWS.md holds `renv-missing` once, in the `renv_lock` bullet.
 
-Consistency gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; no README.Rmd; `pkgdown::check_pkgdown()` no problems; NEWS.md entry present; no new top-level file; no snapshot file in the diff; principles unchanged, so no impact report.
+Consistency gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; no README.Rmd; `pkgdown::check_pkgdown()` no problems; NEWS.md entry present; no new top-level file; no snapshot file in the diff; principles unchanged, so no impact report. `devtools::check()` at af33585: 0 errors, 0 warnings, 1 note (local `.claude`, outside the built package's repo files). After the review fixes, at ebb9280: `devtools::test()` 456 tests, 0 failed, 10 skipped.
 
 spawned: diff-bug, blame-history, prior-review, ripple
 
