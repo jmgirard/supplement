@@ -125,33 +125,35 @@ Consistency gate: `cairn_validate.py` all checks passed. No principle changed, s
 
 spawned: diff-bug, blame-history, prior-review, ripple
 
-- diff-bug #1: in a Latin-1 locale, `stored_json()` passes unmarked text to jsonlite, so `─` is misread and no sessioninfo table is found — fix now.
-- diff-bug #2: each line in `result.markdown` that starts with `R version` is read, so report text such as "R version 4.2 is what we used." gives a false R version — fix now (read only the first line in R's version-string form).
-- diff-bug #3: CR LF line ends in stored markdown hide the `utils::sessionInfo()` lists and keep the table loop past its blank line — fix now.
+- diff-bug #1: in a Latin-1 locale, `stored_json()` passes unmarked text to jsonlite, so `─` is misread and no sessioninfo table is found — fix now, fixed 0c6223a.
+- diff-bug #2: each line in `result.markdown` that starts with `R version` is read, so report text such as "R version 4.2 is what we used." gives a false R version — fix now, fixed 0c6223a (read only the first line in R's version-string form).
+- diff-bug #3: CR LF line ends in stored markdown hide the `utils::sessionInfo()` lists and keep the table loop past its blank line — fix now, fixed 0c6223a.
 - diff-bug #4: `package_version()` warns on a version part above 2^31−1 — reject (edge: a version such as `1.99999999999` is outside documented and common use, and the effect is a warning).
-- diff-bug #5: packages are looked up by their `Packages` key, not their `Package` field, and a repeated key takes its first copy with no warning — fix now.
-- diff-bug #6: `1.0-5` and `1.0.5` both print as distinct stored versions — fix now (unique by version value).
-- diff-bug #7: the unreadable-lock row text is wrong for a `renv.lock` with a UTF-8 BOM — fix now (skip the BOM and read the file).
+- diff-bug #5: packages are looked up by their `Packages` key, not their `Package` field, and a repeated key takes its first copy with no warning — fix now, fixed 0c6223a.
+- diff-bug #6: `1.0-5` and `1.0.5` both print as distinct stored versions — fix now, fixed 0c6223a (unique by version value).
+- diff-bug #7: the unreadable-lock row text is wrong for a `renv.lock` with a UTF-8 BOM — fix now, fixed 0c6223a (skip the BOM and read the file).
 - diff-bug #8: each stored `.json` is parsed again by each of three checks — follow-up, the candidate row "Parse each stored output file once".
 - diff-bug #9: bare `file.symlink()` in tests fails on Windows without link rights — reject (false: the suite's Windows runner makes file links, LESSONS M060, and older tests use the same call).
-- diff-bug #10: one roxygen line is much longer than its neighbors — fix now, with diff-bug #7's help edit.
+- diff-bug #10: one roxygen line is much longer than its neighbors — fix now, fixed 0c6223a, with diff-bug #7's help edit.
 - diff-bug (c) #1: the `renv_lock` argument test repeats one path over 5 inputs — reject (false: the test rules ask for each error branch and the input-type edge cases).
-- diff-bug (c) #2: the `!` column table is tested by a unit test and by the row case `table` — fix now (remove the unit test).
-- diff-bug (c) #3: the unread forms are tested at unit and row level — fix now (remove the unit test, as AC1 asks for the row level).
-- diff-bug (c) #4: the 5 MB case is tested at unit and row level — fix now (remove the unit test).
-- diff-bug (c) #5: the `lock-only` case adds nothing — fix now (remove it).
-- diff-bug (c) #6: the comment before the last expectation of the default test restates it — fix now (remove it).
+- diff-bug (c) #2: the `!` column table is tested by a unit test and by the row case `table` — fix now, fixed 0c6223a (remove the unit test).
+- diff-bug (c) #3: the unread forms are tested at unit and row level — fix now, fixed 0c6223a (remove the unit test, as AC1 asks for the row level).
+- diff-bug (c) #4: the 5 MB case is tested at unit and row level — fix now, fixed 0c6223a (remove the unit test).
+- diff-bug (c) #5: the `lock-only` case adds nothing — fix now, fixed 0c6223a (remove it).
+- diff-bug (c) #6: the comment before the last expectation of the default test restates it — fix now, fixed 0c6223a (remove it).
 - diff-bug (c) #7: `stopifnot()` guards duplicate testthat — reject (false: they show the fixture domain is not empty, as check discrimination asks).
 - diff-bug (c) #8: `lock_path()` is a trivial helper — reject (style).
-- blame-history #1: `lock_versions()` lacks the repeated-key refusal that `write_dockerfile()` has (M035) — fix now, with diff-bug #5.
+- blame-history #1: `lock_versions()` lacks the repeated-key refusal that `write_dockerfile()` has (M035) — fix now, fixed 0c6223a, with diff-bug #5.
 - blame-history #2: the two renv.lock readers have different rules — reject (planned change: the check compares packages without an R version, AC5, while the Dockerfile needs one).
 - blame-history #3: `strsplit()` warns on markdown that is not UTF-8 — reject (false: jsonlite rejects such JSON, so `stored_markdown()` gives NULL first).
 - blame-history #4: the split list item can read as a separate check — reject (false: the lists name problems, not check ids, and `"broken-link"` has several items too).
 - blame-history #5: a literal `─` stays in roxygen and a comment — reject (style: R CMD check allows it there).
-- prior-review #1: repeated keys in renv.lock (M035) — fix now, with diff-bug #5.
-- prior-review #2: `env_json(character())` writes a stray `[1] _` line (LESSONS M061) — fix now (guard the empty case).
-- ripple #1: the publishing vignette's "When the check finds no problem" now follows the renv sentence — fix now.
-- ripple #2: DESIGN.md's DOI sentence now follows the renv paragraph — fix now.
+- prior-review #1: repeated keys in renv.lock (M035) — fix now, fixed 0c6223a, with diff-bug #5.
+- prior-review #2: `env_json(character())` writes a stray `[1] _` line (LESSONS M061) — fix now, fixed 0c6223a (guard the empty case).
+- ripple #1: the publishing vignette's "When the check finds no problem" now follows the renv sentence — fix now, fixed 0c6223a.
+- ripple #2: DESIGN.md's DOI sentence now follows the renv paragraph — fix now, fixed 0c6223a.
 - ripple #3: the candidate row "Compare renv.lock with report records" is still listed — reject (planned change: hygiene graduates it).
 - ripple #4: the GUIDE.md list item sits in the default list — reject (planned change: AC7 asks the check list to name it).
 - ripple #5: DESIGN.md does not name `stored_markdown()` — reject (false: the sentence it has stays true).
+
+After the fixes, at 0c6223a: `devtools::test()` gave 446 tests, 0 failed, and 10 skipped. Three duplicate unit tests went, and two tests came in. The row test adds `crlf` and `spellings` (one row, "Matrix 1.0.5"). The no-row test drops `lock-only` and adds `prose-r` and `second-r`. A package in `renv.lock` that the stored output does not name is still covered there by `Matrix` and `odd`. The unreadable-lock test adds six repeated-key forms. New tests cover a record named by its `Package` text, a lock with a byte order mark, and a Latin-1 locale. With the UTF-8 mark in `stored_json()` removed as a planted defect, the Latin-1 test failed. `cairn_validate.py` passed. `devtools::document()` ran.
