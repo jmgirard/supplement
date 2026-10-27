@@ -81,6 +81,7 @@
 - 2026-10-27: T2 done: `check_renv_lock()` now builds both rows per report through `mismatch_problem()` (the M064 text, moved unchanged) and `missing_problem()`, and gives the renv-mismatch rows first. The rewrite went in through a python script rather than the Edit tool. A planted defect (every loaded package counted as attached) failed 4 expectations of the no-row test. `devtools::test()` 453 tests, 0 failed, 10 skipped.
 - 2026-10-27: T3 done: two Quarto render tests (`R_PROFILE_USER` set through `withr::local_envvar()`, since `run_in()`'s `env` reaches only R commands on Windows) and one release test; both render tests ran with `NOT_CRAN=true` and passed. `devtools::test()` 456 tests, 0 failed, 10 skipped.
 - 2026-10-27: T4 docs written (help of both functions, NEWS bullet, README, GUIDE renv part and check list, vignette, DESIGN); `devtools::document()` rewrote the two .Rd files; the AC6 grep lists 9 files and each names `renv-missing`. Full test and check running.
+- 2026-10-27: claim audit: 45 claims read, 5 corrected — R/check-supplement.R (unreadable-lock wording, renv snapshot claim, format-hint wording, restore wording), inst/template/GUIDE.md (any attach counts, not only `library()`), NEWS.md (restore wording).
 
 ## Decisions
 

@@ -420,9 +420,10 @@ report by name, render the whole site, and commit the report with
 `_freeze/`, `docs/`, and `figures/`. If the library now holds the versions of the report, you
 can run `renv::snapshot()` and commit `renv.lock` instead.
 
-The same command gives a `"renv-missing"` row for each report that
-attached a package with `library()` that `renv.lock` does not name.
-`renv::restore()` does not install such a package. Run `renv::snapshot()`
+The same command gives a `"renv-missing"` row for each report whose
+stored output shows an attached package that `renv.lock` does not name.
+An example is a package that the report loads with `library()`.
+`renv::restore()` does not install such a package from `renv.lock`. Run `renv::snapshot()`
 and commit `renv.lock`. If the report no longer uses the package, render
 the report by name. Then render the whole site, and commit the report with
 `_freeze/`, `docs/`, and `figures/`. A package that a report loaded and

@@ -6,7 +6,7 @@
   site's `renv.lock`. A report with a version that differs gets a
   `"renv-mismatch"` row, which names the versions and says how to make
   them match. A report that attached a package that `renv.lock` does not
-  name, so that `renv::restore()` does not install it, gets a
+  name, so that `renv::restore()` does not install it from `renv.lock`, gets a
   `"renv-missing"` row. A package that a report loaded and did not attach
   gives no row. The default is `FALSE`, which does not read `renv.lock`,
   and `release_supplement()` does not run these checks.

@@ -175,15 +175,17 @@
 #' * `"renv-missing"`: only with `renv_lock = TRUE`, a report from the same
 #'   list whose stored output shows that it attached a package that the
 #'   site's `renv.lock` does not name under `Packages`, so
-#'   `renv::restore()` does not install it. The check reads the same
+#'   `renv::restore()` does not install it from `renv.lock`. The check reads the same
 #'   `.json` files, in the same forms, as the `"renv-mismatch"` check. A
 #'   package counts as attached when a line of the sessioninfo package
 #'   table has `*` under the `*` of the table's header line, or when it is
 #'   an entry after `other attached packages:` in `utils::sessionInfo()`
 #'   output. A package that is loaded and not attached, such as knitr
 #'   during a render or a package after
-#'   `loaded via a namespace (and not attached):`, gives no row: renv's
-#'   default snapshot records only the packages that project code uses.
+#'   `loaded via a namespace (and not attached):`, gives no row, since the
+#'   render tools and not the report's code can load it. renv's default
+#'   (implicit) snapshot records the packages that `renv::dependencies()`
+#'   finds in the project, with their dependencies.
 #'   `renv.lock` names a package when it holds a record under `Packages`
 #'   with that name, whatever its `Version`. A record is named as for the
 #'   `"renv-mismatch"` check, and a record whose name is empty names no
@@ -193,10 +195,13 @@
 #'   `renv::snapshot()` and commit `renv.lock`, or, if the report no longer
 #'   uses the packages, to take the render steps. When another of these
 #'   files holds a package table or list and attaches none of them, the row
-#'   also gives the format hint and delete steps of the `"renv-mismatch"`
-#'   row. A report that cannot be read gives no row. When `renv.lock` is
-#'   missing or cannot be read, this check gives no row, as for the
-#'   `"renv-mismatch"` check. The `"renv-missing"` rows come after the
+#'   also says that these files can be from a format that the report no
+#'   longer renders, with the delete steps of the `"renv-mismatch"` row. A
+#'   report that cannot be read gives no row. When `renv.lock` is missing,
+#'   this check gives no row, and the function says that it skipped it.
+#'   When `renv.lock` cannot be read, this check gives no row, and the one
+#'   `"renv-mismatch"` row for `renv.lock` reports the problem. The
+#'   `"renv-missing"` rows come after the
 #'   `"renv-mismatch"` rows. [release_supplement()] does not run this
 #'   check.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
@@ -995,8 +1000,8 @@ mismatch_problem <- function(found, files, dir, lock) {
 # The problem text of the "renv-missing" row of a report whose stored
 # output files `files` in `dir` hold the versions `stored`, from
 # stored_versions(), or NA when no file shows an attached package that
-# renv.lock does not name. renv::restore() installs only the packages that
-# renv.lock records.
+# renv.lock does not name. renv::restore() does not install such a package
+# from renv.lock.
 missing_problem <- function(stored, files, dir, lock) {
   missing <- lapply(stored, function(x) setdiff(x$attached, lock$names))
   shows <- lengths(missing) > 0
