@@ -268,12 +268,11 @@ test_that("a folder at either path is refused, with overwrite TRUE and FALSE", {
   }
 })
 
-test_that("the image renders a report offline as the user, with the lockfile's R", {
-  skip_if_not(identical(Sys.getenv("SUPPLEMENT_TEST_DOCKER"), "true"), "SUPPLEMENT_TEST_DOCKER is not true")
-  skip_on_os("windows")
-  skip_if(Sys.which("docker") == "", "docker is not on PATH")
-  site <- long_dir(renv_site())
-  r_version <- jsonlite::read_json(file.path(site, "renv.lock"))[["R"]][["Version"]]
+# Build an image from the renv site `site`, whose lockfile is at `lockfile`,
+# render the example report in it offline as the user, and check the
+# Computing environment section of the page. Returns the section's text.
+expect_docker_render <- function(site, lockfile = "renv.lock") {
+  r_version <- jsonlite::read_json(file.path(site, lockfile))[["R"]][["Version"]]
   manifest <- run_in(site, "docker", c("manifest", "inspect", paste0("rocker/r-ver:", r_version)))
   skip_if(manifest$status != 0L, paste0("no rocker/r-ver:", r_version, " image"))
 
@@ -293,11 +292,34 @@ test_that("the image renders a report offline as the user, with the lockfile's R
   page <- paste(readLines(file.path(site, "docs", "analyses", "example.html"), warn = FALSE), collapse = "\n")
   section <- html_text(section_html(page, "computing-environment"))
   expect_match(section, paste0("R version ", r_version, " "), fixed = TRUE)
-  # The library in the image, so the section is from the render in Docker.
-  expect_match(section, "/opt/renv/library/", fixed = TRUE)
 
   unlink(site, recursive = TRUE, expand = FALSE)
   expect_false(dir.exists(site))
+  section
+}
+
+skip_if_no_docker <- function() {
+  skip_if_not(identical(Sys.getenv("SUPPLEMENT_TEST_DOCKER"), "true"), "SUPPLEMENT_TEST_DOCKER is not true")
+  skip_on_os("windows")
+  skip_if(Sys.which("docker") == "", "docker is not on PATH")
+}
+
+test_that("the image renders a report offline as the user, with the lockfile's R", {
+  skip_if_no_docker()
+  section <- expect_docker_render(long_dir(renv_site()))
+  # The library in the image, so the section is from the render in Docker.
+  expect_match(section, "/opt/renv/library/", fixed = TRUE)
+})
+
+test_that("the image of a renv profile restores and renders with the profile's lockfile", {
+  skip_if_no_docker()
+  site <- long_dir(renv_site())
+  lockfile <- "renv/profiles/docker/renv.lock"
+  dir.create(file.path(site, dirname(lockfile)), recursive = TRUE)
+  expect_true(file.rename(file.path(site, "renv.lock"), file.path(site, lockfile)))
+  writeLines("docker", file.path(site, "renv", "profile"))
+  section <- expect_docker_render(site, lockfile)
+  expect_match(section, "/opt/renv/library/profiles/docker/", fixed = TRUE)
 })
 
 test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
@@ -343,6 +365,12 @@ write_profile_name <- function(site, name) {
 write_profile_lock <- function(site, name, text = lock_json(r = '{"Version": "4.5.2"}')) {
   dir.create(file.path(site, "renv", "profiles", name), recursive = TRUE, showWarnings = FALSE)
   writeBin(charToRaw(text), file.path(site, "renv", "profiles", name, "renv.lock"))
+}
+
+# TRUE when RENV_PROFILE can hold `text` on this system.
+can_set_profile <- function(text) {
+  isTRUE(tryCatch(withr::with_envvar(c(RENV_PROFILE = text), Sys.getenv("RENV_PROFILE") == text),
+                  error = function(e) FALSE, warning = function(w) FALSE))
 }
 
 # The messages that write_dockerfile(...) prints, without ANSI codes or
@@ -446,24 +474,23 @@ test_that("the lockfile checks apply to the lockfile of the renv profile", {
 
 test_that("a renv profile name that a Dockerfile cannot hold is refused", {
   names <- list(
-    ".dev", "..", "a/b", "a\\b", "a b", "dev ", "a\"b", "a$b", "a*b", "é",
+    ".dev", "..", "a/b", "a\\b", "a b", "a\tb", "dev ", "a\"b", "a$b", "a*b", "\u00e9",
     as.raw(c(0x63, 0x61, 0x66, 0xe9))
   )
+  unstored <- character()
   for (name in names) {
     info <- paste(format(name), collapse = " ")
     site <- lock_site()
     write_profile_name(site, name)
     expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19", info = info)
     unlink(file.path(site, "renv"), recursive = TRUE)
-    # A name that the system cannot store in an environment variable is
-    # tested from renv/profile only.
     text <- if (is.raw(name)) rawToChar(name) else name
-    set <- tryCatch(withr::with_envvar(c(RENV_PROFILE = text), Sys.getenv("RENV_PROFILE") == text),
-                    error = function(e) FALSE, warning = function(w) FALSE)
-    if (isTRUE(set)) {
+    if (can_set_profile(text)) {
       withr::with_envvar(c(RENV_PROFILE = text), {
         expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19", info = info)
       })
+    } else {
+      unstored <- c(unstored, info)
     }
   }
   # renv/profile ends a name at a line break, and in a UTF-8 locale
@@ -471,11 +498,32 @@ test_that("a renv profile name that a Dockerfile cannot hold is refused", {
   # RENV_PROFILE alone can hold either.
   site <- lock_site()
   write_profile_lock(site, "dev")
-  for (name in c("dev\n", "dev\r", "a\nb", "﻿dev")) {
+  for (name in c("dev\n", "dev\r", "a\nb", "\ufeffdev")) {
     withr::with_envvar(c(RENV_PROFILE = name), {
       err <- expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19", info = name)
     })
     expect_match(conditionMessage(err), "RENV_PROFILE", fixed = TRUE, info = name)
+  }
+  skip_if(length(unstored) > 0,
+          paste("RENV_PROFILE cannot hold these names here:", paste(unstored, collapse = ", ")))
+})
+
+test_that("a renv profile name of the allowed characters passes from either source", {
+  for (name in c("Dev-2", "a.b", "_x", "-a")) {
+    for (from in c("RENV_PROFILE", "renv/profile")) {
+      site <- lock_site()
+      write_profile_lock(site, name)
+      if (from == "RENV_PROFILE") {
+        withr::local_envvar(RENV_PROFILE = name)
+      } else {
+        withr::local_envvar(RENV_PROFILE = NA)
+        write_profile_name(site, name)
+      }
+      info <- paste(name, from)
+      expect_no_error(dockerfile_messages(site, quarto = "1.10.19"))
+      expect_identical(readLines(file.path(site, ".dockerignore"))[[2]],
+                       paste0("!renv/profiles/", name, "/renv.lock"), info = info)
+    }
   }
 })
 
