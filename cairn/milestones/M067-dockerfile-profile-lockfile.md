@@ -9,7 +9,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — it changes which lockfile the exported `write_dockerfile()` reads and what it writes
-- **Branch/PR:** m067-dockerfile-profile-lockfile
+- **Branch/PR:** m067-dockerfile-profile-lockfile, https://github.com/jmgirard/supplement/pull/68
 
 ## Goal
 
