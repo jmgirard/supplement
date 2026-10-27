@@ -3,7 +3,7 @@
 #' `write_dockerfile()` reads the renv lockfile of a site set up with renv and
 #' writes a `Dockerfile` and a `.dockerignore` into the site folder. On this
 #' page, `renv.lock` is that lockfile: `renv.lock` in the site folder, or the
-#' lockfile of the renv profile that renv picks, as the section "renv
+#' lockfile of the renv profile that renv would pick, as the section "renv
 #' profiles" below says. The
 #' image that Docker builds from them holds the R version and the R
 #' packages that `renv.lock` records, and the Quarto version that you give.
@@ -39,8 +39,9 @@
 #'
 #' @section renv profiles:
 #' An renv profile is a named set of packages with a lockfile of its own.
-#' `write_dockerfile()` picks the lockfile by the rule of renv 1.3.1, which
-#' `check_supplement(renv_lock = TRUE)` also uses. If the `RENV_PROFILE`
+#' `write_dockerfile()` picks the profile by the rule of renv 1.3.1, which
+#' `check_supplement(renv_lock = TRUE)` also uses. It does not read
+#' `RENV_PATHS_LOCKFILE` or `RENV_PATHS_RENV`. If the `RENV_PROFILE`
 #' environment variable of the R session that runs `write_dockerfile()` is
 #' not empty, it names the profile. Otherwise the first line of
 #' `renv/profile` in the site folder names it, when that file exists. The
@@ -206,8 +207,8 @@ write_dockerfile <- function(path = ".", quarto, digest = NULL, overwrite = FALS
 
 # The lockfile of the site's renv profile, from lock_source(), with the
 # profile name refused unless the Dockerfile and .dockerignore can hold it
-# as written. The name check comes before any file check, so that no file
-# function sees a name that is not valid UTF-8.
+# as written. The name check comes before any check of a path built from
+# the name, so that no file function sees a name that is not valid UTF-8.
 dockerfile_lock_source <- function(path, call = parent.frame()) {
   profile_error <- function(message) {
     cli::cli_abort(

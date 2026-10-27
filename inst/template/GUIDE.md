@@ -456,8 +456,8 @@ line of `renv/profile`. Then the recipe uses the profile's lockfile,
 `renv/profiles/<name>/renv.lock`, in place of `renv.lock`. The image then
 sets `RENV_PROFILE` to the name, so each render in it uses that profile.
 The name can hold only ASCII letters, digits, `.`, `_`, and `-`, and it
-cannot start with `.`. In the steps below, `renv.lock` means the lockfile
-that the recipe uses.
+cannot start with `.`. In this part, `renv.lock` means the lockfile that
+the recipe uses.
 
 1. Write the recipe. In R, in this folder, run:
 

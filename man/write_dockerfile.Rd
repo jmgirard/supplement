@@ -29,7 +29,7 @@ invisibly.
 \code{write_dockerfile()} reads the renv lockfile of a site set up with renv and
 writes a \code{Dockerfile} and a \code{.dockerignore} into the site folder. On this
 page, \code{renv.lock} is that lockfile: \code{renv.lock} in the site folder, or the
-lockfile of the renv profile that renv picks, as the section "renv
+lockfile of the renv profile that renv would pick, as the section "renv
 profiles" below says. The
 image that Docker builds from them holds the R version and the R
 packages that \code{renv.lock} records, and the Quarto version that you give.
@@ -67,8 +67,9 @@ line endings on every system.
 \section{renv profiles}{
 
 An renv profile is a named set of packages with a lockfile of its own.
-\code{write_dockerfile()} picks the lockfile by the rule of renv 1.3.1, which
-\code{check_supplement(renv_lock = TRUE)} also uses. If the \code{RENV_PROFILE}
+\code{write_dockerfile()} picks the profile by the rule of renv 1.3.1, which
+\code{check_supplement(renv_lock = TRUE)} also uses. It does not read
+\code{RENV_PATHS_LOCKFILE} or \code{RENV_PATHS_RENV}. If the \code{RENV_PROFILE}
 environment variable of the R session that runs \code{write_dockerfile()} is
 not empty, it names the profile. Otherwise the first line of
 \code{renv/profile} in the site folder names it, when that file exists. The

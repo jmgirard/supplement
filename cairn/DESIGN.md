@@ -128,9 +128,10 @@ of the lockfile with jsonlite, refuses a repeated key among the five it
 reads before any value check (M035), refuses R before 4.0.0 and renv before 1.3.1,
 and writes `.dockerignore` (`*`, `!` and the lockfile's path) and then a
 `Dockerfile` from `rocker/r-ver:<R>`, optionally pinned by digest. With a
-profile, the `Dockerfile` sets `RENV_PROFILE` in its `ENV` and copies the
-lockfile to the same path under `/opt/renv`, because renv keeps a
-profile's library under `<RENV_PATHS_LIBRARY>/profiles/<name>/renv`. The build installs Quarto
+profile, the `Dockerfile` sets `RENV_PROFILE` in its `ENV`, because renv
+keeps a profile's library under `<RENV_PATHS_LIBRARY>/profiles/<name>/renv`.
+It copies the lockfile to the same path under `/opt/renv`, where renv
+reads a profile's lockfile. The build installs Quarto
 with Rocker's script, a temporary renv that installs the Ubuntu packages
 `renv::sysreqs()` lists, and `renv::restore()` into
 `RENV_PATHS_LIBRARY=/opt/renv/library` with renv's cache off. It refuses a
