@@ -805,13 +805,8 @@ check_stale_script <- function(path) {
 # text value, names none. The search is for fixed text, so a long line
 # does not reach PCRE's match limit.
 stored_script_hashes <- function(file) {
-  json <- stored_json(file)
-  result <- if (!is.null(json)) json[["result"]]
-  if (!is.list(result) || is.null(names(result))) {
-    return(character())
-  }
-  markdown <- result[["markdown"]]
-  if (!is.character(markdown) || length(markdown) != 1 || is.na(markdown)) {
+  markdown <- stored_markdown(file)
+  if (is.null(markdown)) {
     return(character())
   }
   at <- gregexpr(script_hash_text, markdown, fixed = TRUE)[[1]]
@@ -873,6 +868,61 @@ lock_versions <- function(path) {
   versions <- vapply(packages, version_text, character(1))
   r <- version_text(json[["R"]])
   list(r = if (!is.na(r)) r, packages = versions[!is.na(versions) & nzchar(names(versions))])
+}
+
+# The R and package versions that print_environment() printed into stored
+# output text, as a list of `r`, a character vector of R versions, and
+# `packages`, a character vector of versions named by package. It reads the
+# package table after a `─ Packages` or `- Packages` rule of
+# sessioninfo::session_info() and its `version` setting line, and the
+# `R version` line and the two package lists of utils::sessionInfo(). A
+# line that holds an ANSI escape is not read. The patterns run on the first
+# 200 characters of a line, so a long line does not reach PCRE's match
+# limit.
+stored_versions <- function(markdown) {
+  lines <- strsplit(markdown, "\n", fixed = TRUE)[[1]]
+  lines[grepl("\033", lines, fixed = TRUE)] <- ""
+  head <- substr(lines, 1, 200)
+  first_word <- function(x) sub(" .*$", "", sub("^ +", "", x))
+
+  setting <- grepl("^ version +R version [^ ]", head)
+  first <- grepl("^R version [^ ]", head)
+  r <- c(first_word(sub("^ version +R version ", "", head[setting])),
+         first_word(sub("^R version ", "", head[first])))
+
+  packages <- character()
+  rules <- which(startsWith(head, "─ Packages") | startsWith(head, "- Packages"))
+  for (rule in rules[rules < length(head)]) {
+    header <- head[rule + 1]
+    if (!grepl("^ (! +)?package +\\* +version ", header)) next
+    name_at <- regexpr("package", header, fixed = TRUE)
+    version_at <- regexpr("version", header, fixed = TRUE)
+    i <- rule + 2
+    while (i <= length(head) && nzchar(head[i])) {
+      name <- first_word(substring(head[i], name_at))
+      version <- first_word(substring(head[i], version_at))
+      if (grepl("^[A-Za-z][A-Za-z0-9.]*$", name) && nzchar(version)) {
+        names(version) <- name
+        packages <- c(packages, version)
+      }
+      i <- i + 1
+    }
+  }
+
+  lists <- which(head == "other attached packages:" | head == "loaded via a namespace (and not attached):")
+  for (start in lists) {
+    i <- start + 1
+    while (i <= length(head) && grepl("^ *\\[[0-9]+\\] ", head[i])) {
+      words <- strsplit(lines[i], " ", fixed = TRUE)[[1]]
+      words <- words[grepl("^[A-Za-z][A-Za-z0-9.]*_[^_]+$", words)]
+      at <- regexpr("_", words, fixed = TRUE)
+      versions <- substring(words, at + 1)
+      names(versions) <- substring(words, 1, at - 1)
+      packages <- c(packages, versions)
+      i <- i + 1
+    }
+  }
+  list(r = r, packages = packages)
 }
 
 # A path between double quotes, with `\` before each `\` and `"` in it, so
@@ -977,6 +1027,21 @@ stored_hash <- function(file) {
     return(NULL)
   }
   hash
+}
+
+# The top-level `result.markdown` text of a stored output file, or NULL
+# when the file does not parse or has no such text value.
+stored_markdown <- function(file) {
+  json <- stored_json(file)
+  result <- if (!is.null(json)) json[["result"]]
+  if (!is.list(result) || is.null(names(result))) {
+    return(NULL)
+  }
+  markdown <- result[["markdown"]]
+  if (!is.character(markdown) || length(markdown) != 1 || is.na(markdown)) {
+    return(NULL)
+  }
+  markdown
 }
 
 # A stored output file parsed as JSON, or NULL when it does not parse or

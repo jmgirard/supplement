@@ -2177,6 +2177,75 @@ test_that("a renv.lock that cannot be read gets one renv-mismatch row", {
   }
 })
 
+# The R version that print_environment() prints for this session, or none
+# for a development build of R.
+session_r <- function() {
+  if (startsWith(R.version.string, "R version ")) strsplit(R.version.string, " ", fixed = TRUE)[[1]][3] else character()
+}
+
+# A sessioninfo package table with the `!` column, which sessioninfo adds
+# when a package has a problem. The `V` row was loaded at another version
+# than the one on disk.
+flagged_table <- c(
+  "─ Packages ──────",
+  " ! package * version date (UTC) lib source",
+  "   cli       3.6.6   2026-04-09 [1] CRAN (R 4.6.0)",
+  " V dplyr     1.1.3   2026-01-01 [1] CRAN (R 4.6.0) (on disk 1.1.4)",
+  "",
+  " [1] ~/R/library"
+)
+
+test_that("stored_versions() reads the sessioninfo table after either rule", {
+  skip_if_not_installed("sessioninfo")
+  info <- sessioninfo::session_info()
+  pkgs <- info$packages
+  expected <- ifelse(is.na(pkgs$loadedversion), pkgs$ondiskversion, pkgs$loadedversion)
+  names(expected) <- pkgs$package
+  for (rule in c("─ Packages", "- Packages")) {
+    withr::local_options(cli.unicode = rule != "- Packages", cli.num_colors = 1)
+    lines <- utils::capture.output(print(info))
+    expect_true(any(startsWith(lines, rule)), info = rule)
+    got <- stored_versions(paste(lines, collapse = "\n"))
+    expect_identical(got$packages, expected, info = rule)
+    expect_identical(got$r, session_r(), info = rule)
+  }
+})
+
+test_that("stored_versions() reads the version column of a table with the ! column", {
+  got <- stored_versions(paste(flagged_table, collapse = "\n"))
+  expect_identical(got$packages, c(cli = "3.6.6", dplyr = "1.1.3"))
+})
+
+test_that("stored_versions() reads utils::sessionInfo() with package lists that wrap", {
+  info <- utils::sessionInfo()
+  withr::local_options(width = 40)
+  lines <- utils::capture.output(print(info))
+  loaded <- which(lines == "loaded via a namespace (and not attached):")
+  stopifnot("the loaded list wraps" = length(loaded) == 1 && grepl("^ *\\[[0-9]+\\] ", lines[loaded + 2]))
+  got <- stored_versions(paste(lines, collapse = "\n"))
+  records <- c(info$otherPkgs, info$loadedOnly)
+  expected <- vapply(records, function(x) x$Version, character(1))
+  expect_setequal(paste(names(got$packages), got$packages), paste(names(expected), expected))
+  expect_identical(got$r, session_r())
+})
+
+test_that("stored_versions() does not read lines with a comment prefix or ANSI color codes", {
+  prefixed <- paste0("## ", c(flagged_table, "R version 4.6.1 (2026-06-24)", "other attached packages:",
+                              "[1] dplyr_1.1.3"))
+  expect_identical(stored_versions(paste(prefixed, collapse = "\n")), list(r = character(), packages = character()))
+  skip_if_not_installed("sessioninfo")
+  withr::local_options(cli.unicode = TRUE, cli.num_colors = 256)
+  lines <- utils::capture.output(print(sessioninfo::session_info()))
+  stopifnot("the table rule is colored" = any(grepl("\033", lines[grepl("Packages", lines)], fixed = TRUE)))
+  expect_identical(stored_versions(paste(lines, collapse = "\n"))$packages, character())
+})
+
+test_that("stored_versions() reads a table after a line of 5 MB with no warning", {
+  text <- paste(c(strrep("a", 5e6), flagged_table), collapse = "\n")
+  expect_no_warning(got <- stored_versions(text))
+  expect_identical(got$packages, c(cli = "3.6.6", dplyr = "1.1.3"))
+})
+
 test_that("by default check_supplement() does not read renv.lock", {
   site <- new_site()
   writeLines("{", lock_path(site))
