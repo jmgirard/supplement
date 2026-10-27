@@ -1145,7 +1145,14 @@ lock_source <- function(path) {
 # a record whose name is empty is left out of both.
 lock_versions <- function(path, file = "renv.lock") {
   file <- file.path(path, file)
-  if (!file.exists(file) && !is_link(file)) {
+  # On Windows, file.exists() stops with "file name conversion problem" on
+  # a profile name that is not valid UTF-8, so such a path counts as a file
+  # that cannot be read.
+  exists <- tryCatch(file.exists(file) || is_link(file), error = function(e) NA)
+  if (is.na(exists)) {
+    return(FALSE)
+  }
+  if (!exists) {
     return(NULL)
   }
   if (dir.exists(file)) {
