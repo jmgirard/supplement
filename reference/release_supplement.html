@@ -94,7 +94,8 @@ version, compared part by part as numbers, so <code>1.10.0</code> is greater tha
 </ul><p>The function stops, and changes no file, when <code><a href="check_supplement.html">check_supplement()</a></code>
 finds a problem or skips its git checks. It runs the check without
 <code>web_links</code> and <code>renv_lock</code>, so it requests no web address and does not
-compare <code>renv.lock</code> with the stored output. A <code>"doi-mismatch"</code> problem for
+compare <code>renv.lock</code> with the stored output: it gives neither the
+<code>"renv-mismatch"</code> nor the <code>"renv-missing"</code> row. A <code>"doi-mismatch"</code> problem for
 <code>CITATION.cff</code> does not stop it, because the release writes that file
 again. A change to <code>_supplement.yml</code>, <code>CITATION.cff</code>, or <code>.zenodo.json</code>
 during the check also stops it, as described below.</p>

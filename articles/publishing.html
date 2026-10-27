@@ -224,8 +224,9 @@ that is down. <code><a href="../reference/release_supplement.html">release_suppl
 so its rows do not stop a release. If the site uses renv,
 <code>supplement::check_supplement(renv_lock = TRUE)</code> also
 compares the R and package versions in the stored output of each report
-with <code>renv.lock</code>. A release does not run that check
-either.</p>
+with <code>renv.lock</code>, and gives a <code>"renv-missing"</code> row
+for each report that attached a package that <code>renv.lock</code> does
+not name. A release does not run these checks either.</p>
 <p>When <code><a href="../reference/check_supplement.html">supplement::check_supplement()</a></code> with its defaults
 finds no problem, commit and push in a terminal in the site folder:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>

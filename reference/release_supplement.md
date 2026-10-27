@@ -47,9 +47,10 @@ The function stops, and changes no file, when
 [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
 finds a problem or skips its git checks. It runs the check without
 `web_links` and `renv_lock`, so it requests no web address and does not
-compare `renv.lock` with the stored output. A `"doi-mismatch"` problem
-for `CITATION.cff` does not stop it, because the release writes that
-file again. A change to `_supplement.yml`, `CITATION.cff`, or
+compare `renv.lock` with the stored output: it gives neither the
+`"renv-mismatch"` nor the `"renv-missing"` row. A `"doi-mismatch"`
+problem for `CITATION.cff` does not stop it, because the release writes
+that file again. A change to `_supplement.yml`, `CITATION.cff`, or
 `.zenodo.json` during the check also stops it, as described below.
 
 Only the value on the `version:` line of `_supplement.yml` changes, so

@@ -27,8 +27,9 @@ check_supplement(path = ".", web_links = FALSE, renv_lock = FALSE)
 
   `TRUE` to also compare the R and package versions in the stored output
   of each report with the site's `renv.lock` and give the
-  `"renv-mismatch"` rows. The default, `FALSE`, does not read
-  `renv.lock`.
+  `"renv-mismatch"` rows, and to give the `"renv-missing"` rows for
+  attached packages that `renv.lock` does not name. The default,
+  `FALSE`, does not read `renv.lock`.
 
 ## Value
 
@@ -183,7 +184,9 @@ The checks, by the value in the `check` column:
   under `R`. Versions are compared as
   [`package_version()`](https://rdrr.io/r/base/numeric_version.html)
   values, so `1.0-5` equals `1.0.5`. A package that `renv.lock` does not
-  record, such as a base package, is not compared. Nor is a version that
+  record, such as a base package, is not compared; the `"renv-missing"`
+  check gives a row for such a package that a report attached. Nor is a
+  version that
   [`package_version()`](https://rdrr.io/r/base/numeric_version.html)
   cannot read on either side, such as `devel`, or the R version when
   `renv.lock` records none. A development build of R prints
@@ -212,11 +215,53 @@ The checks, by the value in the `check` column:
   jsonlite keeps both and renv may read the other. A UTF-8 byte order
   mark at the start of the file is skipped. A package record is named by
   its `Package` text, or by its key when it has none, and a record with
-  no `Version` text is left out. A site with no `renv.lock` gets no row,
-  and the function says that it skipped the check. Only `renv.lock` in
-  the site folder is read, not the lockfile of an renv profile.
+  no `Version` text is left out of the comparison. A site with no
+  `renv.lock` gets no row, and the function says that it skipped this
+  check and the `"renv-missing"` check. Only `renv.lock` in the site
+  folder is read, not the lockfile of an renv profile.
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
   does not run this check, so its rows never stop a release.
+
+- `"renv-missing"`: only with `renv_lock = TRUE`, a report from the same
+  list whose stored output shows that it attached a package that the
+  site's `renv.lock` does not name under `Packages`, so
+  [`renv::restore()`](https://rstudio.github.io/renv/reference/restore.html)
+  does not install it from `renv.lock`. The check reads the same `.json`
+  files, in the same forms, as the `"renv-mismatch"` check. A package
+  counts as attached when a line of the sessioninfo package table has
+  `*` under the `*` of the table's header line, or when it is an entry
+  after `other attached packages:` in
+  [`utils::sessionInfo()`](https://rdrr.io/r/utils/sessionInfo.html)
+  output. A package that is loaded and not attached, such as knitr
+  during a render or a package after
+  `loaded via a namespace (and not attached):`, gives no row, since the
+  render tools and not the report's code can load it. renv's default
+  (implicit) snapshot records the packages that
+  [`renv::dependencies()`](https://rstudio.github.io/renv/reference/dependencies.html)
+  finds in the project, with their dependencies. A package that the
+  user's R profile attaches during a render, or that renv's settings
+  leave out of `renv.lock`, also gives a row, which
+  [`renv::snapshot()`](https://rstudio.github.io/renv/reference/snapshot.html)
+  and a new render do not clear. `renv.lock` names a package when it
+  holds a record under `Packages` with that name, whatever its
+  `Version`. A record is named as for the `"renv-mismatch"` check, and a
+  record whose name is empty names no package. The report gets one row.
+  It names the files that show such a package attached, in the same way
+  as the `"renv-mismatch"` row, and each such package once, in byte
+  order of name. It says to run
+  [`renv::snapshot()`](https://rstudio.github.io/renv/reference/snapshot.html)
+  and commit `renv.lock`, or, if the report no longer uses the packages,
+  to take the render steps. When another of these files holds a package
+  table or list and attaches none of them, the row also says that these
+  files can be from a format that the report no longer renders, with the
+  delete steps of the `"renv-mismatch"` row. A report that cannot be
+  read gives no row. When `renv.lock` is missing, this check gives no
+  row, and the function says that it skipped it. When `renv.lock` cannot
+  be read, this check gives no row, and the one `"renv-mismatch"` row
+  for `renv.lock` reports the problem. The `"renv-missing"` rows come
+  after the `"renv-mismatch"` rows.
+  [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
+  does not run this check.
 
 - `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
   name does not start with `.`, that no file or folder in `analyses/`
@@ -473,17 +518,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/Rtmpyb5NhX/check-example.
+#> ✔ Made a supplement site in /tmp/Rtmp7gDtvh/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/Rtmpyb5NhX/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/Rtmp7gDtvh/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/Rtmpyb5NhX/check-example:
+#> ✖ 11 problems found in /tmp/Rtmp7gDtvh/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report

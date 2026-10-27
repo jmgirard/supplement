@@ -7,10 +7,14 @@
   the R and package versions that `print_environment()` prints into each
   report’s stored output with the site’s `renv.lock`. A report with a
   version that differs gets a `"renv-mismatch"` row, which names the
-  versions and says how to make them match. The default is `FALSE`,
-  which does not read `renv.lock`, and
+  versions and says how to make them match. A report that attached a
+  package that `renv.lock` does not name, so that
+  [`renv::restore()`](https://rstudio.github.io/renv/reference/restore.html)
+  does not install it from `renv.lock`, gets a `"renv-missing"` row. A
+  package that a report loaded and did not attach gives no row. The
+  default is `FALSE`, which does not read `renv.lock`, and
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
-  does not run this check.
+  does not run these checks.
 - [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   has a new argument, `web_links`. With `web_links = TRUE`, it requests
   each `http` and `https` address on the pages in `docs/`. An address
