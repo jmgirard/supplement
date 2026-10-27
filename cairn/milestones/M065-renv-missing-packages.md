@@ -32,9 +32,9 @@
 
 ## Acceptance criteria
 
-- [ ] AC1: With `renv_lock = TRUE`, `check_supplement()` gives one `"renv-missing"` row for each report that can be read, in the list of reports that the `"renv-mismatch"` check reads, whose stored output attached a package that the site's `renv.lock` does not name under `Packages`. The stored output is the `result.markdown` text of the `.json` files that the `"renv-mismatch"` check reads, in the forms that check reads. A package counts as attached when any of these files shows it attached, in one of two ways. In the sessioninfo package table, its line has `*` at the position of the `*` in the header line. In `utils::sessionInfo()` output, it is an entry after `other attached packages:`. A record of `renv.lock` names the package of its `Package` text, or of its key when it has no `Package` text, and a record whose name is empty names no package. Tests in `tests/testthat/test-check-supplement.R` give such a row from the sessioninfo table with and without its `!` column, and from an `other attached packages:` list that spans two `[n]` lines, and compare the row's `check`, `file`, and `problem` with exact expected values.
-- [ ] AC2: The `problem` text of a `"renv-missing"` row names the `.json` files that show such a package attached, in the same way as the `"renv-mismatch"` row names files. It names each such package once, in byte order of name. It says that `renv::restore()` does not install them, and gives two ways to clear the row: run `renv::snapshot()` and commit `renv.lock`, or, if the report no longer uses the package, take the render steps of the `"stale-output"` row. When another `.json` file of the report holds a package table or list and attaches none of the row's packages, the row also gives the old-format hint and delete steps of the `"renv-mismatch"` row. Tests assert the exact text for a report with two such packages in two `.json` files, one of the packages attached in both, and for the old-format case.
-- [ ] AC3: Each of these cases gives no `"renv-missing"` row, in a test in `tests/testthat/test-check-supplement.R`:
+- [x] AC1: With `renv_lock = TRUE`, `check_supplement()` gives one `"renv-missing"` row for each report that can be read, in the list of reports that the `"renv-mismatch"` check reads, whose stored output attached a package that the site's `renv.lock` does not name under `Packages`. The stored output is the `result.markdown` text of the `.json` files that the `"renv-mismatch"` check reads, in the forms that check reads. A package counts as attached when any of these files shows it attached, in one of two ways. In the sessioninfo package table, its line has `*` at the position of the `*` in the header line. In `utils::sessionInfo()` output, it is an entry after `other attached packages:`. A record of `renv.lock` names the package of its `Package` text, or of its key when it has no `Package` text, and a record whose name is empty names no package. Tests in `tests/testthat/test-check-supplement.R` give such a row from the sessioninfo table with and without its `!` column, and from an `other attached packages:` list that spans two `[n]` lines, and compare the row's `check`, `file`, and `problem` with exact expected values.
+- [x] AC2: The `problem` text of a `"renv-missing"` row names the `.json` files that show such a package attached, in the same way as the `"renv-mismatch"` row names files. It names each such package once, in byte order of name. It says that `renv::restore()` does not install them, and gives two ways to clear the row: run `renv::snapshot()` and commit `renv.lock`, or, if the report no longer uses the package, take the render steps of the `"stale-output"` row. When another `.json` file of the report holds a package table or list and attaches none of the row's packages, the row also gives the old-format hint and delete steps of the `"renv-mismatch"` row. Tests assert the exact text for a report with two such packages in two `.json` files, one of the packages attached in both, and for the old-format case.
+- [x] AC3: Each of these cases gives no `"renv-missing"` row, in a test in `tests/testthat/test-check-supplement.R`:
   - a package that is loaded and not attached: a sessioninfo table line with no `*`, or an entry after `loaded via a namespace (and not attached):`
   - a package that `renv.lock` names under `Packages` by its `Package` text, at another version or with no `Version` text, or by its key alone
   - `renv_lock = FALSE`
@@ -43,9 +43,9 @@
   - a report that cannot be read, such as a link to a missing file
 
   The `"renv-mismatch"` rows do not change: the `"renv-mismatch"` tests that exist at the plan commit pass with no edit to their expected values. A report that gets both rows lists its `"renv-mismatch"` row first, and the `"renv-missing"` rows follow all `"renv-mismatch"` rows, in the order of the report list.
-- [ ] AC4: A Quarto render of the template's example report by name, run with `R_PROFILE_USER` set to an empty file, gives no `"renv-missing"` row against a `renv.lock` whose `Packages` names no package. A render of a report that runs `library(jsonlite)`, run the same way, gives a `"renv-missing"` row that names `jsonlite` against that `renv.lock`. Tests in `tests/testthat/test-add-render.R` show both and skip without Quarto.
-- [ ] AC5: `release_supplement()` does not run the check. In a test in `tests/testthat/test-release-supplement.R`, `check_supplement(renv_lock = TRUE)` first gives a `"renv-missing"` row for the site. Then `release_supplement()` releases the same site.
-- [ ] AC6: Each file that `grep -rl 'renv_lock' R man README.md NEWS.md vignettes inst/template cairn/DESIGN.md` lists, other than `R/release-supplement.R` and `man/release_supplement.Rd`, says that a package that a report attached and that `renv.lock` does not name gives a `"renv-missing"` row. The help of `release_supplement()` says that it gives neither the `"renv-mismatch"` nor the `"renv-missing"` row. The `check_supplement()` help says that a package that is loaded and not attached gives no row. NEWS.md has no second bullet for it: the unreleased `renv_lock` bullet names it.
+- [x] AC4: A Quarto render of the template's example report by name, run with `R_PROFILE_USER` set to an empty file, gives no `"renv-missing"` row against a `renv.lock` whose `Packages` names no package. A render of a report that runs `library(jsonlite)`, run the same way, gives a `"renv-missing"` row that names `jsonlite` against that `renv.lock`. Tests in `tests/testthat/test-add-render.R` show both and skip without Quarto.
+- [x] AC5: `release_supplement()` does not run the check. In a test in `tests/testthat/test-release-supplement.R`, `check_supplement(renv_lock = TRUE)` first gives a `"renv-missing"` row for the site. Then `release_supplement()` releases the same site.
+- [x] AC6: Each file that `grep -rl 'renv_lock' R man README.md NEWS.md vignettes inst/template cairn/DESIGN.md` lists, other than `R/release-supplement.R` and `man/release_supplement.Rd`, says that a package that a report attached and that `renv.lock` does not name gives a `"renv-missing"` row. The help of `release_supplement()` says that it gives neither the `"renv-mismatch"` nor the `"renv-missing"` row. The `check_supplement()` help says that a package that is loaded and not attached gives no row. NEWS.md has no second bullet for it: the unreleased `renv_lock` bullet names it.
 
 ## Coverage
 
@@ -88,3 +88,42 @@
 ## Decisions
 
 ## Review
+
+Evidence (2026-10-27, branch head before review fixes 2fd76ed; `devtools::test()` 456 tests, 0 failed, 10 skipped):
+
+- AC1: "attached packages that renv.lock does not name give a renv-missing row" passed 6 expectations: `flagged` (table with `!` column), `plain` (without it), and `wrapped` (`other attached packages:` over `[1]` and `[3]` lines) each give a row whose `file` and `problem` equal exact expected values, filtered by `check == "renv-missing"`. The parser tests from real sessioninfo and `sessionInfo()` output passed 3 and 4.
+- AC2: the same test asserts the exact text for `two` (dplyr attached in `docx.json` and `html.json`, ggplot2 in one; files and packages each named once, byte order) and for `old-format` (the format hint and delete steps).
+- AC3: "loaded packages and packages that renv.lock names give no renv-missing row" passed 10 (table without `*`, namespace list, other version, no `Version`, key alone; each with a planted copy that gives the row); "a renv.lock record with an empty name names no package" passed 1; "no renv-missing row without a readable renv.lock or report, or by default" passed 6 (skip message names both checks, unreadable lock gives only its renv-mismatch row with unchanged text, `renv_lock = FALSE`, dangling report); "renv-missing rows follow the renv-mismatch rows" passed 1. `git diff main...HEAD -- tests` removes no line, and the 11 existing renv-mismatch tests passed.
+- AC4: "a rendered example report gives no renv-missing row against a renv.lock with no package" passed 2 and "a rendered report that attaches jsonlite gives a renv-missing row that names it" passed 3, both rendered by Quarto under `devtools::test()`.
+- AC5: "the release goes ahead with a package that renv.lock does not record" passed 2.
+- AC6: the grep lists 9 files (both R files, both .Rd files, README.md, NEWS.md, the vignette, GUIDE.md, DESIGN.md) and `grep -c renv-missing` is at least 1 in each; `man/check_supplement.Rd` says a package loaded and not attached gives no row; `man/release_supplement.Rd` names both rows; NEWS.md holds `renv-missing` once, in the `renv_lock` bullet.
+
+Consistency gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; no README.Rmd; `pkgdown::check_pkgdown()` no problems; NEWS.md entry present; no new top-level file; no snapshot file in the diff; principles unchanged, so no impact report.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- ripple #1: sessioninfo marks base packages attached, so they would give rows — reject (false: `sessioninfo::session_info()` with `tools` attached listed no base package).
+- ripple #2: help says a package renv.lock does not record "is not compared" with no pointer to the new row — fix now, fixed af33585.
+- ripple #3: help says a record with no `Version` "is left out" — fix now ("left out of the comparison"), fixed af33585.
+- ripple #4: help says the function skipped "the check" — fix now (names both), fixed af33585.
+- ripple #5: GUIDE.md "The same command" has an unclear antecedent — fix now, fixed af33585.
+- ripple #6: the ROADMAP candidate row still describes the gap — reject (planned change: post-merge hygiene graduates it).
+- diff-bug #1: a package that an R profile attaches, or that renv settings leave out, gives a row that snapshot and render do not clear, and no doc says so — fix now (help and GUIDE.md state it), fixed af33585.
+- diff-bug #2: DESIGN.md says renv's snapshot leaves loaded-only packages out — fix now, fixed af33585.
+- diff-bug #3: a record with non-text `Package` names its key, and `"Package": ""` names nothing — reject (planned change: AC1's naming rule).
+- diff-bug #4: the format hint fires for a file whose only list is the namespace list — reject (planned change: AC2's condition, and the text is true).
+- diff-bug #5: the `!` column `*` read is tested from text only — reject (planned change: AC1 names text fixtures; sessioninfo prints `!` only when a package has a problem).
+- diff-bug #6: the `flagged_table` parser expectation repeats the row test's `table` case — fix now, fixed ebb9280.
+- diff-bug #7: the hand-made wrapped list in the parser test repeats the `wrapped` row case — fix now, fixed ebb9280.
+- diff-bug #8: `flagged` and `plain` run the same code — reject (planned change: AC1 requires both).
+- diff-bug #9: the jsonlite render test matches a substring — reject (planned change: AC4 asks no exact text; other tests pin it).
+- diff-bug #10: `expect_false(stored_versions("x")$listed)` guards a default — reject (false: it tests the new `listed` field, as the reviewer also says).
+- blame-history #1: base packages marked attached by sessioninfo — reject (false: same probe as ripple #1).
+- blame-history #2: DESIGN.md and help give different reasons for the no-row rule — fix now, fixed af33585.
+- blame-history #3: the M064 skip message gained a sentence — reject (planned change: AC3).
+- blame-history #4: a report can now get two rows — reject (planned change: AC3 order rule).
+- blame-history #5: the renv-missing hint condition differs from the renv-mismatch one — reject (planned change: AC2).
+- blame-history #6: no D-entry for the second comparison — reject (planned change: it runs under D-032's opt-in argument and stops no release, as D-032 states for the comparison).
+- prior-review #1: the dangling-report case uses bare `file.symlink()` — fix now (`symlink_or_skip()`), fixed ebb9280.
+- prior-review #2: the renv claims in the new text have no test — reject (false: the claim audit read them against `?renv::snapshot` and narrowed them; restore now says "from renv.lock").
+- prior-review #3: the new release test hashes the report with raw `tools::md5sum()` — reject (style: the template is LF, and it mirrors the renv-mismatch release test beside it).
