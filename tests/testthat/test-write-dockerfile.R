@@ -1,4 +1,7 @@
-# write_dockerfile() writes a Dockerfile and a .dockerignore from renv.lock.
+# write_dockerfile() writes a Dockerfile and a .dockerignore from renv.lock or the lockfile of an renv profile.
+
+# A RENV_PROFILE of the session that runs the tests picks another lockfile.
+withr::local_envvar(RENV_PROFILE = NA)
 
 # The text of a renv.lock with `r` as the value of `R` and `renv` as the
 # renv entry under `Packages`, each given as JSON text.
@@ -17,11 +20,19 @@ lock_site <- function(text = lock_json(), env = parent.frame()) {
 
 read_bytes <- function(path) readBin(path, "raw", file.size(path))
 
-# Expect write_dockerfile(...) to stop with `class` and to leave `dir`
-# as it was. Returns the error.
+# Expect write_dockerfile(...) to stop with `class`, to print no message,
+# and to leave `dir` as it was. Returns the error.
 expect_refused <- function(dir, class, ..., info = NULL) {
   before <- folder_md5(dir)
-  err <- expect_error(write_dockerfile(...), class = class, info = info)
+  messages <- character()
+  err <- withCallingHandlers(
+    expect_error(write_dockerfile(...), class = class, info = info),
+    message = function(m) {
+      messages <<- c(messages, conditionMessage(m))
+      invokeRestart("muffleMessage")
+    }
+  )
+  expect_identical(messages, character(), info = info)
   expect_identical(folder_md5(dir), before, info = info)
   invisible(err)
 }
@@ -257,12 +268,11 @@ test_that("a folder at either path is refused, with overwrite TRUE and FALSE", {
   }
 })
 
-test_that("the image renders a report offline as the user, with the lockfile's R", {
-  skip_if_not(identical(Sys.getenv("SUPPLEMENT_TEST_DOCKER"), "true"), "SUPPLEMENT_TEST_DOCKER is not true")
-  skip_on_os("windows")
-  skip_if(Sys.which("docker") == "", "docker is not on PATH")
-  site <- long_dir(renv_site())
-  r_version <- jsonlite::read_json(file.path(site, "renv.lock"))[["R"]][["Version"]]
+# Build an image from the renv site `site`, whose lockfile is at `lockfile`,
+# render the example report in it offline as the user, and check the
+# Computing environment section of the page. Returns the section's text.
+expect_docker_render <- function(site, lockfile = "renv.lock") {
+  r_version <- jsonlite::read_json(file.path(site, lockfile))[["R"]][["Version"]]
   manifest <- run_in(site, "docker", c("manifest", "inspect", paste0("rocker/r-ver:", r_version)))
   skip_if(manifest$status != 0L, paste0("no rocker/r-ver:", r_version, " image"))
 
@@ -282,11 +292,34 @@ test_that("the image renders a report offline as the user, with the lockfile's R
   page <- paste(readLines(file.path(site, "docs", "analyses", "example.html"), warn = FALSE), collapse = "\n")
   section <- html_text(section_html(page, "computing-environment"))
   expect_match(section, paste0("R version ", r_version, " "), fixed = TRUE)
-  # The library in the image, so the section is from the render in Docker.
-  expect_match(section, "/opt/renv/library/", fixed = TRUE)
 
   unlink(site, recursive = TRUE, expand = FALSE)
   expect_false(dir.exists(site))
+  section
+}
+
+skip_if_no_docker <- function() {
+  skip_if_not(identical(Sys.getenv("SUPPLEMENT_TEST_DOCKER"), "true"), "SUPPLEMENT_TEST_DOCKER is not true")
+  skip_on_os("windows")
+  skip_if(Sys.which("docker") == "", "docker is not on PATH")
+}
+
+test_that("the image renders a report offline as the user, with the lockfile's R", {
+  skip_if_no_docker()
+  section <- expect_docker_render(long_dir(renv_site()))
+  # The library in the image, so the section is from the render in Docker.
+  expect_match(section, "/opt/renv/library/", fixed = TRUE)
+})
+
+test_that("the image of a renv profile restores and renders with the profile's lockfile", {
+  skip_if_no_docker()
+  site <- long_dir(renv_site())
+  lockfile <- "renv/profiles/docker/renv.lock"
+  dir.create(file.path(site, dirname(lockfile)), recursive = TRUE)
+  expect_true(file.rename(file.path(site, "renv.lock"), file.path(site, lockfile)))
+  writeLines("docker", file.path(site, "renv", "profile"))
+  section <- expect_docker_render(site, lockfile)
+  expect_match(section, "/opt/renv/library/profiles/docker/", fixed = TRUE)
 })
 
 test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
@@ -316,4 +349,236 @@ test_that("a link at either path is refused, with overwrite TRUE and FALSE", {
   err <- expect_refused(site, "supplement_error_file_exists", site, quarto = "1.10.19")
   expect_link_message(err, "write_dockerfile")
   expect_match(conditionMessage(err), ".dockerignore", fixed = TRUE)
+})
+
+# renv profiles ---------------------------------------------------------------
+
+# Write `name`, given as text or raw bytes, as the first line of
+# renv/profile in `site`.
+write_profile_name <- function(site, name) {
+  bytes <- if (is.raw(name)) name else charToRaw(name)
+  dir.create(file.path(site, "renv"), showWarnings = FALSE)
+  writeBin(c(bytes, as.raw(0x0a)), file.path(site, "renv", "profile"))
+}
+
+# Write `text` as the lockfile of the renv profile `name` in `site`.
+write_profile_lock <- function(site, name, text = lock_json(r = '{"Version": "4.5.2"}')) {
+  dir.create(file.path(site, "renv", "profiles", name), recursive = TRUE, showWarnings = FALSE)
+  writeBin(charToRaw(text), file.path(site, "renv", "profiles", name, "renv.lock"))
+}
+
+# TRUE when the file system of the folder `dir` ignores letter case.
+ignores_case <- function(dir) {
+  probe <- file.path(dir, "case-probe")
+  file.create(probe)
+  on.exit(unlink(probe))
+  file.exists(file.path(dir, "CASE-PROBE"))
+}
+
+# TRUE when RENV_PROFILE can hold `text` on this system.
+can_set_profile <- function(text) {
+  isTRUE(tryCatch(withr::with_envvar(c(RENV_PROFILE = text), Sys.getenv("RENV_PROFILE") == text),
+                  error = function(e) FALSE, warning = function(w) FALSE))
+}
+
+# The messages that write_dockerfile(...) prints, without ANSI codes or
+# Unicode.
+dockerfile_messages <- function(...) {
+  withr::local_options(cli.unicode = FALSE, cli.num_colors = 1, cli.hyperlink = FALSE)
+  messages <- character()
+  withCallingHandlers(write_dockerfile(...), message = function(m) {
+    messages <<- c(messages, conditionMessage(m))
+    invokeRestart("muffleMessage")
+  })
+  messages
+}
+
+dockerfile_dev <- paste0(paste(c(
+  "# Written by supplement::write_dockerfile() from renv/profiles/dev/renv.lock. See",
+  "# ?supplement::write_dockerfile for how to build the image and render in it.",
+  "FROM rocker/r-ver:4.5.2",
+  "",
+  "# renv installs the packages into a library under /opt/renv/library, with",
+  "# its package cache off, and the site's renv/activate.R finds them there.",
+  "# RENV_PROFILE makes renv use the profile dev in the build and in",
+  "# each render, whatever the site's renv/profile names.",
+  "ENV RENV_PATHS_LIBRARY=/opt/renv/library \\",
+  "    RENV_CONFIG_CACHE_ENABLED=FALSE \\",
+  "    RENV_PROFILE=dev",
+  "",
+  "RUN /rocker_scripts/install_quarto.sh 1.10.19",
+  "",
+  "# A temporary copy of renv 1.3.1 installs the system packages that the R",
+  "# packages need, then restores renv/profiles/dev/renv.lock, renv itself included.",
+  "WORKDIR /opt/renv",
+  "COPY renv/profiles/dev/renv.lock renv/profiles/dev/renv.lock",
+  "RUN apt-get update \\",
+  "    && export DEBIAN_FRONTEND=noninteractive R_LIBS=/tmp/renv/library RENV_PATHS_ROOT=/tmp/renv/root \\",
+  "    && mkdir -p \"$R_LIBS\" \\",
+  "    && Rscript -e 'install.packages(\"https://p3m.dev/cran/latest/src/contrib/Archive/renv/renv_1.3.1.tar.gz\", repos = NULL, type = \"source\"); library(renv)' \\",
+  "    && Rscript -e 'writeLines(as.character(unique(unlist(lapply(renv::sysreqs(report = FALSE, check = FALSE), `[[`, \"packages\")))), \"/tmp/renv/sysreqs.txt\")' \\",
+  "    && xargs -r apt-get install -y --no-install-recommends < /tmp/renv/sysreqs.txt \\",
+  "    && Rscript -e 'renv::restore(library = renv::paths$library(), prompt = FALSE)' \\",
+  "    && rm -rf /tmp/renv /var/lib/apt/lists/*",
+  "",
+  "WORKDIR /site"
+), collapse = "\n"), "\n")
+
+test_that("with no renv profile, renv.lock is read and no message is printed", {
+  # Each case: the RENV_PROFILE value (NA to unset it) and the bytes of
+  # renv/profile (NULL for no file). Each site also has a profile lockfile
+  # for dev, which none of them picks.
+  cases <- list(
+    "no profile" = list(NA, NULL),
+    "RENV_PROFILE default" = list("default", charToRaw("dev\n")),
+    "default in renv/profile" = list(NA, charToRaw("default\n")),
+    "empty renv/profile" = list(NA, raw()),
+    "empty first line" = list(NA, charToRaw("\ndev\n"))
+  )
+  for (case in names(cases)) {
+    site <- lock_site()
+    write_profile_lock(site, "dev")
+    if (!is.null(cases[[case]][[2]])) writeBin(cases[[case]][[2]], file.path(site, "renv", "profile"))
+    messages <- withr::with_envvar(c(RENV_PROFILE = cases[[case]][[1]]),
+                                   dockerfile_messages(site, quarto = "1.10.19"))
+    expect_identical(messages, character(), info = case)
+    expect_identical(read_bytes(file.path(site, "Dockerfile")), charToRaw(dockerfile_461), info = case)
+    expect_identical(read_bytes(file.path(site, ".dockerignore")), charToRaw("*\n!renv.lock\n"), info = case)
+  }
+})
+
+test_that("with a renv profile, its lockfile is read, copied, and named in a message", {
+  for (from in c("RENV_PROFILE", "renv/profile")) {
+    site <- lock_site()
+    write_profile_lock(site, "dev")
+    if (from == "RENV_PROFILE") {
+      withr::local_envvar(RENV_PROFILE = "dev")
+      source <- "`RENV_PROFILE`"
+    } else {
+      withr::local_envvar(RENV_PROFILE = NA)
+      write_profile_name(site, "dev")
+      source <- "'renv/profile'"
+    }
+    messages <- dockerfile_messages(site, quarto = "1.10.19")
+    expect_identical(messages, paste0(
+      "i Picked 'renv/profiles/dev/renv.lock', the lockfile of the renv profile \"dev\", which ",
+      source, " names.\n"
+    ), info = from)
+    # renv.lock records R 4.6.1 and the profile lockfile R 4.5.2.
+    expect_identical(read_bytes(file.path(site, "Dockerfile")), charToRaw(dockerfile_dev), info = from)
+    expect_identical(read_bytes(file.path(site, ".dockerignore")),
+                     charToRaw("*\n!renv/profiles/dev/renv.lock\n"), info = from)
+  }
+})
+
+test_that("the lockfile checks apply to the lockfile of the renv profile", {
+  site <- lock_site()
+  write_profile_name(site, "dev")
+  write_profile_lock(site, "dev", lock_json(r = '{"Version": "3.6.3"}'))
+  err <- expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
+  expect_match(conditionMessage(err), "renv/profiles/dev/renv.lock", fixed = TRUE)
+  expect_match(conditionMessage(err), "records R 3.6.3", fixed = TRUE)
+  writeBin(charToRaw("[]"), file.path(site, "renv", "profiles", "dev", "renv.lock"))
+  err <- expect_refused(site, "supplement_error_lockfile", site, quarto = "1.10.19")
+  expect_match(conditionMessage(err), 'with the renv profile "dev" active', fixed = TRUE)
+})
+
+test_that("a renv profile name that a Dockerfile cannot hold is refused", {
+  names <- list(
+    ".dev", "..", "a/b", "a\\b", "a b", "a\tb", "dev ", "a\"b", "a$b", "a*b", "\u00e9",
+    as.raw(c(0x63, 0x61, 0x66, 0xe9))
+  )
+  unstored <- character()
+  for (name in names) {
+    info <- paste(format(name), collapse = " ")
+    site <- lock_site()
+    write_profile_name(site, name)
+    expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19", info = info)
+    unlink(file.path(site, "renv"), recursive = TRUE)
+    text <- if (is.raw(name)) rawToChar(name) else name
+    if (can_set_profile(text)) {
+      withr::with_envvar(c(RENV_PROFILE = text), {
+        expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19", info = info)
+      })
+    } else {
+      unstored <- c(unstored, info)
+    }
+  }
+  # renv/profile ends a name at a line break, and in a UTF-8 locale
+  # readLines() drops a byte order mark from it, as for renv, so
+  # RENV_PROFILE alone can hold either.
+  site <- lock_site()
+  write_profile_lock(site, "dev")
+  for (name in c("dev\n", "dev\r", "a\nb", "\ufeffdev")) {
+    withr::with_envvar(c(RENV_PROFILE = name), {
+      err <- expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19", info = name)
+    })
+    expect_match(conditionMessage(err), "RENV_PROFILE", fixed = TRUE, info = name)
+  }
+  skip_if(length(unstored) > 0,
+          paste("RENV_PROFILE cannot hold these names here:", paste(unstored, collapse = ", ")))
+})
+
+test_that("a renv profile name of each allowed character passes", {
+  for (name in c("Dev-2.a_b", "-a", "_x")) {
+    site <- lock_site()
+    write_profile_lock(site, name)
+    write_profile_name(site, name)
+    dockerfile_messages(site, quarto = "1.10.19")
+    expect_identical(read_bytes(file.path(site, ".dockerignore")),
+                     charToRaw(paste0("*\n!renv/profiles/", name, "/renv.lock\n")), info = name)
+  }
+})
+
+test_that("a renv/profile that is a folder or cannot be opened is refused", {
+  site <- lock_site()
+  write_profile_lock(site, "dev")
+  dir.create(file.path(site, "renv", "profile"))
+  expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19")
+
+  unlink(file.path(site, "renv", "profile"), recursive = TRUE)
+  skip_on_os("windows")
+  write_profile_name(site, "dev")
+  Sys.chmod(file.path(site, "renv", "profile"), "000")
+  withr::defer(Sys.chmod(file.path(site, "renv", "profile"), "644"))
+  skip_if(file.access(file.path(site, "renv", "profile"), 4) == 0, "the file can still be read, for example as root")
+  expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19")
+})
+
+test_that("a missing lockfile of the renv profile is refused, also under another letter case", {
+  shapes <- list(
+    "no profile folder" = function(site) NULL,
+    "another letter case" = function(site) write_profile_lock(site, "Dev"),
+    "a lockfile name in another letter case" = function(site) {
+      write_profile_lock(site, "dev")
+      file.rename(file.path(site, "renv", "profiles", "dev", "renv.lock"),
+                  file.path(site, "renv", "profiles", "dev", "RENV.LOCK"))
+    },
+    "a profiles folder in another letter case" = function(site) {
+      write_profile_lock(site, "dev")
+      file.rename(file.path(site, "renv", "profiles"), file.path(site, "renv", "Profiles"))
+    },
+    "no lockfile in the folder" = function(site) dir.create(file.path(site, "renv", "profiles", "dev"), recursive = TRUE),
+    "a folder at the lockfile" = function(site) {
+      dir.create(file.path(site, "renv", "profiles", "dev", "renv.lock"), recursive = TRUE)
+    },
+    "a link to a missing file" = function(site) {
+      dir.create(file.path(site, "renv", "profiles", "dev"), recursive = TRUE)
+      symlink_or_skip(file.path(site, "missing.lock"), file.path(site, "renv", "profiles", "dev", "renv.lock"))
+    }
+  )
+  for (shape in names(shapes)) {
+    site <- lock_site()
+    write_profile_name(site, "dev")
+    shapes[[shape]](site)
+    err <- expect_refused(site, "supplement_error_no_file", site, quarto = "1.10.19", info = shape)
+    expect_match(conditionMessage(err), "No 'renv/profiles/dev/renv.lock' in", fixed = TRUE, info = shape)
+    # Where the file system ignores letter case, the path of a case shape is
+    # found under another case, and the hint says so.
+    if (grepl("letter case", shape, fixed = TRUE) && ignores_case(site)) {
+      expect_match(conditionMessage(err), "has another letter case", fixed = TRUE, info = shape)
+    } else {
+      expect_match(conditionMessage(err), "renv::snapshot()", fixed = TRUE, info = shape)
+    }
+  }
 })

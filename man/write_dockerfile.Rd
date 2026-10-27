@@ -2,12 +2,12 @@
 % Please edit documentation in R/write-dockerfile.R
 \name{write_dockerfile}
 \alias{write_dockerfile}
-\title{Write a Dockerfile from renv.lock}
+\title{Write a Dockerfile from the renv lockfile}
 \usage{
 write_dockerfile(path = ".", quarto, digest = NULL, overwrite = FALSE)
 }
 \arguments{
-\item{path}{The site folder that holds \code{renv.lock}.}
+\item{path}{The site folder.}
 
 \item{quarto}{The Quarto version to install, as three whole numbers
 joined by \code{.}, such as \code{"1.10.19"}. \code{quarto --version} in a terminal
@@ -26,8 +26,11 @@ The paths of the written \code{Dockerfile} and \code{.dockerignore},
 invisibly.
 }
 \description{
-\code{write_dockerfile()} reads \code{renv.lock} in a site set up with renv and
-writes a \code{Dockerfile} and a \code{.dockerignore} into the same folder. The
+\code{write_dockerfile()} reads the renv lockfile of a site set up with renv and
+writes a \code{Dockerfile} and a \code{.dockerignore} into the site folder. On this
+page, \code{renv.lock} is that lockfile: \code{renv.lock} in the site folder, or the
+lockfile of the renv profile that renv would pick, as the section "renv
+profiles" below says. The
 image that Docker builds from them holds the R version and the R
 packages that \code{renv.lock} records, and the Quarto version that you give.
 You can then render a report in the image with the site folder mounted,
@@ -55,11 +58,38 @@ holds the packages and not links into a cache. When the site folder is
 mounted at \verb{/site}, the site's \code{renv/activate.R} loads renv from that
 library, with no download.
 
-The \code{.dockerignore} holds the two lines \code{*} and \code{!renv.lock}, so of the
-site's files only \code{renv.lock} can be copied into the image. The image
+The \code{.dockerignore} holds two lines: \code{*}, and \code{!} with the path of
+\code{renv.lock} from the site folder, such as \code{!renv.lock}. So of the site's
+files only \code{renv.lock} can be copied into the image. The image
 holds no other site file and no data. Both files are written with LF
 line endings on every system.
 }
+\section{renv profiles}{
+
+An renv profile is a named set of packages with a lockfile of its own.
+\code{write_dockerfile()} picks the profile by the rule of renv 1.3.1, which
+\code{check_supplement(renv_lock = TRUE)} also uses. It does not read
+\code{RENV_PATHS_LOCKFILE} or \code{RENV_PATHS_RENV}. If the \code{RENV_PROFILE}
+environment variable of the R session that runs \code{write_dockerfile()} is
+not empty, it names the profile. Otherwise the first line of
+\code{renv/profile} in the site folder names it, when that file exists. The
+name \code{default}, an empty name, or no name means no profile, and the
+lockfile is \code{renv.lock} in the site folder. With a profile, the lockfile
+is \verb{renv/profiles/<name>/renv.lock}, and the function prints a message
+that names the lockfile, the profile, and where the name came from.
+
+With a profile, the \code{.dockerignore} lets that lockfile into the image.
+The \code{Dockerfile} copies it to the same path and sets the \code{RENV_PROFILE}
+environment variable of the image to the name. renv keeps the packages
+of a profile in a library of their own, so the build restores them there,
+and each render in the image uses the profile, whatever \code{renv/profile} in
+the mounted site folder names. The name must hold only ASCII letters,
+digits, \code{.}, \verb{_}, and \code{-}, and must not start with \code{.}, so that the
+\code{Dockerfile} can hold it. Each folder and file in the path
+\verb{renv/profiles/<name>/renv.lock} must have that letter case, because
+Docker matches file names with letter case.
+}
+
 \section{Build and render}{
 
 In a terminal, in the site folder, build the image and give it a name:
@@ -107,7 +137,7 @@ release then holds them, but not the image.
 
 \section{Errors}{
 
-The function checks the arguments, \code{renv.lock}, and both target paths
+The function checks the arguments, \code{renv/profile}, \code{renv.lock}, and both target paths
 before it writes a file, so after any error but a failed write the site
 folder is as it was. It writes \code{.dockerignore} first, then the
 \code{Dockerfile}. A failed write, an open that fails included, can leave
@@ -120,8 +150,14 @@ non-empty string, or it is not a folder. \code{quarto} is missing or is not
 one string of three whole numbers joined by \code{.}, each \code{0} or without
 a leading zero. \code{digest} is not \code{NULL} or one string of \verb{sha256:} and
 64 lowercase hex digits. \code{overwrite} is not \code{TRUE} or \code{FALSE}.
+\item \code{supplement_error_profile}: \code{renv/profile} is read and is a folder or
+a file that cannot be opened, or the profile name holds a character
+other than an ASCII letter, a digit, \code{.}, \verb{_}, or \code{-}, or starts with
+\code{.}. The name check comes before any check of a lockfile.
 \item \code{supplement_error_no_file}: the folder has no \code{renv.lock}, or
-\code{renv.lock} is a folder.
+\code{renv.lock} is a folder or a link to a missing file. With a profile,
+this is also the error when a folder or file in the path
+\verb{renv/profiles/<name>/renv.lock} has another letter case.
 \item \code{supplement_error_lockfile}: \code{renv.lock} is not a JSON object, has no
 \code{R} object with a \code{Version}, or has no \code{renv} entry with a \code{Version}
 under \code{Packages}, or one of the two versions is not one string of three
