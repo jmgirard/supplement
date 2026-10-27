@@ -85,6 +85,7 @@
 - 2026-10-27: T4 done: `devtools::test()` 456 tests, 0 failed, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`) before and after the claim fixes; `devtools::document()` regenerated `check_supplement.Rd` for them.
 - 2026-10-27: implement complete; status set to review.
 - 2026-10-27: step-7 approval: m065-renv-missing-packages approved for merge
+- 2026-10-27: CI wait on PR #66 reached the time limit: ubuntu and build passed, macOS and Windows pending, deploy skipped; nothing merged.
 
 ## Decisions
 
