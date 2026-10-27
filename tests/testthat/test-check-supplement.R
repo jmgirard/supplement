@@ -2657,7 +2657,7 @@ test_that("a missing lockfile of the renv profile skips the checks when renv.loc
 test_that("a profile name that is not valid UTF-8 shows its bytes in the lockfile row", {
   site <- new_site()
   name <- rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9)))
-  # macOS and Windows refuse such a name, so this test runs on Linux.
+  # macOS refuses such a name, so the test skips where dir.create() fails.
   made <- tryCatch(dir.create(dirname(profile_lock_path(site, name)), recursive = TRUE),
                    error = function(e) FALSE, warning = function(w) FALSE)
   skip_if_not(isTRUE(made), "the file system refuses a name that is not valid UTF-8")

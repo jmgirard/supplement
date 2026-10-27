@@ -936,9 +936,9 @@ stored_script_hashes <- function(file) {
 # The rows of the renv.lock comparison: the "renv-mismatch" rows, then the
 # "renv-missing" rows. The lockfile is that of the site's renv profile,
 # from lock_source(). Rows and messages show its path with show_text(),
-# since a profile name need not be valid UTF-8, and cli stops on such text. A site with no lockfile gets a message and no row, a
-# lockfile that cannot be read gets one row, and so does a renv/profile
-# that cannot be read.
+# since a profile name need not be valid UTF-8, and cli stops on such text.
+# A site with no lockfile gets a message and no row, a lockfile that cannot
+# be read gets one row, and so does a renv/profile that cannot be read.
 check_renv_lock <- function(path) {
   source <- lock_source(path)
   if (isFALSE(source)) {

@@ -2,7 +2,7 @@
      section ownership". A phase skill never rewrites another phase's section. -->
 # M066: Read the lockfile of the active renv profile
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -117,3 +117,4 @@ Pass 1 (2026-10-27, branch head 4bf6640 plus b339d4d):
 - ripple #7: DESIGN.md's renv-missing sentence names `renv.lock` — reject, false: the profile paragraph that follows it covers it.
 - ripple #8: code comments in `mismatch_problem()` and `missing_problem()` name `renv.lock` — fix now.
 - 2026-10-27: T5 added for review return 1 (minor amendment: one task, Coverage AC1 → T1, T5) and done. The `dots` case now uses `x/../other`, which resolves to the `other` profile's lockfile (1.1.2) where `renv.lock` records 1.1.0. The unreadable-lockfile row's `file` column is now the `show_text()` path. With the raw path, `report_problems()` stopped with "input string 1 is invalid UTF-8", and with the shown path it printed. The new Linux-only test skips on macOS. The other fix-now findings landed as the Review section lists. `test-check-supplement.R`: 124 tests, 0 failed. `devtools::document()` left no diff.
+- 2026-10-27: claim audit: 16 claims read, 3 corrected — README.md, vignettes/publishing.Rmd, inst/template/GUIDE.md ("uses an renv profile" became "renv picks a profile", since `RENV_PROFILE` alone can pick one), tests/testthat/test-check-supplement.R (the skip comment no longer names Windows, which was not checked). A long comment line in `R/check-supplement.R` was rewrapped. Status set to review.

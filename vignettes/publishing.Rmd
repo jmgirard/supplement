@@ -180,9 +180,9 @@ can come from a site that you do not control, such as one that is down.
 release. If the site uses renv, `supplement::check_supplement(renv_lock = TRUE)`
 also compares the R and package versions in the stored output of each report
 with `renv.lock`, and gives a `"renv-missing"` row for each report that
-attached a package that `renv.lock` does not name. When the site uses an
-renv profile, these checks read the profile's lockfile in place of
-`renv.lock`. A release does not run these checks either.
+attached a package that `renv.lock` does not name. When renv picks a
+profile for the site, from `RENV_PROFILE` or `renv/profile`, these checks
+read the profile's lockfile in place of `renv.lock`. A release does not run these checks either.
 
 When `supplement::check_supplement()` with its defaults finds no problem,
 commit and push in a terminal in the site folder:
