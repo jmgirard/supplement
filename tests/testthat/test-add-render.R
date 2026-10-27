@@ -99,6 +99,19 @@ test_that("a render by name clears the stale-script row that a changed report.R 
   expect_identical(stale(), character())
 })
 
+test_that("a rendered report gives a renv-mismatch row against a renv.lock with another knitr version", {
+  skip_if_no_quarto()
+  site <- new_site()
+  rendered <- run_in(site, "quarto", c("render", "analyses/example.qmd"))
+  expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  writeLines('{"Packages": {"knitr": {"Package": "knitr", "Version": "0.0.1"}}}', file.path(site, "renv.lock"))
+  result <- suppressMessages(check_supplement(site, renv_lock = TRUE))
+  rows <- result[result$check == "renv-mismatch", , drop = FALSE]
+  expect_identical(rows$file, "analyses/example.qmd")
+  expect_match(rows$problem, paste0('in "_freeze/analyses/example/execute-results/html.json": ',
+                                    "knitr [0-9.-]+ \\(renv\\.lock: 0\\.0\\.1\\)\\. "))
+})
+
 test_that("the stale-output row names the stored output of a dropped format until it is deleted", {
   skip_if_no_quarto()
   site <- new_site()
