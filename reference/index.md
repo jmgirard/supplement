@@ -34,4 +34,4 @@ Raise the site version and write the citation files.
 ## Run reports in a container
 
 - [`write_dockerfile()`](https://jmgirard.github.io/supplement/reference/write_dockerfile.md)
-  : Write a Dockerfile from renv.lock
+  : Write a Dockerfile from the renv lockfile
