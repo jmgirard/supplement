@@ -249,8 +249,8 @@
 #'   `//` has no scheme and is not requested. A space in an address is sent
 #'   as `%20`, as a browser sends it. A page that the `"broken-link"` check
 #'   cannot read gives no `"web-link"` row. Each address is requested once, one after another,
-#'   with a HEAD request that follows redirects and, on R 4.1.0 or later,
-#'   waits up to 10 seconds. A site with many addresses can take minutes.
+#'   with a HEAD request that follows redirects and waits up to 10
+#'   seconds. A site with many addresses can take minutes.
 #'   An address gets a row when the request fails, such as for an unknown
 #'   host, a timeout, or a certificate error, or when the last response has
 #'   a status of 400 or above. The row names
@@ -1224,14 +1224,11 @@ web_timeout <- 10L
 # unknown host, a timeout, or a certificate error. libcurl breaks its
 # messages with a line break and a tab, so each run of spaces becomes one
 # space. libcurl refuses a space in an address, which a browser sends as
-# %20. curlGetHeaders() takes `timeout` from R 4.1.0 on, so before that it
-# is called without one. do.call() takes the name, which finds the base
-# function or a test's mock, not the NULL binding above.
+# %20.
 url_status <- function(url) {
-  args <- list(gsub(" ", "%20", url, fixed = TRUE), redirect = TRUE)
-  if ("timeout" %in% names(formals(base::curlGetHeaders))) args$timeout <- web_timeout
   tryCatch(
-    attr(do.call("curlGetHeaders", args), "status"),
+    attr(curlGetHeaders(gsub(" ", "%20", url, fixed = TRUE), redirect = TRUE, timeout = web_timeout),
+         "status"),
     error = function(e) trimws(gsub("[[:space:]]+", " ", conditionMessage(e)))
   )
 }

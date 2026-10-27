@@ -182,3 +182,9 @@ choices with rationale — never deferrals ("not now" is a ROADMAP fact).
 **Context:** Every row that `check_supplement()` gives stops `release_supplement()`. A check of web links on the rendered site needs a network, and a site that is down or a server that refuses scripts gives a row that the author cannot fix.
 **Decision:** The web link check runs only when the author calls `check_supplement(web_links = TRUE)`. Its default is `FALSE`, and `release_supplement()` does not turn it on, so its rows never stop a release. The user chose this at the M063 plan over an opt-in check that can stop the release and over a check that always runs.
 **Consequences:** A release can go ahead with dead web links on the site, and authors who want the check run it themselves. `check_supplement()` with its defaults makes no web request, which keeps its tests and examples off the network.
+
+### D-031 (2026-10-27): The package needs R 4.1.0 or later
+
+**Context:** The web link check of `check_supplement()` (D-030) requests each address with base R's `curlGetHeaders()`, whose `timeout` argument came in R 4.1.0. DESCRIPTION set no R floor, so on older R the call either fails or needs a branch that no test can run, since testthat 3.3, the Suggests floor, itself needs R 4.1.0.
+**Decision:** DESCRIPTION has `Depends: R (>= 4.1.0)`, and `url_status()` always passes the timeout. The user chose this at the M063 review over a criterion limited to the R in use and a version branch in the code.
+**Consequences:** The package no longer installs on R before 4.1.0. Sites still build Docker images for R 4.0.x with `write_dockerfile()`, since the reports call no supplement function (D-028).

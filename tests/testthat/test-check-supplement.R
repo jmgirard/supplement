@@ -2102,12 +2102,7 @@ test_that("url_status() follows redirects with a timeout and gives the status or
   expect_identical(url_status("https://example.org/x"), 404L)
   expect_identical(got$url, "https://example.org/x")
   expect_true(got$redirect)
-  # curlGetHeaders() takes `timeout` from R 4.1.0 on.
-  if ("timeout" %in% names(formals(base::curlGetHeaders))) {
-    expect_true(is.numeric(got$timeout) && length(got$timeout) == 1 && got$timeout > 0)
-  } else {
-    expect_null(got$timeout)
-  }
+  expect_true(is.numeric(got$timeout) && length(got$timeout) == 1 && got$timeout > 0)
   url_status("https://example.org/a b")
   expect_identical(got$url, "https://example.org/a%20b")
 

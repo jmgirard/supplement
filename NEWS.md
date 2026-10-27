@@ -7,6 +7,7 @@
   429, the row says that the link can still work in a browser. The
   default is `FALSE`, which makes no web request, and
   `release_supplement()` does not run this check.
+* The package now needs R 4.1.0 or later.
 * `check_supplement()` gives the `"placeholder"` row for the example
   report of an earlier version of the template, so a site made before the
   example last changed still gets it. An unchanged example file also gets
