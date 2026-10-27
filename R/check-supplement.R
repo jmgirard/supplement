@@ -1115,32 +1115,50 @@ version_diffs <- function(stored, lock) {
 # RENV_PROFILE when it is not empty, else from the first line of
 # renv/profile, untrimmed, and `default` or an empty name means no
 # profile. FALSE when renv/profile is read and is a folder or cannot be
-# opened.
+# opened. `from` is "both" when RENV_PROFILE names the profile and the
+# first line of renv/profile is the same name, byte for byte, because
+# renv's activate.R copies that line into RENV_PROFILE; renv/profile
+# then does not change the pick.
 lock_source <- function(path) {
   profile <- Sys.getenv("RENV_PROFILE")
   from <- "RENV_PROFILE"
   if (!nzchar(profile)) {
     from <- "renv/profile"
-    file <- file.path(path, "renv", "profile")
-    # renv tests the file with file.exists(), so a link to a missing file
-    # names no profile, except on Windows, where file.exists() is TRUE for
-    # it. A folder is refused before readLines(), so that its row does not
-    # depend on what readLines() does with a folder.
-    lines <- character()
-    if (file.exists(file)) {
-      lines <- if (!dir.exists(file)) {
-        suppressWarnings(tryCatch(readLines(file, warn = FALSE), error = function(e) NULL))
-      }
-      if (is.null(lines)) {
-        return(FALSE)
-      }
+    profile <- profile_line(path)
+    if (is.null(profile)) {
+      return(FALSE)
     }
-    profile <- if (length(lines) > 0) lines[[1]] else ""
   }
   if (profile %in% c("", "default")) {
     return(list(file = "renv.lock", profile = NULL, from = NULL))
   }
+  if (from == "RENV_PROFILE") {
+    line <- profile_line(path)
+    if (!is.null(line) && identical(charToRaw(line), charToRaw(profile))) {
+      from <- "both"
+    }
+  }
   list(file = paste("renv", "profiles", profile, "renv.lock", sep = "/"), profile = profile, from = from)
+}
+
+# The first line of renv/profile in the site `path`, as renv reads it: ""
+# when the file is missing or empty, and NULL when it is a folder or
+# cannot be opened. renv tests the file with file.exists(), so a link to a
+# missing file names no profile, except on Windows, where file.exists() is
+# TRUE for it. A folder is refused before readLines(), so that its row does
+# not depend on what readLines() does with a folder.
+profile_line <- function(path) {
+  file <- file.path(path, "renv", "profile")
+  if (!file.exists(file)) {
+    return("")
+  }
+  lines <- if (!dir.exists(file)) {
+    suppressWarnings(tryCatch(readLines(file, warn = FALSE), error = function(e) NULL))
+  }
+  if (is.null(lines)) {
+    return(NULL)
+  }
+  if (length(lines) > 0) lines[[1]] else ""
 }
 
 # TRUE when each of `parts`, a path from the folder `path`, is listed in
@@ -1192,7 +1210,10 @@ inform_lock_source <- function(source) {
   }
   shown <- show_text(source$file)
   profile <- show_text(source$profile)
-  if (source$from == "RENV_PROFILE") {
+  if (source$from == "both") {
+    cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
+                              "which {.envvar RENV_PROFILE} and {.file renv/profile} both name."))
+  } else if (source$from == "RENV_PROFILE") {
     cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
                               "which {.envvar RENV_PROFILE} names."))
   } else {

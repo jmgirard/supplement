@@ -233,7 +233,9 @@ dockerfile_lock_source <- function(path, call = parent.frame()) {
   if (!grepl("\\A[A-Za-z0-9_-][A-Za-z0-9._-]*\\z", source$profile, perl = TRUE, useBytes = TRUE)) {
     name <- show_text(source$profile)
     profile_error(c(
-      if (source$from == "RENV_PROFILE") {
+      if (source$from == "both") {
+        "The renv profile name {.val {name}}, which {.envvar RENV_PROFILE} and {.file renv/profile} both give, cannot be written into a Dockerfile."
+      } else if (source$from == "RENV_PROFILE") {
         "The renv profile name {.val {name}}, which {.envvar RENV_PROFILE} gives, cannot be written into a Dockerfile."
       } else {
         "The renv profile name {.val {name}}, which {.file renv/profile} gives, cannot be written into a Dockerfile."

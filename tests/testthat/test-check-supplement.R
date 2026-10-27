@@ -2663,6 +2663,60 @@ test_that("a missing lockfile of the renv profile skips the checks when renv.loc
   expect_identical(nrow(result[result$check %in% c("renv-mismatch", "renv-missing"), ]), 0L)
 })
 
+test_that("a lockfile path listed under another letter case gets a row of its own", {
+  # Each case: the RENV_PROFILE value (NA to unset it), the path that renv
+  # picks, and the path as the site lists it.
+  profile <- "renv/profiles/dev/renv.lock"
+  cases <- list(
+    list(NA, "renv.lock", "Renv.lock"),
+    list("dev", profile, "Renv/profiles/dev/renv.lock"),
+    list("dev", profile, "renv/Profiles/dev/renv.lock"),
+    list("dev", profile, "renv/profiles/Dev/renv.lock"),
+    list("dev", profile, "renv/profiles/dev/RENV.LOCK")
+  )
+  for (case in cases) {
+    site <- new_site()
+    lock <- case[[2]]
+    listed <- case[[3]]
+    active <- if (is.na(case[[1]])) "" else profile_active(case[[1]])
+    dir.create(dirname(file.path(site, listed)), recursive = TRUE, showWarnings = FALSE)
+    writeLines(lock_json(c(dplyr = "1.1.4")), file.path(site, listed))
+    env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3", tidyr = "1.3.1")))
+    withr::with_envvar(c(RENV_PROFILE = case[[1]]), {
+      result <- check_lock(site)
+      messages <- lock_messages(site)
+    })
+    if (ignores_case(site)) {
+      rows <- rows_of(result, "renv-mismatch")
+      expect_identical(rows$file, c(lock, "analyses/r.qmd"), info = listed)
+      expect_identical(rows$problem[1], paste0(
+        'It is listed as "', listed, '". renv finds it under that spelling only where the file system ignores ',
+        "letter case, as on macOS and Windows, and write_dockerfile() refuses it. Rename it to \"", lock,
+        '", then commit the change.'
+      ), info = listed)
+      expect_identical(rows$problem[2], lock_text("r", "html.json", paste0("dplyr 1.1.3 (", lock, ": 1.1.4)"),
+                                                  lock = lock, active = active), info = listed)
+      expect_identical(rows_of(result, "renv-missing")$problem,
+                       missing_text("r", "html.json", "tidyr", lock = lock, active = active), info = listed)
+    } else {
+      expect_identical(nrow(result[result$check %in% c("renv-mismatch", "renv-missing"), ]), 0L, info = listed)
+      expect_match(messages[length(messages)], paste0("the site has no '", lock, "'"), fixed = TRUE, info = listed)
+    }
+  }
+
+  # A lockfile that cannot be read gets the row that says so and no row on
+  # its letter case.
+  site <- new_site()
+  dir.create(file.path(site, "Renv.lock"))
+  rows <- rows_of(check_lock(site), "renv-mismatch")
+  if (ignores_case(site)) {
+    expect_identical(rows$file, "renv.lock")
+    expect_identical(rows$problem, lock_unreadable_text)
+  } else {
+    expect_identical(nrow(rows), 0L)
+  }
+})
+
 test_that("a profile name that is not valid UTF-8 shows its bytes in messages and the lockfile row", {
   site <- new_site()
   name <- rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9)))
