@@ -123,6 +123,19 @@ test_that("a site with no renv.lock is refused", {
   expect_refused(site, "supplement_error_no_file", site, quarto = "1.10.19")
 })
 
+test_that("a renv.lock under another letter case is refused", {
+  for (name in c("Renv.lock", "RENV.LOCK")) {
+    site <- lock_site(NULL)
+    writeBin(charToRaw(lock_json()), file.path(site, name))
+    err <- expect_refused(site, "supplement_error_no_file", site, quarto = "1.10.19", info = name)
+    expect_match(conditionMessage(err), "No 'renv.lock' in", fixed = TRUE, info = name)
+    # Where the file system ignores letter case, renv.lock is found under
+    # the other case, and the hint says so.
+    hint <- if (ignores_case(site)) "is listed under another spelling" else "Set up renv in the site first"
+    expect_match(conditionMessage(err), hint, fixed = TRUE, info = name)
+  }
+})
+
 test_that("a renv.lock that does not have the lockfile form is refused", {
   texts <- list(
     empty = "",
@@ -367,14 +380,6 @@ write_profile_lock <- function(site, name, text = lock_json(r = '{"Version": "4.
   writeBin(charToRaw(text), file.path(site, "renv", "profiles", name, "renv.lock"))
 }
 
-# TRUE when the file system of the folder `dir` ignores letter case.
-ignores_case <- function(dir) {
-  probe <- file.path(dir, "case-probe")
-  file.create(probe)
-  on.exit(unlink(probe))
-  file.exists(file.path(dir, "CASE-PROBE"))
-}
-
 # TRUE when RENV_PROFILE can hold `text` on this system.
 can_set_profile <- function(text) {
   isTRUE(tryCatch(withr::with_envvar(c(RENV_PROFILE = text), Sys.getenv("RENV_PROFILE") == text),
@@ -594,7 +599,7 @@ test_that("a missing lockfile of the renv profile is refused, also under another
     # Where the file system ignores letter case, the path of a case shape is
     # found under another case, and the hint says so.
     if (grepl("letter case", shape, fixed = TRUE) && ignores_case(site)) {
-      expect_match(conditionMessage(err), "has another letter case", fixed = TRUE, info = shape)
+      expect_match(conditionMessage(err), "is listed under another spelling", fixed = TRUE, info = shape)
     } else {
       expect_match(conditionMessage(err), "renv::snapshot()", fixed = TRUE, info = shape)
     }

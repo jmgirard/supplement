@@ -971,6 +971,20 @@ check_renv_lock <- function(path) {
              "repeats a key. Run renv::snapshot()", active, " to write it again, then commit it.")
     ))
   }
+  # Where the file system ignores letter case, renv reads the lockfile under
+  # another spelling, which a case-sensitive file system and the Docker
+  # build of write_dockerfile() do not find.
+  parts <- strsplit(source$file, "/", fixed = TRUE)[[1]]
+  spelling <- problem_rows()
+  if (!listed_exactly(path, parts)) {
+    listed <- listed_path(path, parts)
+    spelling <- problem_rows("renv-mismatch", shown, paste0(
+      if (is.null(listed)) "A folder or file in its path is listed under another spelling" else
+        paste0("It is listed as ", quote_path(show_text(listed))),
+      ". renv finds it under that spelling only where the file system ignores letter case, as on macOS and ",
+      "Windows, and write_dockerfile() refuses it. Rename it to ", quote_path(shown), ", then commit the change."
+    ))
+  }
   lock$file <- shown
   lock$active <- active
   reports <- analysis_reports(path)
@@ -998,7 +1012,8 @@ check_renv_lock <- function(path) {
   files <- file.path("analyses", basename(reports))
   mismatch <- !is.na(problems[1, ])
   missing <- !is.na(problems[2, ])
-  rbind(problem_rows("renv-mismatch", files[mismatch], problems[1, mismatch]),
+  rbind(spelling,
+        problem_rows("renv-mismatch", files[mismatch], problems[1, mismatch]),
         problem_rows("renv-missing", files[missing], problems[2, missing]))
 }
 
@@ -1126,6 +1141,47 @@ lock_source <- function(path) {
     return(list(file = "renv.lock", profile = NULL, from = NULL))
   }
   list(file = paste("renv", "profiles", profile, "renv.lock", sep = "/"), profile = profile, from = from)
+}
+
+# TRUE when each of `parts`, a path from the folder `path`, is listed in
+# its folder under its exact name, letter case included.
+listed_exactly <- function(path, parts) {
+  for (i in seq_along(parts)) {
+    folder <- do.call(file.path, as.list(c(path, parts[seq_len(i - 1)])))
+    if (!parts[[i]] %in% list.files(folder, all.files = TRUE)) {
+      return(FALSE)
+    }
+  }
+  TRUE
+}
+
+# The path `parts`, from the folder `path`, with each part as its folder
+# lists it, or NULL when a part is not found so. A part is the one name in
+# its folder that differs from it only in ASCII letter case, else the name
+# that fs::path_real() gives it, which is the stored name on macOS and
+# Windows unless the part is a link.
+listed_path <- function(path, parts) {
+  fold <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", x)
+  listed <- character()
+  for (part in parts) {
+    folder <- do.call(file.path, as.list(c(path, listed)))
+    names <- list.files(folder, all.files = TRUE)
+    if (part %in% names) {
+      listed <- c(listed, part)
+      next
+    }
+    # chartr() stops on text that is not valid in the locale.
+    same <- tryCatch(names[fold(names) == fold(part)], error = function(e) character())
+    if (length(same) != 1) {
+      real <- tryCatch(basename(as.character(fs::path_real(file.path(folder, part)))), error = function(e) "")
+      same <- if (real %in% names && !is_link(file.path(folder, real))) real
+    }
+    if (length(same) != 1) {
+      return(NULL)
+    }
+    listed <- c(listed, same)
+  }
+  paste(listed, collapse = "/")
 }
 
 # A message that names the lockfile and the renv profile in `source`, from

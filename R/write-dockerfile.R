@@ -58,8 +58,9 @@
 #' the mounted site folder names. The name must hold only ASCII letters,
 #' digits, `.`, `_`, and `-`, and must not start with `.`, so that the
 #' `Dockerfile` can hold it. Each folder and file in the path
-#' `renv/profiles/<name>/renv.lock` must have that letter case, because
-#' Docker matches file names with letter case.
+#' `renv/profiles/<name>/renv.lock` must have that letter case, as
+#' `renv.lock` must without a profile, because Docker matches file names
+#' with letter case.
 #'
 #' @section Build and render:
 #' In a terminal, in the site folder, build the image and give it a name:
@@ -139,9 +140,10 @@
 #'   other than an ASCII letter, a digit, `.`, `_`, or `-`, or starts with
 #'   `.`. The name check comes before any check of a lockfile.
 #' * `supplement_error_no_file`: the folder has no `renv.lock`, or
-#'   `renv.lock` is a folder or a link to a missing file. With a profile,
-#'   this is also the error when a folder or file in the path
-#'   `renv/profiles/<name>/renv.lock` has another letter case.
+#'   `renv.lock` is a folder or a link to a missing file. This is also the
+#'   error when `renv.lock`, or with a profile a folder or file in the path
+#'   `renv/profiles/<name>/renv.lock`, is listed under another spelling,
+#'   such as another letter case.
 #' * `supplement_error_lockfile`: `renv.lock` is not a JSON object, has no
 #'   `R` object with a `Version`, or has no `renv` entry with a `Version`
 #'   under `Packages`, or one of the two versions is not one string of three
@@ -261,14 +263,14 @@ read_lockfile_versions <- function(path, source, call = parent.frame()) {
   file <- file.path(path, source$file)
   # On Windows file.exists() is TRUE for a file link to a missing file.
   exists <- file.exists(file) && !dir.exists(file) && (!is_link(file) || link_ends_on_file(file))
-  # Docker matches names with letter case, so each part of a profile
-  # lockfile's path must be listed under its exact name, also where the
-  # file system ignores case.
-  exact <- is.null(source$profile) || listed_exactly(path, strsplit(source$file, "/", fixed = TRUE)[[1]])
+  # Docker matches names with letter case, so each part of the lockfile's
+  # path must be listed under its exact name, also where the file system
+  # ignores case.
+  exact <- listed_exactly(path, strsplit(source$file, "/", fixed = TRUE)[[1]])
   active <- if (is.null(source$profile)) "" else " with the renv profile {.val {source$profile}} active"
   if (!(exists && exact)) {
     hint <- if (exists) {
-      "A folder or file in that path has another letter case. Rename it to match, because Docker matches names with letter case."
+      "A folder or file in that path is listed under another spelling, such as another letter case. Rename it to match, because Docker matches names exactly."
     } else if (is.null(source$profile)) {
       "Set up renv in the site first, as the part {.emph Recording R packages with renv} of {.file GUIDE.md} shows."
     } else {
@@ -343,18 +345,6 @@ read_lockfile_versions <- function(path, source, call = parent.frame()) {
     )
   }
   list(r = r, renv = renv)
-}
-
-# TRUE when each of `parts`, a path from the folder `path`, is listed in
-# its folder under its exact name, letter case included.
-listed_exactly <- function(path, parts) {
-  for (i in seq_along(parts)) {
-    folder <- do.call(file.path, as.list(c(path, parts[seq_len(i - 1)])))
-    if (!parts[[i]] %in% list.files(folder, all.files = TRUE)) {
-      return(FALSE)
-    }
-  }
-  TRUE
 }
 
 # The lines of the Dockerfile, which reads the lockfile that `source`, from

@@ -86,8 +86,9 @@ and each render in the image uses the profile, whatever \code{renv/profile} in
 the mounted site folder names. The name must hold only ASCII letters,
 digits, \code{.}, \verb{_}, and \code{-}, and must not start with \code{.}, so that the
 \code{Dockerfile} can hold it. Each folder and file in the path
-\verb{renv/profiles/<name>/renv.lock} must have that letter case, because
-Docker matches file names with letter case.
+\verb{renv/profiles/<name>/renv.lock} must have that letter case, as
+\code{renv.lock} must without a profile, because Docker matches file names
+with letter case.
 }
 
 \section{Build and render}{
@@ -155,9 +156,10 @@ a file that cannot be opened, or the profile name holds a character
 other than an ASCII letter, a digit, \code{.}, \verb{_}, or \code{-}, or starts with
 \code{.}. The name check comes before any check of a lockfile.
 \item \code{supplement_error_no_file}: the folder has no \code{renv.lock}, or
-\code{renv.lock} is a folder or a link to a missing file. With a profile,
-this is also the error when a folder or file in the path
-\verb{renv/profiles/<name>/renv.lock} has another letter case.
+\code{renv.lock} is a folder or a link to a missing file. This is also the
+error when \code{renv.lock}, or with a profile a folder or file in the path
+\verb{renv/profiles/<name>/renv.lock}, is listed under another spelling,
+such as another letter case.
 \item \code{supplement_error_lockfile}: \code{renv.lock} is not a JSON object, has no
 \code{R} object with a \code{Version}, or has no \code{renv} entry with a \code{Version}
 under \code{Packages}, or one of the two versions is not one string of three
