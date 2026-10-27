@@ -8,7 +8,7 @@ prints each problem it finds and returns all of them as a data frame.
 ## Usage
 
 ``` r
-check_supplement(path = ".", web_links = FALSE)
+check_supplement(path = ".", web_links = FALSE, renv_lock = FALSE)
 ```
 
 ## Arguments
@@ -22,6 +22,13 @@ check_supplement(path = ".", web_links = FALSE)
   `TRUE` to also request each web address on the pages in `docs/` and
   give the `"web-link"` rows. This needs a network. The default,
   `FALSE`, makes no web request.
+
+- renv_lock:
+
+  `TRUE` to also compare the R and package versions in the stored output
+  of each report with the site's `renv.lock` and give the
+  `"renv-mismatch"` rows. The default, `FALSE`, does not read
+  `renv.lock`.
 
 ## Value
 
@@ -147,6 +154,69 @@ The checks, by the value in the `check` column:
   when the file is missing, is a folder, is a link to a missing file, or
   cannot be opened, the check gives no row. The hash covers only
   `_scripts/report.R`, not files that it reads.
+
+- `"renv-mismatch"`: only with `renv_lock = TRUE`, a `.qmd` report
+  directly in `analyses/`, from the same list of reports, whose stored
+  output names an R or package version other than the one that the
+  site's `renv.lock` records. The check reads the same `result.markdown`
+  text as the `"stale-script"` check. In it, it reads the versions in
+  the forms that `print_environment()` prints. From
+  [`sessioninfo::session_info()`](https://sessioninfo.r-lib.org/reference/session_info.html),
+  these are the package table after a line that starts with `─ Packages`
+  or `- Packages`, read at the positions of the `package` and `version`
+  columns of its header line, and the setting line that starts with
+  ` version`, spaces, and R's version string, such as
+  `R version 4.6.1 (2026-06-24)` or `R version 4.6.1 Patched (...)`.
+  From
+  [`utils::sessionInfo()`](https://rdrr.io/r/utils/sessionInfo.html),
+  these are the first line that starts with R's version string, and the
+  `name_version` entries on the lines that start with `[1]`, `[2]`, and
+  so on, after any spaces, after `other attached packages:` and after
+  `loaded via a namespace (and not attached):`. A line that holds an
+  ANSI escape is not read, and output that knitr prints after a comment
+  prefix such as `## ` is not found. A CR at the end of a line is
+  ignored.
+
+  A package differs when one of its stored versions is not equal to the
+  `Version` that `renv.lock` records for it under `Packages`. The R
+  version differs when a stored R version is not equal to the `Version`
+  under `R`. Versions are compared as
+  [`package_version()`](https://rdrr.io/r/base/numeric_version.html)
+  values, so `1.0-5` equals `1.0.5`. A package that `renv.lock` does not
+  record, such as a base package, is not compared. Nor is a version that
+  [`package_version()`](https://rdrr.io/r/base/numeric_version.html)
+  cannot read on either side, such as `devel`, or the R version when
+  `renv.lock` records none. A development build of R prints
+  `R Under development (unstable)`, which the check does not read as an
+  R version. The report gets one row. It names the files that hold a
+  version that differs, in the same way as the `"stale-script"` row.
+  Then it names the R versions that differ, and each package that
+  differs, in byte order of name, each with its stored versions that
+  differ, in version order and each version once, and the version in
+  `renv.lock`. It says to run
+  [`renv::restore()`](https://rstudio.github.io/renv/reference/restore.html)
+  and take the render steps, or, if the library now holds the versions
+  of the report, to run
+  [`renv::snapshot()`](https://rstudio.github.io/renv/reference/snapshot.html)
+  and commit `renv.lock`. When another of these files holds a version
+  that is compared and none that differ, the row also gives the format
+  hint and delete steps of the `"stale-script"` row. A file that does
+  not parse holds no versions, and a report that cannot be read, such as
+  a link to a missing file, gives no row.
+
+  `renv.lock` gets one row of its own, and no report gets a row, when it
+  is a folder, a link to a missing file, a file that cannot be opened,
+  text that is not valid UTF-8, text that is not JSON, or JSON whose top
+  level or `Packages` is not an object. So does a file that repeats a
+  key that the check reads, such as two records of one package, because
+  jsonlite keeps both and renv may read the other. A UTF-8 byte order
+  mark at the start of the file is skipped. A package record is named by
+  its `Package` text, or by its key when it has none, and a record with
+  no `Version` text is left out. A site with no `renv.lock` gets no row,
+  and the function says that it skipped the check. Only `renv.lock` in
+  the site folder is read, not the lockfile of an renv profile.
+  [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
+  does not run this check, so its rows never stop a release.
 
 - `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
   name does not start with `.`, that no file or folder in `analyses/`
@@ -378,7 +448,7 @@ The function stops with an error of class `supplement_error` and one of
 these classes:
 
 - `supplement_error_argument`: `path` is not a single non-empty string,
-  or `web_links` is not `TRUE` or `FALSE`.
+  or `web_links` or `renv_lock` is not `TRUE` or `FALSE`.
 
 - `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 
@@ -403,17 +473,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpZyzvzK/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpgNvIty/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpZyzvzK/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpgNvIty/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpZyzvzK/check-example:
+#> ✖ 11 problems found in /tmp/RtmpgNvIty/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report

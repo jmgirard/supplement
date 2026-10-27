@@ -52,7 +52,7 @@ prints each problem it finds and returns all of them as a data frame.</p>
 
     <div class="section level2">
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">check_supplement</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span>, web_links <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">check_supplement</span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span>, web_links <span class="op">=</span> <span class="cn">FALSE</span>, renv_lock <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span></span></code></pre></div>
     </div>
 
     <div class="section level2">
@@ -67,6 +67,12 @@ prints each problem it finds and returns all of them as a data frame.</p>
 <dd><p><code>TRUE</code> to also request each web address on the pages in
 <code>docs/</code> and give the <code>"web-link"</code> rows. This needs a network. The
 default, <code>FALSE</code>, makes no web request.</p></dd>
+
+
+<dt id="arg-renv-lock">renv_lock<a class="anchor" aria-label="anchor" href="#arg-renv-lock"></a></dt>
+<dd><p><code>TRUE</code> to also compare the R and package versions in the
+stored output of each report with the site's <code>renv.lock</code> and give the
+<code>"renv-mismatch"</code> rows. The default, <code>FALSE</code>, does not read <code>renv.lock</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -190,6 +196,58 @@ the site has no
 missing, is a folder, is a link to a missing file, or cannot be opened,
 the check gives no row.
 The hash covers only <code>_scripts/report.R</code>, not files that it reads.</p></li>
+<li><p><code>"renv-mismatch"</code>: only with <code>renv_lock = TRUE</code>, a <code>.qmd</code> report
+directly in <code>analyses/</code>, from the same list of reports, whose stored
+output names an R or package version other than the one that the
+site's <code>renv.lock</code> records. The check reads the same <code>result.markdown</code>
+text as the <code>"stale-script"</code> check. In it, it reads the versions in the
+forms that <code>print_environment()</code> prints. From
+<code><a href="https://sessioninfo.r-lib.org/reference/session_info.html" class="external-link">sessioninfo::session_info()</a></code>, these are the package table after a line
+that starts with <code>─ Packages</code> or <code>- Packages</code>, read at the positions of
+the <code>package</code> and <code>version</code> columns of its header line, and the setting
+line that starts with <code> version</code>, spaces, and R's version string, such
+as <code>R version 4.6.1 (2026-06-24)</code> or <code>R version 4.6.1 Patched (...)</code>.
+From <code><a href="https://rdrr.io/r/utils/sessionInfo.html" class="external-link">utils::sessionInfo()</a></code>, these are the first line that starts with
+R's version string, and the <code>name_version</code> entries on the lines that start
+with <code>[1]</code>, <code>[2]</code>, and so on, after any spaces, after
+<code>other attached packages:</code> and after
+<code>loaded via a namespace (and not attached):</code>. A line that holds an ANSI
+escape is not read, and output that knitr prints after a comment prefix
+such as <code>## </code> is not found. A CR at the end of a line is ignored.</p>
+<p>A package differs when one of its stored versions is not equal to the
+<code>Version</code> that <code>renv.lock</code> records for it under <code>Packages</code>. The R
+version differs when a stored R version is not equal to the <code>Version</code>
+under <code>R</code>. Versions are compared as <code><a href="https://rdrr.io/r/base/numeric_version.html" class="external-link">package_version()</a></code> values, so
+<code>1.0-5</code> equals <code>1.0.5</code>. A package that <code>renv.lock</code> does not record,
+such as a base package, is not compared. Nor is a version that
+<code><a href="https://rdrr.io/r/base/numeric_version.html" class="external-link">package_version()</a></code> cannot read on either side, such as <code>devel</code>, or
+the R version when <code>renv.lock</code> records none. A development build of R
+prints <code>R Under development (unstable)</code>, which the check does not read
+as an R version. The report gets one row. It names the files that hold a
+version that differs, in the same way as the <code>"stale-script"</code> row.
+Then it names the R versions that differ, and each package that
+differs, in byte order of name, each with its stored versions that
+differ, in version order and each version once, and the version in
+<code>renv.lock</code>. It says to
+run <code><a href="https://rstudio.github.io/renv/reference/restore.html" class="external-link">renv::restore()</a></code> and take the render steps, or, if the library now
+holds the versions of the report, to run <code><a href="https://rstudio.github.io/renv/reference/snapshot.html" class="external-link">renv::snapshot()</a></code> and commit
+<code>renv.lock</code>. When another of these files holds a version that is
+compared and none that differ, the row also gives the format hint and
+delete steps of the <code>"stale-script"</code> row. A file that does not parse
+holds no versions, and a report that cannot be read, such as a link to
+a missing file, gives no row.</p>
+<p><code>renv.lock</code> gets one row of its own, and no report gets a row, when it
+is a folder, a link to a missing file, a file that cannot be opened,
+text that is not valid UTF-8, text that is not JSON, or JSON whose top
+level or <code>Packages</code> is not an object. So does a file that repeats a key
+that the check reads, such as two records of one package, because
+jsonlite keeps both and renv may read the other. A UTF-8 byte order
+mark at the start of the file is skipped. A package record is named by
+its <code>Package</code> text, or by its key when it has none, and a record with
+no <code>Version</code> text is left out. A site with no <code>renv.lock</code> gets no row,
+and the function says that it skipped the check. Only <code>renv.lock</code> in the site folder is read, not the
+lockfile of an renv profile. <code><a href="release_supplement.html">release_supplement()</a></code> does not run this
+check, so its rows never stop a release.</p></li>
 <li><p><code>"leftover-output"</code>: a folder directly in <code>_freeze/analyses/</code>, whose
 name does not start with <code>.</code>, that no file or folder in <code>analyses/</code>
 names. A name in <code>analyses/</code> names the folder when, cut before its
@@ -399,7 +457,7 @@ it skips these three checks and says so.</p>
 
 <p>The function stops with an error of class <code>supplement_error</code> and one of
 these classes:</p><ul><li><p><code>supplement_error_argument</code>: <code>path</code> is not a single non-empty string,
-or <code>web_links</code> is not <code>TRUE</code> or <code>FALSE</code>.</p></li>
+or <code>web_links</code> or <code>renv_lock</code> is not <code>TRUE</code> or <code>FALSE</code>.</p></li>
 <li><p><code>supplement_error_no_metadata</code>: <code>path</code> holds no <code>_supplement.yml</code>.</p></li>
 <li><p><code>supplement_error_parse</code>: the yaml package cannot read
 <code>_supplement.yml</code>, as for <code><a href="write_citation.html">write_citation()</a></code>.</p></li>
@@ -417,17 +475,17 @@ text value, or <code>zenodo</code> is not a map.</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"check-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpZyzvzK/check-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpgNvIty/check-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpZyzvzK/check-example</span> once before your first</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpgNvIty/check-example</span> once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="co"># A new site has not been rendered, its example report has no stored</span></span></span>
 <span class="r-in"><span><span class="co"># output yet, and it still holds the template's placeholder values.</span></span></span>
 <span class="r-in"><span><span class="va">problems</span> <span class="op">&lt;-</span> <span class="fu">check_supplement</span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Skipped the <span style="color: #0000BB;">"large-file"</span>, <span style="color: #0000BB;">"saved-object"</span>, and <span style="color: #0000BB;">"ignored-output"</span> checks: `git rev-parse` failed, or the folder is not in a git work tree.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpZyzvzK/check-example</span>:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpgNvIty/check-example</span>:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> <span style="font-weight: bold;">no-stored-output</span> <span style="color: #0000BB;">analyses/example.qmd</span>: The report has code and no stored</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   output in _freeze/. Render the report by name, render the whole site, then</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit the report with _freeze/, docs/, and figures/. If you added the report</span>

@@ -96,14 +96,15 @@
 <p>In R, run this function in the site folder:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="reference/check_supplement.html">check_supplement</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><code><a href="reference/check_supplement.html">check_supplement()</a></code> changes no file. It prints each problem that it finds and returns the problems as a data frame, with one row per problem. <code>supplement::check_supplement(web_links = TRUE)</code> also requests each web address on the site’s pages and gives a row for each one that fails. This needs a network, and <code><a href="reference/release_supplement.html">release_supplement()</a></code> does not run it. <code><a href="reference/check_supplement.html">?check_supplement</a></code> describes each check and its limits, for example the links that it does not test. It finds:</p>
+<p><code><a href="reference/check_supplement.html">check_supplement()</a></code> changes no file. It prints each problem that it finds and returns the problems as a data frame, with one row per problem. <code>supplement::check_supplement(web_links = TRUE)</code> also requests each web address on the site’s pages and gives a row for each one that fails. This needs a network, and <code><a href="reference/release_supplement.html">release_supplement()</a></code> does not run it. <code>supplement::check_supplement(renv_lock = TRUE)</code> also compares the R and package versions in each report’s stored output with <code>renv.lock</code>, and <code><a href="reference/release_supplement.html">release_supplement()</a></code> does not run that check either. <code><a href="reference/check_supplement.html">?check_supplement</a></code> describes each check and its limits, for example the links that it does not test. It finds:</p>
 <ul>
 <li>files larger than GitHub’s limit of 100 MiB</li>
 <li>saved R objects, such as <code>.rds</code> files, that git tracks or does not ignore</li>
 <li>files in <code>figures/</code>, <code>docs/</code>, and <code>_freeze/</code> that git ignores, which a release leaves out</li>
 <li>reports directly in <code>analyses/</code> with code and no stored output in <code>_freeze/</code>
 </li>
-<li>reports directly in <code>analyses/</code> whose stored output in <code>_freeze/</code> came from other text than the report holds now, or whose source hash cannot be read</li>
+<li>reports directly in <code>analyses/</code> whose stored output in <code>_freeze/</code> came from other text than the report holds now</li>
+<li>reports directly in <code>analyses/</code> whose source hash in <code>_freeze/</code> cannot be read</li>
 <li>reports directly in <code>analyses/</code> whose stored output gives another MD5 of <code>_scripts/report.R</code> than the file has now</li>
 <li>folders in <code>_freeze/analyses/</code> that no file or folder in <code>analyses/</code> names, as after a report is deleted or renamed</li>
 <li>reports directly in <code>analyses/</code> that name a missing <code>_scripts/report.R</code> file</li>

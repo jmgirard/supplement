@@ -180,9 +180,14 @@ test the web addresses on the site’s pages, which needs a network, run
 `supplement::check_supplement(web_links = TRUE)`. A row from that test
 can come from a site that you do not control, such as one that is down.
 [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
-does not run this test, so its rows do not stop a release.
+does not run this test, so its rows do not stop a release. If the site
+uses renv, `supplement::check_supplement(renv_lock = TRUE)` also
+compares the R and package versions in the stored output of each report
+with `renv.lock`. A release does not run that check either.
 
-When the check finds no problem, commit and push in a terminal in the
+When
+[`supplement::check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+with its defaults finds no problem, commit and push in a terminal in the
 site folder:
 
 ``` sh
