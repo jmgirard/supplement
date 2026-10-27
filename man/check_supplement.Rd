@@ -153,14 +153,15 @@ forms that \code{print_environment()} prints. From
 \code{sessioninfo::session_info()}, these are the package table after a line
 that starts with \verb{─ Packages} or \code{- Packages}, read at the positions of
 the \code{package} and \code{version} columns of its header line, and the setting
-line that starts with \code{ version}, spaces, and \verb{R version}. From
-\code{utils::sessionInfo()}, these are each line that starts with
-\verb{R version}, and the \code{name_version} entries on the lines that start
+line that starts with \code{ version}, spaces, and R's version string, such
+as \verb{R version 4.6.1 (2026-06-24)} or \verb{R version 4.6.1 Patched (...)}.
+From \code{utils::sessionInfo()}, these are the first line that starts with
+R's version string, and the \code{name_version} entries on the lines that start
 with \verb{[1]}, \verb{[2]}, and so on, after any spaces, after
 \verb{other attached packages:} and after
 \verb{loaded via a namespace (and not attached):}. A line that holds an ANSI
 escape is not read, and output that knitr prints after a comment prefix
-such as \verb{## } is not found.
+such as \verb{## } is not found. A CR at the end of a line is ignored.
 
 A package differs when one of its stored versions is not equal to the
 \code{Version} that \code{renv.lock} records for it under \code{Packages}. The R
@@ -175,7 +176,8 @@ as an R version. The report gets one row. It names the files that hold a
 version that differs, in the same way as the \code{"stale-script"} row.
 Then it names the R versions that differ, and each package that
 differs, in byte order of name, each with its stored versions that
-differ, in version order, and the version in \code{renv.lock}. It says to
+differ, in version order and each version once, and the version in
+\code{renv.lock}. It says to
 run \code{renv::restore()} and take the render steps, or, if the library now
 holds the versions of the report, to run \code{renv::snapshot()} and commit
 \code{renv.lock}. When another of these files holds a version that is
@@ -187,10 +189,13 @@ a missing file, gives no row.
 \code{renv.lock} gets one row of its own, and no report gets a row, when it
 is a folder, a link to a missing file, a file that cannot be opened,
 text that is not valid UTF-8, text that is not JSON, or JSON whose top
-level or \code{Packages} is not an object. A file that starts with a UTF-8
-byte order mark is also not read. A package record with no \code{Version} text is left out. A site
-with no \code{renv.lock} gets no row, and the function says that it skipped
-the check. Only \code{renv.lock} in the site folder is read, not the
+level or \code{Packages} is not an object. So does a file that repeats a key
+that the check reads, such as two records of one package, because
+jsonlite keeps both and renv may read the other. A UTF-8 byte order
+mark at the start of the file is skipped. A package record is named by
+its \code{Package} text, or by its key when it has none, and a record with
+no \code{Version} text is left out. A site with no \code{renv.lock} gets no row,
+and the function says that it skipped the check. Only \code{renv.lock} in the site folder is read, not the
 lockfile of an renv profile. \code{\link[=release_supplement]{release_supplement()}} does not run this
 check, so its rows never stop a release.
 \item \code{"leftover-output"}: a folder directly in \verb{_freeze/analyses/}, whose

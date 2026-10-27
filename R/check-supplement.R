@@ -127,14 +127,15 @@
 #'   `sessioninfo::session_info()`, these are the package table after a line
 #'   that starts with `─ Packages` or `- Packages`, read at the positions of
 #'   the `package` and `version` columns of its header line, and the setting
-#'   line that starts with ` version`, spaces, and `R version`. From
-#'   `utils::sessionInfo()`, these are each line that starts with
-#'   `R version`, and the `name_version` entries on the lines that start
+#'   line that starts with ` version`, spaces, and R's version string, such
+#'   as `R version 4.6.1 (2026-06-24)` or `R version 4.6.1 Patched (...)`.
+#'   From `utils::sessionInfo()`, these are the first line that starts with
+#'   R's version string, and the `name_version` entries on the lines that start
 #'   with `[1]`, `[2]`, and so on, after any spaces, after
 #'   `other attached packages:` and after
 #'   `loaded via a namespace (and not attached):`. A line that holds an ANSI
 #'   escape is not read, and output that knitr prints after a comment prefix
-#'   such as `## ` is not found.
+#'   such as `## ` is not found. A CR at the end of a line is ignored.
 #'
 #'   A package differs when one of its stored versions is not equal to the
 #'   `Version` that `renv.lock` records for it under `Packages`. The R
@@ -149,7 +150,8 @@
 #'   version that differs, in the same way as the `"stale-script"` row.
 #'   Then it names the R versions that differ, and each package that
 #'   differs, in byte order of name, each with its stored versions that
-#'   differ, in version order, and the version in `renv.lock`. It says to
+#'   differ, in version order and each version once, and the version in
+#'   `renv.lock`. It says to
 #'   run `renv::restore()` and take the render steps, or, if the library now
 #'   holds the versions of the report, to run `renv::snapshot()` and commit
 #'   `renv.lock`. When another of these files holds a version that is
@@ -161,10 +163,13 @@
 #'   `renv.lock` gets one row of its own, and no report gets a row, when it
 #'   is a folder, a link to a missing file, a file that cannot be opened,
 #'   text that is not valid UTF-8, text that is not JSON, or JSON whose top
-#'   level or `Packages` is not an object. A file that starts with a UTF-8
-#'   byte order mark is also not read. A package record with no `Version` text is left out. A site
-#'   with no `renv.lock` gets no row, and the function says that it skipped
-#'   the check. Only `renv.lock` in the site folder is read, not the
+#'   level or `Packages` is not an object. So does a file that repeats a key
+#'   that the check reads, such as two records of one package, because
+#'   jsonlite keeps both and renv may read the other. A UTF-8 byte order
+#'   mark at the start of the file is skipped. A package record is named by
+#'   its `Package` text, or by its key when it has none, and a record with
+#'   no `Version` text is left out. A site with no `renv.lock` gets no row,
+#'   and the function says that it skipped the check. Only `renv.lock` in the site folder is read, not the
 #'   lockfile of an renv profile. [release_supplement()] does not run this
 #'   check, so its rows never stop a release.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
@@ -884,8 +889,8 @@ check_renv_lock <- function(path) {
     return(problem_rows(
       "renv-mismatch", "renv.lock",
       paste("It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that",
-            "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object. Run",
-            "renv::snapshot() to write it again, then commit it.")
+            "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object, or it",
+            "repeats a key. Run renv::snapshot() to write it again, then commit it.")
     ))
   }
   reports <- analysis_reports(path)
@@ -907,9 +912,10 @@ check_renv_lock <- function(path) {
     if (!any(differs) || is.null(report_hash(report))) {
       return(NA_character_)
     }
+    # Each version once, so `1.0-5` and `1.0.5` print as one.
     in_order <- function(v) {
-      v <- unique(v)
-      paste(v[order(package_version(v))], collapse = " and ")
+      v <- v[order(package_version(v))]
+      paste(v[!duplicated(as.character(package_version(v)))], collapse = " and ")
     }
     r <- unlist(lapply(found, `[[`, "r"))
     packages <- unlist(lapply(found, `[[`, "packages"))
@@ -974,20 +980,42 @@ lock_versions <- function(path) {
   }
   json <- tryCatch({
     bytes <- readBin(file, "raw", n = file.size(file))
+    # An editor can save the file with a UTF-8 byte order mark, which
+    # jsonlite warns about.
+    if (length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))) {
+      bytes <- bytes[-(1:3)]
+    }
     text <- rawToChar(bytes)
     if (!validUTF8(text)) stop("not UTF-8")
+    Encoding(text) <- "UTF-8"
     jsonlite::parse_json(text, simplifyVector = FALSE)
   }, error = function(e) NULL, warning = function(w) NULL)
-  packages <- if (is.list(json) && !is.null(names(json))) json[["Packages"]]
-  if (!is.list(packages) || is.null(names(packages))) {
+  packages <- if (is_map(json)) json[["Packages"]]
+  if (!is_map(packages)) {
     return(FALSE)
   }
-  version_text <- function(record) {
-    version <- if (is.list(record) && !is.null(names(record))) record[["Version"]]
-    if (is.character(version) && length(version) == 1 && !is.na(version)) version else NA_character_
+  # jsonlite keeps both copies of a repeated key, and `[[` takes the first,
+  # while renv may read another, as read_lockfile_versions() also notes.
+  repeated <- function(map, key) is_map(map) && sum(names(map) == key) > 1
+  records_repeat <- vapply(packages, function(record) {
+    repeated(record, "Package") || repeated(record, "Version")
+  }, logical(1))
+  if (repeated(json, "R") || repeated(json, "Packages") || repeated(json[["R"]], "Version") ||
+      anyDuplicated(names(packages)) > 0 || any(records_repeat)) {
+    return(FALSE)
   }
-  versions <- vapply(packages, version_text, character(1))
-  r <- version_text(json[["R"]])
+  text_value <- function(record, key) {
+    value <- if (is_map(record)) record[[key]]
+    if (is.character(value) && length(value) == 1 && !is.na(value)) value else NA_character_
+  }
+  versions <- vapply(packages, text_value, character(1), key = "Version", USE.NAMES = FALSE)
+  # renv names a record by its key and also writes the name as `Package`.
+  named <- vapply(packages, text_value, character(1), key = "Package", USE.NAMES = FALSE)
+  names(versions) <- ifelse(is.na(named), names(packages), named)
+  if (anyDuplicated(names(versions)) > 0) {
+    return(FALSE)
+  }
+  r <- text_value(json[["R"]], "Version")
   list(r = if (!is.na(r)) r, packages = versions[!is.na(versions) & nzchar(names(versions))])
 }
 
@@ -1002,14 +1030,19 @@ lock_versions <- function(path) {
 # entries of a package list are read from the whole line.
 stored_versions <- function(markdown) {
   lines <- strsplit(markdown, "\n", fixed = TRUE)[[1]]
+  cr <- endsWith(lines, "\r")
+  lines[cr] <- substr(lines[cr], 1, nchar(lines[cr]) - 1L)
   lines[grepl("\033", lines, fixed = TRUE)] <- ""
   head <- substr(lines, 1, 200)
   first_word <- function(x) sub(" .*$", "", sub("^ +", "", x))
 
-  setting <- grepl("^ version +R version [^ ]", head)
-  first <- grepl("^R version [^ ]", head)
+  # R's version string, such as `R version 4.6.1 (2026-06-24)` or
+  # `R version 4.6.1 Patched (2026-07-01 r88000)`.
+  version_string <- "R version [0-9][^ ]*( [A-Za-z]+)? \\([0-9]{4}-[0-9]{2}-[0-9]{2}"
+  setting <- grepl(paste0("^ version +", version_string), head)
+  first <- which(grepl(paste0("^", version_string), head))[1]
   r <- c(first_word(sub("^ version +R version ", "", head[setting])),
-         first_word(sub("^R version ", "", head[first])))
+         if (!is.na(first)) first_word(sub("^R version ", "", head[first])))
 
   packages <- character()
   rules <- which(startsWith(head, "\u2500 Packages") | startsWith(head, "- Packages"))
@@ -1170,7 +1203,11 @@ stored_markdown <- function(file) {
 stored_json <- function(file) {
   json <- tryCatch({
     bytes <- readBin(file, "raw", n = file.size(file))
-    jsonlite::parse_json(rawToChar(bytes), simplifyVector = FALSE)
+    # Quarto writes UTF-8. Unmarked text is read in the native encoding,
+    # which in a Latin-1 locale misreads characters such as `─`.
+    text <- rawToChar(bytes)
+    Encoding(text) <- "UTF-8"
+    jsonlite::parse_json(text, simplifyVector = FALSE)
   }, error = function(e) NULL, warning = function(w) NULL)
   if (!is.list(json) || is.null(names(json))) {
     return(NULL)

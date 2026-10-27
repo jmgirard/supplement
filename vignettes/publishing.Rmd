@@ -181,8 +181,8 @@ release. If the site uses renv, `supplement::check_supplement(renv_lock = TRUE)`
 also compares the R and package versions in the stored output of each report
 with `renv.lock`. A release does not run that check either.
 
-When the check finds no problem, commit and push in a terminal in the
-site folder:
+When `supplement::check_supplement()` with its defaults finds no problem,
+commit and push in a terminal in the site folder:
 
 ```sh
 git add -A

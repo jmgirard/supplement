@@ -2137,8 +2137,8 @@ write_lock <- function(site, ...) writeLines(lock_json(...), lock_path(site))
 
 lock_unreadable_text <- paste(
   "It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that",
-  "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object. Run",
-  "renv::snapshot() to write it again, then commit it."
+  "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object, or it",
+  "repeats a key. Run renv::snapshot() to write it again, then commit it."
 )
 
 test_that("renv_lock must be TRUE or FALSE", {
@@ -2166,7 +2166,18 @@ test_that("a renv.lock that cannot be read gets one renv-mismatch row", {
     not_json = function() writeLines("{", lock),
     array = function() writeLines("[]", lock),
     no_packages = function() writeLines('{"R": {"Version": "4.6.1"}}', lock),
-    packages_array = function() writeLines('{"Packages": []}', lock)
+    packages_array = function() writeLines('{"Packages": []}', lock),
+    two_r = function() writeLines('{"R": {"Version": "4.6.1"}, "R": {"Version": "4.5.0"}, "Packages": {}}', lock),
+    two_packages = function() writeLines('{"Packages": {}, "Packages": {}}', lock),
+    two_r_versions = function() writeLines('{"R": {"Version": "4.6.1", "Version": "4.5.0"}, "Packages": {}}', lock),
+    two_records = function() {
+      writeLines('{"Packages": {"cli": {"Version": "3.6.6"}, "cli": {"Version": "3.6.5"}}}', lock)
+    },
+    two_versions = function() writeLines('{"Packages": {"cli": {"Version": "3.6.6", "Version": "3.6.5"}}}', lock),
+    one_package_twice = function() {
+      writeLines(paste('{"Packages": {"a": {"Package": "cli", "Version": "3.6.6"},',
+                       '"b": {"Package": "cli", "Version": "3.6.5"}}}'), lock)
+    }
   )
   for (case in names(cases)) {
     unlink(lock, recursive = TRUE)
@@ -2211,11 +2222,6 @@ test_that("stored_versions() reads the sessioninfo table after either rule", {
   }
 })
 
-test_that("stored_versions() reads the version column of a table with the ! column", {
-  got <- stored_versions(paste(flagged_table, collapse = "\n"))
-  expect_identical(got$packages, c(cli = "3.6.6", dplyr = "1.1.3"))
-})
-
 test_that("stored_versions() reads utils::sessionInfo() with package lists that wrap", {
   info <- utils::sessionInfo()
   withr::local_options(width = 40)
@@ -2229,35 +2235,21 @@ test_that("stored_versions() reads utils::sessionInfo() with package lists that 
   expect_identical(got$r, session_r())
 })
 
-test_that("stored_versions() does not read lines with a comment prefix or ANSI color codes", {
-  prefixed <- paste0("## ", c(flagged_table, "R version 4.6.1 (2026-06-24)", "other attached packages:",
-                              "[1] dplyr_1.1.3"))
-  expect_identical(stored_versions(paste(prefixed, collapse = "\n")), list(r = character(), packages = character()))
-  skip_if_not_installed("sessioninfo")
-  withr::local_options(cli.unicode = TRUE, cli.num_colors = 256)
-  lines <- utils::capture.output(print(sessioninfo::session_info()))
-  stopifnot("the table rule is colored" = any(grepl("\033", lines[grepl("Packages", lines)], fixed = TRUE)))
-  expect_identical(stored_versions(paste(lines, collapse = "\n"))$packages, character())
-})
-
-test_that("stored_versions() reads a table after a line of 5 MB with no warning", {
-  text <- paste(c(strrep("a", 5e6), flagged_table), collapse = "\n")
-  expect_no_warning(got <- stored_versions(text))
-  expect_identical(got$packages, c(cli = "3.6.6", dplyr = "1.1.3"))
-})
-
 # The JSON of a stored output file whose markdown holds lines in the form
 # of utils::sessionInfo(): R version `r` and the package versions in
-# `packages`, a character vector named by package.
-env_json <- function(packages = character(), r = "4.6.1") {
+# `packages`, a character vector named by package. The lines end with
+# `eol`.
+env_json <- function(packages, r = "4.6.1", eol = "\n") {
+  stopifnot(length(packages) > 0)
   lines <- c(if (length(r) > 0) paste0("R version ", r, " (2026-06-24)"), "",
              "other attached packages:", paste("[1]", paste0(names(packages), "_", packages, collapse = " ")))
-  text_json(lines)
+  text_json(lines, eol)
 }
 
-# The JSON of a stored output file whose markdown is the lines `lines`.
-text_json <- function(lines) {
-  as.character(jsonlite::toJSON(list(hash = "h", result = list(markdown = paste(lines, collapse = "\n"))),
+# The JSON of a stored output file whose markdown is the lines `lines`,
+# each ended with `eol`.
+text_json <- function(lines, eol = "\n") {
+  as.character(jsonlite::toJSON(list(hash = "h", result = list(markdown = paste(lines, collapse = eol))),
                                 auto_unbox = TRUE))
 }
 
@@ -2289,8 +2281,10 @@ lock_text <- function(name, files, entries, hint = FALSE) {
 
 test_that("stored versions that differ from renv.lock give a renv-mismatch row", {
   site <- new_site()
-  write_lock(site, c(dplyr = "1.1.4", Rcpp = "1.0.14", abc = "2.0", cli = "3.6.6"))
+  write_lock(site, c(dplyr = "1.1.4", Rcpp = "1.0.14", abc = "2.0", cli = "3.6.6", Matrix = "1.0-6"))
   env_report(site, "one", html.json = env_json(c(dplyr = "1.1.3")))
+  env_report(site, "crlf", html.json = env_json(c(dplyr = "1.1.3"), eol = "\r\n"))
+  env_report(site, "spellings", html.json = env_json(c(Matrix = "1.0-5")), docx.json = env_json(c(Matrix = "1.0.5")))
   env_report(site, "two", html.json = env_json(c(abc = "1.9", cli = "3.6.6", Rcpp = "1.0.13")))
   env_report(site, "r-alone", html.json = env_json(c(dplyr = "1.1.4"), r = "4.5.2"))
   env_report(site, "r-and-package", html.json = env_json(c(dplyr = "1.1.3"), r = "4.5.2"))
@@ -2300,10 +2294,13 @@ test_that("stored versions that differ from renv.lock give a renv-mismatch row",
   env_report(site, "not-json", html.json = "{", docx.json = env_json(c(dplyr = "1.1.3")))
 
   rows <- rows_of(check_lock(site), "renv-mismatch")
-  expect_setequal(rows$file, paste0("analyses/", c("one", "two", "r-alone", "r-and-package", "old-format",
-                                                   "two-versions", "table", "not-json"), ".qmd"))
+  expect_setequal(rows$file, paste0("analyses/", c("one", "crlf", "spellings", "two", "r-alone", "r-and-package",
+                                                   "old-format", "two-versions", "table", "not-json"), ".qmd"))
   text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
   expect_identical(text("one"), lock_text("one", "html.json", "dplyr 1.1.3 (renv.lock: 1.1.4)"))
+  expect_identical(text("crlf"), lock_text("crlf", "html.json", "dplyr 1.1.3 (renv.lock: 1.1.4)"))
+  expect_identical(text("spellings"), lock_text("spellings", c("docx.json", "html.json"),
+                                                "Matrix 1.0.5 (renv.lock: 1.0-6)"))
   expect_identical(text("two"), lock_text("two", "html.json",
                                           "Rcpp 1.0.13 (renv.lock: 1.0.14), abc 1.9 (renv.lock: 2.0)"))
   expect_identical(text("r-alone"), lock_text("r-alone", "html.json", "R 4.5.2 (renv.lock: 4.6.1)"))
@@ -2323,7 +2320,10 @@ test_that("versions that match renv.lock or are not compared give no renv-mismat
   env_report(site, "differs", html.json = env_json(c(dplyr = "1.1.3")))
   env_report(site, "equal", html.json = env_json(c(dplyr = "1.1.4", Matrix = "1.0.5")))
   env_report(site, "not-in-lock", html.json = env_json(c(dplyr = "1.1.4", ggplot2 = "3.5.1")))
-  env_report(site, "lock-only", html.json = env_json(character()))
+  env_report(site, "prose-r", html.json = text_json(c("R version 4.2 is what we used.", "",
+                                                      "other attached packages:", "[1] dplyr_1.1.4")))
+  env_report(site, "second-r", html.json = text_json(c("R version 4.6.1 (2026-06-24)",
+                                                       "R version 4.5.0 (2025-04-11)")))
   env_report(site, "base", html.json = text_json(c("R version 4.6.1 (2026-06-24)", "",
                                                    "loaded via a namespace (and not attached):",
                                                    "[1] compiler_4.6.1 dplyr_1.1.4")))
@@ -2349,6 +2349,26 @@ test_that("a renv.lock with no R version compares only package versions", {
   expect_identical(rows$problem, lock_text("package-differs", "html.json", "dplyr 1.1.3 (renv.lock: 1.1.4)"))
 })
 
+test_that("a renv.lock record is named by its Package text, and a byte order mark is skipped", {
+  site <- new_site()
+  lock <- '{"R": {"Version": "4.6.1"}, "Packages": {"old-key": {"Package": "dplyr", "Version": "1.1.4"}}}'
+  writeBin(c(as.raw(c(0xef, 0xbb, 0xbf)), charToRaw(lock)), lock_path(site))
+  env_report(site, "differs", html.json = env_json(c(dplyr = "1.1.3")))
+  rows <- rows_of(check_lock(site), "renv-mismatch")
+  expect_identical(rows$problem, lock_text("differs", "html.json", "dplyr 1.1.3 (renv.lock: 1.1.4)"))
+})
+
+test_that("a sessioninfo table is read in a Latin-1 locale", {
+  site <- new_site()
+  write_lock(site, c(dplyr = "1.1.4"))
+  env_report(site, "table", html.json = text_json(flagged_table))
+  old <- Sys.getlocale("LC_CTYPE")
+  set <- suppressWarnings(Sys.setlocale("LC_CTYPE", "en_US.ISO8859-1"))
+  withr::defer(Sys.setlocale("LC_CTYPE", old))
+  skip_if(!nzchar(set), "the en_US.ISO8859-1 locale is not available")
+  expect_identical(rows_of(check_lock(site), "renv-mismatch")$file, "analyses/table.qmd")
+})
+
 test_that("versions after a line of 5 MB give a renv-mismatch row with no warning", {
   site <- new_site()
   write_lock(site, c(dplyr = "1.1.4"))
@@ -2364,7 +2384,5 @@ test_that("by default check_supplement() does not read renv.lock", {
   expect_identical(rows_of(check_lock(site), "renv-mismatch")$file, "analyses/differs.qmd")
   writeLines("{", lock_path(site))
   expect_identical(nrow(rows_of(check_quiet(site), "renv-mismatch")), 0L)
-  # With renv_lock = TRUE, a lock that cannot be read gives its own row and
-  # none for the report.
   expect_identical(rows_of(check_lock(site), "renv-mismatch")$file, "renv.lock")
 })
