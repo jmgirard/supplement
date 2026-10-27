@@ -142,7 +142,8 @@
 #'   version differs when a stored R version is not equal to the `Version`
 #'   under `R`. Versions are compared as [package_version()] values, so
 #'   `1.0-5` equals `1.0.5`. A package that `renv.lock` does not record,
-#'   such as a base package, is not compared. Nor is a version that
+#'   such as a base package, is not compared; the `"renv-missing"` check
+#'   gives a row for such a package that a report attached. Nor is a version that
 #'   [package_version()] cannot read on either side, such as `devel`, or
 #'   the R version when `renv.lock` records none. A development build of R
 #'   prints `R Under development (unstable)`, which the check does not read
@@ -168,10 +169,46 @@
 #'   jsonlite keeps both and renv may read the other. A UTF-8 byte order
 #'   mark at the start of the file is skipped. A package record is named by
 #'   its `Package` text, or by its key when it has none, and a record with
-#'   no `Version` text is left out. A site with no `renv.lock` gets no row,
-#'   and the function says that it skipped the check. Only `renv.lock` in the site folder is read, not the
+#'   no `Version` text is left out of the comparison. A site with no `renv.lock` gets no row,
+#'   and the function says that it skipped this check and the
+#'   `"renv-missing"` check. Only `renv.lock` in the site folder is read, not the
 #'   lockfile of an renv profile. [release_supplement()] does not run this
 #'   check, so its rows never stop a release.
+#' * `"renv-missing"`: only with `renv_lock = TRUE`, a report from the same
+#'   list whose stored output shows that it attached a package that the
+#'   site's `renv.lock` does not name under `Packages`, so
+#'   `renv::restore()` does not install it from `renv.lock`. The check reads the same
+#'   `.json` files, in the same forms, as the `"renv-mismatch"` check. A
+#'   package counts as attached when a line of the sessioninfo package
+#'   table has `*` under the `*` of the table's header line, or when it is
+#'   an entry after `other attached packages:` in `utils::sessionInfo()`
+#'   output. A package that is loaded and not attached, such as knitr
+#'   during a render or a package after
+#'   `loaded via a namespace (and not attached):`, gives no row, since the
+#'   render tools and not the report's code can load it. renv's default
+#'   (implicit) snapshot records the packages that `renv::dependencies()`
+#'   finds in the project, with their dependencies. A package that the
+#'   user's R profile attaches during a render, or that renv's settings
+#'   leave out of `renv.lock`, also gives a row, which `renv::snapshot()`
+#'   and a new render do not clear.
+#'   `renv.lock` names a package when it holds a record under `Packages`
+#'   with that name, whatever its `Version`. A record is named as for the
+#'   `"renv-mismatch"` check, and a record whose name is empty names no
+#'   package. The report gets one row. It names the files that show such a
+#'   package attached, in the same way as the `"renv-mismatch"` row, and
+#'   each such package once, in byte order of name. It says to run
+#'   `renv::snapshot()` and commit `renv.lock`, or, if the report no longer
+#'   uses the packages, to take the render steps. When another of these
+#'   files holds a package table or list and attaches none of them, the row
+#'   also says that these files can be from a format that the report no
+#'   longer renders, with the delete steps of the `"renv-mismatch"` row. A
+#'   report that cannot be read gives no row. When `renv.lock` is missing,
+#'   this check gives no row, and the function says that it skipped it.
+#'   When `renv.lock` cannot be read, this check gives no row, and the one
+#'   `"renv-mismatch"` row for `renv.lock` reports the problem. The
+#'   `"renv-missing"` rows come after the
+#'   `"renv-mismatch"` rows. [release_supplement()] does not run this
+#'   check.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its
@@ -387,7 +424,9 @@
 #'   default, `FALSE`, makes no web request.
 #' @param renv_lock `TRUE` to also compare the R and package versions in the
 #'   stored output of each report with the site's `renv.lock` and give the
-#'   `"renv-mismatch"` rows. The default, `FALSE`, does not read `renv.lock`.
+#'   `"renv-mismatch"` rows, and to give the `"renv-missing"` rows for
+#'   attached packages that `renv.lock` does not name. The default, `FALSE`,
+#'   does not read `renv.lock`.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
@@ -877,12 +916,14 @@ stored_script_hashes <- function(file) {
 
 # renv.lock -------------------------------------------------------------------
 
-# The rows of the renv.lock comparison. A site with no renv.lock gets a
-# message and no row, and a renv.lock that cannot be read gets one row.
+# The rows of the renv.lock comparison: the "renv-mismatch" rows, then the
+# "renv-missing" rows. A site with no renv.lock gets a message and no row,
+# and a renv.lock that cannot be read gets one row.
 check_renv_lock <- function(path) {
   lock <- lock_versions(path)
   if (is.null(lock)) {
-    cli::cli_alert_info("Skipped the {.val renv-mismatch} check: the site has no {.file renv.lock}.")
+    cli::cli_alert_info(paste("Skipped the {.val renv-mismatch} check: the site has no {.file renv.lock}.",
+                              "Skipped the {.val renv-missing} check too."))
     return(problem_rows())
   }
   if (isFALSE(lock)) {
@@ -894,56 +935,100 @@ check_renv_lock <- function(path) {
     ))
   }
   reports <- analysis_reports(path)
-  problem <- vapply(reports, function(report) {
+  problems <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
     dir <- file.path("_freeze", "analyses", name, "execute-results")
     files <- list.files(file.path(path, dir), pattern = "\\.json$")
     files <- files[!startsWith(files, ".") & !dir.exists(file.path(path, dir, files))]
-    found <- lapply(file.path(path, dir, files), function(file) {
+    stored <- lapply(file.path(path, dir, files), function(file) {
       markdown <- stored_markdown(file)
       if (is.null(markdown)) {
-        return(version_diffs(list(r = character(), packages = character()), lock))
+        return(list(r = character(), packages = character(), attached = character(), listed = FALSE))
       }
-      version_diffs(stored_versions(markdown), lock)
+      stored_versions(markdown)
     })
-    differs <- vapply(found, function(x) length(x$r) > 0 || length(x$packages) > 0, logical(1))
+    problem <- c(mismatch_problem(lapply(stored, version_diffs, lock), files, dir, lock),
+                 missing_problem(stored, files, dir, lock))
     # A report that cannot be read, such as a link to a missing file,
     # cannot be rendered again, so it gets no row, as in check_stale_output().
-    if (!any(differs) || is.null(report_hash(report))) {
-      return(NA_character_)
+    if (all(is.na(problem)) || is.null(report_hash(report))) {
+      return(c(NA_character_, NA_character_))
     }
-    # Each version once, so `1.0-5` and `1.0.5` print as one.
-    in_order <- function(v) {
-      v <- v[order(package_version(v))]
-      paste(v[!duplicated(as.character(package_version(v)))], collapse = " and ")
-    }
-    r <- unlist(lapply(found, `[[`, "r"))
-    packages <- unlist(lapply(found, `[[`, "packages"))
-    entries <- c(
-      if (length(r) > 0) paste0("R ", in_order(r), " (renv.lock: ", lock$r, ")"),
-      vapply(sort_bytes(unique(as.character(names(packages)))), function(p) {
-        paste0(p, " ", in_order(packages[names(packages) == p]), " (renv.lock: ", lock$packages[[p]], ")")
-      }, character(1), USE.NAMES = FALSE)
-    )
-    named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")
-    stale <- paste0("Its stored output was made with other versions than renv.lock records, in ", named, ": ",
-                    paste(entries, collapse = ", "), ".")
-    steps <- paste("To use the versions in renv.lock, run renv::restore(), then take these steps.", rerender_steps,
-                   "If the library now holds the versions of the report, run renv::snapshot() and commit",
-                   "renv.lock instead.")
-    matches <- vapply(found, function(x) x$compared, logical(1)) & !differs
-    if (!any(matches)) {
-      return(paste(stale, steps))
-    }
-    # Quarto keeps the file of a format that the report no longer renders.
-    paste(stale,
-          "Other stored output of the report matches renv.lock, so these files can be from a format that the",
-          "report no longer renders. If so, delete them, render the whole site, and commit the report with",
-          "_freeze/, docs/, and figures/.",
-          "If not, take the steps that follow.", steps)
-  }, character(1), USE.NAMES = FALSE)
-  hit <- !is.na(problem)
-  problem_rows("renv-mismatch", file.path("analyses", basename(reports[hit])), problem[hit])
+    problem
+  }, character(2), USE.NAMES = FALSE)
+  files <- file.path("analyses", basename(reports))
+  mismatch <- !is.na(problems[1, ])
+  missing <- !is.na(problems[2, ])
+  rbind(problem_rows("renv-mismatch", files[mismatch], problems[1, mismatch]),
+        problem_rows("renv-missing", files[missing], problems[2, missing]))
+}
+
+# The problem text of the "renv-mismatch" row of a report whose stored
+# output files `files` in `dir` hold the versions `found`, from
+# version_diffs(), or NA when no version differs.
+mismatch_problem <- function(found, files, dir, lock) {
+  differs <- vapply(found, function(x) length(x$r) > 0 || length(x$packages) > 0, logical(1))
+  if (!any(differs)) {
+    return(NA_character_)
+  }
+  # Each version once, so `1.0-5` and `1.0.5` print as one.
+  in_order <- function(v) {
+    v <- v[order(package_version(v))]
+    paste(v[!duplicated(as.character(package_version(v)))], collapse = " and ")
+  }
+  r <- unlist(lapply(found, `[[`, "r"))
+  packages <- unlist(lapply(found, `[[`, "packages"))
+  entries <- c(
+    if (length(r) > 0) paste0("R ", in_order(r), " (renv.lock: ", lock$r, ")"),
+    vapply(sort_bytes(unique(as.character(names(packages)))), function(p) {
+      paste0(p, " ", in_order(packages[names(packages) == p]), " (renv.lock: ", lock$packages[[p]], ")")
+    }, character(1), USE.NAMES = FALSE)
+  )
+  named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")
+  stale <- paste0("Its stored output was made with other versions than renv.lock records, in ", named, ": ",
+                  paste(entries, collapse = ", "), ".")
+  steps <- paste("To use the versions in renv.lock, run renv::restore(), then take these steps.", rerender_steps,
+                 "If the library now holds the versions of the report, run renv::snapshot() and commit",
+                 "renv.lock instead.")
+  matches <- vapply(found, function(x) x$compared, logical(1)) & !differs
+  if (!any(matches)) {
+    return(paste(stale, steps))
+  }
+  # Quarto keeps the file of a format that the report no longer renders.
+  paste(stale,
+        "Other stored output of the report matches renv.lock, so these files can be from a format that the",
+        "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+        "_freeze/, docs/, and figures/.",
+        "If not, take the steps that follow.", steps)
+}
+
+# The problem text of the "renv-missing" row of a report whose stored
+# output files `files` in `dir` hold the versions `stored`, from
+# stored_versions(), or NA when no file shows an attached package that
+# renv.lock does not name. renv::restore() does not install such a package
+# from renv.lock.
+missing_problem <- function(stored, files, dir, lock) {
+  missing <- lapply(stored, function(x) setdiff(x$attached, lock$names))
+  shows <- lengths(missing) > 0
+  if (!any(shows)) {
+    return(NA_character_)
+  }
+  named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[shows])))), collapse = ", ")
+  packages <- paste(sort_bytes(unique(unlist(missing))), collapse = ", ")
+  stale <- paste0("Its stored output shows that the report attached packages that renv.lock does not record, in ",
+                  named, ": ", packages, ".")
+  steps <- paste("renv::restore() does not install them. To record them, run renv::snapshot() and commit",
+                 "renv.lock. If the report no longer uses them, take these steps instead.", rerender_steps)
+  listed <- vapply(stored, function(x) x$listed, logical(1)) & !shows
+  if (!any(listed)) {
+    return(paste(stale, steps))
+  }
+  # Quarto keeps the file of a format that the report no longer renders.
+  paste(stale,
+        "Other stored output of the report attaches none of them, so these files can be from a format that the",
+        "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+        "_freeze/, docs/, and figures/.",
+        "If not, take the steps that follow.", steps)
 }
 
 # The versions in `stored`, from stored_versions(), that differ from those
@@ -968,8 +1053,10 @@ version_diffs <- function(stored, lock) {
 
 # The versions that the site's renv.lock records: NULL when the site has no
 # renv.lock, FALSE when it cannot be read, and otherwise a list of `r`, the
-# R version or NULL, and `packages`, a character vector of versions named
-# by package. A package record with no `Version` text is left out.
+# R version or NULL, `packages`, a character vector of versions named by
+# package, and `names`, the name of each package record. A package record
+# with no `Version` text is left out of `packages` and kept in `names`, and
+# a record whose name is empty is left out of both.
 lock_versions <- function(path) {
   file <- file.path(path, "renv.lock")
   if (!file.exists(file) && !is_link(file)) {
@@ -1016,18 +1103,24 @@ lock_versions <- function(path) {
     return(FALSE)
   }
   r <- text_value(json[["R"]], "Version")
-  list(r = if (!is.na(r)) r, packages = versions[!is.na(versions) & nzchar(names(versions))])
+  list(r = if (!is.na(r)) r, packages = versions[!is.na(versions) & nzchar(names(versions))],
+       names = names(versions)[nzchar(names(versions))])
 }
 
 # The R and package versions that print_environment() printed into stored
-# output text, as a list of `r`, a character vector of R versions, and
-# `packages`, a character vector of versions named by package. It reads the
+# output text, as a list of `r`, a character vector of R versions,
+# `packages`, a character vector of versions named by package, `attached`,
+# the names of the packages that the session attached, and `listed`, TRUE
+# when the text holds a package table or list. It reads the
 # package table after a `─ Packages` or `- Packages` rule of
 # sessioninfo::session_info() and its `version` setting line, and the
 # `R version` line and the two package lists of utils::sessionInfo(). A
-# line that holds an ANSI escape is not read. The patterns that find lines
-# run on the first 200 characters of a line, so a long line stays fast. The
-# entries of a package list are read from the whole line.
+# table line marks an attached package with `*` under the `*` of its
+# header, and utils::sessionInfo() lists them after
+# `other attached packages:`. A line that holds an ANSI escape is not
+# read. The patterns that find lines run on the first 200 characters of a
+# line, so a long line stays fast. The entries of a package list are read
+# from the whole line.
 stored_versions <- function(markdown) {
   lines <- strsplit(markdown, "\n", fixed = TRUE)[[1]]
   cr <- endsWith(lines, "\r")
@@ -1045,11 +1138,15 @@ stored_versions <- function(markdown) {
          if (!is.na(first)) first_word(sub("^R version ", "", head[first])))
 
   packages <- character()
+  attached <- character()
+  listed <- FALSE
   rules <- which(startsWith(head, "\u2500 Packages") | startsWith(head, "- Packages"))
   for (rule in rules[rules < length(head)]) {
     header <- head[rule + 1]
     if (!grepl("^ (! +)?package +\\* +version ", header)) next
+    listed <- TRUE
     name_at <- regexpr("package", header, fixed = TRUE)
+    star_at <- regexpr("*", header, fixed = TRUE)
     version_at <- regexpr("version", header, fixed = TRUE)
     i <- rule + 2
     while (i <= length(head) && nzchar(head[i])) {
@@ -1058,6 +1155,7 @@ stored_versions <- function(markdown) {
       if (grepl("^[A-Za-z][A-Za-z0-9.]*$", name) && nzchar(version)) {
         names(version) <- name
         packages <- c(packages, version)
+        if (substr(head[i], star_at, star_at) == "*") attached <- c(attached, name)
       }
       i <- i + 1
     }
@@ -1065,6 +1163,7 @@ stored_versions <- function(markdown) {
 
   lists <- which(head == "other attached packages:" | head == "loaded via a namespace (and not attached):")
   for (start in lists) {
+    listed <- TRUE
     i <- start + 1
     while (i <= length(head) && grepl("^ *\\[[0-9]+\\] ", head[i])) {
       words <- strsplit(lines[i], " ", fixed = TRUE)[[1]]
@@ -1073,10 +1172,11 @@ stored_versions <- function(markdown) {
       versions <- substring(words, at + 1)
       names(versions) <- substring(words, 1, at - 1)
       packages <- c(packages, versions)
+      if (head[start] == "other attached packages:") attached <- c(attached, names(versions))
       i <- i + 1
     }
   }
-  list(r = r, packages = packages)
+  list(r = r, packages = packages, attached = unique(attached), listed = listed)
 }
 
 # A path between double quotes, with `\` before each `\` and `"` in it, so

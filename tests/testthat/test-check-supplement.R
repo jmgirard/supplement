@@ -2235,6 +2235,34 @@ test_that("stored_versions() reads utils::sessionInfo() with package lists that 
   expect_identical(got$r, session_r())
 })
 
+# flagged_table with `*` under the header's `*` for dplyr, and a `*` in
+# another column for cli.
+attached_table <- c(
+  flagged_table[1:2],
+  "   cli       3.6.6   2026-04-09 [1] CRAN (R 4.6.0) *",
+  " V dplyr   * 1.1.3   2026-01-01 [1] CRAN (R 4.6.0) (on disk 1.1.4)",
+  flagged_table[5:6]
+)
+
+test_that("stored_versions() reads the attached packages of a sessioninfo table", {
+  skip_if_not_installed("sessioninfo")
+  info <- sessioninfo::session_info()
+  stopifnot("a package is attached" = any(info$packages$attached))
+  withr::local_options(cli.unicode = TRUE, cli.num_colors = 1)
+  got <- stored_versions(paste(utils::capture.output(print(info)), collapse = "\n"))
+  expect_setequal(got$attached, info$packages$package[info$packages$attached])
+  expect_identical(stored_versions(paste(attached_table, collapse = "\n"))$attached, "dplyr")
+})
+
+test_that("stored_versions() reads attached packages from other attached packages only", {
+  info <- utils::sessionInfo()
+  stopifnot("a package is attached" = length(info$otherPkgs) > 0)
+  got <- stored_versions(paste(utils::capture.output(print(info)), collapse = "\n"))
+  expect_setequal(got$attached, names(info$otherPkgs))
+  expect_true(got$listed)
+  expect_false(stored_versions("x")$listed)
+})
+
 # The JSON of a stored output file whose markdown holds lines in the form
 # of utils::sessionInfo(): R version `r` and the package versions in
 # `packages`, a character vector named by package. The lines end with
@@ -2385,4 +2413,114 @@ test_that("by default check_supplement() does not read renv.lock", {
   writeLines("{", lock_path(site))
   expect_identical(nrow(rows_of(check_quiet(site), "renv-mismatch")), 0L)
   expect_identical(rows_of(check_lock(site), "renv-mismatch")$file, "renv.lock")
+})
+
+# The problem text of a renv-missing row whose files `files` of report
+# `name` attach the packages `packages`, with the format hint when `hint`
+# is TRUE.
+missing_text <- function(name, files, packages, hint = FALSE) {
+  stale <- paste0("Its stored output shows that the report attached packages that renv.lock does not record, in ",
+                  quoted_paths(name, files), ": ", paste(packages, collapse = ", "), ".")
+  steps <- paste("renv::restore() does not install them. To record them, run renv::snapshot() and commit",
+                 "renv.lock. If the report no longer uses them, take these steps instead.", rerender_steps)
+  if (!hint) {
+    return(paste(stale, steps))
+  }
+  paste(stale,
+        "Other stored output of the report attaches none of them, so these files can be from a format that the",
+        "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+        "_freeze/, docs/, and figures/.",
+        "If not, take the steps that follow.", steps)
+}
+
+# A sessioninfo package table without the `!` column, with dplyr attached.
+plain_table <- c(
+  "─ Packages ──────",
+  " package * version date (UTC) lib source",
+  " cli       3.6.6   2026-04-09 [1] CRAN (R 4.6.0)",
+  " dplyr   * 1.1.4   2026-01-01 [1] CRAN (R 4.6.0)",
+  "",
+  " [1] ~/R/library"
+)
+
+test_that("attached packages that renv.lock does not name give a renv-missing row", {
+  site <- new_site()
+  write_lock(site, c(cli = "3.6.6"))
+  env_report(site, "flagged", html.json = text_json(attached_table))
+  env_report(site, "plain", html.json = text_json(plain_table))
+  env_report(site, "wrapped", html.json = text_json(c("other attached packages:", "[1] tidyr_1.3.1 cli_3.6.6",
+                                                      "[3] dplyr_1.1.4")))
+  env_report(site, "two", html.json = env_json(c(dplyr = "1.1.4")),
+             docx.json = env_json(c(dplyr = "1.1.4", ggplot2 = "3.5.1")))
+  env_report(site, "old-format", html.json = env_json(c(cli = "3.6.6")), docx.json = env_json(c(dplyr = "1.1.4")))
+
+  rows <- rows_of(check_lock(site), "renv-missing")
+  expect_setequal(rows$file, paste0("analyses/", c("flagged", "plain", "wrapped", "two", "old-format"), ".qmd"))
+  text <- function(name) rows$problem[rows$file == paste0("analyses/", name, ".qmd")]
+  expect_identical(text("flagged"), missing_text("flagged", "html.json", "dplyr"))
+  expect_identical(text("plain"), missing_text("plain", "html.json", "dplyr"))
+  expect_identical(text("wrapped"), missing_text("wrapped", "html.json", c("dplyr", "tidyr")))
+  expect_identical(text("two"), missing_text("two", c("docx.json", "html.json"), c("dplyr", "ggplot2")))
+  expect_identical(text("old-format"), missing_text("old-format", "docx.json", "dplyr", hint = TRUE))
+})
+
+test_that("loaded packages and packages that renv.lock names give no renv-missing row", {
+  # Each case gets a planted copy that also attaches tidyr, which no
+  # renv.lock below names, so each case can give the row.
+  cases <- list(
+    table = list(lock = lock_json(), lines = flagged_table),
+    namespace = list(lock = lock_json(), lines = c("loaded via a namespace (and not attached):", "[1] dplyr_1.1.4")),
+    other_version = list(lock = lock_json(c(dplyr = "0.1")), lines = c("other attached packages:", "[1] dplyr_1.1.4")),
+    no_version = list(lock = '{"Packages": {"x": {"Package": "dplyr"}}}',
+                      lines = c("other attached packages:", "[1] dplyr_1.1.4")),
+    key_alone = list(lock = '{"Packages": {"dplyr": {"Version": "1.1.4"}}}',
+                     lines = c("other attached packages:", "[1] dplyr_1.1.4"))
+  )
+  for (case in names(cases)) {
+    site <- new_site()
+    writeLines(cases[[case]]$lock, lock_path(site))
+    lines <- cases[[case]]$lines
+    env_report(site, "case", html.json = text_json(lines))
+    env_report(site, "planted", html.json = text_json(c(lines, "", "other attached packages:", "[1] tidyr_1.3.1")))
+    rows <- rows_of(check_lock(site), "renv-missing")
+    expect_identical(rows$file, "analyses/planted.qmd", info = case)
+    expect_identical(rows$problem, missing_text("planted", "html.json", "tidyr"), info = case)
+  }
+})
+
+test_that("a renv.lock record with an empty name names no package", {
+  site <- new_site()
+  writeLines('{"Packages": {"": {"Version": "1.1.4"}}}', lock_path(site))
+  env_report(site, "attached", html.json = text_json(c("other attached packages:", "[1] dplyr_1.1.4")))
+  expect_identical(rows_of(check_lock(site), "renv-missing")$file, "analyses/attached.qmd")
+})
+
+test_that("no renv-missing row without a readable renv.lock or report, or by default", {
+  site <- new_site()
+  env_report(site, "attached", html.json = text_json(c("other attached packages:", "[1] dplyr_1.1.4")))
+  expect_message(result <- check_supplement(site, renv_lock = TRUE),
+                 "renv\\.lock.\\. Skipped the \"renv-missing\" check too\\.")
+  expect_identical(nrow(rows_of(result, "renv-missing")), 0L)
+
+  writeLines("{", lock_path(site))
+  result <- check_lock(site)
+  rows <- result[result$check %in% c("renv-mismatch", "renv-missing"), , drop = FALSE]
+  expect_identical(paste(rows$check, rows$file), "renv-mismatch renv.lock")
+  expect_identical(rows$problem, lock_unreadable_text)
+
+  write_lock(site)
+  expect_identical(nrow(rows_of(check_quiet(site), "renv-missing")), 0L)
+  symlink_or_skip(file.path(site, "no-such.qmd"), file.path(site, "analyses", "dangling.qmd"))
+  stored_file(site, "dangling", "html.json", text_json(c("other attached packages:", "[1] dplyr_1.1.4")))
+  expect_identical(rows_of(check_lock(site), "renv-missing")$file, "analyses/attached.qmd")
+})
+
+test_that("renv-missing rows follow the renv-mismatch rows, in the order of the reports", {
+  site <- new_site()
+  write_lock(site, c(dplyr = "1.1.4"))
+  for (name in c("a", "b")) env_report(site, name, html.json = env_json(c(dplyr = "1.1.3", tidyr = "1.3.1")))
+  result <- check_lock(site)
+  rows <- result[result$check %in% c("renv-mismatch", "renv-missing"), , drop = FALSE]
+  expect_identical(paste(rows$check, rows$file), c("renv-mismatch analyses/a.qmd", "renv-mismatch analyses/b.qmd",
+                                                   "renv-missing analyses/a.qmd", "renv-missing analyses/b.qmd"))
 })

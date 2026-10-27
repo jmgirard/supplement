@@ -112,6 +112,38 @@ test_that("a rendered report gives a renv-mismatch row against a renv.lock with 
                                     "knitr [0-9.-]+ \\(renv\\.lock: 0\\.0\\.1\\)\\. "))
 })
 
+# The renv-missing rows of a site with a renv.lock that names no package,
+# after rendering report `name` by name with an empty user R profile, so
+# that the profile attaches no package.
+render_missing <- function(site, name) {
+  profile <- withr::local_tempfile()
+  writeLines(character(), profile)
+  withr::local_envvar(R_PROFILE_USER = profile)
+  rendered <- run_in(site, "quarto", c("render", file.path("analyses", paste0(name, ".qmd"))))
+  expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+  writeLines('{"R": {"Version": "4.6.1"}, "Packages": {}}', file.path(site, "renv.lock"))
+  result <- suppressMessages(check_supplement(site, renv_lock = TRUE))
+  result[result$check == "renv-missing", , drop = FALSE]
+}
+
+test_that("a rendered example report gives no renv-missing row against a renv.lock with no package", {
+  skip_if_no_quarto()
+  site <- new_site()
+  expect_identical(nrow(render_missing(site, "example")), 0L)
+})
+
+test_that("a rendered report that attaches jsonlite gives a renv-missing row that names it", {
+  skip_if_no_quarto()
+  site <- new_site()
+  example <- file.path(site, "analyses", "example.qmd")
+  report <- file.path(site, "analyses", "loads.qmd")
+  file.copy(example, report)
+  replace_in_file(report, "source(file.path(site,", "library(jsonlite)\nsource(file.path(site,")
+  rows <- render_missing(site, "loads")
+  expect_identical(rows$file, "analyses/loads.qmd")
+  expect_match(rows$problem, 'in "_freeze/analyses/loads/execute-results/html.json": jsonlite.', fixed = TRUE)
+})
+
 test_that("the stale-output row names the stored output of a dropped format until it is deleted", {
   skip_if_no_quarto()
   site <- new_site()

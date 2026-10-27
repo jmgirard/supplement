@@ -122,8 +122,10 @@ and returns the problems as a data frame, with one row per problem.
 address on the site's pages and gives a row for each one that fails. This
 needs a network, and `release_supplement()` does not run it.
 `supplement::check_supplement(renv_lock = TRUE)` also compares the R and
-package versions in each report's stored output with `renv.lock`, and
-`release_supplement()` does not run that check either.
+package versions in each report's stored output with `renv.lock`. It also
+gives a `"renv-missing"` row for each report that attached a package that
+`renv.lock` does not name. `release_supplement()` does not run these
+checks either.
 `?check_supplement` describes each check and its limits, for example the
 links that it does not test. It finds:
 

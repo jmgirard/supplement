@@ -15,7 +15,9 @@ default, \code{FALSE}, makes no web request.}
 
 \item{renv_lock}{\code{TRUE} to also compare the R and package versions in the
 stored output of each report with the site's \code{renv.lock} and give the
-\code{"renv-mismatch"} rows. The default, \code{FALSE}, does not read \code{renv.lock}.}
+\code{"renv-mismatch"} rows, and to give the \code{"renv-missing"} rows for
+attached packages that \code{renv.lock} does not name. The default, \code{FALSE},
+does not read \code{renv.lock}.}
 }
 \value{
 A data frame with one row per problem and the character columns
@@ -168,7 +170,8 @@ A package differs when one of its stored versions is not equal to the
 version differs when a stored R version is not equal to the \code{Version}
 under \code{R}. Versions are compared as \code{\link[=package_version]{package_version()}} values, so
 \code{1.0-5} equals \verb{1.0.5}. A package that \code{renv.lock} does not record,
-such as a base package, is not compared. Nor is a version that
+such as a base package, is not compared; the \code{"renv-missing"} check
+gives a row for such a package that a report attached. Nor is a version that
 \code{\link[=package_version]{package_version()}} cannot read on either side, such as \code{devel}, or
 the R version when \code{renv.lock} records none. A development build of R
 prints \verb{R Under development (unstable)}, which the check does not read
@@ -194,10 +197,46 @@ that the check reads, such as two records of one package, because
 jsonlite keeps both and renv may read the other. A UTF-8 byte order
 mark at the start of the file is skipped. A package record is named by
 its \code{Package} text, or by its key when it has none, and a record with
-no \code{Version} text is left out. A site with no \code{renv.lock} gets no row,
-and the function says that it skipped the check. Only \code{renv.lock} in the site folder is read, not the
+no \code{Version} text is left out of the comparison. A site with no \code{renv.lock} gets no row,
+and the function says that it skipped this check and the
+\code{"renv-missing"} check. Only \code{renv.lock} in the site folder is read, not the
 lockfile of an renv profile. \code{\link[=release_supplement]{release_supplement()}} does not run this
 check, so its rows never stop a release.
+\item \code{"renv-missing"}: only with \code{renv_lock = TRUE}, a report from the same
+list whose stored output shows that it attached a package that the
+site's \code{renv.lock} does not name under \code{Packages}, so
+\code{renv::restore()} does not install it from \code{renv.lock}. The check reads the same
+\code{.json} files, in the same forms, as the \code{"renv-mismatch"} check. A
+package counts as attached when a line of the sessioninfo package
+table has \code{*} under the \code{*} of the table's header line, or when it is
+an entry after \verb{other attached packages:} in \code{utils::sessionInfo()}
+output. A package that is loaded and not attached, such as knitr
+during a render or a package after
+\verb{loaded via a namespace (and not attached):}, gives no row, since the
+render tools and not the report's code can load it. renv's default
+(implicit) snapshot records the packages that \code{renv::dependencies()}
+finds in the project, with their dependencies. A package that the
+user's R profile attaches during a render, or that renv's settings
+leave out of \code{renv.lock}, also gives a row, which \code{renv::snapshot()}
+and a new render do not clear.
+\code{renv.lock} names a package when it holds a record under \code{Packages}
+with that name, whatever its \code{Version}. A record is named as for the
+\code{"renv-mismatch"} check, and a record whose name is empty names no
+package. The report gets one row. It names the files that show such a
+package attached, in the same way as the \code{"renv-mismatch"} row, and
+each such package once, in byte order of name. It says to run
+\code{renv::snapshot()} and commit \code{renv.lock}, or, if the report no longer
+uses the packages, to take the render steps. When another of these
+files holds a package table or list and attaches none of them, the row
+also says that these files can be from a format that the report no
+longer renders, with the delete steps of the \code{"renv-mismatch"} row. A
+report that cannot be read gives no row. When \code{renv.lock} is missing,
+this check gives no row, and the function says that it skipped it.
+When \code{renv.lock} cannot be read, this check gives no row, and the one
+\code{"renv-mismatch"} row for \code{renv.lock} reports the problem. The
+\code{"renv-missing"} rows come after the
+\code{"renv-mismatch"} rows. \code{\link[=release_supplement]{release_supplement()}} does not run this
+check.
 \item \code{"leftover-output"}: a folder directly in \verb{_freeze/analyses/}, whose
 name does not start with \code{.}, that no file or folder in \verb{analyses/}
 names. A name in \verb{analyses/} names the folder when, cut before its
