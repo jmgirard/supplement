@@ -270,6 +270,21 @@ test_that("a stale-output row from the real check stops the release", {
   expect_identical(site_version(site), "1.0.0")
 })
 
+test_that("the release runs the real check without the web link check", {
+  skip_if_no_git()
+  site <- checked_site()
+  writeLines('<a href="https://example.org/x">x</a>', file.path(site, "docs", "index.html"))
+  calls <- new.env()
+  calls$n <- 0L
+  local_mocked_bindings(url_status = function(url) {
+    calls$n <- calls$n + 1L
+    404L
+  })
+  release("1.0.0", path = site)
+  expect_identical(site_version(site), "1.0.0")
+  expect_identical(calls$n, 0L)
+})
+
 test_that("an ignored-output or an unpublished-figure row from the real check stops the release", {
   skip_if_no_git()
   put <- function(site, file) {

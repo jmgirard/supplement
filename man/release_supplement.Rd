@@ -38,7 +38,8 @@ version, compared part by part as numbers, so \verb{1.10.0} is greater than
 }
 
 The function stops, and changes no file, when \code{\link[=check_supplement]{check_supplement()}}
-finds a problem or skips its git checks. A \code{"doi-mismatch"} problem for
+finds a problem or skips its git checks. It runs the check without
+\code{web_links}, so it requests no web address. A \code{"doi-mismatch"} problem for
 \code{CITATION.cff} does not stop it, because the release writes that file
 again. A change to \verb{_supplement.yml}, \code{CITATION.cff}, or \code{.zenodo.json}
 during the check also stops it, as described below.

@@ -189,7 +189,8 @@
 #'   link or junction that resolves to `docs/` or a place in it gives no row
 #'   of its own. Links
 #'   that start with `/`, `#`, or a scheme such as
-#'   `https:` are not checked, and no web address is requested. GitHub
+#'   `https:` are not checked here. Only the `"web-link"` check, with
+#'   `web_links = TRUE`, requests web addresses. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
 #'   name counts as broken, also on a disk that ignores case. A link that
 #'   also differs from the name in Unicode form (for example `é` written
@@ -238,6 +239,28 @@
 #'   its `>` ends the tag, so an unquoted value keeps the `<e9` part and
 #'   the later attributes of that tag are not read. A second attribute of
 #'   the same name is also read.
+#' * `"web-link"`: only with `web_links = TRUE`, a web address on a page in
+#'   `docs/` that fails. The check reads the same pages and values as the
+#'   `"broken-link"` check, in the same way, and keeps each value that
+#'   starts with `http:` or `https:` in any letter case, with any `#` part
+#'   removed. So the cases above where that check reads a page differently
+#'   from a browser apply here too: a reference such as `&eacute;` stays as
+#'   written, and the address is requested with it. A link that starts with
+#'   `//` has no scheme and is not requested. A space in an address is sent
+#'   as `%20`, as a browser sends it. A page that the `"broken-link"` check
+#'   cannot read gives no `"web-link"` row. Each address is requested once
+#'   (addresses that differ only in letter case count as two), one after
+#'   another, with a HEAD request that follows redirects and waits up to 10
+#'   seconds. A site with many addresses can take minutes.
+#'   An address gets a row when the request fails, such as for an unknown
+#'   host, a timeout, or a certificate error, or when the last response has
+#'   a status of 400 or above. The row names
+#'   the first page, in byte order of path, that links the address. For
+#'   status 401, 403, 405, or 429, the row says that the server refused the
+#'   check's request and that the link can still work in a browser, since
+#'   some servers answer a script or a HEAD request that way.
+#'   [release_supplement()] does not run this check, so its rows never
+#'   stop a release.
 #' * `"unpublished-figure"`: a paper figure that the last render did not
 #'   copy into `docs/`. The check takes each regular file in `figures/`, and
 #'   in the folders in it, that is reached without passing through a
@@ -305,6 +328,9 @@
 #' it skips these three checks and says so.
 #'
 #' @param path The folder of the site.
+#' @param web_links `TRUE` to also request each web address on the pages in
+#'   `docs/` and give the `"web-link"` rows. This needs a network. The
+#'   default, `FALSE`, makes no web request.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
@@ -316,7 +342,8 @@
 #' The function stops with an error of class `supplement_error` and one of
 #' these classes:
 #'
-#' * `supplement_error_argument`: `path` is not a single non-empty string.
+#' * `supplement_error_argument`: `path` is not a single non-empty string,
+#'   or `web_links` is not `TRUE` or `FALSE`.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 #' * `supplement_error_parse`: the yaml package cannot read
 #'   `_supplement.yml`, as for [write_citation()].
@@ -335,8 +362,14 @@
 #' problems <- check_supplement(site)
 #' problems$check
 #' unlink(site, recursive = TRUE)
-check_supplement <- function(path = ".") {
+check_supplement <- function(path = ".", web_links = FALSE) {
   check_path(path)
+  if (!isTRUE(web_links) && !isFALSE(web_links)) {
+    cli::cli_abort(
+      "{.arg web_links} must be {.code TRUE} or {.code FALSE}.",
+      class = c("supplement_error_argument", "supplement_error")
+    )
+  }
   path <- drop_trailing_sep(path)
   meta <- read_supplement(path)
 
@@ -350,6 +383,7 @@ check_supplement <- function(path = ".") {
     check_leftover_output(path),
     check_missing_script(path),
     check_links(path),
+    if (web_links) check_web_links(path),
     check_unpublished_figures(path),
     check_dois(path, meta, call = environment()),
     check_placeholders(path, meta)
@@ -559,13 +593,18 @@ plain_paths <- function(path, files) {
   !vapply(prefixes, function(p) any(p %in% linked), logical(1))
 }
 
-# Strings in byte order, which does not depend on the locale. The radix
-# sort stops on a string with no encoding mark that is not valid UTF-8, so
-# the sort keys are marked as bytes.
+# Strings in byte order, which does not depend on the locale.
 sort_bytes <- function(x) {
+  x[order_bytes(x)]
+}
+
+# The order of strings in bytes. The radix sort stops on a string with no
+# encoding mark that is not valid UTF-8, so the sort keys are marked as
+# bytes.
+order_bytes <- function(x) {
   keys <- x
   Encoding(keys) <- "bytes"
-  x[order(keys, method = "radix")]
+  order(keys, method = "radix")
 }
 
 # Stored output ---------------------------------------------------------------
@@ -967,13 +1006,7 @@ check_links <- function(path) {
   entries <- docs_entries(docs)
   root <- docs_root(docs)
   outside <- outside_links(root, entries$links)
-  # A page that a link outside docs/ points to is not in the published
-  # site, so it is not read.
-  # useBytes keeps a name that is not valid UTF-8 in the match.
-  html <- grepl("\\.html$", entries$files, useBytes = TRUE)
-  # The walk lists a folder's files before its subfolders, so sort the
-  # pages by path, in byte order.
-  pages <- sort_bytes(entries$files[html & !(entries$files %in% outside)])
+  pages <- site_pages(entries, outside)
   rows <- lapply(pages, function(page) {
     links <- page_links(file.path(docs, page))
     if (is.null(links)) {
@@ -1004,6 +1037,17 @@ check_links <- function(path) {
             length(outside))
   )
   do.call(rbind, c(list(outside_rows), rows))
+}
+
+# The .html pages among the files of docs_entries(), in byte order of path.
+# A page that a link outside docs/ points to (`outside`) is not in the
+# published site, so it is left out.
+site_pages <- function(entries, outside) {
+  # useBytes keeps a name that is not valid UTF-8 in the match.
+  html <- grepl("\\.html$", entries$files, useBytes = TRUE)
+  # The walk lists a folder's files before its subfolders, so sort the
+  # pages by path, in byte order.
+  sort_bytes(entries$files[html & !(entries$files %in% outside)])
 }
 
 # The files in `docs`, hidden ones included, and its links (symbolic links,
@@ -1071,6 +1115,17 @@ utf8_lower <- function(x) {
 # tag_links(), such as a PCRE match limit, which makes gsub() return its
 # input unchanged.
 page_links <- function(file) {
+  values <- page_values(file)
+  if (!is.character(values)) {
+    return(values)
+  }
+  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
+  unique(values[!skip])
+}
+
+# Every href, src, and xlink:href value on a page, decoded and trimmed, each
+# once, or NULL or FALSE as for page_links().
+page_values <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
     return(NULL)
@@ -1086,8 +1141,99 @@ page_links <- function(file) {
   # parser does.
   values <- gsub("^[\t\n\f\r ]+|[\t\n\f\r ]+$", "", values, perl = TRUE)
   values <- gsub("[\t\n\r]", "", values)
-  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
-  unique(values[!skip])
+  unique(values)
+}
+
+# Web links -------------------------------------------------------------------
+
+# The http and https addresses on the pages that check_links() reads, each
+# once and with any fragment removed, as a data frame with the columns
+# `address` and `page`, the first page in byte order that holds it. A page
+# that page_values() cannot read is left out; check_links() gives its row.
+web_addresses <- function(path) {
+  docs <- file.path(path, "docs")
+  if (!dir.exists(docs)) {
+    return(web_addresses_none())
+  }
+  entries <- docs_entries(docs)
+  pages <- site_pages(entries, outside_links(docs_root(docs), entries$links))
+  found <- lapply(pages, function(page) {
+    values <- page_values(file.path(docs, page))
+    if (!is.character(values)) {
+      return(NULL)
+    }
+    web <- unique(sub("#.*$", "", values[grepl("^[Hh][Tt][Tt][Pp][Ss]?:", values)]))
+    data.frame(address = web, page = rep_len(page, length(web)), stringsAsFactors = FALSE)
+  })
+  found <- do.call(rbind, c(list(web_addresses_none()), found))
+  found <- found[!duplicated(found$address), , drop = FALSE]
+  rownames(found) <- NULL
+  found
+}
+
+web_addresses_none <- function() data.frame(address = character(), page = character(), stringsAsFactors = FALSE)
+
+# A web-link row for each address that web_addresses() finds and whose
+# request fails or gives a status of 400 or above, in byte order of address. The
+# addresses are requested one after another.
+check_web_links <- function(path) {
+  found <- web_addresses(path)
+  if (nrow(found) == 0) {
+    return(NULL)
+  }
+  found <- found[order_bytes(found$address), , drop = FALSE]
+  cli::cli_alert_info("Requesting {nrow(found)} web address{?es}, one at a time.")
+  problems <- vapply(found$address, function(url) web_problem(url, url_status(url)), character(1),
+                     USE.NAMES = FALSE)
+  bad <- !is.na(problems)
+  problem_rows("web-link", file.path("docs", found$page[bad]), problems[bad])
+}
+
+# Statuses that a server can give this check where a browser, perhaps
+# after a login, gets the page: it can ask for a login, refuse the HEAD
+# request, or limit the number of requests.
+refused_statuses <- c(401L, 403L, 405L, 429L)
+
+# The problem text for `url` from its url_status() result, or NA when the
+# address works.
+web_problem <- function(url, result) {
+  if (is.character(result)) {
+    return(sprintf("The page links to `%s`, which could not be requested: %s", url, result))
+  }
+  # libcurl gives status 0 when no HTTP status came.
+  if (!is.numeric(result) || length(result) != 1 || is.na(result) || result < 100) {
+    return(sprintf("The page links to `%s`, whose response had no HTTP status.", url))
+  }
+  if (result < 400) {
+    return(NA_character_)
+  }
+  text <- sprintf("The page links to `%s`, which gave HTTP status %d.", url, as.integer(result))
+  if (result %in% refused_statuses) {
+    text <- paste(text, "The server refused the check's request, so the link can still work in a browser.",
+                  "Open it in a browser to see.")
+  }
+  text
+}
+
+# Base R's curlGetHeaders(), bound here so that tests can mock it. A call
+# skips this NULL and finds the base function.
+curlGetHeaders <- NULL
+
+# The seconds that url_status() waits for each address.
+web_timeout <- 10L
+
+# The HTTP status of the last response to a HEAD request for `url`, after
+# redirects, or the error message when the request fails, such as for an
+# unknown host, a timeout, or a certificate error. libcurl breaks its
+# messages with a line break and a tab, so each run of spaces becomes one
+# space. libcurl refuses a space in an address, which a browser sends as
+# %20.
+url_status <- function(url) {
+  tryCatch(
+    attr(curlGetHeaders(gsub(" ", "%20", url, fixed = TRUE), redirect = TRUE, timeout = web_timeout),
+         "status"),
+    error = function(e) trimws(gsub("[[:space:]]+", " ", conditionMessage(e)))
+  )
 }
 
 # Parts of the patterns that read start tags, after the HTML standard's

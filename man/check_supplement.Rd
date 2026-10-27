@@ -4,10 +4,14 @@
 \alias{check_supplement}
 \title{Check a supplement site before a release}
 \usage{
-check_supplement(path = ".")
+check_supplement(path = ".", web_links = FALSE)
 }
 \arguments{
 \item{path}{The folder of the site.}
+
+\item{web_links}{\code{TRUE} to also request each web address on the pages in
+\verb{docs/} and give the \code{"web-link"} rows. This needs a network. The
+default, \code{FALSE}, makes no web request.}
 }
 \value{
 A data frame with one row per problem and the character columns
@@ -207,7 +211,8 @@ a folder, the folder's \code{index.html} is part of that path. A symbolic
 link or junction that resolves to \verb{docs/} or a place in it gives no row
 of its own. Links
 that start with \code{/}, \verb{#}, or a scheme such as
-\verb{https:} are not checked, and no web address is requested. GitHub
+\verb{https:} are not checked here. Only the \code{"web-link"} check, with
+\code{web_links = TRUE}, requests web addresses. GitHub
 Pages matches letter case, so a link whose case differs from the file
 name counts as broken, also on a disk that ignores case. A link that
 also differs from the name in Unicode form (for example \code{é} written
@@ -256,6 +261,28 @@ valid UTF-8 is read as text such as \verb{<e9>}; outside a quoted value,
 its \code{>} ends the tag, so an unquoted value keeps the \verb{<e9} part and
 the later attributes of that tag are not read. A second attribute of
 the same name is also read.
+\item \code{"web-link"}: only with \code{web_links = TRUE}, a web address on a page in
+\verb{docs/} that fails. The check reads the same pages and values as the
+\code{"broken-link"} check, in the same way, and keeps each value that
+starts with \verb{http:} or \verb{https:} in any letter case, with any \verb{#} part
+removed. So the cases above where that check reads a page differently
+from a browser apply here too: a reference such as \verb{&eacute;} stays as
+written, and the address is requested with it. A link that starts with
+\verb{//} has no scheme and is not requested. A space in an address is sent
+as \verb{\%20}, as a browser sends it. A page that the \code{"broken-link"} check
+cannot read gives no \code{"web-link"} row. Each address is requested once
+(addresses that differ only in letter case count as two), one after
+another, with a HEAD request that follows redirects and waits up to 10
+seconds. A site with many addresses can take minutes.
+An address gets a row when the request fails, such as for an unknown
+host, a timeout, or a certificate error, or when the last response has
+a status of 400 or above. The row names
+the first page, in byte order of path, that links the address. For
+status 401, 403, 405, or 429, the row says that the server refused the
+check's request and that the link can still work in a browser, since
+some servers answer a script or a HEAD request that way.
+\code{\link[=release_supplement]{release_supplement()}} does not run this check, so its rows never
+stop a release.
 \item \code{"unpublished-figure"}: a paper figure that the last render did not
 copy into \verb{docs/}. The check takes each regular file in \verb{figures/}, and
 in the folders in it, that is reached without passing through a
@@ -329,7 +356,8 @@ it skips these three checks and says so.
 The function stops with an error of class \code{supplement_error} and one of
 these classes:
 \itemize{
-\item \code{supplement_error_argument}: \code{path} is not a single non-empty string.
+\item \code{supplement_error_argument}: \code{path} is not a single non-empty string,
+or \code{web_links} is not \code{TRUE} or \code{FALSE}.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
 \item \code{supplement_error_parse}: the yaml package cannot read
 \verb{_supplement.yml}, as for \code{\link[=write_citation]{write_citation()}}.

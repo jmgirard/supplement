@@ -1953,3 +1953,167 @@ test_that("the example report's row names its stored output", {
     "in _freeze/analyses/example/, and make the Analyses menu in _quarto.yml list your own reports."
   ))
 })
+
+# Web links -------------------------------------------------------------------
+
+# A site whose pages hold web addresses of each kind that the check reads
+# or leaves out. The page locked.html cannot be read and bad.html makes
+# tag_links() warn, so the addresses only on them are not requested.
+web_site <- function(env = parent.frame()) {
+  site <- new_site(env)
+  write_page(site, "index.html", c(
+    '<a href="https://example.org/a">a</a>',
+    '<a href="https://example.org/a#part">a with a fragment</a>',
+    '<img src="http://example.org/b.png">',
+    '<a href="https://example.org/q?x=1&amp;y=2">query</a>',
+    '<a href="HTTPS://example.org/C">upper-case scheme</a>',
+    '<a href=" https://example.org/d\n">spaces</a>',
+    '<a href="data/x.csv">relative</a>',
+    '<a href="mailto:a@example.org">mail</a>',
+    '<a href="ftp://example.org/f">ftp</a>'
+  ))
+  write_page(site, "analyses/report.html", c(
+    '<a href="https://example.org/a">a again</a>',
+    '<a href="https://example.org/e">e</a>'
+  ))
+  write_page(site, "locked.html", '<a href="https://example.org/locked">x</a>')
+  write_page(site, "bad.html", '<a href="https://example.org/bad">x</a>')
+  real_read <- read_page_text
+  real_tags <- tag_links
+  local_mocked_bindings(
+    read_page_text = function(file) if (basename(file) == "locked.html") NULL else real_read(file),
+    tag_links = function(html) {
+      if (grepl("example.org/bad", html, fixed = TRUE)) warning("PCRE error 'match limit exceeded'")
+      real_tags(html)
+    },
+    .env = env
+  )
+  site
+}
+
+web_expected <- c(
+  "https://example.org/a" = "analyses/report.html",
+  "https://example.org/e" = "analyses/report.html",
+  "http://example.org/b.png" = "index.html",
+  "https://example.org/q?x=1&y=2" = "index.html",
+  "HTTPS://example.org/C" = "index.html",
+  "https://example.org/d" = "index.html"
+)
+
+test_that("web addresses are read once each, with the first page in byte order", {
+  site <- web_site()
+  found <- web_addresses(site)
+  expect_false(anyDuplicated(found$address) > 0)
+  expect_setequal(found$address, names(web_expected))
+  expect_identical(stats::setNames(found$page, found$address)[names(web_expected)], web_expected)
+})
+
+test_that("a site with no docs folder has no web addresses", {
+  expect_identical(nrow(web_addresses(new_site())), 0L)
+})
+
+check_quiet_web <- function(path, web_links) suppressMessages(check_supplement(path, web_links = web_links))
+
+# Mock url_status() to record each address it gets and return
+# `result(address)`.
+mock_status <- function(result = function(url) 200L, env = parent.frame()) {
+  calls <- new.env()
+  calls$urls <- character()
+  local_mocked_bindings(url_status = function(url) {
+    calls$urls <- c(calls$urls, url)
+    result(url)
+  }, .env = env)
+  calls
+}
+
+# A site whose index.html links each name of `results`, and the web-link
+# rows when url_status() gives each address its value in `results`.
+web_rows_for <- function(results, env = parent.frame()) {
+  site <- new_site(env)
+  write_page(site, "index.html", sprintf('<a href="%s">x</a>', names(results)))
+  mock_status(function(url) results[[url]], env = env)
+  suppressMessages(check_web_links(site))
+}
+
+test_that("each address that fails gives one web-link row on its first page", {
+  results <- list(
+    "https://example.org/500" = 500L, "https://example.org/200" = 200L, "https://example.org/301" = 301L,
+    "https://example.org/399" = 399L, "https://example.org/404" = 404L, "https://example.org/400" = 400L,
+    "https://example.org/error" = "libcurl error code 6: Could not resolve host: example.invalid"
+  )
+  site <- new_site()
+  write_page(site, "index.html", sprintf('<a href="%s">x</a>', names(results)))
+  write_page(site, "analyses/report.html", '<a href="https://example.org/404">x</a>')
+  mock_status(function(url) results[[url]])
+  rows <- suppressMessages(check_web_links(site))
+  failing <- c("https://example.org/400", "https://example.org/404", "https://example.org/500",
+               "https://example.org/error")
+  expect_identical(rows$check, rep("web-link", 4))
+  expect_identical(rows$file, c("docs/index.html", "docs/analyses/report.html", "docs/index.html",
+                                "docs/index.html"))
+  for (i in seq_along(failing)) expect_match(rows$problem[i], paste0("`", failing[i], "`"), fixed = TRUE)
+  for (i in 1:3) expect_match(rows$problem[i], paste("status", c(400, 404, 500)[i]), fixed = TRUE)
+  expect_match(rows$problem[4], "could not be requested: libcurl error code 6: Could not resolve host", fixed = TRUE)
+})
+
+test_that("a row for a status that servers give scripts says the link can work in a browser", {
+  refused <- "The server refused the check's request, so the link can still work in a browser."
+  results <- list(
+    "https://example.org/401" = 401L, "https://example.org/403" = 403L, "https://example.org/405" = 405L,
+    "https://example.org/429" = 429L, "https://example.org/404" = 404L,
+    "https://example.org/error" = "Operation timed out"
+  )
+  rows <- web_rows_for(results)
+  says <- grepl(refused, rows$problem, fixed = TRUE)
+  names(says) <- regmatches(rows$problem, regexpr("https://example.org/[a-z0-9]+", rows$problem))
+  expect_identical(says[names(results)], c(
+    "https://example.org/401" = TRUE, "https://example.org/403" = TRUE, "https://example.org/405" = TRUE,
+    "https://example.org/429" = TRUE, "https://example.org/404" = FALSE, "https://example.org/error" = FALSE
+  ))
+})
+
+test_that("a status of 0 or none gives the no-status row", {
+  for (result in list(0L, NA_integer_, NULL)) {
+    expect_match(web_problem("https://example.org/x", result), "had no HTTP status", fixed = TRUE)
+  }
+})
+
+test_that("web_links must be TRUE or FALSE", {
+  site <- new_site()
+  for (bad in list(NA, c(TRUE, TRUE), "TRUE", 1, NULL)) {
+    expect_error(check_quiet_web(site, bad), class = "supplement_error_argument")
+  }
+})
+
+test_that("by default check_supplement() requests no web address", {
+  site <- web_site()
+  local_mocked_bindings(url_status = function(url) stop("url_status() was called"))
+  expect_identical(nrow(rows_of(check_quiet(site), "web-link")), 0L)
+})
+
+test_that("web_links = TRUE requests each web address on the pages once", {
+  site <- web_site()
+  calls <- mock_status()
+  check_quiet_web(site, TRUE)
+  expect_setequal(calls$urls, names(web_expected))
+  expect_false(anyDuplicated(calls$urls) > 0)
+})
+
+test_that("url_status() follows redirects with a timeout and gives the status or the error message", {
+  got <- NULL
+  local_mocked_bindings(curlGetHeaders = function(url, ...) {
+    got <<- list(url = url, ...)
+    structure("HTTP/2 404", status = 404L)
+  })
+  expect_identical(url_status("https://example.org/x"), 404L)
+  expect_identical(got$url, "https://example.org/x")
+  expect_true(got$redirect)
+  expect_true(is.numeric(got$timeout) && length(got$timeout) == 1 && got$timeout > 0)
+  first <- got$timeout
+  url_status("https://example.org/a b")
+  expect_identical(got$url, "https://example.org/a%20b")
+  expect_identical(got$timeout, first)
+
+  local_mocked_bindings(curlGetHeaders = function(url, ...) stop("libcurl error code 6:\n\tno host\n"))
+  expect_identical(url_status("https://example.org/x"), "libcurl error code 6: no host")
+})
