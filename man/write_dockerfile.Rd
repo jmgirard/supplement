@@ -77,6 +77,9 @@ name \code{default}, an empty name, or no name means no profile, and the
 lockfile is \code{renv.lock} in the site folder. With a profile, the lockfile
 is \verb{renv/profiles/<name>/renv.lock}, and the function prints a message
 that names the lockfile, the profile, and where the name came from.
+When \code{RENV_PROFILE} and the first line of \code{renv/profile} give the same
+name, as in an R session that the site's \code{renv/activate.R} started,
+because it copies that line into \code{RENV_PROFILE}, the message names both.
 
 With a profile, the \code{.dockerignore} lets that lockfile into the image.
 The \code{Dockerfile} copies it to the same path and sets the \code{RENV_PROFILE}
