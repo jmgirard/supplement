@@ -2,7 +2,7 @@
      section ownership". A phase skill never rewrites another phase's section. -->
 # M066: Read the lockfile of the active renv profile
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -71,3 +71,47 @@ With `renv_lock = TRUE`, `check_supplement()` compares the stored output of each
 - 2026-10-27: T3 done: the `check_supplement()` help gives the profile rule in a paragraph of the "renv-mismatch" item and a sentence in `renv_lock`, NEWS.md, GUIDE.md, and DESIGN.md name the profile lockfile, and `devtools::document()` rewrote `man/check_supplement.Rd`. The AC5 grep finds nothing. Checkpoint before the full `devtools::test()` and `devtools::check()` run of T4, which is still running.
 - 2026-10-27: claim audit: 34 claims read, 3 corrected — R/check-supplement.R (the `lock_source()` header now names `renv_paths_lockfile()` for the path, the `lock_versions()` header says a link to a missing file gives FALSE, and the folder comment no longer claims behavior on other systems). Unchecked here: the Windows `file.exists()` claim, which rests on the 2026-10-19 (M018) lesson.
 - 2026-10-27: T4 done: `devtools::test()` gave 460 tests, 0 failed, 10 skipped. `devtools::check()` gave 0 errors, 0 warnings, 1 note (the local `.claude` folder), both on 4303d92. 4bf6640 changed only plain comments, and `devtools::document()` then left no diff. Status set to review.
+- 2026-10-27: review return 1: AC1 fails for the `dots` case, whose name `../..` picks `renv.lock` itself, so `renv.lock` and the profile's lockfile cannot record different versions. The case needs a `..` name that resolves to another profile's lockfile. The same pass settled ten other findings as fix now (see Review, pass 1), which this return also carries.
+
+## Decisions
+
+## Review
+
+Pass 1 (2026-10-27, branch head 4bf6640 plus b339d4d):
+
+- spawned: diff-bug, blame-history, prior-review, ripple
+- AC1: not verified. The `dots` case of "the renv.lock check reads the lockfile of the renv profile that renv picks" uses the name `../..`, whose lockfile is `renv.lock` itself, so the two files cannot record different versions as AC1 requires (diff-bug #10). Returned to implement.
+- gate: `cairn_validate.py` passed every check. `pkgdown::check_pkgdown()` found no problems. NEWS.md has the entry. No new top-level file. README.md has no README.Rmd source.
+- check: with `RENV_PROFILE=dev` set outside, `test-check-supplement.R` gave 123 tests, 0 failed, and the variable read `dev` again after the file, so the file-level unset holds.
+- diff-bug #1: the `file` column of the unreadable-lockfile row is the raw path, and a profile name that is not UTF-8 makes `report_problems()` stop with "input string 1 is invalid UTF-8" — fix now.
+- diff-bug #2: no test uses a profile name that is not UTF-8 — fix now, as the regression test of #1 (Linux only, as at test-check-supplement.R:745).
+- diff-bug #3: on Linux renv reads a `renv/profile` folder as no profile, while the check gives a row — reject, planned change: AC4 asks for the row on every system.
+- diff-bug #4: a line break in `RENV_PROFILE` shows as a space in the message — follow-up, new row "Show odd renv profile paths in messages".
+- diff-bug #5: on Windows a `renv/profile` link to a missing file gives the unreadable row, untested there — reject, false: the help covers it as a file that cannot be opened, and renv also fails there.
+- diff-bug #6: a name ending in `/` shows `renv/profiles/dev//renv.lock` — reject, planned change: the help says the name is joined as given, and it is the same file.
+- diff-bug #7: several AC1 cases run the same code path — reject, planned change: AC1 names each case.
+- diff-bug #8: the AC3 test asserts the skip message by regex after an exact check — reject, planned change: AC3 asks for a test with `renv.lock` present, a setup the exact check does not have.
+- diff-bug #9: the case named `variable` has no variable and no file — fix now (rename).
+- diff-bug #10: the `../..` case cannot show which file was read — fix now, through the return (a `..` name that resolves to another profile's lockfile).
+- diff-bug #11: no test asserts that no profile gives no "Picked" message — fix now.
+- diff-bug #12: `lock_messages()` leaves `cli.hyperlink` unset, so a user setting adds link codes — fix now.
+- diff-bug #13: `{.file}` links resolve against the working directory, not the site, as `{.file renv.lock}` did on main — follow-up, the row "Show odd renv profile paths in messages".
+- diff-bug #14: one `RENV_PROFILE` applies to every site checked in a session — reject, planned change: the help says the check reads the session's variable, as renv does.
+- diff-bug #15: test-add-render.R unsets `RENV_PROFILE` after its render — reject, false: that site has no renv, so the render does not read the variable.
+- blame-history #1: `write_dockerfile()` still reads only `renv.lock` — follow-up, the row "Write Dockerfiles from profile lockfiles".
+- blame-history #2: the branch removes the M064 limit sentence — reject, planned change.
+- blame-history #3: README.md and vignettes/publishing.Rmd name `renv.lock` with no profile case — fix now.
+- blame-history #4: the profile rule has no D-entry — reject, planned change: the choice is local to this check, and D-032's opt-in still holds.
+- prior-review #1: a BOM in `renv/profile` becomes part of the name — reject, planned change: renv's `readLines()` keeps it too, and AC1 follows renv.
+- prior-review #2: test-add-render.R unsets `RENV_PROFILE` after its render — reject, false, as diff-bug #15.
+- prior-review #3: the unreadable-lockfile row's `file` column is not passed through `show_text()` — fix now, as diff-bug #1.
+- prior-review #4: the help's renv claims were not checked against renv — reject, false: the claim audit read them against renv 1.3.1.
+- prior-review #5: the name is untrimmed and accepts `..` — reject, planned change.
+- ripple #1: ROADMAP.md says the check reads only `renv.lock` — reject, planned change: hygiene graduates that row.
+- ripple #2: DESIGN.md says `check_renv_lock()` reads the site's `renv.lock` — fix now.
+- ripple #3: vignettes/publishing.Rmd names only `renv.lock` — fix now, as blame-history #3.
+- ripple #4: GUIDE.md's profile paragraph does not say it covers the renv-mismatch steps above it — fix now.
+- ripple #5: GUIDE.md's release-check list names only `renv.lock` — fix now.
+- ripple #6: README.md names only `renv.lock` — fix now, as blame-history #3.
+- ripple #7: DESIGN.md's renv-missing sentence names `renv.lock` — reject, false: the profile paragraph that follows it covers it.
+- ripple #8: code comments in `mismatch_problem()` and `missing_problem()` name `renv.lock` — fix now.
