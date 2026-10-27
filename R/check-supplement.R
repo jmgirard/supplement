@@ -1098,8 +1098,9 @@ version_diffs <- function(stored, lock) {
        compared = any(!is.na(c(r, packages))))
 }
 
-# The lockfile that renv 1.3.1 reads for the site in `path`, by the rule of
-# renv_bootstrap_profile_load(): a list of `file`, its path from the site
+# The lockfile that renv 1.3.1 reads for the site in `path`, by the rules
+# of renv_bootstrap_profile_load(), for the profile's name, and
+# renv_paths_lockfile(), for the path: a list of `file`, its path from the site
 # folder, `profile`, the name of the renv profile or NULL, and `from`,
 # where the name came from. The name comes from the R session's
 # RENV_PROFILE when it is not empty, else from the first line of
@@ -1114,8 +1115,8 @@ lock_source <- function(path) {
     file <- file.path(path, "renv", "profile")
     # renv tests the file with file.exists(), so a link to a missing file
     # names no profile, except on Windows, where file.exists() is TRUE for
-    # it. A folder is refused before readLines(), so that it gives the row
-    # on every system.
+    # it. A folder is refused before readLines(), so that its row does not
+    # depend on what readLines() does with a folder.
     lines <- character()
     if (file.exists(file)) {
       lines <- if (!dir.exists(file)) {
@@ -1134,8 +1135,9 @@ lock_source <- function(path) {
 }
 
 # The versions that the lockfile `file`, a path from the site folder
-# `path`, records: NULL when the file does not exist, FALSE when it cannot
-# be read, and otherwise a list of `r`, the
+# `path`, records: NULL when nothing, not even a link, is at that path,
+# FALSE when it cannot be read, a link to a missing file among them, and
+# otherwise a list of `r`, the
 # R version or NULL, `packages`, a character vector of versions named by
 # package, and `names`, the name of each package record. A package record
 # with no `Version` text is left out of `packages` and kept in `names`, and
