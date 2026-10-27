@@ -95,6 +95,7 @@
 - 2026-10-27: T2 done: the user started Docker Desktop (29.9.2, arm64). With `NOT_CRAN=true SUPPLEMENT_TEST_DOCKER=true`, both gated tests passed at 20c20d4. The plain case had 11 expectations (21 s, cached layers). The profile case had 12 expectations (90 s). Status set to review.
 - 2026-10-27: review: main at ca0d326 is in the branch, so no sync was needed. The Copilot round is off (no header line). Fix-now findings committed in 25365a0. All evidence below is from 25365a0.
 - 2026-10-27: step-7 approval: m067-dockerfile-profile-lockfile approved for merge.
+- 2026-10-27: PR #68 opened, and the merge marker was written. The 3 checks were pending. The session does not poll CI in this app, so the CI wait stops here. Rerun `/milestone-review M067` to re-read the checks and merge.
 
 ## Decisions
 
