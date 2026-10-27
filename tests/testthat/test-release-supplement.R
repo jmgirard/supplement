@@ -295,6 +295,7 @@ test_that("the release runs the real check without the renv.lock comparison", {
   writeLines(jsonlite::toJSON(json, auto_unbox = TRUE), stored)
   writeLines('{"R": {"Version": "4.6.1"}, "Packages": {"dplyr": {"Package": "dplyr", "Version": "1.1.4"}}}',
              file.path(site, "renv.lock"))
+  withr::local_envvar(RENV_PROFILE = NA)
   result <- suppressMessages(check_supplement(site, renv_lock = TRUE))
   expect_identical(paste(result$check, result$file), "renv-mismatch analyses/example.qmd")
 
@@ -311,6 +312,7 @@ test_that("the release goes ahead with a package that renv.lock does not record"
   json <- list(hash = unname(tools::md5sum(report)), result = list(markdown = markdown))
   writeLines(jsonlite::toJSON(json, auto_unbox = TRUE), stored)
   writeLines('{"R": {"Version": "4.6.1"}, "Packages": {}}', file.path(site, "renv.lock"))
+  withr::local_envvar(RENV_PROFILE = NA)
   result <- suppressMessages(check_supplement(site, renv_lock = TRUE))
   expect_identical(paste(result$check, result$file), "renv-missing analyses/example.qmd")
 

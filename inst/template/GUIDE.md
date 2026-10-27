@@ -238,7 +238,8 @@ fails. This needs a network, and a release does not run it. It finds:
   run this check.
 - with `supplement::check_supplement(renv_lock = TRUE)` only, reports
   that attached a package that `renv.lock` does not name. A release does
-  not run this check either.
+  not run this check either. When renv picks a profile for the site, these
+  two checks read the profile's lockfile in place of `renv.lock`.
 
 The first three checks read the file list from git. When git cannot run or
 this folder is not in a git work tree, the function skips them and says
@@ -430,6 +431,13 @@ the report by name. Then render the whole site, and commit the report with
 `_freeze/`, `docs/`, and `figures/`. A package that a report loaded and
 did not attach gives no row. A package that your R profile attaches during
 a render also gives a row, and these steps do not clear it.
+
+When renv picks a profile for the site, these two checks read the
+profile's lockfile, `renv/profiles/<name>/renv.lock`, in place of
+`renv.lock`. renv takes the
+name of the profile from `RENV_PROFILE` or the first line of
+`renv/profile`. Run the renv commands in the steps of both checks with
+that profile active.
 
 A release does not run these checks, so their rows do not stop a release.
 

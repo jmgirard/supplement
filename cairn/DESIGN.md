@@ -158,8 +158,8 @@ through base R's `curlGetHeaders()` that follows redirects, with a
 10-second timeout. That argument came in R 4.1.0, which DESCRIPTION
 requires (D-031). `release_supplement()` never passes the argument. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
-With `renv_lock = TRUE` (M064, D-032), `check_renv_lock()` reads the site's
-`renv.lock` with `lock_versions()` and the versions that
+With `renv_lock = TRUE` (M064, D-032), `check_renv_lock()` reads the lockfile
+that `lock_source()` picks with `lock_versions()` and the versions that
 `print_environment()` printed into each report's `result.markdown` with
 `stored_versions()`, which finds lines with patterns on their first 200
 characters. `lock_versions()` refuses a repeated key, as
@@ -173,7 +173,12 @@ record's name. A package that is loaded and not attached gives no row,
 since the render tools and not the report's code can load it (the user
 chose attached packages only at the M065 plan). sessioninfo lists no base
 package, and `utils::sessionInfo()` keeps them out of
-`other attached packages:`. `release_supplement()` never
+`other attached packages:`. `lock_source()` (M066) picks the lockfile of
+the active renv profile by renv 1.3.1's rule: `RENV_PROFILE` of the
+checking session, else the first line of `renv/profile`, with `default`
+meaning none. A profile's lockfile is `renv/profiles/<name>/renv.lock`, and
+the rows then name that path and the profile. `RENV_PATHS_LOCKFILE` and
+`RENV_PATHS_RENV` are not read. `release_supplement()` never
 passes this argument either.
 Its placeholder check (`check_placeholders()`, M036) compares four
 `_supplement.yml` values with the installed template's, read through
