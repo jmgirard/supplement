@@ -285,6 +285,23 @@ test_that("the release runs the real check without the web link check", {
   expect_identical(calls$n, 0L)
 })
 
+test_that("the release runs the real check without the renv.lock comparison", {
+  skip_if_no_git()
+  site <- checked_site()
+  report <- file.path(site, "analyses", "example.qmd")
+  stored <- file.path(site, "_freeze", "analyses", "example", "execute-results", "html.json")
+  markdown <- "R version 4.6.1 (2026-06-24)\n\nother attached packages:\n[1] dplyr_1.1.3"
+  json <- list(hash = unname(tools::md5sum(report)), result = list(markdown = markdown))
+  writeLines(jsonlite::toJSON(json, auto_unbox = TRUE), stored)
+  writeLines('{"R": {"Version": "4.6.1"}, "Packages": {"dplyr": {"Package": "dplyr", "Version": "1.1.4"}}}',
+             file.path(site, "renv.lock"))
+  result <- suppressMessages(check_supplement(site, renv_lock = TRUE))
+  expect_identical(paste(result$check, result$file), "renv-mismatch analyses/example.qmd")
+
+  release("1.0.0", path = site)
+  expect_identical(site_version(site), "1.0.0")
+})
+
 test_that("an ignored-output or an unpublished-figure row from the real check stops the release", {
   skip_if_no_git()
   put <- function(site, file) {

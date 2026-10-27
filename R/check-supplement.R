@@ -118,6 +118,60 @@
 #'   missing, is a folder, is a link to a missing file, or cannot be opened,
 #'   the check gives no row.
 #'   The hash covers only `_scripts/report.R`, not files that it reads.
+#' * `"renv-mismatch"`: only with `renv_lock = TRUE`, a `.qmd` report
+#'   directly in `analyses/`, from the same list of reports, whose stored
+#'   output names an R or package version other than the one that the
+#'   site's `renv.lock` records. The check reads the same `result.markdown`
+#'   text as the `"stale-script"` check. In it, it reads the versions in the
+#'   forms that `print_environment()` prints. From
+#'   `sessioninfo::session_info()`, these are the package table after a line
+#'   that starts with `─ Packages` or `- Packages`, read at the positions of
+#'   the `package` and `version` columns of its header line, and the setting
+#'   line that starts with ` version`, spaces, and R's version string, such
+#'   as `R version 4.6.1 (2026-06-24)` or `R version 4.6.1 Patched (...)`.
+#'   From `utils::sessionInfo()`, these are the first line that starts with
+#'   R's version string, and the `name_version` entries on the lines that start
+#'   with `[1]`, `[2]`, and so on, after any spaces, after
+#'   `other attached packages:` and after
+#'   `loaded via a namespace (and not attached):`. A line that holds an ANSI
+#'   escape is not read, and output that knitr prints after a comment prefix
+#'   such as `## ` is not found. A CR at the end of a line is ignored.
+#'
+#'   A package differs when one of its stored versions is not equal to the
+#'   `Version` that `renv.lock` records for it under `Packages`. The R
+#'   version differs when a stored R version is not equal to the `Version`
+#'   under `R`. Versions are compared as [package_version()] values, so
+#'   `1.0-5` equals `1.0.5`. A package that `renv.lock` does not record,
+#'   such as a base package, is not compared. Nor is a version that
+#'   [package_version()] cannot read on either side, such as `devel`, or
+#'   the R version when `renv.lock` records none. A development build of R
+#'   prints `R Under development (unstable)`, which the check does not read
+#'   as an R version. The report gets one row. It names the files that hold a
+#'   version that differs, in the same way as the `"stale-script"` row.
+#'   Then it names the R versions that differ, and each package that
+#'   differs, in byte order of name, each with its stored versions that
+#'   differ, in version order and each version once, and the version in
+#'   `renv.lock`. It says to
+#'   run `renv::restore()` and take the render steps, or, if the library now
+#'   holds the versions of the report, to run `renv::snapshot()` and commit
+#'   `renv.lock`. When another of these files holds a version that is
+#'   compared and none that differ, the row also gives the format hint and
+#'   delete steps of the `"stale-script"` row. A file that does not parse
+#'   holds no versions, and a report that cannot be read, such as a link to
+#'   a missing file, gives no row.
+#'
+#'   `renv.lock` gets one row of its own, and no report gets a row, when it
+#'   is a folder, a link to a missing file, a file that cannot be opened,
+#'   text that is not valid UTF-8, text that is not JSON, or JSON whose top
+#'   level or `Packages` is not an object. So does a file that repeats a key
+#'   that the check reads, such as two records of one package, because
+#'   jsonlite keeps both and renv may read the other. A UTF-8 byte order
+#'   mark at the start of the file is skipped. A package record is named by
+#'   its `Package` text, or by its key when it has none, and a record with
+#'   no `Version` text is left out. A site with no `renv.lock` gets no row,
+#'   and the function says that it skipped the check. Only `renv.lock` in the site folder is read, not the
+#'   lockfile of an renv profile. [release_supplement()] does not run this
+#'   check, so its rows never stop a release.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its
@@ -331,6 +385,9 @@
 #' @param web_links `TRUE` to also request each web address on the pages in
 #'   `docs/` and give the `"web-link"` rows. This needs a network. The
 #'   default, `FALSE`, makes no web request.
+#' @param renv_lock `TRUE` to also compare the R and package versions in the
+#'   stored output of each report with the site's `renv.lock` and give the
+#'   `"renv-mismatch"` rows. The default, `FALSE`, does not read `renv.lock`.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
@@ -343,7 +400,7 @@
 #' these classes:
 #'
 #' * `supplement_error_argument`: `path` is not a single non-empty string,
-#'   or `web_links` is not `TRUE` or `FALSE`.
+#'   or `web_links` or `renv_lock` is not `TRUE` or `FALSE`.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 #' * `supplement_error_parse`: the yaml package cannot read
 #'   `_supplement.yml`, as for [write_citation()].
@@ -362,11 +419,17 @@
 #' problems <- check_supplement(site)
 #' problems$check
 #' unlink(site, recursive = TRUE)
-check_supplement <- function(path = ".", web_links = FALSE) {
+check_supplement <- function(path = ".", web_links = FALSE, renv_lock = FALSE) {
   check_path(path)
   if (!isTRUE(web_links) && !isFALSE(web_links)) {
     cli::cli_abort(
       "{.arg web_links} must be {.code TRUE} or {.code FALSE}.",
+      class = c("supplement_error_argument", "supplement_error")
+    )
+  }
+  if (!isTRUE(renv_lock) && !isFALSE(renv_lock)) {
+    cli::cli_abort(
+      "{.arg renv_lock} must be {.code TRUE} or {.code FALSE}.",
       class = c("supplement_error_argument", "supplement_error")
     )
   }
@@ -380,6 +443,7 @@ check_supplement <- function(path = ".", web_links = FALSE) {
     check_stored_output(path),
     check_stale_output(path),
     check_stale_script(path),
+    if (renv_lock) check_renv_lock(path),
     check_leftover_output(path),
     check_missing_script(path),
     check_links(path),
@@ -798,13 +862,8 @@ check_stale_script <- function(path) {
 # text value, names none. The search is for fixed text, so a long line
 # does not reach PCRE's match limit.
 stored_script_hashes <- function(file) {
-  json <- stored_json(file)
-  result <- if (!is.null(json)) json[["result"]]
-  if (!is.list(result) || is.null(names(result))) {
-    return(character())
-  }
-  markdown <- result[["markdown"]]
-  if (!is.character(markdown) || length(markdown) != 1 || is.na(markdown)) {
+  markdown <- stored_markdown(file)
+  if (is.null(markdown)) {
     return(character())
   }
   at <- gregexpr(script_hash_text, markdown, fixed = TRUE)[[1]]
@@ -814,6 +873,210 @@ stored_script_hashes <- function(file) {
   start <- at + nchar(script_hash_text)
   hashes <- substring(markdown, start, start + 31)
   hashes[grepl("^[0-9a-f]{32}$", hashes)]
+}
+
+# renv.lock -------------------------------------------------------------------
+
+# The rows of the renv.lock comparison. A site with no renv.lock gets a
+# message and no row, and a renv.lock that cannot be read gets one row.
+check_renv_lock <- function(path) {
+  lock <- lock_versions(path)
+  if (is.null(lock)) {
+    cli::cli_alert_info("Skipped the {.val renv-mismatch} check: the site has no {.file renv.lock}.")
+    return(problem_rows())
+  }
+  if (isFALSE(lock)) {
+    return(problem_rows(
+      "renv-mismatch", "renv.lock",
+      paste("It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that",
+            "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object, or it",
+            "repeats a key. Run renv::snapshot() to write it again, then commit it.")
+    ))
+  }
+  reports <- analysis_reports(path)
+  problem <- vapply(reports, function(report) {
+    name <- sub("\\.qmd$", "", basename(report))
+    dir <- file.path("_freeze", "analyses", name, "execute-results")
+    files <- list.files(file.path(path, dir), pattern = "\\.json$")
+    files <- files[!startsWith(files, ".") & !dir.exists(file.path(path, dir, files))]
+    found <- lapply(file.path(path, dir, files), function(file) {
+      markdown <- stored_markdown(file)
+      if (is.null(markdown)) {
+        return(version_diffs(list(r = character(), packages = character()), lock))
+      }
+      version_diffs(stored_versions(markdown), lock)
+    })
+    differs <- vapply(found, function(x) length(x$r) > 0 || length(x$packages) > 0, logical(1))
+    # A report that cannot be read, such as a link to a missing file,
+    # cannot be rendered again, so it gets no row, as in check_stale_output().
+    if (!any(differs) || is.null(report_hash(report))) {
+      return(NA_character_)
+    }
+    # Each version once, so `1.0-5` and `1.0.5` print as one.
+    in_order <- function(v) {
+      v <- v[order(package_version(v))]
+      paste(v[!duplicated(as.character(package_version(v)))], collapse = " and ")
+    }
+    r <- unlist(lapply(found, `[[`, "r"))
+    packages <- unlist(lapply(found, `[[`, "packages"))
+    entries <- c(
+      if (length(r) > 0) paste0("R ", in_order(r), " (renv.lock: ", lock$r, ")"),
+      vapply(sort_bytes(unique(as.character(names(packages)))), function(p) {
+        paste0(p, " ", in_order(packages[names(packages) == p]), " (renv.lock: ", lock$packages[[p]], ")")
+      }, character(1), USE.NAMES = FALSE)
+    )
+    named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")
+    stale <- paste0("Its stored output was made with other versions than renv.lock records, in ", named, ": ",
+                    paste(entries, collapse = ", "), ".")
+    steps <- paste("To use the versions in renv.lock, run renv::restore(), then take these steps.", rerender_steps,
+                   "If the library now holds the versions of the report, run renv::snapshot() and commit",
+                   "renv.lock instead.")
+    matches <- vapply(found, function(x) x$compared, logical(1)) & !differs
+    if (!any(matches)) {
+      return(paste(stale, steps))
+    }
+    # Quarto keeps the file of a format that the report no longer renders.
+    paste(stale,
+          "Other stored output of the report matches renv.lock, so these files can be from a format that the",
+          "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+          "_freeze/, docs/, and figures/.",
+          "If not, take the steps that follow.", steps)
+  }, character(1), USE.NAMES = FALSE)
+  hit <- !is.na(problem)
+  problem_rows("renv-mismatch", file.path("analyses", basename(reports[hit])), problem[hit])
+}
+
+# The versions in `stored`, from stored_versions(), that differ from those
+# in `lock`, from lock_versions(): a list of `r`, the R versions that
+# differ, `packages`, the package versions that differ, named by package,
+# and `compared`, TRUE when at least one version was compared. A version
+# that package_version() cannot read on either side is not compared, nor
+# is a package that renv.lock does not record.
+version_diffs <- function(stored, lock) {
+  compare <- function(versions, recorded) {
+    vapply(seq_along(versions), function(i) {
+      a <- package_version(versions[[i]], strict = FALSE)
+      b <- package_version(recorded[[i]], strict = FALSE)
+      if (is.na(a) || is.na(b)) NA else a != b
+    }, logical(1))
+  }
+  r <- compare(stored$r, rep(if (is.null(lock$r)) NA_character_ else lock$r, length(stored$r)))
+  packages <- compare(stored$packages, unname(lock$packages[names(stored$packages)]))
+  list(r = stored$r[r %in% TRUE], packages = stored$packages[packages %in% TRUE],
+       compared = any(!is.na(c(r, packages))))
+}
+
+# The versions that the site's renv.lock records: NULL when the site has no
+# renv.lock, FALSE when it cannot be read, and otherwise a list of `r`, the
+# R version or NULL, and `packages`, a character vector of versions named
+# by package. A package record with no `Version` text is left out.
+lock_versions <- function(path) {
+  file <- file.path(path, "renv.lock")
+  if (!file.exists(file) && !is_link(file)) {
+    return(NULL)
+  }
+  if (dir.exists(file)) {
+    return(FALSE)
+  }
+  json <- tryCatch({
+    bytes <- readBin(file, "raw", n = file.size(file))
+    # An editor can save the file with a UTF-8 byte order mark, which
+    # jsonlite warns about.
+    if (length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))) {
+      bytes <- bytes[-(1:3)]
+    }
+    text <- rawToChar(bytes)
+    if (!validUTF8(text)) stop("not UTF-8")
+    Encoding(text) <- "UTF-8"
+    jsonlite::parse_json(text, simplifyVector = FALSE)
+  }, error = function(e) NULL, warning = function(w) NULL)
+  packages <- if (is_map(json)) json[["Packages"]]
+  if (!is_map(packages)) {
+    return(FALSE)
+  }
+  # jsonlite keeps both copies of a repeated key, and `[[` takes the first,
+  # while renv may read another, as read_lockfile_versions() also notes.
+  repeated <- function(map, key) is_map(map) && sum(names(map) == key) > 1
+  records_repeat <- vapply(packages, function(record) {
+    repeated(record, "Package") || repeated(record, "Version")
+  }, logical(1))
+  if (repeated(json, "R") || repeated(json, "Packages") || repeated(json[["R"]], "Version") ||
+      anyDuplicated(names(packages)) > 0 || any(records_repeat)) {
+    return(FALSE)
+  }
+  text_value <- function(record, key) {
+    value <- if (is_map(record)) record[[key]]
+    if (is.character(value) && length(value) == 1 && !is.na(value)) value else NA_character_
+  }
+  versions <- vapply(packages, text_value, character(1), key = "Version", USE.NAMES = FALSE)
+  # renv names a record by its key and also writes the name as `Package`.
+  named <- vapply(packages, text_value, character(1), key = "Package", USE.NAMES = FALSE)
+  names(versions) <- ifelse(is.na(named), names(packages), named)
+  if (anyDuplicated(names(versions)) > 0) {
+    return(FALSE)
+  }
+  r <- text_value(json[["R"]], "Version")
+  list(r = if (!is.na(r)) r, packages = versions[!is.na(versions) & nzchar(names(versions))])
+}
+
+# The R and package versions that print_environment() printed into stored
+# output text, as a list of `r`, a character vector of R versions, and
+# `packages`, a character vector of versions named by package. It reads the
+# package table after a `─ Packages` or `- Packages` rule of
+# sessioninfo::session_info() and its `version` setting line, and the
+# `R version` line and the two package lists of utils::sessionInfo(). A
+# line that holds an ANSI escape is not read. The patterns that find lines
+# run on the first 200 characters of a line, so a long line stays fast. The
+# entries of a package list are read from the whole line.
+stored_versions <- function(markdown) {
+  lines <- strsplit(markdown, "\n", fixed = TRUE)[[1]]
+  cr <- endsWith(lines, "\r")
+  lines[cr] <- substr(lines[cr], 1, nchar(lines[cr]) - 1L)
+  lines[grepl("\033", lines, fixed = TRUE)] <- ""
+  head <- substr(lines, 1, 200)
+  first_word <- function(x) sub(" .*$", "", sub("^ +", "", x))
+
+  # R's version string, such as `R version 4.6.1 (2026-06-24)` or
+  # `R version 4.6.1 Patched (2026-07-01 r88000)`.
+  version_string <- "R version [0-9][^ ]*( [A-Za-z]+)? \\([0-9]{4}-[0-9]{2}-[0-9]{2}"
+  setting <- grepl(paste0("^ version +", version_string), head)
+  first <- which(grepl(paste0("^", version_string), head))[1]
+  r <- c(first_word(sub("^ version +R version ", "", head[setting])),
+         if (!is.na(first)) first_word(sub("^R version ", "", head[first])))
+
+  packages <- character()
+  rules <- which(startsWith(head, "\u2500 Packages") | startsWith(head, "- Packages"))
+  for (rule in rules[rules < length(head)]) {
+    header <- head[rule + 1]
+    if (!grepl("^ (! +)?package +\\* +version ", header)) next
+    name_at <- regexpr("package", header, fixed = TRUE)
+    version_at <- regexpr("version", header, fixed = TRUE)
+    i <- rule + 2
+    while (i <= length(head) && nzchar(head[i])) {
+      name <- first_word(substring(head[i], name_at))
+      version <- first_word(substring(head[i], version_at))
+      if (grepl("^[A-Za-z][A-Za-z0-9.]*$", name) && nzchar(version)) {
+        names(version) <- name
+        packages <- c(packages, version)
+      }
+      i <- i + 1
+    }
+  }
+
+  lists <- which(head == "other attached packages:" | head == "loaded via a namespace (and not attached):")
+  for (start in lists) {
+    i <- start + 1
+    while (i <= length(head) && grepl("^ *\\[[0-9]+\\] ", head[i])) {
+      words <- strsplit(lines[i], " ", fixed = TRUE)[[1]]
+      words <- words[grepl("^[A-Za-z][A-Za-z0-9.]*_[^_]+$", words)]
+      at <- regexpr("_", words, fixed = TRUE)
+      versions <- substring(words, at + 1)
+      names(versions) <- substring(words, 1, at - 1)
+      packages <- c(packages, versions)
+      i <- i + 1
+    }
+  }
+  list(r = r, packages = packages)
 }
 
 # A path between double quotes, with `\` before each `\` and `"` in it, so
@@ -920,12 +1183,31 @@ stored_hash <- function(file) {
   hash
 }
 
+# The top-level `result.markdown` text of a stored output file, or NULL
+# when the file does not parse or has no such text value.
+stored_markdown <- function(file) {
+  json <- stored_json(file)
+  result <- if (!is.null(json)) json[["result"]]
+  if (!is.list(result) || is.null(names(result))) {
+    return(NULL)
+  }
+  markdown <- result[["markdown"]]
+  if (!is.character(markdown) || length(markdown) != 1 || is.na(markdown)) {
+    return(NULL)
+  }
+  markdown
+}
+
 # A stored output file parsed as JSON, or NULL when it does not parse or
 # its top level is not an object.
 stored_json <- function(file) {
   json <- tryCatch({
     bytes <- readBin(file, "raw", n = file.size(file))
-    jsonlite::parse_json(rawToChar(bytes), simplifyVector = FALSE)
+    # Quarto writes UTF-8. Unmarked text is read in the native encoding,
+    # which in a Latin-1 locale misreads characters such as `─`.
+    text <- rawToChar(bytes)
+    Encoding(text) <- "UTF-8"
+    jsonlite::parse_json(text, simplifyVector = FALSE)
   }, error = function(e) NULL, warning = function(w) NULL)
   if (!is.list(json) || is.null(names(json))) {
     return(NULL)

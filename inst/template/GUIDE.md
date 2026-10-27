@@ -210,7 +210,9 @@ fails. This needs a network, and a release does not run it. It finds:
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
 - reports directly in `analyses/` whose stored output in `_freeze/` came
-  from other text than the report holds now, or whose source hash cannot be read
+  from other text than the report holds now
+- reports directly in `analyses/` whose source hash in `_freeze/` cannot
+  be read
 - reports directly in `analyses/` whose stored output gives another MD5 of
   `_scripts/report.R` than the file has now
 - folders in `_freeze/analyses/` that no file or folder in `analyses/`
@@ -230,6 +232,10 @@ fails. This needs a network, and a release does not run it. It finds:
 - template placeholders left in place, such as the paper title in
   `_supplement.yml` or the unchanged example report
   (`?supplement::check_supplement` lists them all)
+- with `supplement::check_supplement(renv_lock = TRUE)` only, reports
+  whose stored output names R or package versions other than those in
+  `renv.lock` (see "Recording R packages with renv"). A release does not
+  run this check.
 
 The first three checks read the file list from git. When git cannot run or
 this folder is not in a git work tree, the function skips them and says
@@ -398,6 +404,19 @@ Computing environment section shows the packages of its own last render.
 The two can differ. A report that you render by name after the last
 snapshot shows the packages of that render. `renv.lock` shows them only after the
 next `renv::snapshot()`.
+
+To list the reports whose versions differ from `renv.lock`, run in R:
+
+```r
+supplement::check_supplement(renv_lock = TRUE)
+```
+
+Each such report gets a `"renv-mismatch"` row that names the versions.
+To use the versions in `renv.lock`, run `renv::restore()`. Then render the
+report by name, render the whole site, and commit the report with
+`_freeze/`, `docs/`, and `figures/`. If the library now holds the versions of the report, you
+can run `renv::snapshot()` and commit `renv.lock` instead. A release does
+not run this check, so these rows do not stop a release.
 
 ## Running reports in a container
 

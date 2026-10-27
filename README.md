@@ -121,6 +121,9 @@ and returns the problems as a data frame, with one row per problem.
 `supplement::check_supplement(web_links = TRUE)` also requests each web
 address on the site's pages and gives a row for each one that fails. This
 needs a network, and `release_supplement()` does not run it.
+`supplement::check_supplement(renv_lock = TRUE)` also compares the R and
+package versions in each report's stored output with `renv.lock`, and
+`release_supplement()` does not run that check either.
 `?check_supplement` describes each check and its limits, for example the
 links that it does not test. It finds:
 
@@ -131,7 +134,8 @@ links that it does not test. It finds:
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
 - reports directly in `analyses/` whose stored output in `_freeze/` came
-  from other text than the report holds now, or whose source hash cannot
+  from other text than the report holds now
+- reports directly in `analyses/` whose source hash in `_freeze/` cannot
   be read
 - reports directly in `analyses/` whose stored output gives another MD5 of
   `_scripts/report.R` than the file has now
