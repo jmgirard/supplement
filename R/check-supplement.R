@@ -248,8 +248,9 @@
 #'   written, and the address is requested with it. A link that starts with
 #'   `//` has no scheme and is not requested. A space in an address is sent
 #'   as `%20`, as a browser sends it. A page that the `"broken-link"` check
-#'   cannot read gives no `"web-link"` row. Each address is requested once, one after another,
-#'   with a HEAD request that follows redirects and waits up to 10
+#'   cannot read gives no `"web-link"` row. Each address is requested once
+#'   (addresses that differ only in letter case count as two), one after
+#'   another, with a HEAD request that follows redirects and waits up to 10
 #'   seconds. A site with many addresses can take minutes.
 #'   An address gets a row when the request fails, such as for an unknown
 #'   host, a timeout, or a certificate error, or when the last response has
@@ -592,13 +593,14 @@ plain_paths <- function(path, files) {
   !vapply(prefixes, function(p) any(p %in% linked), logical(1))
 }
 
-# Strings in byte order, which does not depend on the locale. The radix
-# sort stops on a string with no encoding mark that is not valid UTF-8, so
-# the sort keys are marked as bytes.
+# Strings in byte order, which does not depend on the locale.
 sort_bytes <- function(x) {
   x[order_bytes(x)]
 }
 
+# The order of strings in bytes. The radix sort stops on a string with no
+# encoding mark that is not valid UTF-8, so the sort keys are marked as
+# bytes.
 order_bytes <- function(x) {
   keys <- x
   Encoding(keys) <- "bytes"
@@ -1198,7 +1200,8 @@ web_problem <- function(url, result) {
   if (is.character(result)) {
     return(sprintf("The page links to `%s`, which could not be requested: %s", url, result))
   }
-  if (!is.numeric(result) || length(result) != 1 || is.na(result)) {
+  # libcurl gives status 0 when no HTTP status came.
+  if (!is.numeric(result) || length(result) != 1 || is.na(result) || result < 100) {
     return(sprintf("The page links to `%s`, whose response had no HTTP status.", url))
   }
   if (result < 400) {

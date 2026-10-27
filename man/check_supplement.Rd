@@ -270,8 +270,9 @@ from a browser apply here too: a reference such as \verb{&eacute;} stays as
 written, and the address is requested with it. A link that starts with
 \verb{//} has no scheme and is not requested. A space in an address is sent
 as \verb{\%20}, as a browser sends it. A page that the \code{"broken-link"} check
-cannot read gives no \code{"web-link"} row. Each address is requested once, one after another,
-with a HEAD request that follows redirects and waits up to 10
+cannot read gives no \code{"web-link"} row. Each address is requested once
+(addresses that differ only in letter case count as two), one after
+another, with a HEAD request that follows redirects and waits up to 10
 seconds. A site with many addresses can take minutes.
 An address gets a row when the request fails, such as for an unknown
 host, a timeout, or a certificate error, or when the last response has

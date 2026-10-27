@@ -2072,6 +2072,12 @@ test_that("a row for a status that servers give scripts says the link can work i
   ))
 })
 
+test_that("a status of 0 or none gives the no-status row", {
+  for (result in list(0L, NA_integer_, NULL)) {
+    expect_match(web_problem("https://example.org/x", result), "had no HTTP status", fixed = TRUE)
+  }
+})
+
 test_that("web_links must be TRUE or FALSE", {
   site <- new_site()
   for (bad in list(NA, c(TRUE, TRUE), "TRUE", 1, NULL)) {
@@ -2103,8 +2109,10 @@ test_that("url_status() follows redirects with a timeout and gives the status or
   expect_identical(got$url, "https://example.org/x")
   expect_true(got$redirect)
   expect_true(is.numeric(got$timeout) && length(got$timeout) == 1 && got$timeout > 0)
+  first <- got$timeout
   url_status("https://example.org/a b")
   expect_identical(got$url, "https://example.org/a%20b")
+  expect_identical(got$timeout, first)
 
   local_mocked_bindings(curlGetHeaders = function(url, ...) stop("libcurl error code 6:\n\tno host\n"))
   expect_identical(url_status("https://example.org/x"), "libcurl error code 6: no host")
