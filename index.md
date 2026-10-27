@@ -133,7 +133,9 @@ This needs a network, and
 does not run it. `supplement::check_supplement(renv_lock = TRUE)` also
 compares the R and package versions in each report’s stored output with
 `renv.lock`. It also gives a `"renv-missing"` row for each report that
-attached a package that `renv.lock` does not name.
+attached a package that `renv.lock` does not name. When renv picks a
+profile for the site, from `RENV_PROFILE` or `renv/profile`, these
+checks read the profile’s lockfile in place of `renv.lock`.
 [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
 does not run these checks either.
 [`?check_supplement`](https://jmgirard.github.io/supplement/reference/check_supplement.md)

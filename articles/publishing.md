@@ -184,8 +184,10 @@ does not run this test, so its rows do not stop a release. If the site
 uses renv, `supplement::check_supplement(renv_lock = TRUE)` also
 compares the R and package versions in the stored output of each report
 with `renv.lock`, and gives a `"renv-missing"` row for each report that
-attached a package that `renv.lock` does not name. A release does not
-run these checks either.
+attached a package that `renv.lock` does not name. When renv picks a
+profile for the site, from `RENV_PROFILE` or `renv/profile`, these
+checks read the profile’s lockfile in place of `renv.lock`. A release
+does not run these checks either.
 
 When
 [`supplement::check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)

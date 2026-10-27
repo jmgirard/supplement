@@ -28,8 +28,10 @@ check_supplement(path = ".", web_links = FALSE, renv_lock = FALSE)
   `TRUE` to also compare the R and package versions in the stored output
   of each report with the site's `renv.lock` and give the
   `"renv-mismatch"` rows, and to give the `"renv-missing"` rows for
-  attached packages that `renv.lock` does not name. The default,
-  `FALSE`, does not read `renv.lock`.
+  attached packages that `renv.lock` does not name. With an renv
+  profile, the check reads the profile's lockfile instead, as the
+  `"renv-mismatch"` item says. The default, `FALSE`, does not read
+  `renv.lock`.
 
 ## Value
 
@@ -217,10 +219,25 @@ The checks, by the value in the `check` column:
   its `Package` text, or by its key when it has none, and a record with
   no `Version` text is left out of the comparison. A site with no
   `renv.lock` gets no row, and the function says that it skipped this
-  check and the `"renv-missing"` check. Only `renv.lock` in the site
-  folder is read, not the lockfile of an renv profile.
+  check and the `"renv-missing"` check.
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
   does not run this check, so its rows never stop a release.
+
+  In this item and the next, `renv.lock` is the lockfile that renv 1.3.1
+  picks for the site's renv profile. The profile's name comes from the
+  `RENV_PROFILE` environment variable of the R session that runs the
+  check, when it is not empty. Otherwise it comes from the first line of
+  `renv/profile` in the site folder, untrimmed, when that file exists.
+  The name `default`, an empty name, or no name means no profile, and
+  the lockfile is `renv.lock` in the site folder. With a profile, the
+  lockfile is `renv/profiles/<name>/renv.lock`, with the name joined as
+  given. The function then says which profile it picked and where the
+  name came from. The rows name that path where they name `renv.lock`,
+  and they say to run the renv commands with the profile active. When
+  `renv/profile` is read and is a folder or a file that cannot be
+  opened, it gets one row of its own, and no report gets a row. The
+  check does not read `RENV_PATHS_LOCKFILE` or `RENV_PATHS_RENV`, which
+  renv reads to move the lockfile and the `renv` folder.
 
 - `"renv-missing"`: only with `renv_lock = TRUE`, a report from the same
   list whose stored output shows that it attached a package that the
@@ -518,17 +535,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/Rtmp5r5iqT/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpqJmYOl/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/Rtmp5r5iqT/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpqJmYOl/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/Rtmp5r5iqT/check-example:
+#> ✖ 11 problems found in /tmp/RtmpqJmYOl/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report

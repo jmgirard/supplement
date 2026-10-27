@@ -73,8 +73,10 @@ default, <code>FALSE</code>, makes no web request.</p></dd>
 <dd><p><code>TRUE</code> to also compare the R and package versions in the
 stored output of each report with the site's <code>renv.lock</code> and give the
 <code>"renv-mismatch"</code> rows, and to give the <code>"renv-missing"</code> rows for
-attached packages that <code>renv.lock</code> does not name. The default, <code>FALSE</code>,
-does not read <code>renv.lock</code>.</p></dd>
+attached packages that <code>renv.lock</code> does not name. With an renv profile,
+the check reads the profile's lockfile instead, as the
+<code>"renv-mismatch"</code> item says. The default, <code>FALSE</code>, does not read
+<code>renv.lock</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -249,9 +251,23 @@ mark at the start of the file is skipped. A package record is named by
 its <code>Package</code> text, or by its key when it has none, and a record with
 no <code>Version</code> text is left out of the comparison. A site with no <code>renv.lock</code> gets no row,
 and the function says that it skipped this check and the
-<code>"renv-missing"</code> check. Only <code>renv.lock</code> in the site folder is read, not the
-lockfile of an renv profile. <code><a href="release_supplement.html">release_supplement()</a></code> does not run this
-check, so its rows never stop a release.</p></li>
+<code>"renv-missing"</code> check. <code><a href="release_supplement.html">release_supplement()</a></code> does not run this
+check, so its rows never stop a release.</p>
+<p>In this item and the next, <code>renv.lock</code> is the lockfile that renv 1.3.1
+picks for the site's renv profile. The profile's name comes from the
+<code>RENV_PROFILE</code> environment variable of the R session that runs the
+check, when it is not empty. Otherwise it comes from the first line of
+<code>renv/profile</code> in the site folder, untrimmed, when that file exists. The
+name <code>default</code>, an empty name, or no name means no profile, and the
+lockfile is <code>renv.lock</code> in the site folder. With a profile, the lockfile
+is <code>renv/profiles/&lt;name&gt;/renv.lock</code>, with the name joined as given. The
+function then says which profile it picked and where the name came
+from. The rows name that path where they name <code>renv.lock</code>, and they say
+to run the renv commands with the profile active. When <code>renv/profile</code>
+is read and is a folder or a file that cannot be opened, it gets one
+row of its own, and no report gets a row. The check does not read
+<code>RENV_PATHS_LOCKFILE</code> or <code>RENV_PATHS_RENV</code>, which renv reads to move
+the lockfile and the <code>renv</code> folder.</p></li>
 <li><p><code>"renv-missing"</code>: only with <code>renv_lock = TRUE</code>, a report from the same
 list whose stored output shows that it attached a package that the
 site's <code>renv.lock</code> does not name under <code>Packages</code>, so
@@ -514,17 +530,17 @@ text value, or <code>zenodo</code> is not a map.</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"check-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/Rtmp5r5iqT/check-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpqJmYOl/check-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/Rtmp5r5iqT/check-example</span> once before your first</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpqJmYOl/check-example</span> once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="co"># A new site has not been rendered, its example report has no stored</span></span></span>
 <span class="r-in"><span><span class="co"># output yet, and it still holds the template's placeholder values.</span></span></span>
 <span class="r-in"><span><span class="va">problems</span> <span class="op">&lt;-</span> <span class="fu">check_supplement</span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Skipped the <span style="color: #0000BB;">"large-file"</span>, <span style="color: #0000BB;">"saved-object"</span>, and <span style="color: #0000BB;">"ignored-output"</span> checks: `git rev-parse` failed, or the folder is not in a git work tree.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/Rtmp5r5iqT/check-example</span>:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpqJmYOl/check-example</span>:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> <span style="font-weight: bold;">no-stored-output</span> <span style="color: #0000BB;">analyses/example.qmd</span>: The report has code and no stored</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   output in _freeze/. Render the report by name, render the whole site, then</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit the report with _freeze/, docs/, and figures/. If you added the report</span>
