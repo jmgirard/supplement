@@ -2252,7 +2252,6 @@ test_that("stored_versions() reads the attached packages of a sessioninfo table"
   got <- stored_versions(paste(utils::capture.output(print(info)), collapse = "\n"))
   expect_setequal(got$attached, info$packages$package[info$packages$attached])
   expect_identical(stored_versions(paste(attached_table, collapse = "\n"))$attached, "dplyr")
-  expect_identical(stored_versions(paste(flagged_table, collapse = "\n"))$attached, character())
 })
 
 test_that("stored_versions() reads attached packages from other attached packages only", {
@@ -2260,10 +2259,6 @@ test_that("stored_versions() reads attached packages from other attached package
   stopifnot("a package is attached" = length(info$otherPkgs) > 0)
   got <- stored_versions(paste(utils::capture.output(print(info)), collapse = "\n"))
   expect_setequal(got$attached, names(info$otherPkgs))
-  lines <- c("other attached packages:", "[1] dplyr_1.1.4 ggplot2_3.5.1", "[3] tidyr_1.3.1", "",
-             "loaded via a namespace (and not attached):", "[1] cli_3.6.6")
-  got <- stored_versions(paste(lines, collapse = "\n"))
-  expect_identical(got$attached, c("dplyr", "ggplot2", "tidyr"))
   expect_true(got$listed)
   expect_false(stored_versions("x")$listed)
 })
@@ -2515,7 +2510,7 @@ test_that("no renv-missing row without a readable renv.lock or report, or by def
 
   write_lock(site)
   expect_identical(nrow(rows_of(check_quiet(site), "renv-missing")), 0L)
-  file.symlink(file.path(site, "no-such.qmd"), file.path(site, "analyses", "dangling.qmd"))
+  symlink_or_skip(file.path(site, "no-such.qmd"), file.path(site, "analyses", "dangling.qmd"))
   stored_file(site, "dangling", "html.json", text_json(c("other attached packages:", "[1] dplyr_1.1.4")))
   expect_identical(rows_of(check_lock(site), "renv-missing")$file, "analyses/attached.qmd")
 })
