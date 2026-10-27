@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-27 (M066 review: archived; graduated "Read the lock
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M067 | Write Dockerfiles from profile lockfiles | planned | — | normal | milestones/M067-dockerfile-profile-lockfile.md |
+| M067 | Write Dockerfiles from profile lockfiles | in-progress | — | normal | milestones/M067-dockerfile-profile-lockfile.md |
 | M066 | Read the lockfile of the active renv profile | done | — | normal | milestones/archive/M066-renv-profile-lockfile.md |
 | M065 | Flag packages missing from renv.lock | done | — | normal | milestones/archive/M065-renv-missing-packages.md |
 | M064 | Compare renv.lock with report records | done | — | normal | milestones/archive/M064-renv-lock-check.md |

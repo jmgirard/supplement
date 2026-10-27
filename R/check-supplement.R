@@ -954,16 +954,9 @@ check_renv_lock <- function(path) {
   shown <- show_text(source$file)
   active <- ""
   if (!is.null(source$profile)) {
-    profile <- show_text(source$profile)
-    active <- paste0(" with the renv profile ", quote_path(profile), " active")
-    if (source$from == "RENV_PROFILE") {
-      cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
-                                "which {.envvar RENV_PROFILE} names."))
-    } else {
-      cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
-                                "which {.file renv/profile} names."))
-    }
+    active <- paste0(" with the renv profile ", quote_path(show_text(source$profile)), " active")
   }
+  inform_lock_source(source)
   lock <- lock_versions(path, source$file)
   if (is.null(lock)) {
     cli::cli_alert_info(paste("Skipped the {.val renv-mismatch} check: the site has no {.file {shown}}.",
@@ -1133,6 +1126,24 @@ lock_source <- function(path) {
     return(list(file = "renv.lock", profile = NULL, from = NULL))
   }
   list(file = paste("renv", "profiles", profile, "renv.lock", sep = "/"), profile = profile, from = from)
+}
+
+# A message that names the lockfile and the renv profile in `source`, from
+# lock_source(), when it names a profile.
+inform_lock_source <- function(source) {
+  if (is.null(source$profile)) {
+    return(invisible())
+  }
+  shown <- show_text(source$file)
+  profile <- show_text(source$profile)
+  if (source$from == "RENV_PROFILE") {
+    cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
+                              "which {.envvar RENV_PROFILE} names."))
+  } else {
+    cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
+                              "which {.file renv/profile} names."))
+  }
+  invisible()
 }
 
 # The versions that the lockfile `file`, a path from the site folder

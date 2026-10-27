@@ -157,16 +157,51 @@ write_dockerfile <- function(path = ".", quarto, digest = NULL, overwrite = FALS
       "i" = "{.code docker buildx imagetools inspect rocker/r-ver:<version>} prints it after {.code Digest:}."
     ))
   }
-  versions <- read_lockfile_versions(path)
+  source <- dockerfile_lock_source(path)
+  versions <- read_lockfile_versions(path, source)
 
   dockerfile <- file.path(path, "Dockerfile")
   dockerignore <- file.path(path, ".dockerignore")
   check_overwrite(c(dockerfile, dockerignore), overwrite, "write_dockerfile")
+  inform_lock_source(source)
 
   # .dockerignore first, so a Dockerfile never stands without it.
-  write_utf8(c("*", "!renv.lock"), dockerignore)
-  write_utf8(dockerfile_text(versions$r, versions$renv, quarto, digest), dockerfile)
+  write_utf8(c("*", paste0("!", source$file)), dockerignore)
+  write_utf8(dockerfile_text(versions$r, versions$renv, quarto, digest, source), dockerfile)
   invisible(c(dockerfile, dockerignore))
+}
+
+# The lockfile of the site's renv profile, from lock_source(), with the
+# profile name refused unless the Dockerfile and .dockerignore can hold it
+# as written. The name check comes before any file check, so that no file
+# function sees a name that is not valid UTF-8.
+dockerfile_lock_source <- function(path, call = parent.frame()) {
+  profile_error <- function(message) {
+    cli::cli_abort(
+      message,
+      class = c("supplement_error_profile", "supplement_error"),
+      call = call,
+      .envir = parent.frame()
+    )
+  }
+  source <- lock_source(path)
+  if (isFALSE(source)) {
+    profile_error(c(
+      "{.file renv/profile} in {.path {path}} is a folder or a file that cannot be opened.",
+      "i" = "renv reads the name of the site's renv profile from its first line. Make it such a file, or delete it to use {.file renv.lock}."
+    ))
+  }
+  if (is.null(source$profile)) {
+    return(source)
+  }
+  if (!grepl("\\A[A-Za-z0-9_-][A-Za-z0-9._-]*\\z", source$profile, perl = TRUE, useBytes = TRUE)) {
+    name <- show_text(source$profile)
+    profile_error(c(
+      "The renv profile name {.val {name}}, which {.field {source$from}} gives, cannot be written into a Dockerfile.",
+      "i" = "Use a name of ASCII letters, digits, {.code .}, {.code _}, and {.code -} that does not start with {.code .}."
+    ))
+  }
+  source
 }
 
 argument_error <- function(message, call = parent.frame(), .envir = parent.frame()) {
@@ -182,13 +217,25 @@ is_version_string <- function(x) {
   is.character(x) && length(x) == 1 && !is.na(x) && is_version(x)
 }
 
-# The R version and the renv version in `renv.lock` of `path`.
-read_lockfile_versions <- function(path, call = parent.frame()) {
-  file <- file.path(path, "renv.lock")
-  if (!file.exists(file) || dir.exists(file)) {
+# The R version and the renv version in the lockfile that `source`, from
+# dockerfile_lock_source(), names in the site `path`.
+read_lockfile_versions <- function(path, source, call = parent.frame()) {
+  file <- file.path(path, source$file)
+  # Docker matches names with letter case, so the profile's folder must
+  # be listed under the exact name, also where the file system ignores
+  # case. On Windows file.exists() is TRUE for a file link to a missing
+  # file.
+  found <- (is.null(source$profile) ||
+              source$profile %in% list.files(file.path(path, "renv", "profiles"), all.files = TRUE)) &&
+    file.exists(file) && !dir.exists(file) && (!is_link(file) || link_ends_on_file(file))
+  if (!found) {
+    hint <- if (is.null(source$profile)) {
+      "Set up renv in the site first, as the part {.emph Recording R packages with renv} of {.file GUIDE.md} shows."
+    } else {
+      "Run {.code renv::snapshot()} in the site with the renv profile {.val {source$profile}} active."
+    }
     cli::cli_abort(
-      c("No {.file renv.lock} in {.path {path}}.",
-        "i" = "Set up renv in the site first, as the part {.emph Recording R packages with renv} of {.file GUIDE.md} shows."),
+      c("No {.file {source$file}} in {.path {path}}.", "i" = hint),
       class = c("supplement_error_no_file", "supplement_error"),
       call = call
     )
@@ -258,26 +305,43 @@ read_lockfile_versions <- function(path, call = parent.frame()) {
   list(r = r, renv = renv)
 }
 
-# The lines of the Dockerfile.
-dockerfile_text <- function(r, renv, quarto, digest) {
+# The lines of the Dockerfile, which reads the lockfile that `source`, from
+# dockerfile_lock_source(), names.
+dockerfile_text <- function(r, renv, quarto, digest, source) {
   from <- paste0("rocker/r-ver:", r, if (!is.null(digest)) paste0("@", digest))
   tarball <- sprintf("https://p3m.dev/cran/latest/src/contrib/Archive/renv/renv_%s.tar.gz", renv)
-  c(
-    "# Written by supplement::write_dockerfile() from renv.lock. See",
-    "# ?supplement::write_dockerfile for how to build the image and render in it.",
-    paste0("FROM ", from),
-    "",
+  lockfile <- source$file
+  env <- c(
     "# renv installs the packages into a library under /opt/renv/library, with",
     "# its package cache off, and the site's renv/activate.R finds them there.",
     "ENV RENV_PATHS_LIBRARY=/opt/renv/library \\",
-    "    RENV_CONFIG_CACHE_ENABLED=FALSE",
+    "    RENV_CONFIG_CACHE_ENABLED=FALSE"
+  )
+  if (!is.null(source$profile)) {
+    # renv keeps the library of a profile in a folder of its own, so the
+    # restore and every render in the image need the profile active.
+    env <- c(
+      env[1:2],
+      paste0("# RENV_PROFILE makes renv use the profile ", source$profile, " in the build and in"),
+      "# each render, whatever the site's renv/profile names.",
+      env[3],
+      paste0(env[4], " \\"),
+      paste0("    RENV_PROFILE=", source$profile)
+    )
+  }
+  c(
+    paste0("# Written by supplement::write_dockerfile() from ", lockfile, ". See"),
+    "# ?supplement::write_dockerfile for how to build the image and render in it.",
+    paste0("FROM ", from),
+    "",
+    env,
     "",
     paste0("RUN /rocker_scripts/install_quarto.sh ", quarto),
     "",
     paste0("# A temporary copy of renv ", renv, " installs the system packages that the R"),
-    "# packages need, then restores renv.lock, renv itself included.",
+    paste0("# packages need, then restores ", lockfile, ", renv itself included."),
     "WORKDIR /opt/renv",
-    "COPY renv.lock renv.lock",
+    paste("COPY", lockfile, lockfile),
     "RUN apt-get update \\",
     "    && export DEBIAN_FRONTEND=noninteractive R_LIBS=/tmp/renv/library RENV_PATHS_ROOT=/tmp/renv/root \\",
     "    && mkdir -p \"$R_LIBS\" \\",

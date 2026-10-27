@@ -2,14 +2,14 @@
      section ownership". A phase skill never rewrites another phase's section. -->
 # M067: Write Dockerfiles from profile lockfiles
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — it changes which lockfile the exported `write_dockerfile()` reads and what it writes
-- **Branch/PR:** —
+- **Branch/PR:** m067-dockerfile-profile-lockfile
 
 ## Goal
 
@@ -63,7 +63,7 @@
 
 ## Tasks
 
-- [ ] T1: In `R/write-dockerfile.R`, pick the lockfile with `lock_source()`. Make `read_lockfile_versions()` take the lockfile path and name it in its messages. Add the name check and the exact-case folder check of AC4 with `supplement_error_profile`. Add the message, shown through `show_text()`. Pass the profile to `dockerfile_text()` and to the `.dockerignore` lines. In `tests/testthat/test-write-dockerfile.R`, unset `RENV_PROFILE` at the top of the file with `withr::local_envvar()`. Add the tests of AC1 to AC4.
+- [x] T1: In `R/write-dockerfile.R`, pick the lockfile with `lock_source()`. Make `read_lockfile_versions()` take the lockfile path and name it in its messages. Add the name check and the exact-case folder check of AC4 with `supplement_error_profile`. Add the message, shown through `show_text()`. Pass the profile to `dockerfile_text()` and to the `.dockerignore` lines. In `tests/testthat/test-write-dockerfile.R`, unset `RENV_PROFILE` at the top of the file with `withr::local_envvar()`. Add the tests of AC1 to AC4.
 - [ ] T2: Add the profile case of AC5 to the gated Docker test. Ask the user to start Docker Desktop, then run the test once on this Mac (macOS arm64).
 - [ ] T3: Update the roxygen help (title, description, `path`, `.dockerignore` text, Errors), then run `devtools::document()`. Update GUIDE.md, README.md, NEWS.md, and DESIGN.md. Then run `devtools::check()`.
 
@@ -80,3 +80,8 @@
 - 2026-10-27: plan gate chose to restore with `RENV_PROFILE` set in the image's `ENV` and the lockfile at its profile path over copying the profile lockfile as a plain `renv.lock`. The plain copy loses because renv looks for the library under the profile prefix when the mounted site's `renv/profile` names the profile at render time. Falsified by a gated build in which the render finds no library under `/opt/renv/library/profiles/<name>/`.
 - 2026-10-27: plan gate chose a case mismatch between the name and the folder to be `supplement_error_no_file` over a check that ignores case. Docker's `.dockerignore` and `COPY` match names with case, so the build would fail. Falsified by a Docker build on macOS that copies `renv/profiles/dev/renv.lock` for the name `Dev`.
 - 2026-10-27: plan gate chose the new class `supplement_error_profile` over reusing `supplement_error_lockfile` for a bad name or an unreadable `renv/profile`. Neither case is a fault in a lockfile. Falsified by a user need to catch both cases with one class.
+- 2026-10-27: implement: status in-progress, branch m067-dockerfile-profile-lockfile cut from main at ca0d326.
+- 2026-10-27: implement chose to move the "Picked" message of `check_renv_lock()` into `inform_lock_source()` in `R/check-supplement.R`, which `write_dockerfile()` also calls, over a second copy of the text.
+- 2026-10-27: implement chose the existing link test of `check_missing_script()` (`is_link()` and `link_ends_on_file()`) for the lockfile, so a file link to a missing `renv.lock` is now `supplement_error_no_file` on Windows too.
+- 2026-10-27: T1 done: `dockerfile_lock_source()` and the profile lines in `R/write-dockerfile.R`, 6 new tests, and `expect_refused()` now asserts no message. A planted name check that accepts every name turned the name test red. `devtools::test()`: 467 tests, 0 failed, 11 skipped.
+- 2026-10-27: re-audit: AC4 (full) — 3 findings: the BOM claim holds only in a UTF-8 locale; "where the system can store it" belongs to `RENV_PROFILE`; one line-break probe stood for the family. All fixed, and the tests add `dev` CR and `a` LF `b`.
