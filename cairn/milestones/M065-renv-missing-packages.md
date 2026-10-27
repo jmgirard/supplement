@@ -9,7 +9,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — a new row kind of the exported `check_supplement()`
-- **Branch/PR:** m065-renv-missing-packages
+- **Branch/PR:** m065-renv-missing-packages, https://github.com/jmgirard/supplement/pull/66
 
 ## Goal
 
