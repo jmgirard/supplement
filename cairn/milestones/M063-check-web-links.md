@@ -98,6 +98,7 @@
 - 2026-10-27: claim audit: 64 claims read, 2 corrected — vignettes/publishing.Rmd (a web row does not stop a release because release_supplement() does not run the check, not because the site is out of the author's control), R/check-supplement.R (the refused-status comment: a browser may need a login too).
 - 2026-10-27: devtools::check() on 08eb269 (with the R floor): 0 errors, 0 warnings, 1 note (local .claude folder). 1b1bcca changed only a comment and a vignette sentence. Status set to review.
 - 2026-10-27: review pass 2: four lenses gave 22 findings. 7 were fixed in bfed056 (two of them the same vignette finding), 2 went to follow-up (one already a row, one added to "Keep tests within the Suggests floors"), and 13 were rejected (4 false, 5 planned change counting the two history-record rejects, as IP4 keeps D-014 as written, 3 style, 1 edge).
+- 2026-10-27: step-7 approval: m063-check-web-links approved for merge
 
 ## Decisions
 <!-- owner: implement / review · append-only; milestone-local. -->
