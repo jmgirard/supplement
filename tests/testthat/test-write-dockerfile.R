@@ -367,6 +367,14 @@ write_profile_lock <- function(site, name, text = lock_json(r = '{"Version": "4.
   writeBin(charToRaw(text), file.path(site, "renv", "profiles", name, "renv.lock"))
 }
 
+# TRUE when the file system of the folder `dir` ignores letter case.
+ignores_case <- function(dir) {
+  probe <- file.path(dir, "case-probe")
+  file.create(probe)
+  on.exit(unlink(probe))
+  file.exists(file.path(dir, "CASE-PROBE"))
+}
+
 # TRUE when RENV_PROFILE can hold `text` on this system.
 can_set_profile <- function(text) {
   isTRUE(tryCatch(withr::with_envvar(c(RENV_PROFILE = text), Sys.getenv("RENV_PROFILE") == text),
@@ -565,10 +573,9 @@ test_that("a missing lockfile of the renv profile is refused, also under another
     shapes[[shape]](site)
     err <- expect_refused(site, "supplement_error_no_file", site, quarto = "1.10.19", info = shape)
     expect_match(conditionMessage(err), "No 'renv/profiles/dev/renv.lock' in", fixed = TRUE, info = shape)
-    # Where the file system ignores letter case, the path is found under
-    # another case, and the hint says so.
-    lockfile <- file.path(site, "renv", "profiles", "dev", "renv.lock")
-    if (file.exists(lockfile) && !dir.exists(lockfile)) {
+    # Where the file system ignores letter case, the path of a case shape is
+    # found under another case, and the hint says so.
+    if (grepl("letter case", shape, fixed = TRUE) && ignores_case(site)) {
       expect_match(conditionMessage(err), "has another letter case", fixed = TRUE, info = shape)
     } else {
       expect_match(conditionMessage(err), "renv::snapshot()", fixed = TRUE, info = shape)

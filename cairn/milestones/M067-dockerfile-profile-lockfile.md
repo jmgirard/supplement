@@ -96,6 +96,7 @@
 - 2026-10-27: review: main at ca0d326 is in the branch, so no sync was needed. The Copilot round is off (no header line). Fix-now findings committed in 25365a0. All evidence below is from 25365a0.
 - 2026-10-27: step-7 approval: m067-dockerfile-profile-lockfile approved for merge.
 - 2026-10-27: PR #68 opened, and the merge marker was written. The 3 checks were pending. The session does not poll CI in this app, so the CI wait stops here. Rerun `/milestone-review M067` to re-read the checks and merge.
+- 2026-10-27: resume: PR #68 OPEN with both windows-latest jobs red, at 9607208. `test-write-dockerfile.R:572` expected the letter-case hint for "a link to a missing file". On Windows `file.exists()` is TRUE for a file link to a missing file (LESSONS 2026-10-19 (M018)), while the code rightly gave the no-file hint. The fix is test-only: the case hint is expected only for the three case shapes, where `ignores_case()` finds that the file system ignores case. Re-run locally: 27 tests, 0 failed. Pushed for CI. The fix is trivial, so the approval stands.
 
 ## Decisions
 
