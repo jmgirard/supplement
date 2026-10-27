@@ -2631,6 +2631,11 @@ test_that("rows and messages name the lockfile and the source of the renv profil
                      info = profile)
     expect_identical(rows_of(result, "renv-missing")$problem,
                      missing_text("r", "html.json", "tidyr", lock = lock, active = active), info = profile)
+    env_report(site, "old", html.json = env_json(c(dplyr = "1.1.4")), docx.json = env_json(c(dplyr = "1.1.3")))
+    rows <- rows_of(check_lock(site), "renv-mismatch")
+    expect_identical(rows$problem[rows$file == "analyses/old.qmd"],
+                     lock_text("old", "docx.json", paste0("dplyr 1.1.3 (", lock, ": 1.1.4)"), hint = TRUE,
+                               lock = lock, active = active), info = profile)
 
     writeLines("{", profile_lock_path(site, profile))
     rows <- rows_of(check_lock(site), "renv-mismatch")
@@ -2654,15 +2659,21 @@ test_that("a missing lockfile of the renv profile skips the checks when renv.loc
   expect_identical(nrow(result[result$check %in% c("renv-mismatch", "renv-missing"), ]), 0L)
 })
 
-test_that("a profile name that is not valid UTF-8 shows its bytes in the lockfile row", {
+test_that("a profile name that is not valid UTF-8 shows its bytes in messages and the lockfile row", {
   site <- new_site()
   name <- rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9)))
+  dir.create(dirname(profile_file(site)))
+  writeBin(c(charToRaw(name), as.raw(0x0a)), profile_file(site))
+  expect_identical(lock_messages(site), c(
+    "i Picked 'renv/profiles/caf<e9>/renv.lock', the lockfile of the renv profile \"caf<e9>\", which 'renv/profile' names.\n",
+    "i Skipped the \"renv-mismatch\" check: the site has no 'renv/profiles/caf<e9>/renv.lock'. Skipped the \"renv-missing\" check too.\n"
+  ))
+
   # macOS refuses such a name, so the test skips where dir.create() fails.
   made <- tryCatch(dir.create(dirname(profile_lock_path(site, name)), recursive = TRUE),
                    error = function(e) FALSE, warning = function(w) FALSE)
   skip_if_not(isTRUE(made), "the file system refuses a name that is not valid UTF-8")
   writeLines("{", profile_lock_path(site, name))
-  writeBin(c(charToRaw(name), as.raw(0x0a)), profile_file(site))
   expect_no_error(rows <- rows_of(check_lock(site), "renv-mismatch"))
   expect_identical(rows$file, "renv/profiles/caf<e9>/renv.lock")
   expect_identical(rows$problem, lock_unreadable(profile_active("caf<e9>")))
