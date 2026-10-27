@@ -87,6 +87,7 @@
 - 2026-10-27: step-7 approval: m065-renv-missing-packages approved for merge
 - 2026-10-27: CI wait on PR #66 reached the time limit: ubuntu and build passed, macOS and Windows pending, deploy skipped; nothing merged.
 - 2026-10-27: resume: PR #66 open, every check passed at 510c594, main unmoved; re-entering at step 7 (route c).
+- 2026-10-27: step-7 approval: m065-renv-missing-packages approved for merge (re-posed on resume)
 
 ## Decisions
 
