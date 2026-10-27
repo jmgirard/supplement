@@ -179,7 +179,9 @@ can come from a site that you do not control, such as one that is down.
 `release_supplement()` does not run this test, so its rows do not stop a
 release. If the site uses renv, `supplement::check_supplement(renv_lock = TRUE)`
 also compares the R and package versions in the stored output of each report
-with `renv.lock`. A release does not run that check either.
+with `renv.lock`, and gives a `"renv-missing"` row for each report that
+attached a package that `renv.lock` does not name. A release does not run
+these checks either.
 
 When `supplement::check_supplement()` with its defaults finds no problem,
 commit and push in a terminal in the site folder:

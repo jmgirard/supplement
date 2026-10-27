@@ -236,6 +236,9 @@ fails. This needs a network, and a release does not run it. It finds:
   whose stored output names R or package versions other than those in
   `renv.lock` (see "Recording R packages with renv"). A release does not
   run this check.
+- with `supplement::check_supplement(renv_lock = TRUE)` only, reports
+  that attached a package that `renv.lock` does not name. A release does
+  not run this check either.
 
 The first three checks read the file list from git. When git cannot run or
 this folder is not in a git work tree, the function skips them and says
@@ -415,8 +418,17 @@ Each such report gets a `"renv-mismatch"` row that names the versions.
 To use the versions in `renv.lock`, run `renv::restore()`. Then render the
 report by name, render the whole site, and commit the report with
 `_freeze/`, `docs/`, and `figures/`. If the library now holds the versions of the report, you
-can run `renv::snapshot()` and commit `renv.lock` instead. A release does
-not run this check, so these rows do not stop a release.
+can run `renv::snapshot()` and commit `renv.lock` instead.
+
+The same command gives a `"renv-missing"` row for each report that
+attached a package with `library()` that `renv.lock` does not name.
+`renv::restore()` does not install such a package. Run `renv::snapshot()`
+and commit `renv.lock`. If the report no longer uses the package, render
+the report by name. Then render the whole site, and commit the report with
+`_freeze/`, `docs/`, and `figures/`. A package that a report loaded and
+did not attach gives no row.
+
+A release does not run these checks, so their rows do not stop a release.
 
 ## Running reports in a container
 

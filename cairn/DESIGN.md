@@ -164,8 +164,14 @@ With `renv_lock = TRUE` (M064, D-032), `check_renv_lock()` reads the site's
 `stored_versions()`, which finds lines with patterns on their first 200
 characters. `lock_versions()` refuses a repeated key, as
 `read_lockfile_versions()` does. `version_diffs()` compares the versions as
-`package_version()` values. `release_supplement()` never passes this
-argument either.
+`package_version()` values. `missing_problem()` (M065) gives a
+`"renv-missing"` row for a report that attached a package that
+`renv.lock` does not name: `stored_versions()` reads a package as attached
+from the `*` column of the sessioninfo table or the
+`other attached packages:` list, and `lock_versions()` returns every
+record's name. A package that is loaded and not attached gives no row,
+since renv's default snapshot leaves it out. `release_supplement()` never
+passes this argument either.
 Its placeholder check (`check_placeholders()`, M036) compares four
 `_supplement.yml` values with the installed template's, read through
 `template_supplement()`. It also looks for the lines of

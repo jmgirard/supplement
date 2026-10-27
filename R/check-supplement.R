@@ -172,6 +172,33 @@
 #'   and the function says that it skipped the check. Only `renv.lock` in the site folder is read, not the
 #'   lockfile of an renv profile. [release_supplement()] does not run this
 #'   check, so its rows never stop a release.
+#' * `"renv-missing"`: only with `renv_lock = TRUE`, a report from the same
+#'   list whose stored output shows that it attached a package that the
+#'   site's `renv.lock` does not name under `Packages`, so
+#'   `renv::restore()` does not install it. The check reads the same
+#'   `.json` files, in the same forms, as the `"renv-mismatch"` check. A
+#'   package counts as attached when a line of the sessioninfo package
+#'   table has `*` under the `*` of the table's header line, or when it is
+#'   an entry after `other attached packages:` in `utils::sessionInfo()`
+#'   output. A package that is loaded and not attached, such as knitr
+#'   during a render or a package after
+#'   `loaded via a namespace (and not attached):`, gives no row: renv's
+#'   default snapshot records only the packages that project code uses.
+#'   `renv.lock` names a package when it holds a record under `Packages`
+#'   with that name, whatever its `Version`. A record is named as for the
+#'   `"renv-mismatch"` check, and a record whose name is empty names no
+#'   package. The report gets one row. It names the files that show such a
+#'   package attached, in the same way as the `"renv-mismatch"` row, and
+#'   each such package once, in byte order of name. It says to run
+#'   `renv::snapshot()` and commit `renv.lock`, or, if the report no longer
+#'   uses the packages, to take the render steps. When another of these
+#'   files holds a package table or list and attaches none of them, the row
+#'   also gives the format hint and delete steps of the `"renv-mismatch"`
+#'   row. A report that cannot be read gives no row. When `renv.lock` is
+#'   missing or cannot be read, this check gives no row, as for the
+#'   `"renv-mismatch"` check. The `"renv-missing"` rows come after the
+#'   `"renv-mismatch"` rows. [release_supplement()] does not run this
+#'   check.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its
@@ -387,7 +414,9 @@
 #'   default, `FALSE`, makes no web request.
 #' @param renv_lock `TRUE` to also compare the R and package versions in the
 #'   stored output of each report with the site's `renv.lock` and give the
-#'   `"renv-mismatch"` rows. The default, `FALSE`, does not read `renv.lock`.
+#'   `"renv-mismatch"` rows, and to give the `"renv-missing"` rows for
+#'   attached packages that `renv.lock` does not name. The default, `FALSE`,
+#'   does not read `renv.lock`.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
