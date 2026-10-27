@@ -917,23 +917,51 @@ stored_script_hashes <- function(file) {
 # renv.lock -------------------------------------------------------------------
 
 # The rows of the renv.lock comparison: the "renv-mismatch" rows, then the
-# "renv-missing" rows. A site with no renv.lock gets a message and no row,
-# and a renv.lock that cannot be read gets one row.
+# "renv-missing" rows. The lockfile is that of the site's renv profile,
+# from lock_source(). A site with no lockfile gets a message and no row, a
+# lockfile that cannot be read gets one row, and so does a renv/profile
+# that cannot be read.
 check_renv_lock <- function(path) {
-  lock <- lock_versions(path)
+  source <- lock_source(path)
+  if (isFALSE(source)) {
+    return(problem_rows(
+      "renv-mismatch", "renv/profile",
+      paste("renv reads the name of the site's renv profile from its first line, but it is a folder or a file",
+            "that cannot be opened. Make it a file whose first line names the profile, or delete it to use",
+            "renv.lock, then commit the change.")
+    ))
+  }
+  # Values, not templates, carry the names to cli, since a name can hold
+  # `{` or `}`.
+  shown <- show_text(source$file)
+  active <- ""
+  if (!is.null(source$profile)) {
+    profile <- show_text(source$profile)
+    active <- paste0(" with the renv profile ", quote_path(profile), " active")
+    if (source$from == "RENV_PROFILE") {
+      cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
+                                "which {.envvar RENV_PROFILE} names."))
+    } else {
+      cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
+                                "which {.file renv/profile} names."))
+    }
+  }
+  lock <- lock_versions(path, source$file)
   if (is.null(lock)) {
-    cli::cli_alert_info(paste("Skipped the {.val renv-mismatch} check: the site has no {.file renv.lock}.",
+    cli::cli_alert_info(paste("Skipped the {.val renv-mismatch} check: the site has no {.file {shown}}.",
                               "Skipped the {.val renv-missing} check too."))
     return(problem_rows())
   }
   if (isFALSE(lock)) {
     return(problem_rows(
-      "renv-mismatch", "renv.lock",
-      paste("It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that",
-            "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object, or it",
-            "repeats a key. Run renv::snapshot() to write it again, then commit it.")
+      "renv-mismatch", source$file,
+      paste0("It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that ",
+             "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object, or it ",
+             "repeats a key. Run renv::snapshot()", active, " to write it again, then commit it.")
     ))
   }
+  lock$file <- shown
+  lock$active <- active
   reports <- analysis_reports(path)
   problems <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
@@ -979,25 +1007,26 @@ mismatch_problem <- function(found, files, dir, lock) {
   r <- unlist(lapply(found, `[[`, "r"))
   packages <- unlist(lapply(found, `[[`, "packages"))
   entries <- c(
-    if (length(r) > 0) paste0("R ", in_order(r), " (renv.lock: ", lock$r, ")"),
+    if (length(r) > 0) paste0("R ", in_order(r), " (", lock$file, ": ", lock$r, ")"),
     vapply(sort_bytes(unique(as.character(names(packages)))), function(p) {
-      paste0(p, " ", in_order(packages[names(packages) == p]), " (renv.lock: ", lock$packages[[p]], ")")
+      paste0(p, " ", in_order(packages[names(packages) == p]), " (", lock$file, ": ", lock$packages[[p]], ")")
     }, character(1), USE.NAMES = FALSE)
   )
   named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[differs])))), collapse = ", ")
-  stale <- paste0("Its stored output was made with other versions than renv.lock records, in ", named, ": ",
+  stale <- paste0("Its stored output was made with other versions than ", lock$file, " records, in ", named, ": ",
                   paste(entries, collapse = ", "), ".")
-  steps <- paste("To use the versions in renv.lock, run renv::restore(), then take these steps.", rerender_steps,
-                 "If the library now holds the versions of the report, run renv::snapshot() and commit",
-                 "renv.lock instead.")
+  steps <- paste0("To use the versions in ", lock$file, ", run renv::restore()", lock$active,
+                  ", then take these steps. ", rerender_steps,
+                  " If the library now holds the versions of the report, run renv::snapshot()", lock$active,
+                  " and commit ", lock$file, " instead.")
   matches <- vapply(found, function(x) x$compared, logical(1)) & !differs
   if (!any(matches)) {
     return(paste(stale, steps))
   }
   # Quarto keeps the file of a format that the report no longer renders.
   paste(stale,
-        "Other stored output of the report matches renv.lock, so these files can be from a format that the",
-        "report no longer renders. If so, delete them, render the whole site, and commit the report with",
+        paste0("Other stored output of the report matches ", lock$file, ", so these files can be from a format that"),
+        "the report no longer renders. If so, delete them, render the whole site, and commit the report with",
         "_freeze/, docs/, and figures/.",
         "If not, take the steps that follow.", steps)
 }
@@ -1015,10 +1044,11 @@ missing_problem <- function(stored, files, dir, lock) {
   }
   named <- paste(quote_path(show_text(sort_bytes(file.path(dir, files[shows])))), collapse = ", ")
   packages <- paste(sort_bytes(unique(unlist(missing))), collapse = ", ")
-  stale <- paste0("Its stored output shows that the report attached packages that renv.lock does not record, in ",
-                  named, ": ", packages, ".")
-  steps <- paste("renv::restore() does not install them. To record them, run renv::snapshot() and commit",
-                 "renv.lock. If the report no longer uses them, take these steps instead.", rerender_steps)
+  stale <- paste0("Its stored output shows that the report attached packages that ", lock$file,
+                  " does not record, in ", named, ": ", packages, ".")
+  steps <- paste0("renv::restore() does not install them. To record them, run renv::snapshot()", lock$active,
+                  " and commit ", lock$file, ". If the report no longer uses them, take these steps instead. ",
+                  rerender_steps)
   listed <- vapply(stored, function(x) x$listed, logical(1)) & !shows
   if (!any(listed)) {
     return(paste(stale, steps))
@@ -1051,14 +1081,49 @@ version_diffs <- function(stored, lock) {
        compared = any(!is.na(c(r, packages))))
 }
 
-# The versions that the site's renv.lock records: NULL when the site has no
-# renv.lock, FALSE when it cannot be read, and otherwise a list of `r`, the
+# The lockfile that renv 1.3.1 reads for the site in `path`, by the rule of
+# renv_bootstrap_profile_load(): a list of `file`, its path from the site
+# folder, `profile`, the name of the renv profile or NULL, and `from`,
+# where the name came from. The name comes from the R session's
+# RENV_PROFILE when it is not empty, else from the first line of
+# renv/profile, untrimmed, and `default` or an empty name means no
+# profile. FALSE when renv/profile is read and is a folder or cannot be
+# opened.
+lock_source <- function(path) {
+  profile <- Sys.getenv("RENV_PROFILE")
+  from <- "RENV_PROFILE"
+  if (!nzchar(profile)) {
+    from <- "renv/profile"
+    file <- file.path(path, "renv", "profile")
+    # renv tests the file with file.exists(), so a link to a missing file
+    # names no profile, except on Windows, where file.exists() is TRUE for
+    # it. On Linux, readLines() reads a folder as empty.
+    lines <- character()
+    if (file.exists(file)) {
+      lines <- if (!dir.exists(file)) {
+        suppressWarnings(tryCatch(readLines(file, warn = FALSE), error = function(e) NULL))
+      }
+      if (is.null(lines)) {
+        return(FALSE)
+      }
+    }
+    profile <- if (length(lines) > 0) lines[[1]] else ""
+  }
+  if (profile %in% c("", "default")) {
+    return(list(file = "renv.lock", profile = NULL, from = NULL))
+  }
+  list(file = paste("renv", "profiles", profile, "renv.lock", sep = "/"), profile = profile, from = from)
+}
+
+# The versions that the lockfile `file`, a path from the site folder
+# `path`, records: NULL when the file does not exist, FALSE when it cannot
+# be read, and otherwise a list of `r`, the
 # R version or NULL, `packages`, a character vector of versions named by
 # package, and `names`, the name of each package record. A package record
 # with no `Version` text is left out of `packages` and kept in `names`, and
 # a record whose name is empty is left out of both.
-lock_versions <- function(path) {
-  file <- file.path(path, "renv.lock")
+lock_versions <- function(path, file = "renv.lock") {
+  file <- file.path(path, file)
   if (!file.exists(file) && !is_link(file)) {
     return(NULL)
   }

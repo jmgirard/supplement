@@ -2,14 +2,14 @@
      section ownership". A phase skill never rewrites another phase's section. -->
 # M066: Read the lockfile of the active renv profile
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — it changes which file the exported `check_supplement()` reads and what its rows say
-- **Branch/PR:** —
+- **Branch/PR:** m066-renv-profile-lockfile
 
 ## Goal
 
@@ -50,8 +50,8 @@ With `renv_lock = TRUE`, `check_supplement()` compares the stored output of each
 
 ## Tasks
 
-- [ ] T1: Write the AC1 and AC4 tests first. Then add a helper in `R/check-supplement.R` that applies the rule to the site folder. It returns the profile, its source, and the lockfile's path from the site folder, or marks `renv/profile` as unreadable. `lock_versions()` (near line 1060) takes that path. The existing renv tests unset `RENV_PROFILE` with withr.
-- [ ] T2: Write the AC2 and AC3 tests first. Then pass the helper's result through `check_renv_lock()`, `mismatch_problem()`, and `missing_problem()`. This covers the row text, the steps with the profile active, the unreadable-lockfile row, the skip message, the profile message, and the `renv/profile` row. Pass the profile name to cli as a value, never in the template.
+- [x] T1: Write the AC1 and AC4 tests first. Then add a helper in `R/check-supplement.R` that applies the rule to the site folder. It returns the profile, its source, and the lockfile's path from the site folder, or marks `renv/profile` as unreadable. `lock_versions()` (near line 1060) takes that path. The existing renv tests unset `RENV_PROFILE` with withr.
+- [x] T2: Write the AC2 and AC3 tests first. Then pass the helper's result through `check_renv_lock()`, `mismatch_problem()`, and `missing_problem()`. This covers the row text, the steps with the profile active, the unreadable-lockfile row, the skip message, the profile message, and the `renv/profile` row. Pass the profile name to cli as a value, never in the template.
 - [ ] T3: Update the roxygen help and run `devtools::document()`. Edit the unreleased `renv_lock` bullet of NEWS.md, the renv part of GUIDE.md, and the `renv_lock` paragraph of DESIGN.md.
 - [ ] T4: Run `devtools::test()` and `devtools::check()`.
 
@@ -67,3 +67,4 @@ With `renv_lock = TRUE`, `check_supplement()` compares the stored output of each
 - 2026-10-27: inbox sweep: 0 open issues and 0 open PRs on jmgirard/supplement.
 - 2026-10-27: collision check: absorbs the candidate row "Read the lockfiles of renv profiles" (from the M064 and M065 plans). D-032 (opt-in, the release does not run it) still holds. The `write_dockerfile()` gap became the candidate row "Write Dockerfiles from profile lockfiles".
 - 2026-10-27: criteria audit (full mode, fresh Opus reader): 9 findings, all fixed. The AC5 search matched nothing on main because the sentence wraps, so it now searches one line. AC1 and AC4 now follow renv for a link to a missing `renv/profile` and for bytes that are not UTF-8, and AC4 adds an unreadable file. AC2 asserts the profile message and a name with `{`, `}`, and a space. The message names the profile's source, and the help names the session's variable. The row steps say to run renv with the profile active. AC1 adds `..`, `RENV_PROFILE=default`, a blank first line, CR LF, and spaces. The help names both `RENV_PATHS_*` variables. AC3 and AC6 had no finding.
+- 2026-10-27: T1 and T2 done in one commit: `lock_source()` in `R/check-supplement.R` applies the profile rule, `lock_versions()` takes the lockfile path, and `check_renv_lock()` names the lockfile, the profile, and its source. The profile message reads "Picked <lockfile>, the lockfile of the renv profile <name>, which <source> names", so it stays true when the lockfile is missing. A `renv/profile` folder gives the row on every system, since Linux `readLines()` reads a folder as empty. Four planted defects in `lock_source()` (trim, no variable, no `default`, unreadable as no profile) each failed tests. `devtools::test()`: 460 tests, 0 failed.

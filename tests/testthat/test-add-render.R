@@ -105,6 +105,7 @@ test_that("a rendered report gives a renv-mismatch row against a renv.lock with 
   rendered <- run_in(site, "quarto", c("render", "analyses/example.qmd"))
   expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
   writeLines('{"Packages": {"knitr": {"Package": "knitr", "Version": "0.0.1"}}}', file.path(site, "renv.lock"))
+  withr::local_envvar(RENV_PROFILE = NA)
   result <- suppressMessages(check_supplement(site, renv_lock = TRUE))
   rows <- result[result$check == "renv-mismatch", , drop = FALSE]
   expect_identical(rows$file, "analyses/example.qmd")
@@ -118,7 +119,7 @@ test_that("a rendered report gives a renv-mismatch row against a renv.lock with 
 render_missing <- function(site, name) {
   profile <- withr::local_tempfile()
   writeLines(character(), profile)
-  withr::local_envvar(R_PROFILE_USER = profile)
+  withr::local_envvar(R_PROFILE_USER = profile, RENV_PROFILE = NA)
   rendered <- run_in(site, "quarto", c("render", file.path("analyses", paste0(name, ".qmd"))))
   expect_identical(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
   writeLines('{"R": {"Version": "4.6.1"}, "Packages": {}}', file.path(site, "renv.lock"))

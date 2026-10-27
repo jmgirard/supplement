@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-27 (M065 review: archived; graduated "Flag packages
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M066 | Read the lockfile of the active renv profile | planned | — | normal | milestones/M066-renv-profile-lockfile.md |
+| M066 | Read the lockfile of the active renv profile | in-progress | — | normal | milestones/M066-renv-profile-lockfile.md |
 | M065 | Flag packages missing from renv.lock | done | — | normal | milestones/archive/M065-renv-missing-packages.md |
 | M064 | Compare renv.lock with report records | done | — | normal | milestones/archive/M064-renv-lock-check.md |
 | M063 | Check web links on the rendered site | done | — | normal | milestones/archive/M063-check-web-links.md |

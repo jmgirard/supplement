@@ -2120,6 +2120,9 @@ test_that("url_status() follows redirects with a timeout and gives the status or
 
 # renv.lock -------------------------------------------------------------------
 
+# A RENV_PROFILE of the session that runs the tests picks another lockfile.
+withr::local_envvar(RENV_PROFILE = NA)
+
 check_lock <- function(path) suppressMessages(check_supplement(path, renv_lock = TRUE))
 
 lock_path <- function(site) file.path(site, "renv.lock")
@@ -2135,11 +2138,12 @@ lock_json <- function(packages = character(), r = "4.6.1") {
 
 write_lock <- function(site, ...) writeLines(lock_json(...), lock_path(site))
 
-lock_unreadable_text <- paste(
-  "It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that",
-  "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object, or it",
-  "repeats a key. Run renv::snapshot() to write it again, then commit it."
-)
+lock_unreadable <- function(active = "") {
+  paste0("It cannot be read as an renv lockfile. It is a folder, a link to a missing file, or a file that ",
+         "cannot be opened, or it is not UTF-8 text that holds a JSON object with a Packages object, or it ",
+         "repeats a key. Run renv::snapshot()", active, " to write it again, then commit it.")
+}
+lock_unreadable_text <- lock_unreadable()
 
 test_that("renv_lock must be TRUE or FALSE", {
   site <- new_site()
@@ -2290,18 +2294,18 @@ env_report <- function(site, name, ...) {
 
 # The problem text of a renv-mismatch row whose files `files` of report
 # `name` hold the versions in `entries`, with the format hint when `hint`
-# is TRUE.
-lock_text <- function(name, files, entries, hint = FALSE) {
-  stale <- paste0("Its stored output was made with other versions than renv.lock records, in ",
+# is TRUE. `lock` is the lockfile, and `active` follows the renv commands.
+lock_text <- function(name, files, entries, hint = FALSE, lock = "renv.lock", active = "") {
+  stale <- paste0("Its stored output was made with other versions than ", lock, " records, in ",
                   quoted_paths(name, files), ": ", entries, ".")
-  steps <- paste("To use the versions in renv.lock, run renv::restore(), then take these steps.", rerender_steps,
-                 "If the library now holds the versions of the report, run renv::snapshot() and commit",
-                 "renv.lock instead.")
+  steps <- paste0("To use the versions in ", lock, ", run renv::restore()", active, ", then take these steps. ",
+                  rerender_steps, " If the library now holds the versions of the report, run renv::snapshot()",
+                  active, " and commit ", lock, " instead.")
   if (!hint) {
     return(paste(stale, steps))
   }
   paste(stale,
-        "Other stored output of the report matches renv.lock, so these files can be from a format that the",
+        paste0("Other stored output of the report matches ", lock, ", so these files can be from a format that the"),
         "report no longer renders. If so, delete them, render the whole site, and commit the report with",
         "_freeze/, docs/, and figures/.",
         "If not, take the steps that follow.", steps)
@@ -2418,11 +2422,12 @@ test_that("by default check_supplement() does not read renv.lock", {
 # The problem text of a renv-missing row whose files `files` of report
 # `name` attach the packages `packages`, with the format hint when `hint`
 # is TRUE.
-missing_text <- function(name, files, packages, hint = FALSE) {
-  stale <- paste0("Its stored output shows that the report attached packages that renv.lock does not record, in ",
+missing_text <- function(name, files, packages, hint = FALSE, lock = "renv.lock", active = "") {
+  stale <- paste0("Its stored output shows that the report attached packages that ", lock, " does not record, in ",
                   quoted_paths(name, files), ": ", paste(packages, collapse = ", "), ".")
-  steps <- paste("renv::restore() does not install them. To record them, run renv::snapshot() and commit",
-                 "renv.lock. If the report no longer uses them, take these steps instead.", rerender_steps)
+  steps <- paste0("renv::restore() does not install them. To record them, run renv::snapshot()", active,
+                  " and commit ", lock, ". If the report no longer uses them, take these steps instead. ",
+                  rerender_steps)
   if (!hint) {
     return(paste(stale, steps))
   }
@@ -2523,4 +2528,160 @@ test_that("renv-missing rows follow the renv-mismatch rows, in the order of the 
   rows <- result[result$check %in% c("renv-mismatch", "renv-missing"), , drop = FALSE]
   expect_identical(paste(rows$check, rows$file), c("renv-mismatch analyses/a.qmd", "renv-mismatch analyses/b.qmd",
                                                    "renv-missing analyses/a.qmd", "renv-missing analyses/b.qmd"))
+})
+
+# renv profiles ---------------------------------------------------------------
+
+profile_lock_path <- function(site, profile) file.path(site, "renv", "profiles", profile, "renv.lock")
+
+write_profile_lock <- function(site, profile, ...) {
+  dir.create(dirname(profile_lock_path(site, profile)), recursive = TRUE, showWarnings = FALSE)
+  writeLines(lock_json(...), profile_lock_path(site, profile))
+}
+
+profile_file <- function(site) file.path(site, "renv", "profile")
+
+# The text that follows the renv commands in a row under profile `profile`.
+profile_active <- function(profile) paste0(' with the renv profile "', profile, '" active')
+
+# The info messages that check_supplement(renv_lock = TRUE) prints for
+# `site` that name renv, without ANSI codes or Unicode.
+lock_messages <- function(site) {
+  withr::local_options(cli.unicode = FALSE, cli.num_colors = 1)
+  messages <- character()
+  withCallingHandlers(check_supplement(site, renv_lock = TRUE), message = function(m) {
+    messages <<- c(messages, conditionMessage(m))
+    invokeRestart("muffleMessage")
+  })
+  messages[startsWith(messages, "i ") & grepl("renv", messages, fixed = TRUE)]
+}
+
+test_that("the renv.lock check reads the lockfile of the renv profile that renv picks", {
+  site <- new_site()
+  write_lock(site, c(dplyr = "1.1.0"))
+  write_profile_lock(site, "dev", c(dplyr = "1.1.4"))
+  write_profile_lock(site, "other", c(dplyr = "1.1.2"))
+  write_profile_lock(site, " dev ", c(dplyr = "1.1.5"))
+  env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3")))
+  versions <- c("renv.lock" = "1.1.0", dev = "1.1.4", other = "1.1.2", " dev " = "1.1.5", "../.." = "1.1.0")
+  # Each case: the RENV_PROFILE value (NA to unset it), the bytes of
+  # renv/profile (NULL for none), and the profile that renv picks.
+  cases <- list(
+    variable = list(NA, NULL, "renv.lock"),
+    variable_set = list("dev", NULL, "dev"),
+    file = list(NA, "dev\n", "dev"),
+    variable_over_file = list("dev", "other\n", "dev"),
+    variable_default = list("default", "other\n", "renv.lock"),
+    file_default = list(NA, "default\n", "renv.lock"),
+    empty_file = list(NA, "", "renv.lock"),
+    blank_first_line = list(NA, "\ndev\n", "renv.lock"),
+    crlf = list(NA, "dev\r\n", "dev"),
+    spaces = list(NA, " dev \n", " dev "),
+    dots = list(NA, "../..\n", "../..")
+  )
+  for (case in names(cases)) {
+    unlink(profile_file(site))
+    bytes <- cases[[case]][[2]]
+    if (!is.null(bytes)) writeBin(charToRaw(bytes), profile_file(site))
+    rows <- withr::with_envvar(c(RENV_PROFILE = cases[[case]][[1]]), rows_of(check_lock(site), "renv-mismatch"))
+    picked <- cases[[case]][[3]]
+    lock <- if (picked == "renv.lock") "renv.lock" else paste0("renv/profiles/", picked, "/renv.lock")
+    active <- if (picked == "renv.lock") "" else profile_active(picked)
+    expect_identical(rows$problem, lock_text("r", "html.json", paste0("dplyr 1.1.3 (", lock, ": ", versions[[picked]], ")"),
+                                             lock = lock, active = active), info = case)
+  }
+
+  # renv tests renv/profile with file.exists(), which is TRUE on Windows
+  # for a link to a missing file.
+  unlink(profile_file(site))
+  skip_on_os("windows")
+  symlink_or_skip(file.path(site, "no-such-profile"), profile_file(site))
+  rows <- rows_of(check_lock(site), "renv-mismatch")
+  expect_identical(rows$problem, lock_text("r", "html.json", "dplyr 1.1.3 (renv.lock: 1.1.0)"))
+})
+
+test_that("rows and messages name the lockfile and the source of the renv profile", {
+  for (profile in c("dev", "a{b} c")) {
+    site <- new_site()
+    from_variable <- profile == "dev"
+    if (from_variable) {
+      withr::local_envvar(RENV_PROFILE = profile)
+      source <- "`RENV_PROFILE`"
+    } else {
+      withr::local_envvar(RENV_PROFILE = NA)
+      dir.create(dirname(profile_file(site)))
+      writeLines(profile, profile_file(site))
+      source <- "'renv/profile'"
+    }
+    lock <- paste0("renv/profiles/", profile, "/renv.lock")
+    active <- profile_active(profile)
+    picked <- paste0("i Picked '", lock, "', the lockfile of the renv profile \"", profile, "\", which ", source,
+                     " names.\n")
+    write_profile_lock(site, profile, c(dplyr = "1.1.4"))
+    env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3", tidyr = "1.3.1")))
+
+    expect_identical(lock_messages(site), picked, info = profile)
+    result <- check_lock(site)
+    expect_identical(rows_of(result, "renv-mismatch")$problem,
+                     lock_text("r", "html.json", paste0("dplyr 1.1.3 (", lock, ": 1.1.4)"), lock = lock, active = active),
+                     info = profile)
+    expect_identical(rows_of(result, "renv-missing")$problem,
+                     missing_text("r", "html.json", "tidyr", lock = lock, active = active), info = profile)
+
+    writeLines("{", profile_lock_path(site, profile))
+    rows <- rows_of(check_lock(site), "renv-mismatch")
+    expect_identical(rows$file, lock, info = profile)
+    expect_identical(rows$problem, lock_unreadable(active), info = profile)
+
+    unlink(profile_lock_path(site, profile))
+    skipped <- paste0("i Skipped the \"renv-mismatch\" check: the site has no '", lock,
+                      "'. Skipped the \"renv-missing\" check too.\n")
+    expect_identical(lock_messages(site), c(picked, skipped), info = profile)
+  }
+})
+
+test_that("a missing lockfile of the renv profile skips the checks when renv.lock exists", {
+  site <- new_site()
+  withr::local_envvar(RENV_PROFILE = "dev")
+  write_lock(site, c(dplyr = "1.1.0", cli = "3.6.6"))
+  env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3", tidyr = "1.3.1")))
+  expect_message(result <- check_supplement(site, renv_lock = TRUE),
+                 "the site has no .renv/profiles/dev/renv\\.lock.\\. Skipped the \"renv-missing\" check too\\.")
+  expect_identical(nrow(result[result$check %in% c("renv-mismatch", "renv-missing"), ]), 0L)
+})
+
+test_that("a renv/profile that cannot be read gets one renv-mismatch row", {
+  profile_text <- paste(
+    "renv reads the name of the site's renv profile from its first line, but it is a folder or a file",
+    "that cannot be opened. Make it a file whose first line names the profile, or delete it to use",
+    "renv.lock, then commit the change."
+  )
+  site <- new_site()
+  write_lock(site, c(dplyr = "1.1.0"))
+  write_profile_lock(site, "dev", c(dplyr = "1.1.4"))
+  env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3", tidyr = "1.3.1")))
+  lock_rows <- function() {
+    result <- check_lock(site)
+    result[result$check %in% c("renv-mismatch", "renv-missing"), , drop = FALSE]
+  }
+  dir.create(profile_file(site))
+  rows <- lock_rows()
+  expect_identical(paste(rows$check, rows$file), "renv-mismatch renv/profile")
+  expect_identical(rows$problem, profile_text)
+
+  # RENV_PROFILE names the profile, so renv does not read renv/profile.
+  withr::with_envvar(c(RENV_PROFILE = "dev"), {
+    rows <- lock_rows()
+    expect_identical(paste(rows$check, rows$file), c("renv-mismatch analyses/r.qmd", "renv-missing analyses/r.qmd"))
+  })
+
+  unlink(profile_file(site), recursive = TRUE)
+  skip_on_os("windows")
+  writeLines("dev", profile_file(site))
+  Sys.chmod(profile_file(site), "000")
+  withr::defer(Sys.chmod(profile_file(site), "644"))
+  skip_if(file.access(profile_file(site), 4) == 0, "the file can still be read, for example as root")
+  rows <- lock_rows()
+  expect_identical(paste(rows$check, rows$file), "renv-mismatch renv/profile")
+  expect_identical(rows$problem, profile_text)
 })
