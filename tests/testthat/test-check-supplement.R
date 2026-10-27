@@ -2663,6 +2663,37 @@ test_that("a missing lockfile of the renv profile skips the checks when renv.loc
   expect_identical(nrow(result[result$check %in% c("renv-mismatch", "renv-missing"), ]), 0L)
 })
 
+test_that("the message names both sources of the profile when they give the same name", {
+  # Each shape of renv/profile beside RENV_PROFILE "dev", and the sources
+  # that the message then names.
+  alone <- "`RENV_PROFILE` names"
+  shapes <- list(
+    "the same name" = list(function(site) writeLines("dev", profile_file(site)),
+                           "`RENV_PROFILE` and 'renv/profile' both name"),
+    "no renv/profile" = list(function(site) unlink(profile_file(site)), alone),
+    "an empty renv/profile" = list(function(site) file.create(profile_file(site)), alone),
+    "another name" = list(function(site) writeLines("other", profile_file(site)), alone),
+    "a folder" = list(function(site) dir.create(profile_file(site)), alone)
+  )
+  withr::local_envvar(RENV_PROFILE = "dev")
+  lock <- "renv/profiles/dev/renv.lock"
+  for (shape in names(shapes)) {
+    site <- new_site()
+    dir.create(dirname(profile_file(site)), showWarnings = FALSE)
+    shapes[[shape]][[1]](site)
+    write_profile_lock(site, "dev", c(dplyr = "1.1.4"))
+    env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3")))
+    expect_identical(lock_messages(site), paste0(
+      "i Picked '", lock, "', the lockfile of the renv profile \"dev\", which ", shapes[[shape]][[2]], ".\n"
+    ), info = shape)
+    result <- check_lock(site)
+    expect_identical(result$file[result$check %in% c("renv-mismatch", "renv-missing")], "analyses/r.qmd", info = shape)
+    expect_identical(rows_of(result, "renv-mismatch")$problem,
+                     lock_text("r", "html.json", paste0("dplyr 1.1.3 (", lock, ": 1.1.4)"), lock = lock,
+                               active = profile_active("dev")), info = shape)
+  }
+})
+
 test_that("a lockfile path listed under another letter case gets a row of its own", {
   # Each case: the RENV_PROFILE value (NA to unset it), the path that renv
   # picks, and the path as the site lists it.

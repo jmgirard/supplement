@@ -49,6 +49,9 @@
 #' lockfile is `renv.lock` in the site folder. With a profile, the lockfile
 #' is `renv/profiles/<name>/renv.lock`, and the function prints a message
 #' that names the lockfile, the profile, and where the name came from.
+#' When `RENV_PROFILE` and the first line of `renv/profile` give the same
+#' name, as in an R session that the site's `renv/activate.R` started,
+#' because it copies that line into `RENV_PROFILE`, the message names both.
 #'
 #' With a profile, the `.dockerignore` lets that lockfile into the image.
 #' The `Dockerfile` copies it to the same path and sets the `RENV_PROFILE`

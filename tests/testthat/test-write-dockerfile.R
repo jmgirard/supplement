@@ -476,6 +476,38 @@ test_that("with a renv profile, its lockfile is read, copied, and named in a mes
   }
 })
 
+test_that("the message and the name error name both sources when they give the same name", {
+  # Each shape of renv/profile beside RENV_PROFILE "dev", and the sources
+  # that the message then names.
+  alone <- "`RENV_PROFILE` names"
+  shapes <- list(
+    "the same name" = list(function(site) write_profile_name(site, "dev"), "`RENV_PROFILE` and 'renv/profile' both name"),
+    "no renv/profile" = list(function(site) NULL, alone),
+    "an empty renv/profile" = list(function(site) write_profile_name(site, raw()), alone),
+    "another name" = list(function(site) write_profile_name(site, "other"), alone),
+    "a folder" = list(function(site) dir.create(file.path(site, "renv", "profile"), recursive = TRUE), alone)
+  )
+  withr::local_envvar(RENV_PROFILE = "dev")
+  for (shape in names(shapes)) {
+    site <- lock_site()
+    write_profile_lock(site, "dev")
+    shapes[[shape]][[1]](site)
+    messages <- dockerfile_messages(site, quarto = "1.10.19")
+    expect_identical(messages, paste0(
+      "i Picked 'renv/profiles/dev/renv.lock', the lockfile of the renv profile \"dev\", which ",
+      shapes[[shape]][[2]], ".\n"
+    ), info = shape)
+    expect_identical(read_bytes(file.path(site, "Dockerfile")), charToRaw(dockerfile_dev), info = shape)
+  }
+
+  withr::local_options(cli.unicode = FALSE, cli.num_colors = 1)
+  site <- lock_site()
+  write_profile_name(site, "a b")
+  err <- withr::with_envvar(c(RENV_PROFILE = "a b"),
+                            expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19"))
+  expect_match(conditionMessage(err), "which `RENV_PROFILE` and 'renv/profile' both give", fixed = TRUE)
+})
+
 test_that("a lockfile that starts with a UTF-8 byte order mark is read with no warning", {
   bom <- as.raw(c(0xef, 0xbb, 0xbf))
   for (profile in c(FALSE, TRUE)) {

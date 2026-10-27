@@ -11,6 +11,8 @@
   gives no row. `RENV_PROFILE` or `renv/profile` can name an renv profile.
   Then these checks read the profile's lockfile,
   `renv/profiles/<name>/renv.lock`, in place of `renv.lock`.
+  A lockfile whose path is listed under another spelling, such as
+  `Renv.lock`, gets a `"renv-mismatch"` row that says to rename it.
   The default is `FALSE`, which does not read `renv.lock`,
   and `release_supplement()` does not run these checks.
 * `check_supplement()` has a new argument, `web_links`. With

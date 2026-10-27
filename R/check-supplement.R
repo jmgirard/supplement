@@ -174,6 +174,13 @@
 #'   `"renv-missing"` check. [release_supplement()] does not run this
 #'   check, so its rows never stop a release.
 #'
+#'   `renv.lock` also gets a row of its own when the check reads it but a
+#'   folder or file in its path is listed under another spelling, such as
+#'   `Renv.lock`. renv finds such a file only where the file system ignores
+#'   letter case, as on macOS and Windows, and [write_dockerfile()] refuses
+#'   it. The row names the path as listed and says to rename it. The
+#'   reports still get their rows.
+#'
 #'   In this item and the next, `renv.lock` is the lockfile that renv 1.3.1
 #'   picks for the site's renv profile. The profile's name comes from the
 #'   `RENV_PROFILE` environment variable of the R session that runs the
@@ -183,7 +190,10 @@
 #'   lockfile is `renv.lock` in the site folder. With a profile, the lockfile
 #'   is `renv/profiles/<name>/renv.lock`, with the name joined as given. The
 #'   function then says which profile it picked and where the name came
-#'   from. The rows name that path where they name `renv.lock`, and they say
+#'   from. When `RENV_PROFILE` and the first line of `renv/profile` give
+#'   the same name, as in an R session that the site's `renv/activate.R`
+#'   started, because it copies that line into `RENV_PROFILE`, the message
+#'   names both. The rows name that path where they name `renv.lock`, and they say
 #'   to run the renv commands with the profile active. When `renv/profile`
 #'   is read and is a folder or a file that cannot be opened, it gets one
 #'   row of its own, and no report gets a row. The check does not read
