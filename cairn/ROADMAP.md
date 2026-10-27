@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-27 (M067 review: archived; graduated "Write Dockerf
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M068 | Handle renv lockfile edge cases | planned | — | normal | milestones/M068-renv-lockfile-edge-cases.md |
+| M068 | Handle renv lockfile edge cases | in-progress | — | normal | milestones/M068-renv-lockfile-edge-cases.md |
 | M067 | Write Dockerfiles from profile lockfiles | done | — | normal | milestones/archive/M067-dockerfile-profile-lockfile.md |
 | M066 | Read the lockfile of the active renv profile | done | — | normal | milestones/archive/M066-renv-profile-lockfile.md |
 | M065 | Flag packages missing from renv.lock | done | — | normal | milestones/archive/M065-renv-missing-packages.md |

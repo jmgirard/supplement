@@ -1146,6 +1146,12 @@ inform_lock_source <- function(source) {
   invisible()
 }
 
+# `bytes` without the UTF-8 byte order mark at their start, if they have
+# one. An editor can save a lockfile with it, and jsonlite warns about it.
+drop_bom <- function(bytes) {
+  if (length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))) bytes[-(1:3)] else bytes
+}
+
 # The versions that the lockfile `file`, a path from the site folder
 # `path`, records: NULL when nothing, not even a link, is at that path,
 # FALSE when it cannot be read, a link to a missing file among them, and
@@ -1170,13 +1176,7 @@ lock_versions <- function(path, file = "renv.lock") {
     return(FALSE)
   }
   json <- tryCatch({
-    bytes <- readBin(file, "raw", n = file.size(file))
-    # An editor can save the file with a UTF-8 byte order mark, which
-    # jsonlite warns about.
-    if (length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))) {
-      bytes <- bytes[-(1:3)]
-    }
-    text <- rawToChar(bytes)
+    text <- rawToChar(drop_bom(readBin(file, "raw", n = file.size(file))))
     if (!validUTF8(text)) stop("not UTF-8")
     Encoding(text) <- "UTF-8"
     jsonlite::parse_json(text, simplifyVector = FALSE)

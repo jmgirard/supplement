@@ -471,6 +471,24 @@ test_that("with a renv profile, its lockfile is read, copied, and named in a mes
   }
 })
 
+test_that("a lockfile that starts with a UTF-8 byte order mark is read with no warning", {
+  bom <- as.raw(c(0xef, 0xbb, 0xbf))
+  for (profile in c(FALSE, TRUE)) {
+    site <- lock_site()
+    if (profile) {
+      write_profile_name(site, "dev")
+      lock <- file.path(site, "renv", "profiles", "dev", "renv.lock")
+      dir.create(dirname(lock), recursive = TRUE)
+      writeBin(c(bom, charToRaw(lock_json(r = '{"Version": "4.5.2"}'))), lock)
+    } else {
+      writeBin(c(bom, charToRaw(lock_json())), file.path(site, "renv.lock"))
+    }
+    expect_no_warning(dockerfile_messages(site, quarto = "1.10.19"))
+    expect_identical(read_bytes(file.path(site, "Dockerfile")),
+                     charToRaw(if (profile) dockerfile_dev else dockerfile_461), info = profile)
+  }
+})
+
 test_that("the lockfile checks apply to the lockfile of the renv profile", {
   site <- lock_site()
   write_profile_name(site, "dev")

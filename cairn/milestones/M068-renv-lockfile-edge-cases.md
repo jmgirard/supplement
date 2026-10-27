@@ -1,13 +1,13 @@
 # M068: Handle renv lockfile edge cases
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the errors, rows, and messages of two exported functions change
-- **Branch/PR:** —
+- **Branch/PR:** m068-renv-lockfile-edge-cases
 
 ## Goal
 
@@ -61,6 +61,7 @@ The lockfile readers of `write_dockerfile()` and `check_supplement(renv_lock = T
 - 2026-10-28: changelog: one sentence in the unreleased `renv_lock` entry of `NEWS.md` for the AC3 row; the other changes refine unreleased features whose entries stay true, so they get none.
 - 2026-10-28: collision check: absorbs the candidate rows "Read renv.lock with a byte order mark", "Match the letter case of renv.lock", and "Name the real source of a profile name"; extends M066 (`lock_source()`) and M067 (`write_dockerfile()`); D-032 holds, since the new row is a `"renv-mismatch"` row of the opt-in check. Inbox sweep: 0 open issues, 0 open PRs.
 - 2026-10-28: lessons used: 2026-10-27 (M064, used M065), 2026-10-27 (M066, used M067), 2026-10-27 (M067), 2026-10-19 (M018, used M067), 2026-10-19 (M016, used M067).
+- 2026-10-28: implement started on m068-renv-lockfile-edge-cases. Checkpoint, half-done: T1 code and test written; both lockfile cases failed on main with the jsonlite byte order mark warning and pass with `drop_bom()`; the full suite is still running, so T1 is not checked off.
 
 ## Decisions
 

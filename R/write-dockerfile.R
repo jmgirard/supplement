@@ -293,7 +293,7 @@ read_lockfile_versions <- function(path, source, call = parent.frame()) {
   }
   bytes <- readBin(file, "raw", file.size(file))
   lock <- tryCatch(
-    jsonlite::parse_json(rawToChar(bytes), simplifyVector = FALSE),
+    jsonlite::parse_json(rawToChar(drop_bom(bytes)), simplifyVector = FALSE),
     error = function(e) NULL
   )
   if (!is_map(lock)) {
