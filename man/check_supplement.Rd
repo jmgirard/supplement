@@ -203,15 +203,17 @@ check, so its rows never stop a release.
 \item \code{"renv-missing"}: only with \code{renv_lock = TRUE}, a report from the same
 list whose stored output shows that it attached a package that the
 site's \code{renv.lock} does not name under \code{Packages}, so
-\code{renv::restore()} does not install it. The check reads the same
+\code{renv::restore()} does not install it from \code{renv.lock}. The check reads the same
 \code{.json} files, in the same forms, as the \code{"renv-mismatch"} check. A
 package counts as attached when a line of the sessioninfo package
 table has \code{*} under the \code{*} of the table's header line, or when it is
 an entry after \verb{other attached packages:} in \code{utils::sessionInfo()}
 output. A package that is loaded and not attached, such as knitr
 during a render or a package after
-\verb{loaded via a namespace (and not attached):}, gives no row: renv's
-default snapshot records only the packages that project code uses.
+\verb{loaded via a namespace (and not attached):}, gives no row, since the
+render tools and not the report's code can load it. renv's default
+(implicit) snapshot records the packages that \code{renv::dependencies()}
+finds in the project, with their dependencies.
 \code{renv.lock} names a package when it holds a record under \code{Packages}
 with that name, whatever its \code{Version}. A record is named as for the
 \code{"renv-mismatch"} check, and a record whose name is empty names no
@@ -221,10 +223,13 @@ each such package once, in byte order of name. It says to run
 \code{renv::snapshot()} and commit \code{renv.lock}, or, if the report no longer
 uses the packages, to take the render steps. When another of these
 files holds a package table or list and attaches none of them, the row
-also gives the format hint and delete steps of the \code{"renv-mismatch"}
-row. A report that cannot be read gives no row. When \code{renv.lock} is
-missing or cannot be read, this check gives no row, as for the
-\code{"renv-mismatch"} check. The \code{"renv-missing"} rows come after the
+also says that these files can be from a format that the report no
+longer renders, with the delete steps of the \code{"renv-mismatch"} row. A
+report that cannot be read gives no row. When \code{renv.lock} is missing,
+this check gives no row, and the function says that it skipped it.
+When \code{renv.lock} cannot be read, this check gives no row, and the one
+\code{"renv-mismatch"} row for \code{renv.lock} reports the problem. The
+\code{"renv-missing"} rows come after the
 \code{"renv-mismatch"} rows. \code{\link[=release_supplement]{release_supplement()}} does not run this
 check.
 \item \code{"leftover-output"}: a folder directly in \verb{_freeze/analyses/}, whose

@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-27 (M064 review: archived; graduated "Compare renv.
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M065 | Flag packages missing from renv.lock | in-progress | — | normal | milestones/M065-renv-missing-packages.md |
+| M065 | Flag packages missing from renv.lock | review | — | normal | milestones/M065-renv-missing-packages.md |
 | M064 | Compare renv.lock with report records | done | — | normal | milestones/archive/M064-renv-lock-check.md |
 | M063 | Check web links on the rendered site | done | — | normal | milestones/archive/M063-check-web-links.md |
 | M062 | Flag old and re-saved example files | done | — | normal | milestones/archive/M062-flag-old-example-files.md |

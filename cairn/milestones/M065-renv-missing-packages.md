@@ -2,7 +2,7 @@
      section ownership". A phase skill never rewrites another phase's section. -->
 # M065: Flag packages missing from renv.lock
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -61,7 +61,7 @@
 - [x] T1: In `R/check-supplement.R`, make `stored_versions()` also return the names of attached packages: in the sessioninfo table, read the character at the position of the header's `*`, beside the `package` and `version` positions it reads now; in `utils::sessionInfo()` output, take the entries after `other attached packages:`. Make `lock_versions()` also return every package name under `Packages`, records with no `Version` text included, with the naming rule of AC1. Test the parser from text, the `!` column table and wrapped `sessionInfo()` lists included (LESSONS M064).
 - [x] T2: In `check_renv_lock()` (`R/check-supplement.R:882`), build the `"renv-missing"` rows of AC1 and AC2 after the `"renv-mismatch"` rows, from the same files read once, and make the skip message name both checks. Write the row tests of AC1 to AC3, each test filtering the result by `check` where it asserts one kind. For each no-row case, plant one attached package that `renv.lock` lacks into the same fixture and see the row appear, so the case is shown able to fail (LESSONS M061).
 - [x] T3: Write the two Quarto tests of AC4 in `tests/testthat/test-add-render.R` beside "a rendered report gives a renv-mismatch row against a renv.lock with another knitr version", and the AC5 test beside the `renv-mismatch` release test in `tests/testthat/test-release-supplement.R`.
-- [ ] T4: Update the help of `check_supplement()` and `release_supplement()`, the NEWS.md `renv_lock` bullet, README.md, GUIDE.md's renv part and check list, the publishing vignette, and DESIGN.md. Run `devtools::document()`, then the grep of AC6. Run `devtools::test()` and `devtools::check()` and record their counts in the work log.
+- [x] T4: Update the help of `check_supplement()` and `release_supplement()`, the NEWS.md `renv_lock` bullet, README.md, GUIDE.md's renv part and check list, the publishing vignette, and DESIGN.md. Run `devtools::document()`, then the grep of AC6. Run `devtools::test()` and `devtools::check()` and record their counts in the work log.
 
 ## Work log
 
@@ -82,6 +82,8 @@
 - 2026-10-27: T3 done: two Quarto render tests (`R_PROFILE_USER` set through `withr::local_envvar()`, since `run_in()`'s `env` reaches only R commands on Windows) and one release test; both render tests ran with `NOT_CRAN=true` and passed. `devtools::test()` 456 tests, 0 failed, 10 skipped.
 - 2026-10-27: T4 docs written (help of both functions, NEWS bullet, README, GUIDE renv part and check list, vignette, DESIGN); `devtools::document()` rewrote the two .Rd files; the AC6 grep lists 9 files and each names `renv-missing`. Full test and check running.
 - 2026-10-27: claim audit: 45 claims read, 5 corrected — R/check-supplement.R (unreadable-lock wording, renv snapshot claim, format-hint wording, restore wording), inst/template/GUIDE.md (any attach counts, not only `library()`), NEWS.md (restore wording).
+- 2026-10-27: T4 done: `devtools::test()` 456 tests, 0 failed, 10 skipped; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`) before and after the claim fixes; `devtools::document()` regenerated `check_supplement.Rd` for them.
+- 2026-10-27: implement complete; status set to review.
 
 ## Decisions
 
