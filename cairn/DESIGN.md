@@ -156,7 +156,13 @@ through `page_values()`, the read-and-trim step that `page_links()` also
 uses, and requests each address once with `url_status()`, a HEAD request
 through base R's `curlGetHeaders()` that follows redirects, with a
 10-second timeout. That argument came in R 4.1.0, which DESCRIPTION
-requires (D-031). `release_supplement()` never passes the argument. A bad DOI in `CITATION.cff` or on the
+requires (D-031). `release_supplement()` never passes the argument.
+With `renv_lock = TRUE` (M064, D-032), `check_renv_lock()` reads the site's
+`renv.lock` with `lock_versions()` and the versions that
+`print_environment()` printed into each report's `result.markdown` with
+`stored_versions()`, which runs its patterns on the first 200 characters
+of a line. `version_diffs()` compares them as `package_version()` values.
+`release_supplement()` never passes this argument either. A bad DOI in `CITATION.cff` or on the
 badge gives a row; only a bad DOI in `_supplement.yml` stops the check.
 Its placeholder check (`check_placeholders()`, M036) compares four
 `_supplement.yml` values with the installed template's, read through

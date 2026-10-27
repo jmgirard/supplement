@@ -101,6 +101,7 @@
 - 2026-10-27: T3 done. `check_renv_lock()` builds report rows through the new `version_diffs()`. The row lists R first, then the packages in byte order. For each package it gives only the stored versions that differ, as "1.9.0 and 1.10.0". Exact-text tests cover eight row cases. Ten no-row cases and the no-R lock case have tests. With string comparison planted in place of `package_version()`, the no-row test went red.
 - 2026-10-27: T4 done, in `test-add-render.R`. Minor amendment: the test does not skip without sessioninfo, because both printed forms list knitr. The lock records no R version, so the row names knitr alone. The test ran and passed on macOS.
 - 2026-10-27: T5 done. The release test first gets exactly one `"renv-mismatch"` row from the real check, then releases the same site to 1.0.0.
+- 2026-10-27: T6 checkpoint, not done. The help of both functions, NEWS.md, README.md, GUIDE.md, the publishing vignette, and DESIGN.md are updated, and `devtools::document()` ran. The GUIDE.md check list names the check as its last item. A style hook flagged one long older list item in README.md and in GUIDE.md, so each became two items. The full test run and `devtools::check()` are still owed.
 
 ## Decisions
 

@@ -4,7 +4,7 @@
 \alias{check_supplement}
 \title{Check a supplement site before a release}
 \usage{
-check_supplement(path = ".", web_links = FALSE)
+check_supplement(path = ".", web_links = FALSE, renv_lock = FALSE)
 }
 \arguments{
 \item{path}{The folder of the site.}
@@ -12,6 +12,10 @@ check_supplement(path = ".", web_links = FALSE)
 \item{web_links}{\code{TRUE} to also request each web address on the pages in
 \verb{docs/} and give the \code{"web-link"} rows. This needs a network. The
 default, \code{FALSE}, makes no web request.}
+
+\item{renv_lock}{\code{TRUE} to also compare the R and package versions in the
+stored output of each report with the site's \code{renv.lock} and give the
+\code{"renv-mismatch"} rows. The default, \code{FALSE}, does not read \code{renv.lock}.}
 }
 \value{
 A data frame with one row per problem and the character columns
@@ -140,6 +144,52 @@ the site has no
 missing, is a folder, is a link to a missing file, or cannot be opened,
 the check gives no row.
 The hash covers only \verb{_scripts/report.R}, not files that it reads.
+\item \code{"renv-mismatch"}: only with \code{renv_lock = TRUE}, a \code{.qmd} report
+directly in \verb{analyses/}, from the same list of reports, whose stored
+output names an R or package version other than the one that the
+site's \code{renv.lock} records. The check reads the same \code{result.markdown}
+text as the \code{"stale-script"} check. In it, it reads the versions in the
+forms that \code{print_environment()} prints. From
+\code{sessioninfo::session_info()}, these are the package table after a line
+that starts with \verb{─ Packages} or \code{- Packages}, read at the positions of
+the \code{package} and \code{version} columns of its header line, and the setting
+line that starts with \code{ version}, spaces, and \verb{R version}. From
+\code{utils::sessionInfo()}, these are each line that starts with
+\verb{R version}, and the \code{name_version} entries on the lines that start
+with \verb{[1]}, \verb{[2]}, and so on, after \verb{other attached packages:} and after
+\verb{loaded via a namespace (and not attached):}. A line that holds an ANSI
+escape is not read, and output that knitr prints after a comment prefix
+such as \verb{## } is not found.
+
+A package differs when one of its stored versions is not equal to the
+\code{Version} that \code{renv.lock} records for it under \code{Packages}. The R
+version differs when a stored R version is not equal to the \code{Version}
+under \code{R}. Versions are compared as \code{\link[=package_version]{package_version()}} values, so
+\code{1.0-5} equals \verb{1.0.5}. A package that \code{renv.lock} does not record,
+such as a base package, is not compared. Nor is a version that
+\code{\link[=package_version]{package_version()}} cannot read on either side, such as
+\verb{R Under development (unstable)}, or the R version when \code{renv.lock}
+records none. The report gets one row. It names the files that hold a
+version that differs, in the same way as the \code{"stale-script"} row.
+Then it names the R versions that differ, and each package that
+differs, in byte order of name, each with its stored versions that
+differ, in version order, and the version in \code{renv.lock}. It says to
+run \code{renv::restore()} and take the render steps, or, if the library now
+holds the versions of the report, to run \code{renv::snapshot()} and commit
+\code{renv.lock}. When another of these files holds a version that is
+compared and none that differ, the row also gives the format hint and
+delete steps of the \code{"stale-script"} row. A file that does not parse
+holds no versions, and a report that cannot be read, such as a link to
+a missing file, gives no row.
+
+\code{renv.lock} gets one row of its own, and no report gets a row, when it
+is a folder, a link to a missing file, text that is not valid UTF-8,
+text that is not JSON, or JSON whose top level or \code{Packages} is not an
+object. A package record with no \code{Version} text is left out. A site
+with no \code{renv.lock} gets no row, and the function says that it skipped
+the check. Only \code{renv.lock} in the site folder is read, not the
+lockfile of an renv profile. \code{\link[=release_supplement]{release_supplement()}} does not run this
+check, so its rows never stop a release.
 \item \code{"leftover-output"}: a folder directly in \verb{_freeze/analyses/}, whose
 name does not start with \code{.}, that no file or folder in \verb{analyses/}
 names. A name in \verb{analyses/} names the folder when, cut before its
@@ -357,7 +407,7 @@ The function stops with an error of class \code{supplement_error} and one of
 these classes:
 \itemize{
 \item \code{supplement_error_argument}: \code{path} is not a single non-empty string,
-or \code{web_links} is not \code{TRUE} or \code{FALSE}.
+or \code{web_links} or \code{renv_lock} is not \code{TRUE} or \code{FALSE}.
 \item \code{supplement_error_no_metadata}: \code{path} holds no \verb{_supplement.yml}.
 \item \code{supplement_error_parse}: the yaml package cannot read
 \verb{_supplement.yml}, as for \code{\link[=write_citation]{write_citation()}}.

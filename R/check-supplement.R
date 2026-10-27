@@ -118,6 +118,52 @@
 #'   missing, is a folder, is a link to a missing file, or cannot be opened,
 #'   the check gives no row.
 #'   The hash covers only `_scripts/report.R`, not files that it reads.
+#' * `"renv-mismatch"`: only with `renv_lock = TRUE`, a `.qmd` report
+#'   directly in `analyses/`, from the same list of reports, whose stored
+#'   output names an R or package version other than the one that the
+#'   site's `renv.lock` records. The check reads the same `result.markdown`
+#'   text as the `"stale-script"` check. In it, it reads the versions in the
+#'   forms that `print_environment()` prints. From
+#'   `sessioninfo::session_info()`, these are the package table after a line
+#'   that starts with `─ Packages` or `- Packages`, read at the positions of
+#'   the `package` and `version` columns of its header line, and the setting
+#'   line that starts with ` version`, spaces, and `R version`. From
+#'   `utils::sessionInfo()`, these are each line that starts with
+#'   `R version`, and the `name_version` entries on the lines that start
+#'   with `[1]`, `[2]`, and so on, after `other attached packages:` and after
+#'   `loaded via a namespace (and not attached):`. A line that holds an ANSI
+#'   escape is not read, and output that knitr prints after a comment prefix
+#'   such as `## ` is not found.
+#'
+#'   A package differs when one of its stored versions is not equal to the
+#'   `Version` that `renv.lock` records for it under `Packages`. The R
+#'   version differs when a stored R version is not equal to the `Version`
+#'   under `R`. Versions are compared as [package_version()] values, so
+#'   `1.0-5` equals `1.0.5`. A package that `renv.lock` does not record,
+#'   such as a base package, is not compared. Nor is a version that
+#'   [package_version()] cannot read on either side, such as
+#'   `R Under development (unstable)`, or the R version when `renv.lock`
+#'   records none. The report gets one row. It names the files that hold a
+#'   version that differs, in the same way as the `"stale-script"` row.
+#'   Then it names the R versions that differ, and each package that
+#'   differs, in byte order of name, each with its stored versions that
+#'   differ, in version order, and the version in `renv.lock`. It says to
+#'   run `renv::restore()` and take the render steps, or, if the library now
+#'   holds the versions of the report, to run `renv::snapshot()` and commit
+#'   `renv.lock`. When another of these files holds a version that is
+#'   compared and none that differ, the row also gives the format hint and
+#'   delete steps of the `"stale-script"` row. A file that does not parse
+#'   holds no versions, and a report that cannot be read, such as a link to
+#'   a missing file, gives no row.
+#'
+#'   `renv.lock` gets one row of its own, and no report gets a row, when it
+#'   is a folder, a link to a missing file, text that is not valid UTF-8,
+#'   text that is not JSON, or JSON whose top level or `Packages` is not an
+#'   object. A package record with no `Version` text is left out. A site
+#'   with no `renv.lock` gets no row, and the function says that it skipped
+#'   the check. Only `renv.lock` in the site folder is read, not the
+#'   lockfile of an renv profile. [release_supplement()] does not run this
+#'   check, so its rows never stop a release.
 #' * `"leftover-output"`: a folder directly in `_freeze/analyses/`, whose
 #'   name does not start with `.`, that no file or folder in `analyses/`
 #'   names. A name in `analyses/` names the folder when, cut before its
@@ -331,6 +377,9 @@
 #' @param web_links `TRUE` to also request each web address on the pages in
 #'   `docs/` and give the `"web-link"` rows. This needs a network. The
 #'   default, `FALSE`, makes no web request.
+#' @param renv_lock `TRUE` to also compare the R and package versions in the
+#'   stored output of each report with the site's `renv.lock` and give the
+#'   `"renv-mismatch"` rows. The default, `FALSE`, does not read `renv.lock`.
 #'
 #' @return A data frame with one row per problem and the character columns
 #'   `check`, `file` (the path in the site), and `problem`, invisibly. It has
@@ -343,7 +392,7 @@
 #' these classes:
 #'
 #' * `supplement_error_argument`: `path` is not a single non-empty string,
-#'   or `web_links` is not `TRUE` or `FALSE`.
+#'   or `web_links` or `renv_lock` is not `TRUE` or `FALSE`.
 #' * `supplement_error_no_metadata`: `path` holds no `_supplement.yml`.
 #' * `supplement_error_parse`: the yaml package cannot read
 #'   `_supplement.yml`, as for [write_citation()].
