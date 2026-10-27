@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-27 (M063 review: archived; graduated "Check web links on the rendered site"; added "Read each page once for web links" and "Request web addresses with invalid bytes"; extended two rows; pruned the M060 row; one lesson captured, the M013 lesson evicted by rank, three marked used; LESSONS holds 25 lessons; validate green)_
+_Last hygiene check: 2026-10-27 (M064 review: archived; graduated "Compare renv.lock with report records"; added "Parse each stored output file once"; pruned the M061 row; one lesson captured, the M014 Quarto shortcode lesson evicted by rank, six marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M064 | Compare renv.lock with report records | review | — | normal | milestones/M064-renv-lock-check.md |
+| M064 | Compare renv.lock with report records | done | — | normal | milestones/archive/M064-renv-lock-check.md |
 | M063 | Check web links on the rendered site | done | — | normal | milestones/archive/M063-check-web-links.md |
 | M062 | Flag old and re-saved example files | done | — | normal | milestones/archive/M062-flag-old-example-files.md |
-| M061 | Flag reports after report.R changes | done | — | normal | milestones/archive/M061-flag-report-script-changes.md |
 ## Candidates
 
 - Handle short folder names on Windows: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
@@ -25,7 +24,6 @@ _Last hygiene check: 2026-10-27 (M063 review: archived; graduated "Check web lin
 - Speed up the path test of page links: from the M022 review. Once `docs/` holds any link, `link_ok()` runs `file.exists()` and `normalizePath()` on each part of each page link. 200 pages with 100 links each took 2.49 s with no link in `docs/` and 3.28 s with one (macOS, measured by the review on 2026-10-20); Windows was not measured. — added 2026-10-20
 - Match menu items only on plain text: from the M025 review. `yaml_scalar()` in `R/yaml-insert.R` reads a one-item flow sequence as its item, so `text: [Analyses]` in `_quarto.yml` matches the Analyses step of `add_report()`. Reading it with `yaml_load_list()` would make it a list and no match, and would keep the `eval.expr = FALSE` setting in one place. — added 2026-10-20
 - Record the Python setup of reports: from the M030 plan. The Computing environment section and the renv and Docker layers (M030 to M032) cover R reports only, and `check_tools()` (M037) does not look for Python or Jupyter. A Python report could print its Python and package versions, and a site could keep a `requirements.txt` or `uv.lock`. — added 2026-10-21
-- Compare renv.lock with report records: from the M031 plan. `renv.lock` shows the packages at the last snapshot, and each report that has a Computing environment section shows those of its own last render, so the two can disagree. `check_supplement()` could give a row when a report's stored output names a package version other than the lockfile's. — added 2026-10-21 — started M064
 - Flag packages missing from renv.lock: from the M064 plan. `check_supplement(renv_lock = TRUE)` compares only the packages that both the stored output of a report and `renv.lock` name. A package that a report loaded and `renv.lock` does not record gives no row, though `renv::restore()` does not install it. A lockfile other than `renv.lock` in the site folder, such as the lockfile of an renv profile, is not read. — added 2026-10-27
 - Log render retries after a cache lock: from the M033 review. `run_in()` and `run_split()` in `helper-template.R` run a Quarto render once more when it fails with "database is locked" from Quarto's Sass cache, and keep no record of it, so a rise in such locks under parallel tests shows only when two in a row fail a test. A message or a count in the test output would show how often it happens. See also "template test flake". — added 2026-10-21
 - Build the Dockerfile on older R images: from the M032 review. Only `rocker/r-ver:4.6.1` (Ubuntu noble) on arm64 was built from the `write_dockerfile()` recipe. The 4.0.x to 4.5.x images are older Ubuntu builds with an older `install_quarto.sh`, and 4.0.x is amd64 only; neither those images nor amd64 were built. R before 4.0.0 is refused, since those images have no `/rocker_scripts`. — added 2026-10-22
