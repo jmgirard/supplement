@@ -109,7 +109,7 @@ render_supplement <- function(reports = NULL, path = ".") {
     cli::cli_abort(
       c("No report file {.file {missing}} in {.path {path}}, so nothing was rendered.",
         "i" = "Give the name of a report in {.path analyses/}, without {.code .qmd}.",
-        "i" = if (length(cased) > 0) "Names differ in letter case from {.file {file.path('analyses', cased)}}. Give each name as its file is written."),
+        "i" = if (length(cased) > 0) "{.file {file.path('analyses', cased)}} differ{?s/} only in letter case from a name given. Give each name as its file is written."),
       class = c("supplement_error_no_report", "supplement_error")
     )
   }
@@ -124,7 +124,8 @@ render_supplement <- function(reports = NULL, path = ".") {
     command <- paste(c("quarto", args), collapse = " ")
     status <- quarto_run(quarto, args)
     if (!identical(as.integer(status), 0L)) {
-      # A shell gives 127 when it cannot start the program.
+      # On Unix, the shell that system2 starts gives 127 when it cannot
+      # start the program.
       cause <- if (identical(as.integer(status), 127L)) {
         "Quarto at {.path {quarto}} could not be started. Run {.fn check_tools} to see which copy was found."
       } else {

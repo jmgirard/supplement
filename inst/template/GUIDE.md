@@ -441,8 +441,7 @@ supplement::check_supplement(renv_lock = TRUE)
 Each such report gets a `"renv-mismatch"` row that names the versions.
 To use the versions in `renv.lock`, run `renv::restore()`. Then render the
 report by name, render the whole site, and commit the report with
-`_freeze/`, `docs/`, and `figures/`. `supplement::render_supplement()` with
-the report's name does both renders. If the library now holds the versions of the report, you
+`_freeze/`, `docs/`, and `figures/`. If the library now holds the versions of the report, you
 can run `renv::snapshot()` and commit `renv.lock` instead.
 
 `supplement::check_supplement(renv_lock = TRUE)` also gives a
@@ -452,8 +451,7 @@ An example is a package that the report loads with `library()`.
 `renv::restore()` does not install such a package from `renv.lock`. Run `renv::snapshot()`
 and commit `renv.lock`. If the report no longer uses the package, render
 the report by name. Then render the whole site, and commit the report with
-`_freeze/`, `docs/`, and `figures/`. `supplement::render_supplement()` with
-the report's name does both renders. A package that a report loaded and
+`_freeze/`, `docs/`, and `figures/`. A package that a report loaded and
 did not attach gives no row. A package that your R profile attaches during
 a render also gives a row, and these steps do not clear it.
 

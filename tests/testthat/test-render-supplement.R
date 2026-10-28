@@ -236,7 +236,11 @@ test_that("render_supplement() runs each render in the site folder and gives bac
 render_quiet <- function(...) {
   suppressMessages(tryCatch(
     render_supplement(...),
-    supplement_error_render = function(e) render_supplement(...)
+    supplement_error_render = function(e) {
+      # Written to standard error, so the test log shows each rerun.
+      cat("render_supplement() failed once, running it again:", conditionMessage(e), "\n", file = stderr())
+      render_supplement(...)
+    }
   ))
 }
 
@@ -270,8 +274,9 @@ test_that("a figure that a full render saves under a new name reaches docs/ in o
   suppressMessages(add_report("figs", "Figures", path = site))
   report <- file.path(site, "analyses", "figs.qmd")
   cat("\n```{r}\n#| label: new-figure\nsave_png(\"fig-new.png\", function() plot(1:3))\n```\n", file = report, append = TRUE)
-  out <- render_quiet(path = site)
-  expect_identical(out, c("quarto render", "quarto render"))
+  # One full render does not copy the figure (the mocked tests count the
+  # renders), so its copy shows the second render ran.
+  render_quiet(path = site)
   expect_true(file.exists(file.path(site, "docs", "figures", "fig-new.png")))
 })
 
