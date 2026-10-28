@@ -1,13 +1,13 @@
 # M075: Read base tags and odd markup in pages
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing, because `check_supplement()` is exported and its `broken-link` rows stop `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m075-base-tags-odd-markup
 
 ## Goal
 
@@ -56,7 +56,7 @@
 
 ## Tasks
 
-- [ ] T1: Write the source note `cairn/references/whatwg-html.md` and its `INDEX.md` line. Read the HTML Standard at html.spec.whatwg.org. Record the comment states, the end tag open state, the script data escaped and double escaped states, and the base element rules for the document base URL. Name each section, and give the provenance block.
+- [x] T1: Write the source note `cairn/references/whatwg-html.md` and its `INDEX.md` line. Read the HTML Standard at html.spec.whatwg.org. Record the comment states, the end tag open state, the script data escaped and double escaped states, and the base element rules for the document base URL. Name each section, and give the provenance block.
 - [ ] T2: Write the AC1 and AC2 tests first in `tests/testthat/test-check-supplement.R`. Then make `tag_links()` (`R/check-supplement.R:1937`) give the `href` of the first `<base>` tag that has one, apart from the link values. `page_values()` (`:1766`) leaves that value out, so `web_addresses()` does not request it. `page_links()` (`:1755`) and `check_links()` (`:1639`) join the base folder to each relative link before `link_ok()` (`:1998`).
 - [ ] T3: Write the AC3 and AC4 tests first. Then change the comment part of `html_skipped` (`:1895`) and add parts for `</` and end tags. Keep every repeat possessive.
 - [ ] T4: Write the AC5 tests first, the 1 MB page included. Then add the escaped and double escaped states to the script part of `html_raw_text()` (`:1912`), with possessive repeats only. Run the existing large-page tests, such as the 6 MB script page.
@@ -77,6 +77,8 @@
 - 2026-10-28: plan chose the script states as possessive PCRE parts inside the one `html_skipped` pass over an R loop that walks the page, because it keeps one linear pass and the existing large-page tests; falsified by the 1 MB escape page reaching the PCRE match limit.
 - 2026-10-28: plan chose to join the base folder and the link into one path for `link_ok()` over a separate URL resolver, because `link_ok()` already decodes and normalizes parts and counts a path above `docs/` as broken; falsified by a base and link inside `docs/` whose joined path resolves to another file than the URL Standard gives.
 - 2026-10-28: changelog: one NEWS.md entry for the whole milestone.
+- 2026-10-28: implement started on branch m075-base-tags-odd-markup, cut from main at ed28d21.
+- 2026-10-28: T1 done: wrote `cairn/references/whatwg-html.md` from the HTML Standard copy of 26 October 2026 (sections 2.4.3, 4.2.3, 13.2.5.4 to 13.2.5.52), with its INDEX line.
 
 ## Decisions
 
