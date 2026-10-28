@@ -191,9 +191,9 @@ render_quarto <- function(call = parent.frame()) {
 
 # Run the Quarto program `quarto` with `args` in the working folder, its
 # output shown in the console, and return its exit status. Kept apart so
-# that tests can mock it. system2() quotes the program's path itself with
-# shQuote(), so a path with a space runs, and a path quoted here first
-# would be quoted twice and not found (status 127).
+# that tests can mock it. system2 quotes the program's path itself with
+# shQuote, so a path with a space runs, and a path quoted here first would
+# be quoted twice and not found (status 127).
 quarto_run <- function(quarto, args) {
   suppressWarnings(system2(quarto, args))
 }
