@@ -100,6 +100,7 @@ Publish the site that `create_supplement()` and one `quarto render` make under `
 - blame-history #3: the README paragraph adds detail of the kind M051 moved out of the README — reject (planned change: AC5 asks for the sentence, and the claim audit asked for the `repo` note).
 - prior-review #1: the demo step gates the whole site deploy and no D-entry records it — fix now (D-033, same as blame-history #1), fixed 308507a.
 - after the fixes, at 308507a: the AC1 run again gave the same 27 paths as the separate render, both AC2 probes again exited 1 with no output folder, and `cairn_validate.py` passed. The changed workflow step has not run on GitHub yet. The PR's pkgdown check runs it before the merge.
+- gate: `devtools::check()` at 3ffe1d9, 0 errors, 0 warnings, 1 NOTE (the local `.claude` folder, not in git, as in M054). The later fixes touch only `.github/` and `cairn/`, which `.Rbuildignore` leaves out of the build.
 - prior-review #2: the step runs the PR's own script in the build job, whose env holds `GITHUB_PAT` — reject (false as a new risk: that job already installs and runs the PR's package code with the same read-only token, M056).
 - prior-review #3: knitr and rmarkdown may not be installed for the script — reject (false: setup-r-dependencies installs Suggests, and run 40615177027 rendered the R report).
 - ripple: no ripple evidence.
