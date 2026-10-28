@@ -1,6 +1,6 @@
 # M072: Render a site from the R console
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -46,7 +46,7 @@ Let an author render the site, or run changed reports again and then render the 
 - [x] T3: Run AC6's grep and name the function in each line it finds, among them `R/create-supplement.R:131`, `R/add-report.R:261`, and `R/check-tools.R:151`, and in `rerender_steps` (`R/check-supplement.R:816`). Fix the `system2()` comment above `git_run()` (`R/check-supplement.R:561`). Record the grep's lines in the Review section.
 - [x] T4: Write the roxygen and run `devtools::document()`. Add the function to `_pkgdown.yml` and `NEWS.md`. In `cairn/DESIGN.md`, add it to the function families and fix the `system2()` sentence (about line 149). Update the two `GUIDE.md` sections.
 - [x] T5: Run `devtools::test()` and `devtools::check()`.
-- [ ] T6: Review return 1: make the `R/check-tools.R` line that names `quarto render` name `render_supplement()`; match report names to the files in `analyses/` with exact case; and fix the fix-now findings of review pass 1 (the add_report() hint's folder, the still-missing hint, the status-127 message, the test trims and the Sass-lock rerun, the D-entry, DESIGN.md, GUIDE.md, and NEWS.md). Then run `devtools::test()` and `devtools::check()`.
+- [x] T6: Review return 1: make the `R/check-tools.R` line that names `quarto render` name `render_supplement()`; match report names to the files in `analyses/` with exact case; and fix the fix-now findings of review pass 1 (the add_report() hint's folder, the still-missing hint, the status-127 message, the test trims and the Sass-lock rerun, the D-entry, DESIGN.md, GUIDE.md, and NEWS.md). Then run `devtools::test()` and `devtools::check()`.
 
 ## Work log
 
@@ -73,6 +73,7 @@ Let an author render the site, or run changed reports again and then render the 
 - 2026-10-28: status review.
 - 2026-10-28: review return 1: AC6 fails as written (`R/check-tools.R:152`, found by the AC6 grep, does not name `render_supplement()`), and diff-bug #1 is a floor defect (a wrong-case report name passes the file check on a case-insensitive file system and renders under that case with no error). Also fix the fix-now findings listed in the Review section: diff-bug #2, #3, #4, #10, #11's test trims; blame-history #2's D-entry; prior-review #1's Sass-lock rerun in the render tests; ripple #1, #5, #6.
 - 2026-10-28: T6 (return 1) code and docs, 076a658: `R/check-tools.R:153` names `quarto render` and `render_supplement()` on one line; `report_file_names()` matches names to `analyses/*.qmd` with exact case and the error names the file that differs in case (replaces `is_plain_file_vec()`); the `add_report()` hint says "in that folder"; the still-missing hint names the `docs/figures/` folder and the `resources` setting; status 127 says Quarto could not be started; test trims per diff-bug #11, a case test and a 127 test added, render tests go through `render_quiet()`, which reruns a failed call once; D-035 appended; DESIGN.md lookup sentence corrected; GUIDE.md names the R route in the report-script, Computing environment, renv, and paper-figures steps; NEWS narrowed. Changed test files pass.
+- 2026-10-28: T6 done at 5788f26: `devtools::test()` with `NOT_CRAN=true` gives 5876 expectations, 0 failed, 0 errors, 12 skipped; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude/`). Status review.
 
 ## Decisions
 
