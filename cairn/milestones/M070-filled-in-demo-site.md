@@ -1,6 +1,6 @@
 # M070: Fill in the demo site
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -77,3 +77,5 @@ Make the package site's demo a finished-looking supplement for a made-up study, 
 - 2026-10-28: T4: `devtools::test()` 475 tests, 0 failed, 12 skipped. `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`). `pkgdown::check_pkgdown()` found no problems.
 - 2026-10-28: T5: `workflow_dispatch` run 40620592498 on the branch: build success, deploy skipped. Its `site` artifact holds `demo/index.html` with the paper title "Sleep Duration and Next-Day Mood: A 14-Day Diary Study", the 3 report pages, and `demo/figures/figure-1.png`.
 - 2026-10-28: claim audit: 44 claims read, 4 corrected — cairn/DESIGN.md (2), .github/workflows/pkgdown.yaml, .github/demo/analyses/sample.md. The reader also noted that the ORCID example iD, which ORCID keeps for a fictional researcher, reaches `CITATION.cff` and `.zenodo.json` but no demo page. It was kept. The re-read of the corrected claims is pending.
+- 2026-10-28: claim audit re-read: the 4 corrected claims hold. The `sample.md` mood sentence changed after the T3 build and the T5 run, so review's evidence build has to come from the current head.
+- 2026-10-28: implement done; status review.
