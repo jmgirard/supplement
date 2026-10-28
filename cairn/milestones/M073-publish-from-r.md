@@ -80,6 +80,7 @@ Let an author follow the publishing guide from an empty folder to a release with
 - 2026-10-28: claim audit re-read: the same reader found all 3 corrections and the new step 6 sentence hold.
 - 2026-10-28: T7 done (tree at a2b36d6): `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 1 NOTE (the local, git-ignored `.claude/` folder, as in the first run); the check's test run passed. Status set to review.
 - 2026-10-28: user override: "pause when implement is done", so implement ends with a close block and does not invoke `/milestone-review`.
+- 2026-10-28: step-7 approval: m073-publish-from-r approved for merge
 
 ## Decisions
 
