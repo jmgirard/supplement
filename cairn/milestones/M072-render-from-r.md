@@ -35,9 +35,9 @@ Let an author render the site, or run changed reports again and then render the 
 - AC2 → T1, T2
 - AC3 → T1, T2
 - AC4 → T1, T2
-- AC5 → T1, T2
-- AC6 → T3, T4
-- AC7 → T5
+- AC5 → T1, T2, T6
+- AC6 → T3, T4, T6
+- AC7 → T5, T6
 
 ## Tasks
 
@@ -46,6 +46,7 @@ Let an author render the site, or run changed reports again and then render the 
 - [x] T3: Run AC6's grep and name the function in each line it finds, among them `R/create-supplement.R:131`, `R/add-report.R:261`, and `R/check-tools.R:151`, and in `rerender_steps` (`R/check-supplement.R:816`). Fix the `system2()` comment above `git_run()` (`R/check-supplement.R:561`). Record the grep's lines in the Review section.
 - [x] T4: Write the roxygen and run `devtools::document()`. Add the function to `_pkgdown.yml` and `NEWS.md`. In `cairn/DESIGN.md`, add it to the function families and fix the `system2()` sentence (about line 149). Update the two `GUIDE.md` sections.
 - [x] T5: Run `devtools::test()` and `devtools::check()`.
+- [ ] T6: Review return 1: make the `R/check-tools.R` line that names `quarto render` name `render_supplement()`; match report names to the files in `analyses/` with exact case; and fix the fix-now findings of review pass 1 (the add_report() hint's folder, the still-missing hint, the status-127 message, the test trims and the Sass-lock rerun, the D-entry, DESIGN.md, GUIDE.md, and NEWS.md). Then run `devtools::test()` and `devtools::check()`.
 
 ## Work log
 

@@ -72,7 +72,10 @@ starting with a letter or a digit, and not a name that Windows
 reserves, such as \code{con}.
 \item \code{supplement_error_no_config}: \code{path} holds no \verb{_quarto.yml} file.
 \item \code{supplement_error_no_report}: \verb{analyses/<name>.qmd} is not a file for
-one or more entries of \code{reports}. The message names each one.
+one or more entries of \code{reports}. The message names each one. A name
+must match its file's letter case, also on macOS and Windows, where
+the file system ignores case: \code{"Models"} does not match
+\code{analyses/models.qmd}.
 \item \code{supplement_error_no_quarto}: no Quarto copy was found.
 \item \code{supplement_error_quarto_version}: the Quarto copy is older than
 1.4.0.

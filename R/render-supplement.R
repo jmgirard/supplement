@@ -58,7 +58,10 @@
 #'   reserves, such as `con`.
 #' * `supplement_error_no_config`: `path` holds no `_quarto.yml` file.
 #' * `supplement_error_no_report`: `analyses/<name>.qmd` is not a file for
-#'   one or more entries of `reports`. The message names each one.
+#'   one or more entries of `reports`. The message names each one. A name
+#'   must match its file's letter case, also on macOS and Windows, where
+#'   the file system ignores case: `"Models"` does not match
+#'   `analyses/models.qmd`.
 #' * `supplement_error_no_quarto`: no Quarto copy was found.
 #' * `supplement_error_quarto_version`: the Quarto copy is older than
 #'   1.4.0.
@@ -94,15 +97,23 @@ render_supplement <- function(reports = NULL, path = ".") {
     )
   }
   # paste0() of an empty vector gives ".qmd", so no reports give no files.
-  files <- if (length(reports) > 0) file.path("analyses", paste0(reports, ".qmd")) else character()
-  missing <- files[!is_plain_file_vec(file.path(path, files))]
-  if (length(missing) > 0) {
+  names <- if (length(reports) > 0) paste0(reports, ".qmd") else character()
+  # Names are matched to the listed files with their letter case, since
+  # file.exists() ignores case on macOS and Windows, and a render under
+  # another case writes its output under that case.
+  present <- report_file_names(path)
+  absent <- names[!names %in% present]
+  if (length(absent) > 0) {
+    missing <- file.path("analyses", absent)
+    cased <- present[tolower(present) %in% tolower(absent)]
     cli::cli_abort(
       c("No report file {.file {missing}} in {.path {path}}, so nothing was rendered.",
-        "i" = "Give the name of a report in {.path analyses/}, without {.code .qmd}."),
+        "i" = "Give the name of a report in {.path analyses/}, without {.code .qmd}.",
+        "i" = if (length(cased) > 0) "Names differ in letter case from {.file {file.path('analyses', cased)}}. Give each name as its file is written."),
       class = c("supplement_error_no_report", "supplement_error")
     )
   }
+  files <- if (length(names) > 0) file.path("analyses", names) else character()
   quarto <- render_quarto()
 
   here <- environment()
@@ -113,10 +124,16 @@ render_supplement <- function(reports = NULL, path = ".") {
     command <- paste(c("quarto", args), collapse = " ")
     status <- quarto_run(quarto, args)
     if (!identical(as.integer(status), 0L)) {
+      # A shell gives 127 when it cannot start the program.
+      cause <- if (identical(as.integer(status), 127L)) {
+        "Quarto at {.path {quarto}} could not be started. Run {.fn check_tools} to see which copy was found."
+      } else {
+        "Read Quarto's output above for the cause."
+      }
       cli::cli_abort(
         c("{.code {command}} exited with status {status}, so the render stopped.",
           "i" = if (length(ran) > 0) "These commands ran before it: {.code {ran}}." else "No command ran before it.",
-          "i" = "Read Quarto's output above for the cause."),
+          "i" = cause),
         class = c("supplement_error_render", "supplement_error"),
         call = here
       )
@@ -135,7 +152,7 @@ render_supplement <- function(reports = NULL, path = ".") {
   if (length(missing) > 0) {
     cli::cli_inform(c(
       "!" = "{.file {missing}} {?is/are} still missing from {.path docs/figures/} after two full renders.",
-      "i" = "Render the whole site again with {.code render_supplement()}."
+      "i" = "Check that {.path docs/figures/} is a folder and that {.file _quarto.yml} renders into {.path docs/} and lists {.code figures/**} under {.field resources}, as the template does."
     ))
   }
   cli::cli_text("Commit the changed reports with {.path _freeze/}, {.path docs/}, and {.path figures/}, and push.")
@@ -163,7 +180,13 @@ check_reports <- function(reports, call = parent.frame()) {
   reports
 }
 
-is_plain_file_vec <- function(paths) file.exists(paths) & !dir.exists(paths)
+# The names of the `.qmd` files in analyses/ under `path`, as written on
+# disk, folders left out.
+report_file_names <- function(path) {
+  dir <- file.path(path, "analyses")
+  names <- list.files(dir, pattern = "\\.qmd$")
+  names[vapply(file.path(dir, names), is_plain_file, logical(1))]
+}
 
 # The path of the Quarto copy that check_tools() reports, after the checks
 # that it exists and is not too old.

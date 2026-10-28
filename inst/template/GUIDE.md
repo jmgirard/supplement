@@ -74,7 +74,8 @@ gets no row. After you change
 `_scripts/report.R`, render each report by name, for
 example `quarto render analyses/models.qmd`. Then render the whole site
 with `quarto render`, and commit the reports with `_freeze/`, `docs/`, and
-`figures/`.
+`figures/`. In the R console, `supplement::render_supplement(c("models",
+"checks"))` does these renders for the reports that you name.
 
 ### Computing environment
 
@@ -111,7 +112,8 @@ system.file("template", "analyses", "example.qmd", package = "supplement")
 Then render the report by name, for example
 `quarto render analyses/models.qmd`. Then render the whole site with
 `quarto render`, and commit the report with `_freeze/`, `docs/`, and
-`figures/`. If you copied `_scripts/report.R` in, commit it too. A full render
+`figures/`. In the R console, `supplement::render_supplement("models")`
+does both renders. If you copied `_scripts/report.R` in, commit it too. A full render
 alone reuses the old stored output, so it does not show the new section. An older report whose section holds the
 full code, and no `print_environment()` call, still renders as it is.
 
@@ -439,7 +441,8 @@ supplement::check_supplement(renv_lock = TRUE)
 Each such report gets a `"renv-mismatch"` row that names the versions.
 To use the versions in `renv.lock`, run `renv::restore()`. Then render the
 report by name, render the whole site, and commit the report with
-`_freeze/`, `docs/`, and `figures/`. If the library now holds the versions of the report, you
+`_freeze/`, `docs/`, and `figures/`. `supplement::render_supplement()` with
+the report's name does both renders. If the library now holds the versions of the report, you
 can run `renv::snapshot()` and commit `renv.lock` instead.
 
 `supplement::check_supplement(renv_lock = TRUE)` also gives a
@@ -449,7 +452,8 @@ An example is a package that the report loads with `library()`.
 `renv::restore()` does not install such a package from `renv.lock`. Run `renv::snapshot()`
 and commit `renv.lock`. If the report no longer uses the package, render
 the report by name. Then render the whole site, and commit the report with
-`_freeze/`, `docs/`, and `figures/`. A package that a report loaded and
+`_freeze/`, `docs/`, and `figures/`. `supplement::render_supplement()` with
+the report's name does both renders. A package that a report loaded and
 did not attach gives no row. A package that your R profile attaches during
 a render also gives a row, and these steps do not clear it.
 
@@ -619,7 +623,9 @@ of it.
 Each render copies only the figures that were in `figures/` at its start.
 After a render saves a figure under a new name, render the whole site
 again with `quarto render`, so that `docs/` holds it. Then commit
-`figures/`, `docs/`, and `_freeze/`. To take a figure off the site, delete
+`figures/`, `docs/`, and `_freeze/`. If a full render from
+`supplement::render_supplement()` saves a figure under a new name, the
+function renders the whole site again itself. To take a figure off the site, delete
 it from `figures/` and run a full render.
 
 PNG and PDF files saved directly in `analyses/` are not committed, because

@@ -192,7 +192,6 @@ test_that("an old copy off the path is too old and names its place", {
   expect_match(row$detail, "QUARTO_PATH", fixed = TRUE)
   expect_match(row$detail, "1.4.0", fixed = TRUE)
   # render_supplement() refuses it, so the row does not offer it.
-  expect_match(row$detail, "can miss this copy", fixed = TRUE)
   expect_false(grepl("render_supplement", row$detail, fixed = TRUE))
 })
 

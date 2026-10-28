@@ -93,7 +93,8 @@ without loading), git, and gh, and lists two account reminders. It reads
 the Quarto version from `share/version` beside `bin/` after following a
 link, and compares it with `quarto_minimum` (1.4.0, the template
 extension's `quarto-required`). Program lookups use `Sys.which()`, which
-on Unix starts a shell that runs `which`; no looked-up tool is run.
+on Unix starts a shell that runs `which`; `check_tools()` runs no
+looked-up tool (corrected M072: `render_supplement()` runs Quarto).
 `R/render-supplement.R`: `render_supplement()` checks its arguments and
 the site, then runs the Quarto copy that `find_quarto()` picks, by its
 full path, through `quarto_run()`, the package's one `system2()` call for

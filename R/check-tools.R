@@ -149,9 +149,8 @@ quarto_row <- function() {
     detail <- paste0(detail, ". The template needs Quarto ", quarto_minimum, " or later")
   }
   if (copy$place != "path") {
-    detail <- paste0(detail, ". `quarto render` in a terminal can miss this copy")
     # render_supplement() refuses a copy that is too old.
-    if (status != "too old") detail <- paste0(detail, ", but `render_supplement()` runs it")
+    detail <- paste0(detail, ". `quarto render` in a terminal can miss this copy", if (status != "too old") ", but `render_supplement()` runs it")
   }
   c("Quarto", status, detail)
 }
