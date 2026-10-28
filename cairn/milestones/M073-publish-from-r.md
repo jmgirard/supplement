@@ -1,6 +1,6 @@
 # M073: Publish a site from the R console and a browser
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** M072
 - **Driving RR:** —
@@ -47,7 +47,7 @@ Let an author follow the publishing guide from an empty folder to a release with
 - [x] T4: Rewrite `vignettes/publishing.Rmd` per AC4, keeping its step order and its rule for rendering again after a report changes, with the last section "Use a terminal instead".
 - [x] T5: Add usethis to Suggests. Update `README.md`'s setup and release sections, `GUIDE.md`'s "Make a release", `NEWS.md` (the `check_tools()` entry and a new entry), and `cairn/DESIGN.md`'s Conventions; append the two D-entries. Run AC6's grep and record its lines in the Review section.
 - [x] T6: Walk AC4's steps in a new folder outside the repo with a new public repository on the user's account, as the question set allowed, and record AC5's evidence. Tell the user the repository's name so that they can delete it.
-- [ ] T7: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
+- [x] T7: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
 ## Work log
 
@@ -77,6 +77,8 @@ Let an author follow the publishing guide from an empty folder to a release with
 - 2026-10-28: T6 done, AC5 evidence for review: repository https://github.com/jmgirard/supplement-publish-walk (public, made by `use_github()`); Pages at https://jmgirard.github.io/supplement-publish-walk/ (HTTP 200, the address in the site README that `create_supplement()` wrote; page shows the step 8 title; `analyses/results.html` 200); after the user signed in, the printed address https://github.com/jmgirard/supplement-publish-walk/releases/new?tag=v1.0.0 opened "New release" with "Tag: v1.0.0", "Target: master", and "This tag will be created from the target when you publish this release"; published; release page https://github.com/jmgirard/supplement-publish-walk/releases/tag/v1.0.0, tag at 9178557, the pushed release commit. The guide's "Generate release notes" sentence was dropped: the button is disabled on a first release. The user deletes the repository.
 - 2026-10-28: T7 first run (tree at e7388b3): `devtools::check()` 0 errors, 0 warnings, 1 NOTE for the hidden `.claude/` folder, which is git-ignored, untracked, and holds only a 2026-10-24 `scheduled_tasks.lock` from the local session app, so a clone has none; to be rerun on the final tree after the claim audit.
 - 2026-10-28: claim audit: 101 claims read, 3 corrected — vignettes/publishing.Rmd (the RStudio restart offer needs the folder open as a project; `setwd()` gives no Git pane), tests/testthat/test-publishing.R (header said "in its order" though the test runs the report change before the DOIs); 4 not checkable here (GitHub's "Generate token" and "Publish release" labels, `git_sitrep()` problem text, RStudio Git pane labels); the step 6 text now also says not to run the function the mismatch message names. Fresh Opus reader, resumed once after a network error.
+- 2026-10-28: claim audit re-read: the same reader found all 3 corrections and the new step 6 sentence hold.
+- 2026-10-28: T7 done (tree at a2b36d6): `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 1 NOTE (the local, git-ignored `.claude/` folder, as in the first run); the check's test run passed. Status set to review.
 - 2026-10-28: user override: "pause when implement is done", so implement ends with a close block and does not invoke `/milestone-review`.
 
 ## Decisions
