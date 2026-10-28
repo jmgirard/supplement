@@ -2104,9 +2104,12 @@ placeholder_example_problems <- c(
 # `git show <commit>:inst/template/<file>` for the commits that
 # `git log --follow -- inst/template/<file>` listed on 2026-10-26. A change
 # to either template file adds its version here, and a test fails until it
-# does.
+# does. A version added before its merge, whose commit on the default
+# branch is not known yet, is named `current`; the change after it renames
+# it by that commit.
 example_versions <- list(
   "analyses/example.qmd" = c(
+    "current" = "634316e199f1a43ab7fb88ce59bf5161",
     "2db94f2" = "9451ca1c54165f4330b7fffbb11dc6c2",
     "fbc2cab" = "23d34b8911258f4f45c248f85689b175",
     "38af327" = "8f89f3479dccb4df43daefa967c4dd56",
