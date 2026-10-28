@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the errors, rows, and messages of two exported functions change
-- **Branch/PR:** m068-renv-lockfile-edge-cases
+- **Branch/PR:** m068-renv-lockfile-edge-cases, https://github.com/jmgirard/supplement/pull/69
 
 ## Goal
 
