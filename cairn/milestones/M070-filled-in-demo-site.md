@@ -119,3 +119,5 @@ spawned: diff-bug, blame-history, prior-review, ripple
 - ripple #2: D-018 is about the PNG write, not rendering twice — reject, false: D-018 is the shipped figure, and its consequences hold the next-render rule.
 
 Re-run after the fixes, on the 2559aaa tree: the build exited 0, `check_supplement()` returned no rows and skipped the three git checks, the 10 AC2 texts were in 0 pages, `figures/` held only `figure-1.png`, and the badge was in `index.html`. All three AC5 probes exited 1 with the errors above and left no output folder.
+
+Consistency gate at 53c7cc3: `cairn_validate.py` all checks passed. No principle changed, so `cairn_impact` was skipped. `devtools::document()` made no diff. There is no README.Rmd, so README.md is edited directly. `pkgdown::check_pkgdown()` found no problems. NEWS.md has the edited demo bullet. No new top-level file was added, and `.github/` is in `.Rbuildignore`. `devtools::test()` gave 475 tests, 0 failed, 12 skipped. `devtools::check()` gave 0 errors, 0 warnings, and 1 note (the local `.claude` folder, as at M069).
