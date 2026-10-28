@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes the text and the address that `release_supplement()` prints to authors
-- **Branch/PR:** m074-tag-release-branch
+- **Branch/PR:** m074-tag-release-branch, https://github.com/jmgirard/supplement/pull/75
 
 ## Goal
 
@@ -39,7 +39,7 @@ The release address that `release_supplement()` prints tags the author's current
 - [x] AC4: The address comes from the push url of `origin`. With fetch url `https://gitlab.com/jdoe/my-site` and push url `https://github.com/jdoe/my-site`, the release prints the address of `jdoe/my-site`. With the two urls swapped, it prints the Releases-page steps.
 - [x] AC5: Join the wrapped lines of `R/release-supplement.R`, `man/release_supplement.Rd`, `README.md`, `inst/template/GUIDE.md`, `vignettes/publishing.Rmd`, `NEWS.md`, and `cairn/DESIGN.md`, and read each sentence that holds `default branch` in any case. Each such sentence that is about the release tag is about a checkout not on a branch, the Releases-page steps for such a checkout, or the other-branch line. `man/release_supplement.Rd`, `inst/template/GUIDE.md`, and `vignettes/publishing.Rmd` each say that the address names the current branch.
 - [x] AC6: In the built-in browser, signed in as the user, `https://github.com/jmgirard/supplement/releases/new?tag=v9.9.9&target=%67h-pages` opens GitHub's new-release form. The form shows `v9.9.9` in the tag field and `gh-pages` as the target, so GitHub decodes `%XX` in the target. Afterwards, `gh release view v9.9.9 --repo jmgirard/supplement` finds no release.
-- [ ] AC7: `devtools::test()` gives 0 failures, and `devtools::document()` gives no diff. `devtools::check()` gives 0 errors and 0 warnings, and CI passes on every job of the PR.
+- [x] AC7: `devtools::test()` gives 0 failures, and `devtools::document()` gives no diff. `devtools::check()` gives 0 errors and 0 warnings, and CI passes on every job of the PR.
 
 ## Coverage
 
@@ -90,6 +90,7 @@ The release address that `release_supplement()` prints tags the author's current
 - 2026-10-28: all tasks done; status review.
 - 2026-10-28: review: main at bdbf62a, not moved since the cut; Copilot round off; no PR yet (route d).
 - 2026-10-28: step-7 approval: m074-tag-release-branch approved for merge
+- 2026-10-28: resume (route d): PR #75 open at 5a744ad, the approved head; main still at bdbf62a, so the evidence stands; CI green; the same-session approval and its marker for PR #75 carry the merge, since no code changed after approval.
 
 ## Review
 
@@ -121,3 +122,5 @@ The release address that `release_supplement()` prints tags the author's current
 - ripple #2 and #3: the rows "Read more GitHub remote address forms" and "Tag releases made from other branches" now state old behavior — reject (planned change): post-merge hygiene graduates both.
 - ripple #4: the Errors section names only the `origin` read, not the branch read — fix now, fixed 24cb741.
 - AC7: `devtools::test()` at 24cb741: 517 tests, 0 failed, 12 skipped (the suite's platform skips); `devtools::document()` no diff; `devtools::check()` at 4ff1aa5 0 errors, 0 warnings (the review fixes since touch R code, tests, and the Rd only; CI on the PR runs check again). CI pending: the PR opens at the merge step.
+- AC7 (CI): `gh pr checks 75` on head 5a744ad: 7 checks passed (R-CMD-check on macos, ubuntu, and windows release in two runs, pkgdown build) and deploy skipped (main only); exit 0.
+- conversation: PR #75 — 0 reviews, 0 comments, 0 unresolved threads.
