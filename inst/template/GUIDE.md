@@ -12,9 +12,15 @@ holds the rules for some edge cases.
 The home page lists each `.qmd` file in `analyses/` in a table, with the
 `title` and the `description` from the front matter of the file. A report
 with no `description` shows the start of its text there. The title links
-to the report's page. To add a report, put its `.qmd` file in
-`analyses/` with a `title` and a `description`. Then add a link to it under
-`Analyses` in the navbar in `_quarto.yml`.
+to the report's page. The table lists the reports that have an `order` in
+their front matter first, by that number, and the others after them by
+title. The example report has `order: 1`. To add a report, put its `.qmd`
+file in `analyses/` with a `title` and a `description`. Give it an `order`
+higher than every other report's. If no other report has an `order`, give
+it none, and the table lists the reports by title. Then add a link to it under `Analyses` in
+the navbar in `_quarto.yml`. To change the order of the table, edit the
+`order` values. Then render each changed report by name, and then the
+whole site.
 
 The supplement R package does these steps for you. Run these in R from
 this folder:
@@ -25,7 +31,10 @@ supplement::add_data("path/to/scores.csv", "Scores of each participant")
 ```
 
 `add_report()` writes `analyses/models.qmd` and adds it to the Analyses
-menu. The new report ends with the "Computing environment" section below.
+menu. It gives the report the next `order`. The home page lists the
+reports with an `order` first, by that number, and the others after them by
+title. So it lists the reports in the order of the menu while every report
+has an `order` and the menu follows those values. The new report ends with the "Computing environment" section below.
 `add_data()` copies the file into `data/` and adds it to the `data` list in
 `_supplement.yml`.
 

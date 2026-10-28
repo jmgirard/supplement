@@ -772,27 +772,33 @@ read_report_lines <- function(report) {
   }, error = function(e) character(), warning = function(w) character())
 }
 
-# TRUE when the report's front matter is a YAML map whose top-level
-# `engine` is the text "knitr". The front matter starts at a first `---`
-# line that only blank lines come before and that a line that is not blank
-# follows, and it ends at the next `---` or `...` line. Quarto also accepts
-# an indented first `---`; this check needs `---` at the start of its line.
-engine_is_knitr <- function(lines) {
+# The report's front matter as a named list, or NULL when it has none or
+# it is not a YAML map. The front matter starts at a first `---` line that
+# only blank lines come before and that a line that is not blank follows,
+# and it ends at the next `---` or `...` line. Quarto also accepts an
+# indented first `---`; this reader needs `---` at the start of its line.
+report_front_matter <- function(lines) {
   blank <- grepl("^[ \\t]*\\z", lines, perl = TRUE, useBytes = TRUE)
   first <- which(!blank)[1]
   if (is.na(first) || !grepl("^---[ \\t]*\\z", lines[first], perl = TRUE, useBytes = TRUE) ||
       first == length(lines) || blank[first + 1]) {
-    return(FALSE)
+    return(NULL)
   }
   ends <- which(grepl("^(---|\\.\\.\\.)[ \\t]*\\z", lines, perl = TRUE, useBytes = TRUE))
   last <- ends[ends > first][1]
   if (is.na(last) || last == first + 1) {
-    return(FALSE)
+    return(NULL)
   }
-  # yaml_read_lines() keeps sequences as lists, so `engine: [knitr]` is not
-  # the text, and gives NULL for front matter that does not parse.
+  # yaml_read_lines() keeps sequences as lists and gives NULL for front
+  # matter that does not parse.
   front <- suppressWarnings(yaml_read_lines(lines[seq.int(first + 1, last - 1)]))
-  is.list(front) && !is.null(names(front)) && identical(front[["engine"]], "knitr")
+  if (is.list(front) && !is.null(names(front))) front else NULL
+}
+
+# TRUE when the report's front matter is a YAML map whose top-level
+# `engine` is the text "knitr", not a list such as `engine: [knitr]`.
+engine_is_knitr <- function(lines) {
+  identical(report_front_matter(lines)[["engine"]], "knitr")
 }
 
 # The files that the glob analyses/*.qmd matches in the site. A glob over
@@ -2099,14 +2105,18 @@ placeholder_example_problems <- c(
 )
 
 # The `text_hash()` of each version of the template's example files that
-# the default branch has held, named by commit, so that a site made from
-# an older template also gets its row. Each is `text_hash()` of
+# the default branch has held, so that a site made from an older template
+# also gets its row. Each entry is named by the commit that made it, or
+# `current` for a version added before its merge, whose commit on the
+# default branch is not known yet; the change after it renames it by that
+# commit. The entries named by commit are `text_hash()` of
 # `git show <commit>:inst/template/<file>` for the commits that
 # `git log --follow -- inst/template/<file>` listed on 2026-10-26. A change
 # to either template file adds its version here, and a test fails until it
 # does.
 example_versions <- list(
   "analyses/example.qmd" = c(
+    "current" = "634316e199f1a43ab7fb88ce59bf5161",
     "2db94f2" = "9451ca1c54165f4330b7fffbb11dc6c2",
     "fbc2cab" = "23d34b8911258f4f45c248f85689b175",
     "38af327" = "8f89f3479dccb4df43daefa967c4dd56",

@@ -6,6 +6,21 @@
 #' `analyses/` with its title and description, so the new report shows
 #' there too.
 #'
+#' The home page's table lists the reports that have an `order` field in
+#' their front matter first, by that number, and the others after them by
+#' title. The template's example report has `order: 1`. The function
+#' gives the new report the next whole number after the largest `order` of
+#' the other reports in `analyses/`. So when every report has an `order`
+#' and the menu lists them in that order, the table lists reports in the
+#' order of the Analyses menu. The new report gets `order: 1` when
+#' `analyses/` holds no other report. It gets no `order` when no other
+#' report has one, as in a site made before the template had `order`, so
+#' that its table keeps listing reports by title. Here an `order` counts
+#' only when the yaml package reads it as a number below one million (in
+#' absolute value), and a report whose front matter cannot be read counts
+#' as having none. To change the table's order, edit the `order` values,
+#' render each changed report by name, then render the whole site.
+#'
 #' The first code chunk of the new report is the `site` chunk of the
 #' template's example report, which sets `site` to the site folder. If
 #' `QUARTO_PROJECT_DIR` is not empty, as in a render, `site` is its value.
@@ -234,7 +249,8 @@ add_report <- function(name, title, description = "", path = ".") {
     write_checked(readBin(template, "raw", file.size(template)), shared)
   }
   made <- c(made, report)
-  text <- paste0(paste(report_lines(title, description), collapse = "\n"), "\n")
+  order <- next_report_order(path)
+  text <- paste0(paste(report_lines(title, description, order), collapse = "\n"), "\n")
   write_checked(charToRaw(enc2utf8(text)), report)
   write_text_lines(edit$read, edit$lines, config)
   done <- TRUE
@@ -247,11 +263,40 @@ add_report <- function(name, title, description = "", path = ".") {
   invisible(report)
 }
 
-report_lines <- function(title, description) {
+# The `order` of a new report, as text, or NULL for none. The home page's
+# listing puts reports with a numeric `order` first, by that value, and
+# the others after them by title. The new report goes after every report
+# that has an `order`: the next whole number after the largest. A site
+# whose reports all lack an `order` lists them by title, and an `order`
+# would put the new report first, so it gets none. An `order` that the
+# yaml package reads as text, or of a million or more, counts as none. The
+# cap keeps the written whole number well inside the range that the yaml
+# package reads as an integer: it reads 3000000000 as NA.
+next_report_order <- function(path) {
+  reports <- analysis_reports(path)
+  if (length(reports) == 0) {
+    return("1")
+  }
+  orders <- unlist(lapply(reports, function(report) {
+    # Quarto reads the front matter of a report that starts with a UTF-8
+    # BOM, so drop it.
+    lines <- read_report_lines(report)
+    lines[1] <- sub("^\xef\xbb\xbf", "", lines[1], useBytes = TRUE)
+    order <- report_front_matter(lines)[["order"]]
+    if (is.numeric(order) && length(order) == 1 && is.finite(order) && abs(order) < 1e6) order
+  }))
+  if (length(orders) == 0) {
+    return(NULL)
+  }
+  sprintf("%.0f", floor(max(orders)) + 1)
+}
+
+report_lines <- function(title, description, order = NULL) {
   c(
     "---",
     paste0("title: ", yaml_quote(title)),
     if (nzchar(description)) paste0("description: ", yaml_quote(description)),
+    if (!is.null(order)) paste0("order: ", order),
     "---",
     "",
     "Write the report here. The `site` chunk finds the site folder, so the",

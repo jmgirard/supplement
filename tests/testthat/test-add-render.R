@@ -34,6 +34,29 @@ test_that("a site with an added report and data file renders and lists both", {
   expect_true(file.exists(file.path(site, "docs", "analyses", "models.html")))
 })
 
+test_that("the home page lists added reports in the order of the Analyses menu", {
+  skip_if_no_quarto()
+  site <- new_site()
+  # Added out of title order, two titles before "Example Analysis".
+  suppressMessages({
+    add_report("zeta", "Zeta Checks", "Last by title.", path = site)
+    add_report("alpha", "Alpha Models", "First by title.", path = site)
+    add_report("beta", "Beta Sample", "Second by title.", path = site)
+  })
+
+  rendered <- run_in(site, "quarto", "render")
+  expect_equal(rendered$status, 0L, info = paste(rendered$output, collapse = "\n"))
+
+  menu <- list("website", "navbar", "left", list(key = "text", value = "Analyses"), "menu")
+  items <- yaml_list(lines_utf8(file.path(site, "_quarto.yml")), menu)
+  menu_names <- sub("^analyses/(.*)\\.qmd$", "\\1", vapply(items, `[[`, "", "href"))
+  expect_identical(menu_names, c("example", "zeta", "alpha", "beta"))
+
+  rows <- listing_rows(read_text(file.path(site, "docs", "index.html")))
+  row_names <- vapply(rows, function(row) sub("^.*/([^/]*)\\.html$", "\\1", row$links[1]), "")
+  expect_identical(row_names, menu_names)
+})
+
 test_that("a render by name clears the stale-output row that a changed report gives", {
   skip_if_no_quarto()
   site <- new_site()

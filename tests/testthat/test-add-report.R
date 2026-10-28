@@ -44,7 +44,53 @@ test_that("an empty description writes no description key", {
   site <- new_site()
   suppressMessages(add_report("plain", "Plain", path = site))
   meta <- front_matter(file.path(site, "analyses", "plain.qmd"))
-  expect_identical(meta, list(title = "Plain"))
+  expect_identical(meta, list(title = "Plain", order = 2L))
+})
+
+# The `order` line of a report added to a site whose analyses/ holds the
+# given files, or an empty character vector when the new report has none.
+order_after <- function(files) {
+  site <- new_site(parent.frame())
+  unlink(file.path(site, "analyses", "example.qmd"))
+  for (name in names(files)) {
+    writeLines(files[[name]], file.path(site, "analyses", name), useBytes = TRUE)
+  }
+  report <- suppressMessages(add_report("new", "New", path = site))
+  lines <- lines_utf8(report)
+  front <- lines[seq_len(which(lines == "---")[2])]
+  grep("^order:", front, value = TRUE)
+}
+
+stub <- function(order) c("---", "title: Old", order, "---", "", "Text.")
+
+test_that("the first report of a site gets order 1", {
+  expect_identical(order_after(list()), "order: 1")
+})
+
+test_that("a new report gets the next whole number after the largest order", {
+  expect_identical(order_after(list(a.qmd = stub("order: 1"), b.qmd = stub("order: 3"))), "order: 4")
+  expect_identical(order_after(list(a.qmd = stub("order: 2.5"))), "order: 3")
+  expect_identical(order_after(list(a.qmd = stub("order: 7"), b.qmd = stub(NULL))), "order: 8")
+})
+
+test_that("a site whose reports have no order gets no order line", {
+  expect_identical(order_after(list(a.qmd = stub(NULL), b.qmd = stub(NULL))), character())
+  # The yaml package reads a quoted order as text.
+  expect_identical(order_after(list(a.qmd = stub('order: "3"'))), character())
+  expect_identical(order_after(list(a.qmd = stub("order: 10000000"))), character())
+})
+
+test_that("the order of a report saved with a UTF-8 BOM counts", {
+  lines <- stub("order: 5")
+  lines[1] <- paste0(rawToChar(as.raw(c(0xef, 0xbb, 0xbf))), lines[1])
+  expect_identical(order_after(list(a.qmd = lines, b.qmd = stub("order: 1"))), "order: 6")
+})
+
+test_that("a report whose front matter does not parse counts as having no order", {
+  expect_identical(
+    order_after(list(bad.qmd = stub(c("order: 5", "title: [")), good.qmd = stub("order: 2"))),
+    "order: 3"
+  )
 })
 
 test_that("the edit keeps every other line of the template's _quarto.yml", {
@@ -235,7 +281,7 @@ test_that("valid UTF-8 text marked as bytes is written as UTF-8", {
   Encoding(marked) <- "bytes"
   suppressMessages(add_report("bytes", marked, marked, path = site))
   meta <- front_matter(file.path(site, "analyses", "bytes.qmd"))
-  expect_identical(meta, list(title = value, description = value))
+  expect_identical(meta[c("title", "description")], list(title = value, description = value))
 })
 
 test_that("a missing name or title stops with an argument error", {
@@ -435,7 +481,7 @@ test_that("a report stub reads the shared functions and defines none", {
   site <- new_site()
   stub <- suppressMessages(add_report("models", "Model Comparison", "Fits and compares the models.", path = site))
   lines <- readLines(stub, encoding = "UTF-8")
-  expect_lte(length(lines), 40L)
+  expect_lte(length(lines), 41L)
   expect_false(any(grepl("<- function(", lines, fixed = TRUE)))
   expect_identical(
     utils::tail(chunk_code(stub, "site"), 1L),
