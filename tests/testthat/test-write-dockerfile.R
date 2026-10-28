@@ -123,6 +123,19 @@ test_that("a site with no renv.lock is refused", {
   expect_refused(site, "supplement_error_no_file", site, quarto = "1.10.19")
 })
 
+test_that("a renv.lock under another letter case is refused", {
+  for (name in c("Renv.lock", "RENV.LOCK")) {
+    site <- lock_site(NULL)
+    writeBin(charToRaw(lock_json()), file.path(site, name))
+    err <- expect_refused(site, "supplement_error_no_file", site, quarto = "1.10.19", info = name)
+    expect_match(conditionMessage(err), "No 'renv.lock' in", fixed = TRUE, info = name)
+    # Where the file system ignores letter case, renv.lock is found under
+    # the other case, and the hint says so.
+    hint <- if (ignores_case(site)) "is listed under another spelling" else "Set up renv in the site first"
+    expect_match(conditionMessage(err), hint, fixed = TRUE, info = name)
+  }
+})
+
 test_that("a renv.lock that does not have the lockfile form is refused", {
   texts <- list(
     empty = "",
@@ -367,14 +380,6 @@ write_profile_lock <- function(site, name, text = lock_json(r = '{"Version": "4.
   writeBin(charToRaw(text), file.path(site, "renv", "profiles", name, "renv.lock"))
 }
 
-# TRUE when the file system of the folder `dir` ignores letter case.
-ignores_case <- function(dir) {
-  probe <- file.path(dir, "case-probe")
-  file.create(probe)
-  on.exit(unlink(probe))
-  file.exists(file.path(dir, "CASE-PROBE"))
-}
-
 # TRUE when RENV_PROFILE can hold `text` on this system.
 can_set_profile <- function(text) {
   isTRUE(tryCatch(withr::with_envvar(c(RENV_PROFILE = text), Sys.getenv("RENV_PROFILE") == text),
@@ -468,6 +473,58 @@ test_that("with a renv profile, its lockfile is read, copied, and named in a mes
     expect_identical(read_bytes(file.path(site, "Dockerfile")), charToRaw(dockerfile_dev), info = from)
     expect_identical(read_bytes(file.path(site, ".dockerignore")),
                      charToRaw("*\n!renv/profiles/dev/renv.lock\n"), info = from)
+  }
+})
+
+test_that("the message and the name error name both sources when they give the same name", {
+  # Each shape of renv/profile beside RENV_PROFILE "dev", and the sources
+  # that the message then names.
+  alone <- "`RENV_PROFILE` names"
+  shapes <- list(
+    "the same name" = list(function(site) write_profile_name(site, "dev"), "`RENV_PROFILE` and 'renv/profile' both name"),
+    "no renv/profile" = list(function(site) NULL, alone),
+    "an empty renv/profile" = list(function(site) write_profile_name(site, raw()), alone),
+    "another name" = list(function(site) write_profile_name(site, "other"), alone),
+    "a folder" = list(function(site) dir.create(file.path(site, "renv", "profile"), recursive = TRUE), alone)
+  )
+  withr::local_envvar(RENV_PROFILE = "dev")
+  for (shape in names(shapes)) {
+    site <- lock_site()
+    write_profile_lock(site, "dev")
+    shapes[[shape]][[1]](site)
+    messages <- dockerfile_messages(site, quarto = "1.10.19")
+    expect_identical(messages, paste0(
+      "i Picked 'renv/profiles/dev/renv.lock', the lockfile of the renv profile \"dev\", which ",
+      shapes[[shape]][[2]], ".\n"
+    ), info = shape)
+    expect_identical(read_bytes(file.path(site, "Dockerfile")), charToRaw(dockerfile_dev), info = shape)
+  }
+
+  withr::local_options(cli.unicode = FALSE, cli.num_colors = 1)
+  site <- lock_site()
+  write_profile_name(site, "a b")
+  err <- withr::with_envvar(c(RENV_PROFILE = "a b"),
+                            expect_refused(site, "supplement_error_profile", site, quarto = "1.10.19"))
+  expect_match(conditionMessage(err), "which `RENV_PROFILE` and 'renv/profile' both give", fixed = TRUE)
+})
+
+test_that("a lockfile that starts with a UTF-8 byte order mark is read with no warning", {
+  bom <- as.raw(c(0xef, 0xbb, 0xbf))
+  for (profile in c(FALSE, TRUE)) {
+    site <- lock_site()
+    if (profile) {
+      write_profile_name(site, "dev")
+      lock <- file.path(site, "renv", "profiles", "dev", "renv.lock")
+      dir.create(dirname(lock), recursive = TRUE)
+      writeBin(c(bom, charToRaw(lock_json(r = '{"Version": "4.5.2"}'))), lock)
+    } else {
+      writeBin(c(bom, charToRaw(lock_json())), file.path(site, "renv.lock"))
+    }
+    expect_no_warning(dockerfile_messages(site, quarto = "1.10.19"))
+    expect_identical(read_bytes(file.path(site, "Dockerfile")),
+                     charToRaw(if (profile) dockerfile_dev else dockerfile_461), info = profile)
+    expect_identical(read_bytes(file.path(site, ".dockerignore")),
+                     charToRaw(if (profile) "*\n!renv/profiles/dev/renv.lock\n" else "*\n!renv.lock\n"), info = profile)
   }
 })
 
@@ -576,7 +633,7 @@ test_that("a missing lockfile of the renv profile is refused, also under another
     # Where the file system ignores letter case, the path of a case shape is
     # found under another case, and the hint says so.
     if (grepl("letter case", shape, fixed = TRUE) && ignores_case(site)) {
-      expect_match(conditionMessage(err), "has another letter case", fixed = TRUE, info = shape)
+      expect_match(conditionMessage(err), "is listed under another spelling", fixed = TRUE, info = shape)
     } else {
       expect_match(conditionMessage(err), "renv::snapshot()", fixed = TRUE, info = shape)
     }

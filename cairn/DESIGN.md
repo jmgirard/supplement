@@ -122,9 +122,11 @@ Every YAML parse in `R/` goes through `yaml_load_list()` or
 `lock_source()` of `R/check-supplement.R` (M067): `renv.lock`, or with an
 renv profile `renv/profiles/<name>/renv.lock`. It refuses a profile name
 outside `[A-Za-z0-9._-]`, or one that starts with `.`, and an unreadable
-`renv/profile`, with `supplement_error_profile`. Each part of a profile
-lockfile's path must be listed with its exact letter case
-(`listed_exactly()`). It reads the R and renv versions
+`renv/profile`, with `supplement_error_profile`. Each part of the
+lockfile's path, `renv.lock` without a profile included (M068), must be
+listed with its exact spelling (`listed_exactly()`, beside `lock_source()`
+in `R/check-supplement.R`). A UTF-8 byte order mark at the start of the
+lockfile is dropped before parsing (`drop_bom()`, M068). It reads the R and renv versions
 of the lockfile with jsonlite, refuses a repeated key among the five it
 reads before any value check (M035), refuses R before 4.0.0 and renv before 1.3.1,
 and writes `.dockerignore` (`*`, `!` and the lockfile's path) and then a
@@ -187,7 +189,14 @@ package, and `utils::sessionInfo()` keeps them out of
 the active renv profile by renv 1.3.1's rule: `RENV_PROFILE` of the
 checking session, else the first line of `renv/profile`, with `default`
 meaning none. A profile's lockfile is `renv/profiles/<name>/renv.lock`, and
-the rows then name that path and the profile. `RENV_PATHS_LOCKFILE` and
+the rows then name that path and the profile. When `RENV_PROFILE` names a
+profile and the first line of `renv/profile` is the same name byte for
+byte (renv's `activate.R` copies it there), `from` is `"both"` and the
+"Picked" message and the name error of `write_dockerfile()` name both
+sources; `renv/profile` never changes the pick then (M068). A lockfile that
+`lock_versions()` read but whose path `listed_exactly()` does not find
+under its exact spelling gets one `"renv-mismatch"` row naming the path as
+listed (`listed_path()`), and the report rows still follow (M068). `RENV_PATHS_LOCKFILE` and
 `RENV_PATHS_RENV` are not read. `release_supplement()` never
 passes this argument either.
 Its placeholder check (`check_placeholders()`, M036) compares four

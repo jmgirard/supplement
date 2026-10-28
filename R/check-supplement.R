@@ -174,6 +174,14 @@
 #'   `"renv-missing"` check. [release_supplement()] does not run this
 #'   check, so its rows never stop a release.
 #'
+#'   `renv.lock` also gets a row of its own when the check reads it but a
+#'   folder or file in its path is listed under another spelling, such as
+#'   `Renv.lock`. renv finds such a file only where the file system treats
+#'   both spellings as one name, as macOS and Windows do for letter case by
+#'   default, and [write_dockerfile()] refuses it. The row names the path as
+#'   listed, when it can tell, and says to rename it. The reports still get
+#'   their rows.
+#'
 #'   In this item and the next, `renv.lock` is the lockfile that renv 1.3.1
 #'   picks for the site's renv profile. The profile's name comes from the
 #'   `RENV_PROFILE` environment variable of the R session that runs the
@@ -183,7 +191,10 @@
 #'   lockfile is `renv.lock` in the site folder. With a profile, the lockfile
 #'   is `renv/profiles/<name>/renv.lock`, with the name joined as given. The
 #'   function then says which profile it picked and where the name came
-#'   from. The rows name that path where they name `renv.lock`, and they say
+#'   from. When `RENV_PROFILE` and the first line of `renv/profile` give
+#'   the same name, as in an R session that the site's `renv/activate.R`
+#'   started, because it copies that line into `RENV_PROFILE`, the message
+#'   names both. The rows name that path where they name `renv.lock`, and they say
 #'   to run the renv commands with the profile active. When `renv/profile`
 #'   is read and is a folder or a file that cannot be opened, it gets one
 #'   row of its own, and no report gets a row. The check does not read
@@ -938,7 +949,9 @@ stored_script_hashes <- function(file) {
 # from lock_source(). Rows and messages show its path with show_text(),
 # since a profile name need not be valid UTF-8, and cli stops on such text.
 # A site with no lockfile gets a message and no row, a lockfile that cannot
-# be read gets one row, and so does a renv/profile that cannot be read.
+# be read gets one row, and so does a renv/profile that cannot be read. A
+# lockfile listed under another spelling gets one row before the report
+# rows.
 check_renv_lock <- function(path) {
   source <- lock_source(path)
   if (isFALSE(source)) {
@@ -971,6 +984,26 @@ check_renv_lock <- function(path) {
              "repeats a key. Run renv::snapshot()", active, " to write it again, then commit it.")
     ))
   }
+  # Where the file system ignores letter case, renv reads the lockfile under
+  # another spelling, which a case-sensitive file system and the Docker
+  # build of write_dockerfile() do not find.
+  # A profile name with `/`, or on Windows with `\` or a trailing space or
+  # `.`, is not one folder name, and the system finds the file by another
+  # path, so its parts cannot be matched with what the folders list.
+  parts <- strsplit(source$file, "/", fixed = TRUE)[[1]]
+  rewritten <- !all(nzchar(parts)) ||
+    (.Platform$OS.type == "windows" && any(grepl("[ .]$|\\\\", parts, useBytes = TRUE)))
+  spelling <- problem_rows()
+  if (!rewritten && !listed_exactly(path, parts)) {
+    listed <- listed_path(path, parts)
+    spelling <- problem_rows("renv-mismatch", shown, paste0(
+      if (is.null(listed)) "A folder or file in its path is listed under another spelling" else
+        paste0("It is listed as ", quote_path(show_text(listed))),
+      ". renv finds it only where the file system treats both spellings as one name, as macOS and Windows ",
+      "do for letter case by default, and write_dockerfile() refuses it. Rename it to ", quote_path(shown),
+      ", then commit the change."
+    ))
+  }
   lock$file <- shown
   lock$active <- active
   reports <- analysis_reports(path)
@@ -998,7 +1031,8 @@ check_renv_lock <- function(path) {
   files <- file.path("analyses", basename(reports))
   mismatch <- !is.na(problems[1, ])
   missing <- !is.na(problems[2, ])
-  rbind(problem_rows("renv-mismatch", files[mismatch], problems[1, mismatch]),
+  rbind(spelling,
+        problem_rows("renv-mismatch", files[mismatch], problems[1, mismatch]),
         problem_rows("renv-missing", files[missing], problems[2, missing]))
 }
 
@@ -1100,32 +1134,93 @@ version_diffs <- function(stored, lock) {
 # RENV_PROFILE when it is not empty, else from the first line of
 # renv/profile, untrimmed, and `default` or an empty name means no
 # profile. FALSE when renv/profile is read and is a folder or cannot be
-# opened.
+# opened. `from` is "both" when RENV_PROFILE names the profile and the
+# first line of renv/profile is the same name, byte for byte, because
+# renv's activate.R copies that line into RENV_PROFILE; renv/profile
+# then does not change the pick.
 lock_source <- function(path) {
   profile <- Sys.getenv("RENV_PROFILE")
   from <- "RENV_PROFILE"
   if (!nzchar(profile)) {
     from <- "renv/profile"
-    file <- file.path(path, "renv", "profile")
-    # renv tests the file with file.exists(), so a link to a missing file
-    # names no profile, except on Windows, where file.exists() is TRUE for
-    # it. A folder is refused before readLines(), so that its row does not
-    # depend on what readLines() does with a folder.
-    lines <- character()
-    if (file.exists(file)) {
-      lines <- if (!dir.exists(file)) {
-        suppressWarnings(tryCatch(readLines(file, warn = FALSE), error = function(e) NULL))
-      }
-      if (is.null(lines)) {
-        return(FALSE)
-      }
+    profile <- profile_line(path)
+    if (is.null(profile)) {
+      return(FALSE)
     }
-    profile <- if (length(lines) > 0) lines[[1]] else ""
   }
   if (profile %in% c("", "default")) {
     return(list(file = "renv.lock", profile = NULL, from = NULL))
   }
+  if (from == "RENV_PROFILE") {
+    line <- profile_line(path)
+    if (!is.null(line) && identical(charToRaw(line), charToRaw(profile))) {
+      from <- "both"
+    }
+  }
   list(file = paste("renv", "profiles", profile, "renv.lock", sep = "/"), profile = profile, from = from)
+}
+
+# The first line of renv/profile in the site `path`, as renv reads it: ""
+# when the file is missing or empty, and NULL when it is a folder or
+# cannot be opened. renv tests the file with file.exists(), so a link to a
+# missing file names no profile, except on Windows, where file.exists() is
+# TRUE for it. A folder is refused before readLines(), so that its row does
+# not depend on what readLines() does with a folder.
+profile_line <- function(path) {
+  file <- file.path(path, "renv", "profile")
+  if (!file.exists(file)) {
+    return("")
+  }
+  lines <- if (!dir.exists(file)) {
+    suppressWarnings(tryCatch(readLines(file, warn = FALSE), error = function(e) NULL))
+  }
+  if (is.null(lines)) {
+    return(NULL)
+  }
+  if (length(lines) > 0) lines[[1]] else ""
+}
+
+# TRUE when each of `parts`, a path from the folder `path`, is listed in
+# its folder under its exact name, letter case included. A folder that
+# lists nothing, such as one that can be entered but not read, counts as
+# listing the part.
+listed_exactly <- function(path, parts) {
+  for (i in seq_along(parts)) {
+    folder <- do.call(file.path, as.list(c(path, parts[seq_len(i - 1)])))
+    names <- list.files(folder, all.files = TRUE)
+    if (length(names) > 0 && !parts[[i]] %in% names) {
+      return(FALSE)
+    }
+  }
+  TRUE
+}
+
+# The path `parts`, from the folder `path`, with each part as its folder
+# lists it, or NULL when a part is not found so. A part is the one name in
+# its folder that differs from it only in letter case, by fold_case(),
+# else, when it is not a link, the name that fs::path_real() gives it,
+# which is the stored name on macOS and Windows.
+listed_path <- function(path, parts) {
+  listed <- character()
+  for (part in parts) {
+    folder <- do.call(file.path, as.list(c(path, listed)))
+    names <- list.files(folder, all.files = TRUE)
+    if (part %in% names) {
+      listed <- c(listed, part)
+      next
+    }
+    same <- tryCatch(names[fold_case(names) == fold_case(part)], error = function(e) character())
+    # fs::path_real() follows a link, so it would give the target's name.
+    if (length(same) != 1 && !is_link(file.path(folder, part))) {
+      real <- tryCatch(basename(as.character(fs::path_real(file.path(folder, part)))), error = function(e) "")
+      same <- if (real %in% names && !is_link(file.path(folder, real))) real
+    }
+    if (length(same) != 1) {
+      return(NULL)
+    }
+    listed <- c(listed, same)
+  }
+  paste(listed, collapse = "/")
 }
 
 # A message that names the lockfile and the renv profile in `source`, from
@@ -1136,7 +1231,10 @@ inform_lock_source <- function(source) {
   }
   shown <- show_text(source$file)
   profile <- show_text(source$profile)
-  if (source$from == "RENV_PROFILE") {
+  if (source$from == "both") {
+    cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
+                              "which {.envvar RENV_PROFILE} and {.file renv/profile} both name."))
+  } else if (source$from == "RENV_PROFILE") {
     cli::cli_alert_info(paste("Picked {.file {shown}}, the lockfile of the renv profile {.val {profile}},",
                               "which {.envvar RENV_PROFILE} names."))
   } else {
@@ -1144,6 +1242,12 @@ inform_lock_source <- function(source) {
                               "which {.file renv/profile} names."))
   }
   invisible()
+}
+
+# `bytes` without the UTF-8 byte order mark at their start, if they have
+# one. An editor can save a lockfile with it, and jsonlite warns about it.
+drop_bom <- function(bytes) {
+  if (length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))) bytes[-(1:3)] else bytes
 }
 
 # The versions that the lockfile `file`, a path from the site folder
@@ -1170,13 +1274,7 @@ lock_versions <- function(path, file = "renv.lock") {
     return(FALSE)
   }
   json <- tryCatch({
-    bytes <- readBin(file, "raw", n = file.size(file))
-    # An editor can save the file with a UTF-8 byte order mark, which
-    # jsonlite warns about.
-    if (length(bytes) >= 3 && identical(bytes[1:3], as.raw(c(0xef, 0xbb, 0xbf)))) {
-      bytes <- bytes[-(1:3)]
-    }
-    text <- rawToChar(bytes)
+    text <- rawToChar(drop_bom(readBin(file, "raw", n = file.size(file))))
     if (!validUTF8(text)) stop("not UTF-8")
     Encoding(text) <- "UTF-8"
     jsonlite::parse_json(text, simplifyVector = FALSE)

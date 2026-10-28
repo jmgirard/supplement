@@ -204,6 +204,14 @@ and the function says that it skipped this check and the
 \code{"renv-missing"} check. \code{\link[=release_supplement]{release_supplement()}} does not run this
 check, so its rows never stop a release.
 
+\code{renv.lock} also gets a row of its own when the check reads it but a
+folder or file in its path is listed under another spelling, such as
+\code{Renv.lock}. renv finds such a file only where the file system treats
+both spellings as one name, as macOS and Windows do for letter case by
+default, and \code{\link[=write_dockerfile]{write_dockerfile()}} refuses it. The row names the path as
+listed, when it can tell, and says to rename it. The reports still get
+their rows.
+
 In this item and the next, \code{renv.lock} is the lockfile that renv 1.3.1
 picks for the site's renv profile. The profile's name comes from the
 \code{RENV_PROFILE} environment variable of the R session that runs the
@@ -213,7 +221,10 @@ name \code{default}, an empty name, or no name means no profile, and the
 lockfile is \code{renv.lock} in the site folder. With a profile, the lockfile
 is \verb{renv/profiles/<name>/renv.lock}, with the name joined as given. The
 function then says which profile it picked and where the name came
-from. The rows name that path where they name \code{renv.lock}, and they say
+from. When \code{RENV_PROFILE} and the first line of \code{renv/profile} give
+the same name, as in an R session that the site's \code{renv/activate.R}
+started, because it copies that line into \code{RENV_PROFILE}, the message
+names both. The rows name that path where they name \code{renv.lock}, and they say
 to run the renv commands with the profile active. When \code{renv/profile}
 is read and is a folder or a file that cannot be opened, it gets one
 row of its own, and no report gets a row. The check does not read

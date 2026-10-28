@@ -152,3 +152,11 @@ symlink_or_skip <- function(target, link) {
   made <- suppressWarnings(make(target, link))
   skip_if_not(made, "cannot make a symbolic link here (Windows without developer mode)")
 }
+
+# TRUE when the file system of the folder `dir` ignores letter case.
+ignores_case <- function(dir) {
+  probe <- file.path(dir, "case-probe")
+  file.create(probe)
+  on.exit(unlink(probe))
+  file.exists(file.path(dir, "CASE-PROBE"))
+}
