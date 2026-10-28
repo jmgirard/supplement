@@ -1,17 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-28 (M069 review: archived; pruned the M066 row; one lesson captured, the M023 skip_on_os lesson evicted by rank, two marked used; LESSONS holds 25 lessons; validate green)_
+_Last hygiene check: 2026-10-28 (M070 review: archived; pruned the M067 row; two candidate rows added; one lesson captured, the M024 engine-scan lesson evicted by rank, four marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M070 | Fill in the demo site | review | — | normal | milestones/M070-filled-in-demo-site.md |
+| M070 | Fill in the demo site | done | — | normal | milestones/archive/M070-filled-in-demo-site.md |
 | M069 | Publish a demo of the template site | done | — | normal | milestones/archive/M069-demo-template-site.md |
-| M068 | Handle renv lockfile edge cases | done | — | normal | milestones/archive/M068-renv-lockfile-edge-cases.md |
-| M067 | Write Dockerfiles from profile lockfiles | done | — | normal | milestones/archive/M067-dockerfile-profile-lockfile.md |
-## Candidates
+| M068 | Handle renv lockfile edge cases | done | — | normal | milestones/archive/M068-renv-lockfile-edge-cases.md |## Candidates
 
 - Handle short folder names on Windows: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
 - Measure the cost of large data files: from the M018 review. Quarto copies each file the data table links into `docs/`, the size fixtures included (seen on macOS, where the 2 GiB copy stays sparse at 4 KB); the disk cost of the 1 GB, 2 GiB, and 4 GiB fixtures on Linux and Windows was not measured. On Windows the data table counts the bytes of each file of 2 GiB or more on every render, and the time for a 4 GiB file was not measured. — added 2026-10-19
