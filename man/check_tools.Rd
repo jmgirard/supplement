@@ -30,13 +30,14 @@ code in reports. They are looked for in the libraries of the R session
 that runs \code{check_tools()}. Quarto can run another R installation, with
 other libraries.
 \item \code{git}: to commit the site and push it to GitHub.
-\item \code{gh}: the GitHub command-line interface, for the
-\verb{gh release create} command that \code{\link[=release_supplement]{release_supplement()}} prints.
 }
 
 It then lists two accounts that it cannot check:
 \itemize{
-\item \verb{GitHub account}: hosts the site with GitHub Pages.
+\item \verb{GitHub account}: hosts the site with GitHub Pages. For each release,
+you push the release commit and then publish the release on GitHub's
+page. When the \code{origin} remote is on GitHub, \code{\link[=release_supplement]{release_supplement()}}
+prints that page's address.
 \item \verb{Zenodo account}: archives each GitHub release with a DOI.
 }
 

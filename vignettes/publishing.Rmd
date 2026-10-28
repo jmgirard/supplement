@@ -9,67 +9,91 @@ vignette: >
 
 This guide takes you from an empty folder to a published site. GitHub
 Pages serves the site, and Zenodo archives each GitHub release with a DOI.
-You do each step once, in this order. The last part gives the rule for
+You do each step once, in this order. A later part gives the rule for
 rendering again after you change a report.
 
-The code blocks run in two places. Run each `r` block in the R console.
-Run each `sh` block in a terminal, such as the Terminal tab of RStudio or
-Positron. Each step names the folder to run its commands in. To run R in
-the site folder, start R there or open the folder as a project. You can
-also run `setwd()` with the path of the folder.
+You need three things: the R console, a web browser, and the Git pane of
+RStudio or the Source Control view of Positron. Run each code block in the
+R console. Each step names the folder to run its code in. To run R in the
+site folder, open the folder as a project in RStudio, or open the folder
+in Positron. The Git pane and the Source Control view need this. For the
+R steps alone, `setwd()` with the path of the folder also works. If you prefer a terminal for git
+and Quarto, the last part of this guide gives the commands for the same
+steps.
 
 ## 1. Find missing tools
 
-In the R console, in any folder, install the package and list the tools:
+In the R console, in any folder, install the packages and list the tools:
 
 ```r
-install.packages("pak")
+install.packages(c("pak", "usethis"))
 pak::pak("jmgirard/supplement")
 supplement::check_tools()
 ```
 
-`check_tools()` reports whether Quarto, knitr, rmarkdown, git, and the
-GitHub command-line tool (`gh`) are installed. Install each tool that it
-reports as missing or too old. If it reports Quarto as not on the system
-path, add Quarto's `bin` folder to the path. It also reminds you of the two accounts that
+usethis sets up git and GitHub from R. Installing it also installs
+gitcreds, which stores your GitHub sign-in.
+
+`check_tools()` reports whether Quarto, knitr, rmarkdown, and git are
+installed. Install each tool that it reports as missing or too old. A
+Quarto that it reports as not on the system path is fine:
+`render_supplement()` finds it. It also reminds you of the two accounts that
 you need: a GitHub account and a Zenodo account.
 
-## 2. Make the GitHub repository and clone it
+## 2. Set up git and sign in to GitHub
 
-On GitHub, make a new public repository. Do not add a README, a
-`.gitignore`, or a license. The template writes those files.
+In the R console, in any folder, give git your name and email address.
+Git writes them into each commit:
 
-In a terminal, in the folder that will hold the site folder, clone the
-repository. Use your GitHub user name for `owner` and the repository's
-name for `name`:
-
-```sh
-git clone https://github.com/owner/name.git my-supplement
+```r
+usethis::use_git_config(user.name = "Your Name", user.email = "you@example.com")
 ```
 
-git says that you cloned an empty repository. The new folder,
-`my-supplement`, is the site folder.
+Then make a GitHub token, which lets R and git act on your GitHub
+account. `create_github_token()` opens GitHub's page for a new token with
+the right settings. Click **Generate token** at the bottom of the page and
+copy the token. Then run `gitcreds_set()` and paste the token when it asks:
+
+```r
+usethis::create_github_token()
+gitcreds::gitcreds_set()
+```
+
+Check the setup:
+
+```r
+usethis::git_sitrep()
+```
+
+Under **Git global (user)**, it shows your name and email address. Under
+**GitHub user**, it shows `<discovered>` for the personal access token and
+your GitHub user name. If it reports a problem, it says what to do.
 
 ## 3. Make the site
 
-In the R console, in the folder that holds `my-supplement`, run:
+Pick a name for the site's GitHub repository, such as `my-supplement`.
+In the R console, in the folder that will hold the site folder, run the
+code below. Use your GitHub user name for `owner`:
 
 ```r
-supplement::create_supplement("my-supplement", repo = "owner/name")
+supplement::create_supplement("my-supplement", repo = "owner/my-supplement")
 ```
 
-The function copies the template into the clone. It writes the repository
-into the GitHub link in `_quarto.yml`. It also writes the site's GitHub
-Pages address, `https://owner.github.io/name/`, into the site's README and
-into the guide for authors. If the folder already holds a file that
-the template writes, the function stops and writes nothing.
+The function makes the folder `my-supplement`, the site folder, and
+copies the template into it. Give the folder the same name as the
+repository: step 5 names the repository after the folder. The function
+writes the repository into the GitHub link in `_quarto.yml`. It also
+writes the site's GitHub Pages address,
+`https://owner.github.io/my-supplement/`, into the site's README and into
+the guide for authors. If the folder already holds a file that the
+template writes, the function stops and writes nothing.
 
 ## 4. Render the site
 
-In a terminal, in the site folder, run:
+In the R console, in the site folder, run:
 
-```sh
-quarto render
+```r
+supplement::render_supplement()
 ```
 
 The first render writes `.gitignore` and `README.md`, the page for the
@@ -77,49 +101,51 @@ people who read the site's repository. The guide for authors is
 `GUIDE.md`. The render also writes the site into `docs/`, the folder that
 GitHub Pages serves.
 
-## 5. Commit and push
+## 5. Make the repository, commit, and push
 
-In a terminal, in the site folder, run:
+In the R console, in the site folder, start a git repository:
 
-```sh
-git add -A
-git commit -m "Start the site"
-git push -u origin HEAD
+```r
+usethis::use_git()
 ```
 
-`HEAD` pushes the branch that you are on. To see its name, run
-`git branch --show-current`. You need that name in the next step.
+`use_git()` adds a few lines to `.gitignore` and lists the files to
+commit. When it asks whether it can commit them, choose the answer that
+means yes. When the site folder is open as a project in RStudio, it then
+offers to restart RStudio so that the Git pane appears.
 
-If git asks who you are, give it your name and email address, then run
-the commit again:
+Then make the repository on GitHub and push the site to it:
 
-```sh
-git config --global user.name "Your Name"
-git config --global user.email "you@example.com"
+```r
+usethis::use_github()
 ```
 
-If the push asks for a password, GitHub refuses it. Sign in with `gh`
-instead, let git use that sign-in, and run the push again:
-
-```sh
-gh auth login
-gh auth setup-git
-git push -u origin HEAD
-```
+`use_github()` makes a public repository with the name of the site
+folder on your GitHub account, pushes the commit, and opens the
+repository in the browser. It stops if you already have a repository with
+that name.
 
 ## 6. Serve the site with GitHub Pages
 
-On GitHub, open the repository's **Settings** tab and click **Pages**.
-Under **Build and deployment**, set **Source** to **Deploy from a branch**.
-Select the branch that you pushed and the `/docs` folder, and click
-**Save**. GitHub's page [Configuring a publishing source for your GitHub
-Pages
-site](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
-shows these settings.
+In the R console, in the site folder, turn on GitHub Pages for the `docs/`
+folder of the branch that you pushed:
 
-The site is at `https://owner.github.io/name/`, with the owner in
-lowercase. For a repository named `owner.github.io`, the site is at
-`https://owner.github.io/`.
+```r
+usethis::use_github_pages(branch = usethis::git_default_branch(), path = "/docs")
+```
+
+If the function stops with a message that the default branch of the local
+repository and of the remote do not match, wait a minute and run it
+again. Right after `use_github()` pushes, GitHub can still report another
+default branch for a short time. Do not run the function that the message
+names in that time.
+
+The function prints the site's address. The site is at
+`https://owner.github.io/my-supplement/`, with the owner in lowercase.
+For a repository named `owner.github.io`, the site is at
+`https://owner.github.io/`. GitHub then builds the site, and the address
+works when the build ends. The repository's **Settings** tab, under
+**Pages**, shows the same setting.
 
 ## 7. Turn on Zenodo for the repository
 
@@ -154,21 +180,15 @@ visitors to the site or the repository see them. In the site folder:
    `analyses/example.qmd`, its stored output in `_freeze/analyses/example/`,
    and its item in the Analyses menu of `_quarto.yml`. Delete
    `data/example.csv` and its entry under `data` in `_supplement.yml`.
-5. Delete the example's figure, `figures/bootstrap-means.png`. For a site
-   with no figures of its own, also leave out `figures` from the `git add`
-   command in the last part of this guide.
+5. Delete the example's figure, `figures/bootstrap-means.png`.
 6. In `README.md`, replace the example citation under the title with the
    paper's citation.
 
-Then, in a terminal in the site folder, render the whole site:
-
-```sh
-quarto render
-```
-
-In the R console, in the site folder, look for problems:
+Then, in the R console in the site folder, render the whole site and look
+for problems:
 
 ```r
+supplement::render_supplement()
 supplement::check_supplement()
 ```
 
@@ -185,13 +205,9 @@ profile for the site, from `RENV_PROFILE` or `renv/profile`, these checks
 read the profile's lockfile in place of `renv.lock`. A release does not run these checks either.
 
 When `supplement::check_supplement()` with its defaults finds no problem,
-commit and push in a terminal in the site folder:
-
-```sh
-git add -A
-git commit -m "Add the paper and the reports"
-git push
-```
+commit and push in the Git pane. Select every changed file, deleted files
+included, click **Commit**, write a message such as "Add the paper and the
+reports", and commit. Then click **Push**.
 
 ## 9. Make the first release
 
@@ -202,12 +218,24 @@ supplement::release_supplement("major")
 ```
 
 The function runs `check_supplement()` and stops if it finds a problem.
-Then it sets the site version to `1.0.0`, writes `CITATION.cff` and
-`.zenodo.json`, and prints the commands that make the release. It runs
-none of them. Run the printed commands in a terminal in the site folder.
-The last command, `gh release create`, makes the GitHub release. If `gh`
-asks you to run `gh auth login`, run it, then run `gh release create`
-again.
+Then it sets the site version to `1.0.0` and writes `CITATION.cff` and
+`.zenodo.json`. It prints the git commands that commit and push the
+release. Then it prints the address of GitHub's page for the new release,
+or, when the `origin` remote is not a GitHub address, the steps to reach
+that page. It runs none of the commands and opens no page.
+
+1. In the Git pane, commit every changed file with the message
+   "Release v1.0.0", and push. Push before the next step: GitHub makes the
+   tag on the default branch when you publish the release, so a release
+   published before the push tags an older commit.
+2. Open the address that the function printed, such as
+   `https://github.com/owner/my-supplement/releases/new?tag=v1.0.0`. The
+   page has the tag `v1.0.0` filled in, with the default branch as its
+   target. Click **Publish release**.
+
+If the function printed steps in place of an address, follow them: on the
+repository's page on GitHub, open **Releases**, draft a new release, enter
+`v1.0.0` as the tag, and publish it.
 
 ## 10. Add the DOIs and render again
 
@@ -218,36 +246,92 @@ DOI, which names every release of the repository. If you write it as
 `concept-doi`, the badge uses it when `version-doi` is empty. Write each
 DOI in the form `10.5281/zenodo.1234567`.
 
-In the R console, in the site folder, write the DOI into `CITATION.cff`:
+In the R console, in the site folder, write the DOI into `CITATION.cff`
+and render the site:
 
 ```r
 supplement::write_citation(overwrite = TRUE)
+supplement::render_supplement()
 ```
 
-Then, in a terminal in the site folder, render the site and push it:
-
-```sh
-quarto render
-git add -A
-git commit -m "Add the Zenodo DOIs"
-git push
-```
-
-The home page now shows the DOI badge and the download link.
+Then commit every changed file in the Git pane with a message such as "Add
+the Zenodo DOIs", and push. The home page now shows the DOI badge and the
+download link.
 
 ## Render again after a report changes
 
 Quarto stores the output of each report in `_freeze/`, and a full render
 reuses that output. A full render does not run a report again after you
-change it. So after a report changes, do these steps in a terminal in the
-site folder, with the report's data in place:
+change it. So after a report changes, with the report's data in place:
 
-1. Render that report by name. This runs its code again.
-2. Render the whole site.
-3. Commit the changed report with `_freeze/`, `docs/`, and `figures/`, and
-   push.
+1. Render that report by name, which runs its code again, and then the
+   whole site. For a report in `analyses/models.qmd`, run in the R console,
+   in the site folder:
 
-For a report in `analyses/models.qmd`, the commands are:
+   ```r
+   supplement::render_supplement("models")
+   ```
+
+2. In the Git pane, commit the changed report with its changed files in
+   `_freeze/`, `docs/`, and `figures/`, and push.
+
+## Use a terminal instead
+
+Each step above that uses R for git or Quarto, or the Git pane, has
+terminal commands. Run them in a terminal, such as the Terminal tab of
+RStudio or Positron. The rest of each step stays as it is.
+
+For step 2, give git your name and email address:
+
+```sh
+git config --global user.name "Your Name"
+git config --global user.email "you@example.com"
+```
+
+When `git push` later asks for a password, GitHub refuses your account
+password. Give a GitHub token instead, made on GitHub's page [Personal
+access tokens](https://github.com/settings/tokens), or set up the [Git
+Credential Manager](https://github.com/git-ecosystem/git-credential-manager).
+
+For step 4, and for each full render, run in the site folder:
+
+```sh
+quarto render
+```
+
+For step 5, make a new public repository on GitHub with the name of the
+site folder. Do not add a README, a `.gitignore`, or a license. Then, in
+the site folder, commit and push, with your user name for `owner`:
+
+```sh
+git init
+git add -A
+git commit -m "Start the site"
+git remote add origin https://github.com/owner/my-supplement.git
+git push -u origin HEAD
+```
+
+For step 6, on GitHub, open the repository's **Settings** tab and click
+**Pages**. Under **Build and deployment**, set **Source** to **Deploy from
+a branch**. Select the branch that you pushed and the `/docs` folder, and
+click **Save**. GitHub's page [Configuring a publishing source for your
+GitHub Pages
+site](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site)
+shows these settings.
+
+For each commit and push in the Git pane, run in the site folder:
+
+```sh
+git add -A
+git commit -m "Add the paper and the reports"
+git push
+```
+
+For step 9, run the commands that `release_supplement()` prints in the
+site folder, then publish the release on GitHub's page as in step 9.
+
+To render again after a report changes, for a report in
+`analyses/models.qmd`, run in the site folder:
 
 ```sh
 quarto render analyses/models.qmd

@@ -3,7 +3,7 @@
 
 all_found <- function(dir, env = parent.frame()) {
   local_tools(
-    which = list(quarto = fake_quarto(file.path(dir, "q")), git = "/usr/bin/git", gh = "/usr/bin/gh"),
+    which = list(quarto = fake_quarto(file.path(dir, "q")), git = "/usr/bin/git"),
     packages = list(knitr = "1.52", rmarkdown = "2.30"),
     env_frame = env
   )
@@ -14,7 +14,7 @@ quarto_result <- function() {
   rows[rows$tool == "Quarto", ]
 }
 
-test_that("check_tools() returns the seven rows invisibly", {
+test_that("check_tools() returns the six rows invisibly", {
   all_found(withr::local_tempdir())
   expect_invisible(suppressMessages(check_tools()))
   rows <- suppressMessages(check_tools())
@@ -22,9 +22,9 @@ test_that("check_tools() returns the seven rows invisibly", {
   expect_true(all(vapply(rows, is.character, logical(1))))
   expect_identical(
     rows$tool,
-    c("Quarto", "knitr", "rmarkdown", "git", "gh", "GitHub account", "Zenodo account")
+    c("Quarto", "knitr", "rmarkdown", "git", "GitHub account", "Zenodo account")
   )
-  expect_identical(rows$status, c(rep("found", 5), "reminder", "reminder"))
+  expect_identical(rows$status, c(rep("found", 4), "reminder", "reminder"))
   expect_match(rows$detail[rows$tool == "knitr"], "1.52", fixed = TRUE)
   expect_match(rows$detail[rows$tool == "git"], "/usr/bin/git", fixed = TRUE)
 })
@@ -32,9 +32,8 @@ test_that("check_tools() returns the seven rows invisibly", {
 test_that("tools that the lookups do not find are missing", {
   local_tools()
   rows <- suppressMessages(check_tools())
-  expect_identical(rows$status, c(rep("missing", 5), "reminder", "reminder"))
+  expect_identical(rows$status, c(rep("missing", 4), "reminder", "reminder"))
   expect_match(rows$detail[rows$tool == "knitr"], 'install.packages("knitr")', fixed = TRUE)
-  expect_match(rows$detail[rows$tool == "gh"], "gh release create", fixed = TRUE)
 })
 
 test_that("check_tools() prints one line per row with its tool and status", {
@@ -46,11 +45,11 @@ test_that("check_tools() prints one line per row with its tool and status", {
   )
   withr::local_options(cli.width = 500)
   lines <- capture_messages(check_tools())
-  expect_length(lines, 7L)
+  expect_length(lines, 6L)
   expect_match(lines[1], "Quarto: not on path", fixed = TRUE)
   expect_match(lines[2], "knitr: missing", fixed = TRUE)
   expect_match(lines[4], "git: found", fixed = TRUE)
-  expect_match(lines[6], "GitHub account: reminder", fixed = TRUE)
+  expect_match(lines[5], "GitHub account: reminder", fixed = TRUE)
 
   local_tools(which = list(quarto = fake_quarto(file.path(dir, "old"), "1.3.450\n")))
   lines <- capture_messages(check_tools())

@@ -618,6 +618,19 @@ git_files <- function(path) {
   list(files = unique(split_nul(listed$stdout)), ignored = unique(split_nul(ignored$stdout)))
 }
 
+# The address of the `origin` remote of the repository that holds `path`,
+# as `git remote get-url origin` prints it, or NULL when git is not on the
+# PATH, the folder is not in a repository, it has no such remote, or the
+# address is not valid UTF-8.
+origin_url <- function(path) {
+  out <- git_run(c("remote", "get-url", "origin"), path)
+  if (is.null(out) || !identical(out$status, 0L) || !validUTF8(rawToChar(out$stdout))) {
+    return(NULL)
+  }
+  url <- trimws(strsplit(rawToChar(out$stdout), "\n", fixed = TRUE)[[1]][1])
+  if (!is.na(url) && nzchar(url)) url
+}
+
 # The folders of the site that a release publishes as they are.
 published_folders <- c("figures", "docs", "_freeze")
 

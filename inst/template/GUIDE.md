@@ -278,9 +278,16 @@ function also stops and writes none of these files. A DOI in
 `CITATION.cff` that differs from `_supplement.yml` does not stop it,
 because the release writes that file again. It then changes the version
 in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json` again.
-Last, it prints the git and GitHub commands that commit the site, tag it,
-push it, and make the GitHub release. It runs none of them. Run them yourself in this folder.
-The printed `git status -- .` shows only files under this folder, and
+Last, it prints the git commands that commit the site and push it, and
+then how to publish the release on GitHub. It runs none of the commands
+and opens no page. Run the commands yourself in this folder, or commit and
+push in the Git pane of RStudio or Positron. If this folder is a subfolder
+of its repository, select only the files in this folder in the Git pane.
+Then publish the release on
+GitHub's page: when the `origin` remote is on GitHub, the function prints
+the address of GitHub's new-release form with the tag filled in. When you
+publish the release, GitHub makes the tag on the default branch. So push
+before you publish. The printed `git status -- .` shows only files under this folder, and
 `git add -A -- .` and `git commit -m "Release vX.Y.Z" -- .` stage and
 commit only these files. These are the files that the file size and saved
 object checks of `check_supplement()` read. If this folder

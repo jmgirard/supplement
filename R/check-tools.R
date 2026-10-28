@@ -15,12 +15,13 @@
 #'   that runs `check_tools()`. Quarto can run another R installation, with
 #'   other libraries.
 #' * `git`: to commit the site and push it to GitHub.
-#' * `gh`: the GitHub command-line interface, for the
-#'   `gh release create` command that [release_supplement()] prints.
 #'
 #' It then lists two accounts that it cannot check:
 #'
-#' * `GitHub account`: hosts the site with GitHub Pages.
+#' * `GitHub account`: hosts the site with GitHub Pages. For each release,
+#'   you push the release commit and then publish the release on GitHub's
+#'   page. When the `origin` remote is on GitHub, [release_supplement()]
+#'   prints that page's address.
 #' * `Zenodo account`: archives each GitHub release with a DOI.
 #'
 #' The function only looks for the tools. It runs none of them, and it
@@ -105,7 +106,6 @@ tool_rows <- function() {
     package_row("knitr"),
     package_row("rmarkdown"),
     program_row("git", "Install git to commit the site and push it to GitHub: https://git-scm.com/downloads"),
-    program_row("gh", "Install the GitHub CLI for the `gh release create` command that `release_supplement()` prints: https://cli.github.com"),
     c("GitHub account", "reminder", "A GitHub account hosts the site with GitHub Pages: https://github.com/signup"),
     c("Zenodo account", "reminder", "A Zenodo account archives each GitHub release with a DOI. Link it to GitHub and turn on the repository before the first release: https://zenodo.org")
   )
