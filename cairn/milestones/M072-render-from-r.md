@@ -126,3 +126,24 @@ Pass 2, on 5d1b02f (code as at 5788f26), branch level with main at 805e91c. Suit
 - AC6: pass — the grep finds `R/add-report.R:254`, `R/check-tools.R:153`, and `R/create-supplement.R:131`, each naming `render_supplement()`; `rerender_steps` (`R/check-supplement.R:818`) names it; `man/render_supplement.Rd`, `_pkgdown.yml:26`, `NEWS.md:3`, and DESIGN.md's rendering family name it; GUIDE.md "How the site renders" and step 2 of the private-data recipe name `supplement::render_supplement()` and keep `quarto render`; DESIGN.md:158 and `R/check-supplement.R:564` say "for git".
 - AC7: pass — the suite and check above.
 - Gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff after 076a658; NEWS entry present; no new top-level file.
+
+spawned: diff-bug, ripple, blame-history, prior-review (the two history lenses in one reviewer)
+
+- diff-bug #1: `list.files(pattern = "\\.qmd$")` does not list `Upper.QMD`, so its name gets no case hint — reject, edge: an upper-case `.QMD` extension is outside documented and common use (the template and `add_report()` write `.qmd`), and the effect is an error.
+- diff-bug #2: `render_quiet()` reruns any failed render, so an intermittent real failure is hidden — reject, planned change: the pass-1 fix chose a blind rerun because Quarto's output is not captured (D-035); a steady failure still fails twice, and blame-history #1's fix now logs each rerun.
+- diff-bug #3: in the figure render test, a rerun after a failure would need one render and fail the value check — fix now (the test checks the figure's copy, the mocked tests count the renders), fixed 885e776.
+- diff-bug #4: the case hint reads as covering every name and is plural for one — fix now (names the files and agrees in number), fixed 885e776.
+- diff-bug #5: the status-127 comment says "a shell", which does not hold on Windows — fix now (comment says Unix), fixed 885e776; the case of 127 after earlier commands ran — reject, edge: the program would have to vanish mid-call, and the effect is an error.
+- diff-bug #6: the `add_report()` and `create_supplement()` hints word the folder differently — reject, style: both are accurate.
+- diff-bug #7: DESIGN.md's render paragraph does not state the exact-case match — fix now, fixed 885e776.
+- diff-bug #8: the case test sits in the check-order test and on Linux does not reach the case-insensitive path — reject, false: it checks the error and the cased file in the message on every system, which main does not give.
+- diff-bug #9: the too-old test no longer checks "can miss this copy" — reject, planned change: pass 1's trim; lines 93 and 102 of `test-check-tools.R` pin the text.
+- diff-bug #10: two lines over 140 characters — reject, style.
+- ripple #1: DESIGN.md calls each call "the package's one `system2()` call" for its program while D-035 says two calls — reject, false: one call per program is two calls.
+- ripple #2: the new candidate row says `system2(stdout = "")` while the code passes no `stdout` — reject, false: `""` is the default, so the row states the call's behavior.
+- ripple #3: DESIGN.md carries "(corrected M072)" — reject, false: the rulebook marks corrections to current knowledge this way.
+- ripple #4: pass 1's trims leave some argument and name cases untested — reject, planned change (diff-bug #11 of pass 1).
+- ripple #5: DESIGN.md's list of render reruns leaves out `render_quiet()` — fix now, fixed 885e776.
+- blame-history #1: `render_quiet()` reruns any failure and silently, unlike the lock-only rerun of M033 — fix now (each rerun is written to standard error with its error), fixed 885e776; the wider trigger stays (diff-bug #2).
+- blame-history #2: GUIDE.md's renv steps name `supplement::render_supplement()` after `renv::restore()`, when the restored library may not hold supplement (D-028) — fix now (the two renv sentences removed), fixed 885e776.
+- prior-review: no prior-review findings.
