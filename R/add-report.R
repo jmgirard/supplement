@@ -278,7 +278,11 @@ next_report_order <- function(path) {
     return("1")
   }
   orders <- unlist(lapply(reports, function(report) {
-    order <- report_front_matter(read_report_lines(report))[["order"]]
+    # Quarto reads the front matter of a report that starts with a UTF-8
+    # BOM, so drop it.
+    lines <- read_report_lines(report)
+    lines[1] <- sub("^\xef\xbb\xbf", "", lines[1], useBytes = TRUE)
+    order <- report_front_matter(lines)[["order"]]
     if (is.numeric(order) && length(order) == 1 && is.finite(order) && abs(order) < 1e6) order
   }))
   if (length(orders) == 0) {

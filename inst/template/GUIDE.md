@@ -16,7 +16,8 @@ to the report's page. The table lists the reports that have an `order` in
 their front matter first, by that number, and the others after them by
 title. The example report has `order: 1`. To add a report, put its `.qmd`
 file in `analyses/` with a `title` and a `description`. Give it an `order`
-higher than every other report's. Then add a link to it under `Analyses` in
+higher than every other report's. If no other report has an `order`, give
+it none, and the table lists the reports by title. Then add a link to it under `Analyses` in
 the navbar in `_quarto.yml`. To change the order of the table, edit the
 `order` values. Then render each changed report by name, and then the
 whole site.

@@ -75,10 +75,15 @@ test_that("a new report gets the next whole number after the largest order", {
 
 test_that("a site whose reports have no order gets no order line", {
   expect_identical(order_after(list(a.qmd = stub(NULL), b.qmd = stub(NULL))), character())
-  # The yaml package reads a quoted order as text, and an order of a
-  # million or more counts as none.
+  # The yaml package reads a quoted order as text.
   expect_identical(order_after(list(a.qmd = stub('order: "3"'))), character())
   expect_identical(order_after(list(a.qmd = stub("order: 10000000"))), character())
+})
+
+test_that("the order of a report saved with a UTF-8 BOM counts", {
+  lines <- stub("order: 5")
+  lines[1] <- paste0(rawToChar(as.raw(c(0xef, 0xbb, 0xbf))), lines[1])
+  expect_identical(order_after(list(a.qmd = lines, b.qmd = stub("order: 1"))), "order: 6")
 })
 
 test_that("a report whose front matter does not parse counts as having no order", {
