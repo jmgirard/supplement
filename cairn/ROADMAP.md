@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-28 (M074 review: archived; pruned the M071 row; gra
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M075 | Read base tags and odd markup in pages | review | — | normal | milestones/M075-base-tags-odd-markup.md |
+| M075 | Read base tags and odd markup in pages | in-progress | — | normal | milestones/M075-base-tags-odd-markup.md |
 | M074 | Tag the release on the branch that holds it | done | — | normal | milestones/archive/M074-tag-release-branch.md |
 | M073 | Publish a site from the R console and a browser | done | M072 | normal | milestones/archive/M073-publish-from-r.md |
 | M072 | Render a site from the R console | done | — | normal | milestones/archive/M072-render-from-r.md |
