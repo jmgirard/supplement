@@ -80,6 +80,7 @@ Make the package site's demo a finished-looking supplement for a made-up study, 
 - 2026-10-28: claim audit re-read: the 4 corrected claims hold. The `sample.md` mood sentence changed after the T3 build and the T5 run, so review's evidence build has to come from the current head.
 - 2026-10-28: implement done; status review.
 - 2026-10-28: review: the Scope and T2 say every replace and remove goes through `replace_once()`. Text edits do, but the three example files are deleted through `remove_file()`, which stops when the file is missing. AC5's promise holds for both.
+- 2026-10-28: step-7 approval: m070-filled-in-demo-site approved for merge
 
 ## Review
 
