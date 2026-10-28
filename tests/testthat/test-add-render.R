@@ -37,7 +37,7 @@ test_that("a site with an added report and data file renders and lists both", {
 test_that("the home page lists added reports in the order of the Analyses menu", {
   skip_if_no_quarto()
   site <- new_site()
-  # Added out of title order, one title before "Example Analysis".
+  # Added out of title order, two titles before "Example Analysis".
   suppressMessages({
     add_report("zeta", "Zeta Checks", "Last by title.", path = site)
     add_report("alpha", "Alpha Models", "First by title.", path = site)

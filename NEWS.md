@@ -1,6 +1,7 @@
 # supplement 0.0.0.9000
 
-* The home page lists reports in the order of the Analyses menu. The
+* The home page lists reports in the order of the Analyses menu, when
+  each report has an `order` from `add_report()` or the template. The
   template's example report has `order: 1` in its front matter.
   `add_report()` gives each new report the next whole number after the
   largest `order` in `analyses/`. The home page's table lists reports with

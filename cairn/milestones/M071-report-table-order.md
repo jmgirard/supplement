@@ -1,6 +1,6 @@
 # M071: List reports in menu order on the home page
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -42,7 +42,7 @@ Make the home page's report table list reports in the order of the Analyses menu
 - [x] T3: In `R/add-report.R`, read the front matter of each other report that `analysis_reports()` lists, reusing the front-matter reading of `engine_is_knitr()` in `R/check-supplement.R` (factor out a shared helper if it keeps both readers the same), find the largest `order` per AC2, and pass it to `report_lines()`, which writes the `order` line after `description`.
 - [x] T4: Add the AC3 render test to `test-add-render.R`, reading the table with `listing_rows()` and the menu from `_quarto.yml`, with titles such as "Alpha Models", "Zeta Checks", "Beta Sample" added in that order.
 - [x] T5: Update the `add_report()` roxygen and run `devtools::document()`; update `GUIDE.md`'s Reports section (the rule, adding `order` by hand, editing it to reorder), the `index.qmd` listing comment, `README.md`, `cairn/DESIGN.md`, and add a `NEWS.md` entry. Run AC4's grep and record in the Review section which texts it found describe the table's order.
-- [ ] T6: Run `devtools::test()` and `devtools::check()`. Build the demo with `.github/scripts/build-demo.R` and confirm its table reads Sample Description, Main Analysis, Robustness Checks.
+- [x] T6: Run `devtools::test()` and `devtools::check()`. Build the demo with `.github/scripts/build-demo.R` and confirm its table reads Sample Description, Main Analysis, Robustness Checks.
 
 ## Work log
 
@@ -60,6 +60,9 @@ Make the home page's report table list reports in the order of the Analyses menu
 - 2026-10-28: T3: factored `report_front_matter()` out of `engine_is_knitr()` in `R/check-supplement.R`; `next_report_order()` in `R/add-report.R` reads each listed report's `order` through it and `report_lines()` writes the line after `description`, formatted with `sprintf("%.0f")` so it never prints as `1e+06`. A third existing test compared the whole front matter ("valid UTF-8 text marked as bytes") and now compares title and description only. `devtools::test()`: 480 tests, 0 failed, 12 skipped.
 - 2026-10-28: T4: render test "the home page lists added reports in the order of the Analyses menu" adds zeta, alpha, beta and expects the table and the menu both to read example, zeta, alpha, beta; it passes with `NOT_CRAN=true`, and with `next_report_order()` replaced by one returning NULL it fails with the table reading example, alpha, beta, zeta.
 - 2026-10-28: T5: stated the order rule in the `add_report()` help (new paragraph, `man/` regenerated), `GUIDE.md` Reports section and its `add_report()` note, the `index.qmd` listing comment, `README.md`, `cairn/DESIGN.md`, and a new `NEWS.md` entry. The AC4 grep and its classification go in the Review section at review time. `devtools::test()`: 481 tests, 0 failed, 12 skipped.
+- 2026-10-28: T6: `devtools::check()` at 61e304f gave 0 errors, 0 warnings, 1 note (local `.claude`, as in M070). The demo built from the branch (installed to a temp library) passed `check_supplement()` and its table reads Sample Description, Main Analysis, Robustness Checks, the menu's order. After the claim-audit fixes, `devtools::test()`: 481 tests, 0 failed, 12 skipped.
+- 2026-10-28: claim audit: 40 claims read, 11 corrected — NEWS.md, R/add-report.R, R/check-supplement.R, README.md, inst/template/GUIDE.md, man/add_report.Rd, tests/testthat/test-add-render.R, tests/testthat/test-add-report.R. The false claims were the cap's reason (`sprintf` never writes `1e+06`; yaml reads 3000000000 as NA) and two test comments; the partly true ones gained the condition that every report has an `order` and the menu follows it, the full-site render step, and "higher than every other report's". The one re-read cleared 9 and found README and one GUIDE line still lacking the menu condition and one comment word, all fixed with no further read.
+- 2026-10-28: status review: all tasks checked; verify slot clean.
 
 ## Decisions
 

@@ -10,15 +10,16 @@
 #' their front matter first, by that number, and the others after them by
 #' title. The template's example report has `order: 1`. The function
 #' gives the new report the next whole number after the largest `order` of
-#' the other reports in `analyses/`, so the table lists reports in the
+#' the other reports in `analyses/`. So when every report has an `order`
+#' and the menu lists them in that order, the table lists reports in the
 #' order of the Analyses menu. The new report gets `order: 1` when
 #' `analyses/` holds no other report. It gets no `order` when no other
 #' report has one, as in a site made before the template had `order`, so
 #' that its table keeps listing reports by title. Here an `order` counts
 #' only when the yaml package reads it as a number below one million (in
 #' absolute value), and a report whose front matter cannot be read counts
-#' as having none. To change the table's order, edit the `order` values;
-#' changing a report's text means rendering it again.
+#' as having none. To change the table's order, edit the `order` values,
+#' render each changed report by name, then render the whole site.
 #'
 #' The first code chunk of the new report is the `site` chunk of the
 #' template's example report, which sets `site` to the site folder. If
@@ -268,9 +269,9 @@ add_report <- function(name, title, description = "", path = ".") {
 # that has an `order`: the next whole number after the largest. A site
 # whose reports all lack an `order` lists them by title, and an `order`
 # would put the new report first, so it gets none. An `order` that the
-# yaml package reads as text, or of a million or more, counts as none:
-# its next whole number would be written as `1e+06`, which yaml reads as
-# text.
+# yaml package reads as text, or of a million or more, counts as none. The
+# cap keeps the written whole number well inside the range that the yaml
+# package reads as an integer: it reads 3000000000 as NA.
 next_report_order <- function(path) {
   reports <- analysis_reports(path)
   if (length(reports) == 0) {

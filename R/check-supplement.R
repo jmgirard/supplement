@@ -2105,14 +2105,15 @@ placeholder_example_problems <- c(
 )
 
 # The `text_hash()` of each version of the template's example files that
-# the default branch has held, named by commit, so that a site made from
-# an older template also gets its row. Each is `text_hash()` of
+# the default branch has held, so that a site made from an older template
+# also gets its row. Each entry is named by the commit that made it, or
+# `current` for a version added before its merge, whose commit on the
+# default branch is not known yet; the change after it renames it by that
+# commit. The entries named by commit are `text_hash()` of
 # `git show <commit>:inst/template/<file>` for the commits that
 # `git log --follow -- inst/template/<file>` listed on 2026-10-26. A change
 # to either template file adds its version here, and a test fails until it
-# does. A version added before its merge, whose commit on the default
-# branch is not known yet, is named `current`; the change after it renames
-# it by that commit.
+# does.
 example_versions <- list(
   "analyses/example.qmd" = c(
     "current" = "634316e199f1a43ab7fb88ce59bf5161",

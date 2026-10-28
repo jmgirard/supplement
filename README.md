@@ -91,9 +91,10 @@ description in its front matter. The report ends with a "Computing
 environment" section that shows the R and package versions of its last
 render. The function also adds a link to the report to the Analyses menu
 in `_quarto.yml`. The home page lists each report in
-`analyses/` with its title and description. The report gets the next
-`order` in its front matter, so the home page lists the reports in the
-order of the menu.
+`analyses/` with its title and description. In a site made from the
+current template, the report gets the next `order` in its front matter.
+The home page then lists the reports in the order of the menu. This
+holds while every report has an `order` and the menu follows those values.
 
 `add_data()` copies the file into `data/` and adds it to the `data` list
 in `_supplement.yml`. If the file is directly in `data/`, the function does

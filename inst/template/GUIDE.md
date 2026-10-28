@@ -16,9 +16,10 @@ to the report's page. The table lists the reports that have an `order` in
 their front matter first, by that number, and the others after them by
 title. The example report has `order: 1`. To add a report, put its `.qmd`
 file in `analyses/` with a `title` and a `description`. Give it an `order`
-one higher than the last report's. Then add a link to it under `Analyses` in
+higher than every other report's. Then add a link to it under `Analyses` in
 the navbar in `_quarto.yml`. To change the order of the table, edit the
-`order` values, then render each changed report again.
+`order` values. Then render each changed report by name, and then the
+whole site.
 
 The supplement R package does these steps for you. Run these in R from
 this folder:
@@ -29,8 +30,9 @@ supplement::add_data("path/to/scores.csv", "Scores of each participant")
 ```
 
 `add_report()` writes `analyses/models.qmd` and adds it to the Analyses
-menu. It gives the report the next `order`, so the home page lists the
-reports in the order of the menu. The new report ends with the "Computing environment" section below.
+menu. It gives the report the next `order`. The home page then lists
+the reports in the order of the menu. This holds while every report has an
+`order` and the menu follows those values. The new report ends with the "Computing environment" section below.
 `add_data()` copies the file into `data/` and adds it to the `data` list in
 `_supplement.yml`.
 

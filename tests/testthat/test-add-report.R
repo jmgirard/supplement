@@ -48,7 +48,7 @@ test_that("an empty description writes no description key", {
 })
 
 # The `order` line of a report added to a site whose analyses/ holds the
-# given files, or NULL when the new report has none.
+# given files, or an empty character vector when the new report has none.
 order_after <- function(files) {
   site <- new_site(parent.frame())
   unlink(file.path(site, "analyses", "example.qmd"))

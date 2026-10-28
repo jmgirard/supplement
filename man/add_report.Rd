@@ -37,15 +37,16 @@ The home page's table lists the reports that have an \code{order} field in
 their front matter first, by that number, and the others after them by
 title. The template's example report has \code{order: 1}. The function
 gives the new report the next whole number after the largest \code{order} of
-the other reports in \verb{analyses/}, so the table lists reports in the
+the other reports in \verb{analyses/}. So when every report has an \code{order}
+and the menu lists them in that order, the table lists reports in the
 order of the Analyses menu. The new report gets \code{order: 1} when
 \verb{analyses/} holds no other report. It gets no \code{order} when no other
 report has one, as in a site made before the template had \code{order}, so
 that its table keeps listing reports by title. Here an \code{order} counts
 only when the yaml package reads it as a number below one million (in
 absolute value), and a report whose front matter cannot be read counts
-as having none. To change the table's order, edit the \code{order} values;
-changing a report's text means rendering it again.
+as having none. To change the table's order, edit the \code{order} values,
+render each changed report by name, then render the whole site.
 
 The first code chunk of the new report is the \code{site} chunk of the
 template's example report, which sets \code{site} to the site folder. If
