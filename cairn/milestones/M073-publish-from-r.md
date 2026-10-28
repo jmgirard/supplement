@@ -95,41 +95,41 @@ Let an author follow the publishing guide from an empty folder to a release with
 - gate (2026-10-28): `cairn_validate.py` all checks passed (exit 0); no DESIGN principle changed, so no `cairn_impact`; `devtools::document()` gives no diff; no README.Rmd; `pkgdown::check_pkgdown()` "No problems found"; NEWS.md has the entry; no new top-level file; `devtools::check()` as AC7.
 - spawned: diff-bug, blame-history, prior-review, ripple
 - diff-bug #1: a release made from a branch other than the default one tags the default branch, since the form's target is the default branch and nothing compares branches — follow-up, row "Tag releases made from other branches"
-- diff-bug #2: `cairn/DESIGN.md` lines 94 and 266 still name the `gh` row and the `gh` release commands — fix now
+- diff-bug #2: `cairn/DESIGN.md` lines 94 and 266 still name the `gh` row and the `gh` release commands — fix now, fixed 2f4d524
 - diff-bug #3: common GitHub origin forms (trailing `/`, uppercase host, `http://`, `www.`, user info, ssh port, `git@github.com:/`, ssh host aliases, `_` in owners) get the steps, not the address — follow-up, row "Read more GitHub remote address forms"
-- diff-bug #4: the regex's `$` matches before a final newline, and names `.`, `..`, `.git`, `r.git.git` and odd owner hyphens pass — fix now for `$` (to `\z`); reject the names: false, GitHub refuses such names, so no real GitHub origin carries them
-- diff-bug #5: an origin address with bytes that are not UTF-8 makes `grepl()` warn after the files are written — fix now
+- diff-bug #4: the regex's `$` matches before a final newline, and names `.`, `..`, `.git`, `r.git.git` and odd owner hyphens pass — fix now, fixed 2f4d524 for `$` (to `\z`); reject the names: false, GitHub refuses such names, so no real GitHub origin carries them
+- diff-bug #5: an origin address with bytes that are not UTF-8 makes `grepl()` warn after the files are written — fix now, fixed 2f4d524
 - diff-bug #6: `origin_url()` returns `"origin"` for a remote with no url — reject: false, its comment says "as `git remote get-url origin` prints it", and `release_address()` gives the steps
 - diff-bug #7: `get-url` without `--push` reads the fetch url, so a GitHub pushurl gets the steps — follow-up, row "Read more GitHub remote address forms"
-- diff-bug #8: the new tests do not unset `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, so a run inside a git hook reads another repository — fix now in `local_plain_git()`
+- diff-bug #8: the new tests do not unset `GIT_DIR`, `GIT_WORK_TREE`, `GIT_INDEX_FILE`, so a run inside a git hook reads another repository — fix now, fixed 2f4d524 in `local_plain_git()`
 - diff-bug #9: release tests without `local_plain_git()` now start git with the user's configuration — reject: false, no assertion reads the address text there and the temporary folders sit outside any repository
-- diff-bug #10: `expect_release_address()` never checks that the steps are absent, and its `gregexpr` length check passes on zero matches — fix now
-- diff-bug #11: the "reads the files but changes none" test now looks for `git push`, not the version — fix now (`Release v1.2.4`)
+- diff-bug #10: `expect_release_address()` never checks that the steps are absent, and its `gregexpr` length check passes on zero matches — fix now, fixed 2f4d524
+- diff-bug #11: the "reads the files but changes none" test now looks for `git push`, not the version — fix now, fixed 2f4d524 (`Release v1.2.4`)
 - diff-bug #12: the address is not in the return value — reject: planned change (AC1 fixes the return value)
-- diff-bug #13: the `check_tools()` help says the address is always printed, DESIGN Conventions leave out the steps, and a user can change the form's target — fix now for the first two; reject the third: false, the text describes the form's default target
-- diff-bug #14: the `test-publishing.R` comment says the commit stands in for `use_git()` though the test adds none of its `.gitignore` lines — fix now
+- diff-bug #13: the `check_tools()` help says the address is always printed, DESIGN Conventions leave out the steps, and a user can change the form's target — fix now, fixed 2f4d524 for the first two; reject the third: false, the text describes the form's default target
+- diff-bug #14: the `test-publishing.R` comment says the commit stands in for `use_git()` though the test adds none of its `.gitignore` lines — fix now, fixed 2f4d524
 - diff-bug #15: `render_quiet()` move and the row-test edits — noted, no defect
 - diff-bug (c): nine full release runs, repeated command, push-first, and `get-url` expectations — reject: planned change (AC2 asks for each case by its own test) and style
-- ripple #1: NEWS.md lines 248-249 say the release prints "the git and GitHub commands" — fix now
-- ripple #2, #3: DESIGN.md lines 266 and 94 — fix now (as diff-bug #2)
-- ripple #4: DESIGN.md line 270 "It starts no process itself" and the `test-source.R` test name — fix now for the DESIGN wording (it names `check_supplement()` and `origin_url()` running git for it); the test stays, see blame-history #2
+- ripple #1: NEWS.md lines 248-249 say the release prints "the git and GitHub commands" — fix now, fixed 2f4d524
+- ripple #2, #3: DESIGN.md lines 266 and 94 — fix now, fixed 2f4d524 (as diff-bug #2)
+- ripple #4: DESIGN.md line 270 "It starts no process itself" and the `test-source.R` test name — fix now, fixed 2f4d524 for the DESIGN wording (it names `check_supplement()` and `origin_url()` running git for it); the test stays, see blame-history #2
 - ripple #5: README's `repo = "owner/name"` example — reject: false, the README route does not call `use_github()`, which is what ties the names
-- ripple #6: `test-publishing.R` uses `owner/name` and its comment names `use_git()` — fix now (as diff-bug #14)
-- ripple #7: the ROADMAP row "Keep tests within the Suggests floors" lists the Suggests entries with no floor and leaves out usethis — fix now
-- ripple #8: the `test-release-supplement.R` header says only the command-running tests use git — fix now
+- ripple #6: `test-publishing.R` uses `owner/name` and its comment names `use_git()` — fix now, fixed 2f4d524 (as diff-bug #14)
+- ripple #7: the ROADMAP row "Keep tests within the Suggests floors" lists the Suggests entries with no floor and leaves out usethis — fix now, fixed 2f4d524
+- ripple #8: the `test-release-supplement.R` header says only the command-running tests use git — fix now, fixed 2f4d524
 - ripple #9: `cairn/references/scope-draft.md` names `git tag` — reject: false, a record of the earlier scope
 - ripple #10, #11: `quarto render` and a clone still named as routes elsewhere — reject: false, both routes still work, as the reviewer says
 - blame-history #1: the tag can land off the release commit from a feature branch or after later pushes — follow-up, row "Tag releases made from other branches"
 - blame-history #2: `origin_url()` makes `release_supplement()` start git, against D-035 — reject: false, the release already reached git through `check_supplement()` before this branch, and D-036 records the `origin_url()` route; DESIGN wording fixed under ripple #4
-- blame-history #3: the Git pane route in README and GUIDE can commit files outside a site that is a subfolder, which `-- .` keeps out — fix now
-- blame-history #4: stale DESIGN.md lines — fix now (as diff-bug #2)
+- blame-history #3: the Git pane route in README and GUIDE can commit files outside a site that is a subfolder, which `-- .` keeps out — fix now, fixed 2f4d524
+- blame-history #4: stale DESIGN.md lines — fix now, fixed 2f4d524 (as diff-bug #2)
 - blame-history #5: `origin_url()` walks up to a parent repository — reject: false, a site in a subfolder belongs to that repository, whose origin is the right one
 - blame-history #6: the steps say "on GitHub" also for a GitLab origin — reject: planned change (AC2)
 - blame-history #7: the `figures` note moved to the terminal section — reject: planned change (it is about the terminal `git add`)
 - blame-history #8: no test runs the terminal render path now — reject: planned change (T1)
 - blame-history #9: tests set `cli.width` to 1000 — reject: style
 - prior-review #1: D-035 reinterpreted by D-036 — reject: false (as blame-history #2)
-- prior-review #2: no test makes the `origin` read fail after the files are written, which the help documents — fix now
-- prior-review #3: bytes that are not UTF-8 in the origin address warn — fix now (as diff-bug #5)
-- prior-review #4: the guide says the release prints the address, though a non-GitHub origin gets steps — fix now
+- prior-review #2: no test makes the `origin` read fail after the files are written, which the help documents — fix now, fixed 2f4d524
+- prior-review #3: bytes that are not UTF-8 in the origin address warn — fix now, fixed 2f4d524 (as diff-bug #5)
+- prior-review #4: the guide says the release prints the address, though a non-GitHub origin gets steps — fix now, fixed 2f4d524
 - prior-review #5: long or ragged lines in new prose — reject: style
