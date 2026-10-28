@@ -7,7 +7,8 @@ rows_of <- function(result, check) result[result$check == check, , drop = FALSE]
 # The last sentence of each row for a report with old or unreadable stored
 # output, and the second-to-last of the row for a report with none.
 rerender_steps <- paste("Render the report by name, render the whole site, then commit the report with",
-                        "_freeze/, docs/, and figures/.")
+                        "_freeze/, docs/, and figures/. In R, render_supplement() with the report's name",
+                        "does both renders.")
 # The sentence after it in the row for a report with no stored output.
 menu_step <- "If you added the report to the Analyses menu, as add_report() does, also commit _quarto.yml."
 

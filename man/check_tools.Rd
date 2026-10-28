@@ -52,7 +52,8 @@ path that R sees, and its version is 1.4.0 or later or unknown.
 \item \verb{not on path}: a copy of Quarto was found only in \code{QUARTO_PATH} or in
 an editor's folder, and its version is 1.4.0 or later or unknown. An
 older copy there is \verb{too old}. The copy is not on the system path that
-R sees, so \verb{quarto render} in a terminal can miss it. Add its \code{bin}
+R sees, so \verb{quarto render} in a terminal can miss it, while
+\code{\link[=render_supplement]{render_supplement()}} runs it. To render in a terminal, add its \code{bin}
 folder to the system path, or install Quarto.
 \item \verb{too old}: the Quarto version is below 1.4.0, the minimum that the
 template's Quarto extension states.

@@ -561,7 +561,8 @@ report_problems <- function(result, path, skip_reason) {
 
 # Run git in `dir` and return its exit status and its standard output as
 # raw bytes, or NULL when git is not on the PATH. This holds the package's
-# one call of system2. Sys.which(), here and in the check_tools() lookups
+# one call of system2 for git; quarto_run() holds the one for Quarto.
+# Sys.which(), here and in the check_tools() lookups
 # that create_supplement() also runs, starts a shell that runs `which` on
 # Unix.
 git_run <- function(args, dir) {
@@ -814,7 +815,8 @@ analysis_reports <- function(path) {
 
 # The steps that publish a changed report, as the publishing guide gives them.
 rerender_steps <- paste("Render the report by name, render the whole site, then commit the report with",
-                        "_freeze/, docs/, and figures/.")
+                        "_freeze/, docs/, and figures/. In R, render_supplement() with the report's name",
+                        "does both renders.")
 
 check_stored_output <- function(path) {
   reports <- analysis_reports(path)

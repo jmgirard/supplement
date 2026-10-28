@@ -34,7 +34,8 @@
 #' * `not on path`: a copy of Quarto was found only in `QUARTO_PATH` or in
 #'   an editor's folder, and its version is 1.4.0 or later or unknown. An
 #'   older copy there is `too old`. The copy is not on the system path that
-#'   R sees, so `quarto render` in a terminal can miss it. Add its `bin`
+#'   R sees, so `quarto render` in a terminal can miss it, while
+#'   [render_supplement()] runs it. To render in a terminal, add its `bin`
 #'   folder to the system path, or install Quarto.
 #' * `too old`: the Quarto version is below 1.4.0, the minimum that the
 #'   template's Quarto extension states.
@@ -148,7 +149,7 @@ quarto_row <- function() {
     detail <- paste0(detail, ". The template needs Quarto ", quarto_minimum, " or later")
   }
   if (copy$place != "path") {
-    detail <- paste0(detail, ". `quarto render` in a terminal can miss this copy")
+    detail <- paste0(detail, ". `quarto render` in a terminal can miss this copy, but `render_supplement()` runs it")
   }
   c("Quarto", status, detail)
 }

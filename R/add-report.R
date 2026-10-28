@@ -251,7 +251,7 @@ add_report <- function(name, title, description = "", path = ".") {
   cli::cli_inform(c(
     "v" = "Wrote {.file {href}} and added it to the Analyses menu in {.file _quarto.yml}.",
     "v" = if (copied) "Copied the template's {.file _scripts/report.R}, which the report reads. Commit it with the report.",
-    "i" = "Run {.code quarto render {href}} in {.path {path}} to run the report."
+    "i" = "Run {.code quarto render {href}} in {.path {path}}, or {.code render_supplement(\"{name}\")} in R, to run the report."
   ))
   invisible(report)
 }
