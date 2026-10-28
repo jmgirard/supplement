@@ -368,7 +368,8 @@ row that says so, in place of its link rows. Such a page holds
 millions of \code{-} in one comment, millions of \code{<} in the text of one
 script, style, textarea, or title element (about 5 million did, in a
 page of 20 MB), or millions of attributes in one tag. In script text
-after \verb{<!--}, millions of \code{-} or of \verb{</} can reach the limits sooner.
+after \verb{<!--}, millions of \verb{</}, or millions of separate runs of \code{-},
+can reach the limits sooner.
 Each value is handled in this order:
 character references are decoded; spaces, tabs, line breaks, and form
 feeds at its ends are removed and tabs and line breaks inside it are
@@ -404,8 +405,8 @@ and \verb{<plaintext>} elements is read as markup, and so is the text of a
 \verb{<![CDATA[...]]>} section after its first \code{>}. The four skipped
 elements are also skipped inside \verb{<svg>} and \verb{<math>}. The end tags of
 those four elements end at their first \code{>}, also inside a quoted
-value. A \verb{<base>} tag inside \verb{<svg>} or \verb{<template>} counts as a base,
-though a browser does not use it. A base with a scheme whose address a
+value. A \verb{<base>} tag inside \verb{<template>}, or inside \verb{<svg>} outside
+\verb{<foreignObject>}, counts as a base, though a browser does not use it. A base with a scheme whose address a
 browser cannot read, such as \verb{http://}, leaves the page's relative
 links unchecked, while a browser resolves them against the page's own
 folder. A \verb{\\} in a base is not read as \code{/}, while a

@@ -338,7 +338,8 @@
 #'   millions of `-` in one comment, millions of `<` in the text of one
 #'   script, style, textarea, or title element (about 5 million did, in a
 #'   page of 20 MB), or millions of attributes in one tag. In script text
-#'   after `<!--`, millions of `-` or of `</` can reach the limits sooner.
+#'   after `<!--`, millions of `</`, or millions of separate runs of `-`,
+#'   can reach the limits sooner.
 #'   Each value is handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
@@ -374,8 +375,8 @@
 #'   `<![CDATA[...]]>` section after its first `>`. The four skipped
 #'   elements are also skipped inside `<svg>` and `<math>`. The end tags of
 #'   those four elements end at their first `>`, also inside a quoted
-#'   value. A `<base>` tag inside `<svg>` or `<template>` counts as a base,
-#'   though a browser does not use it. A base with a scheme whose address a
+#'   value. A `<base>` tag inside `<template>`, or inside `<svg>` outside
+#'   `<foreignObject>`, counts as a base, though a browser does not use it. A base with a scheme whose address a
 #'   browser cannot read, such as `http://`, leaves the page's relative
 #'   links unchecked, while a browser resolves them against the page's own
 #'   folder. A `\` in a base is not read as `/`, while a
@@ -1970,8 +1971,9 @@ url_status <- function(url) {
 # match, so a comment that holds millions of `-`, a script, style,
 # textarea, or title body that holds millions of `<`, or one tag with
 # millions of attributes can still reach it (about 5 million `<` in one
-# script body did). Script text after `<!--` with millions of `-` or `</`
-# reaches it sooner (html_script_body). page_links() then returns FALSE.
+# script body did). Script text after `<!--` with millions of `</`, or
+# millions of separate runs of `-`, can reach it sooner (html_script_body).
+# page_links() then returns FALSE.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
   "[^\t\n\f\r />][^\t\n\f\r />=]*+",
@@ -2006,8 +2008,9 @@ ascii_lower <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmno
 # text takes that character with it.
 # Each part is an unrolled loop: a run of other characters, then one `<`
 # or one whole run of `-` per pass. A run of two or more `-` before `>` is
-# the `-->` that ends escaped or double escaped text. A pass for each
-# character would reach PCRE's match limit at about half the size.
+# the `-->` that ends escaped or double escaped text. Only ordinary `<`
+# loop in the inner part, with one class lookahead, since each further
+# check per `<` brings PCRE's match limit closer.
 html_script_body <- local({
   name <- ascii_any_case("script")
   start <- paste0("<", name, "[\t\n\f\r />]")
