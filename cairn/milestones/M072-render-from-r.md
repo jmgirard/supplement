@@ -1,6 +1,6 @@
 # M072: Render a site from the R console
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -45,7 +45,7 @@ Let an author render the site, or run changed reports again and then render the 
 - [x] T2: Write `R/render-supplement.R`. Reuse `find_quarto()`, `quarto_version()`, and `quarto_minimum` from `R/check-tools.R`, and `check_path()`. Factor `add_report()`'s name rule (`R/add-report.R:134-149`) into a helper both functions call. Run each command through the runner with `system2()` on the quoted full path, its output shown in the console, with `setwd()` undone by `on.exit()`. Compare `figures/` and `docs/figures/` with `list.files(recursive = TRUE, all.files = TRUE)`.
 - [x] T3: Run AC6's grep and name the function in each line it finds, among them `R/create-supplement.R:131`, `R/add-report.R:261`, and `R/check-tools.R:151`, and in `rerender_steps` (`R/check-supplement.R:816`). Fix the `system2()` comment above `git_run()` (`R/check-supplement.R:561`). Record the grep's lines in the Review section.
 - [x] T4: Write the roxygen and run `devtools::document()`. Add the function to `_pkgdown.yml` and `NEWS.md`. In `cairn/DESIGN.md`, add it to the function families and fix the `system2()` sentence (about line 149). Update the two `GUIDE.md` sections.
-- [ ] T5: Run `devtools::test()` and `devtools::check()`.
+- [x] T5: Run `devtools::test()` and `devtools::check()`.
 
 ## Work log
 
@@ -68,5 +68,7 @@ Let an author render the site, or run changed reports again and then render the 
 - 2026-10-28: T4 done: `_pkgdown.yml` gets a "Render a site" group (`pkgdown::check_pkgdown()` finds no problem); `NEWS.md` entry; `cairn/DESIGN.md` adds a rendering family and an architecture paragraph and marks the `git_run()` sentence corrected; `GUIDE.md` names `supplement::render_supplement()` in "How the site renders" and in step 2 of the private-data recipe, keeping the `quarto render` commands.
 - 2026-10-28: claim audit: 46 claims read, 2 corrected — `R/check-tools.R` (the row offered `render_supplement()` for a too-old copy it refuses; now only for a copy it runs, with a test) and `R/render-supplement.R` (the code refused a character vector with a class, which the help allows; the `is.object()` check dropped, with a test). One claim the reader could not verify, that Quarto copies hidden files of `figures/`, is backed by LESSONS M028 and the existing `test-add-render.R` test of `.hidden.png`.
 - 2026-10-28: first full run (`NOT_CRAN=true`, 5878 expectations) had 3 failures and 1 error: two from test files edited while it ran, and `test-source.R`'s "git runs only through its helper", which pinned one `system2` call in `R/`. That test now allows two, the git call in `check-supplement.R` and `system2(quarto, args)` in `render-supplement.R`, and the `quarto_run()` comment no longer reads as a call. Noted in M073 that `test-source.R` also keeps processes out of `release-supplement.R`.
+- 2026-10-28: T5 done at d565fc4: `devtools::test()` with `NOT_CRAN=true` gives 5882 expectations, 0 failed, 0 errors, 12 skipped; `devtools::check()` gives 0 errors, 0 warnings, 1 note for the hidden `.claude/` folder, which is the Claude app's local lock file, ignored by git and absent from a clone, so CI builds do not see it.
+- 2026-10-28: status review.
 
 ## Decisions
