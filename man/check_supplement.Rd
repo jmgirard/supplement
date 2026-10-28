@@ -405,16 +405,17 @@ and \verb{<plaintext>} elements is read as markup, and so is the text of a
 \verb{<![CDATA[...]]>} section after its first \code{>}. The four skipped
 elements are also skipped inside \verb{<svg>} and \verb{<math>}. The end tags of
 those four elements end at their first \code{>}, also inside a quoted
-value. A \verb{<base>} tag inside \verb{<template>}, or inside \verb{<svg>} outside
-\verb{<foreignObject>}, counts as a base, though a browser does not use it. A base with a scheme whose address a
-browser cannot read, such as \verb{http://}, leaves the page's relative
-links unchecked, while a browser resolves them against the page's own
-folder. A \verb{\\} in a base is not read as \code{/}, while a
-browser reads it so. An empty link, such as \code{href=""}, is not checked,
-also under a local base, while a browser resolves it to the base
-address. Under a base with another scheme or a leading \code{/}, a browser
-can follow the page's relative links to a place that the check does
-not read, and the check does not check them. A \verb{"} or \verb{'} with no closing quote starts an unquoted
+value. A \verb{<base>} tag inside \verb{<template>}, or inside \verb{<svg>} but not in
+its \verb{<foreignObject>} or \verb{<desc>}, counts as a base, though a browser
+does not use it. A base with a scheme whose address a browser cannot
+read, such as \verb{http://}, leaves the page's relative links unchecked,
+while a browser resolves them against the page's own folder. A \verb{\\} in
+a base is not read as \code{/}, while a browser reads it so. An empty link,
+such as \code{href=""}, is not checked, also under a local base, while a
+browser resolves it to the base address. Under a base with another
+scheme or a leading \code{/}, a browser can follow the page's relative links
+to a place that the check does not read, and the check does not check
+them. A \verb{"} or \verb{'} with no closing quote starts an unquoted
 value, so the next \code{>} ends that tag and it is read, where a browser
 reads on to the end of the page and drops the tag. A byte that is not
 valid UTF-8 is read as text such as \verb{<e9>}; outside a quoted value,

@@ -375,16 +375,17 @@
 #'   `<![CDATA[...]]>` section after its first `>`. The four skipped
 #'   elements are also skipped inside `<svg>` and `<math>`. The end tags of
 #'   those four elements end at their first `>`, also inside a quoted
-#'   value. A `<base>` tag inside `<template>`, or inside `<svg>` outside
-#'   `<foreignObject>`, counts as a base, though a browser does not use it. A base with a scheme whose address a
-#'   browser cannot read, such as `http://`, leaves the page's relative
-#'   links unchecked, while a browser resolves them against the page's own
-#'   folder. A `\` in a base is not read as `/`, while a
-#'   browser reads it so. An empty link, such as `href=""`, is not checked,
-#'   also under a local base, while a browser resolves it to the base
-#'   address. Under a base with another scheme or a leading `/`, a browser
-#'   can follow the page's relative links to a place that the check does
-#'   not read, and the check does not check them. A `"` or `'` with no closing quote starts an unquoted
+#'   value. A `<base>` tag inside `<template>`, or inside `<svg>` but not in
+#'   its `<foreignObject>` or `<desc>`, counts as a base, though a browser
+#'   does not use it. A base with a scheme whose address a browser cannot
+#'   read, such as `http://`, leaves the page's relative links unchecked,
+#'   while a browser resolves them against the page's own folder. A `\` in
+#'   a base is not read as `/`, while a browser reads it so. An empty link,
+#'   such as `href=""`, is not checked, also under a local base, while a
+#'   browser resolves it to the base address. Under a base with another
+#'   scheme or a leading `/`, a browser can follow the page's relative links
+#'   to a place that the check does not read, and the check does not check
+#'   them. A `"` or `'` with no closing quote starts an unquoted
 #'   value, so the next `>` ends that tag and it is read, where a browser
 #'   reads on to the end of the page and drops the tag. A byte that is not
 #'   valid UTF-8 is read as text such as `<e9>`; outside a quoted value,
