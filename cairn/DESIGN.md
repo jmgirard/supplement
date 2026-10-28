@@ -50,8 +50,9 @@ Status and order live in `ROADMAP.md`.
 - The package never runs `git commit`, `git tag`, `git push`, or a GitHub
   release, and opens no web page. `release_supplement()` prints the git
   commands that commit and push the release and the address of GitHub's
-  new-release form, or the Releases-page steps when `origin` is not on
-  GitHub, and runs none of the printed commands (D-036). It never runs Docker or
+  new-release form, which names the current branch as the target, or the
+  Releases-page steps when the push url of `origin` is not on GitHub, and
+  runs none of the printed commands (D-036, D-038). It never runs Docker or
   renv either: `write_dockerfile()` writes the recipe, and the help and
   the template guide (`GUIDE.md`, M050) show the commands (M032). This
   covers package code: the repo's pkgdown workflow pushes the package
@@ -271,10 +272,15 @@ guard (corrected M073); `git status`,
 only files under the site folder, the files that the git checks of
 `check_supplement()` read. Then `report_release()` prints the address of
 GitHub's new-release form from `release_address()`, which parses the
-`origin` url that `origin_url()` in `R/check-supplement.R` reads, or the
-Releases-page steps when that url is not a GitHub form (D-036). Its own
+push url of `origin` that `origin_url()` in `R/check-supplement.R` reads
+and adds `&target=` with the current branch that `release_branches()`
+reads there, or the Releases-page steps when that url is not a GitHub
+form (D-036, D-038). `release_branches()` reads full refs with
+`git symbolic-ref`, and `report_release()` warns when the current branch
+is not the one `refs/remotes/origin/HEAD` names (corrected M074). Its own
 file calls no process helper: git runs for it only inside
-`check_supplement()` and `origin_url()`, through `git_run()` (D-035).
+`check_supplement()`, `origin_url()`, and `release_branches()`, through
+`git_run()` (D-035).
 Depends: R (>= 4.1.0) (D-031). Imports: cli, jsonlite, yaml (D-009), and fs (D-022, corrected M045). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in

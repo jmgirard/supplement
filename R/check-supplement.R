@@ -618,17 +618,50 @@ git_files <- function(path) {
   list(files = unique(split_nul(listed$stdout)), ignored = unique(split_nul(ignored$stdout)))
 }
 
-# The address of the `origin` remote of the repository that holds `path`,
-# as `git remote get-url origin` prints it, or NULL when git is not on the
-# PATH, the folder is not in a repository, it has no such remote, or the
-# address is not valid UTF-8.
+# The push address of the `origin` remote of the repository that holds
+# `path`, as `git remote get-url --push origin` prints it, or NULL when git
+# is not on the PATH, the folder is not in a repository, it has no such
+# remote, or the address is not valid UTF-8. With no push url set, git
+# prints the fetch url after any `pushInsteadOf` rewrite.
 origin_url <- function(path) {
-  out <- git_run(c("remote", "get-url", "origin"), path)
+  out <- git_run(c("remote", "get-url", "--push", "origin"), path)
   if (is.null(out) || !identical(out$status, 0L) || !validUTF8(rawToChar(out$stdout))) {
     return(NULL)
   }
   url <- trimws(strsplit(rawToChar(out$stdout), "\n", fixed = TRUE)[[1]][1])
   if (!is.na(url) && nzchar(url)) url
+}
+
+# The branch that HEAD names in the repository that holds `path`
+# (`current`), and the branch of origin that refs/remotes/origin/HEAD
+# names (`default`). Each is NULL when git cannot read it, as for a
+# detached HEAD, or when its name is not valid UTF-8.
+release_branches <- function(path) {
+  list(
+    current = symbolic_ref(path, "HEAD", "refs/heads/"),
+    default = symbolic_ref(path, "refs/remotes/origin/HEAD", "refs/remotes/origin/")
+  )
+}
+
+# The name that the symbolic ref `ref` points to, less `prefix`, or NULL.
+# The full name is read, since `--short` prints `heads/<name>` when a tag
+# has the same name, and `remotes/origin/<name>` when a local branch is
+# named `origin/<name>`.
+symbolic_ref <- function(path, ref, prefix) {
+  out <- git_run(c("symbolic-ref", "--quiet", ref), path)
+  if (is.null(out) || !identical(out$status, 0L) || any(out$stdout == as.raw(0))) {
+    return(NULL)
+  }
+  name <- rawToChar(out$stdout)
+  if (!validUTF8(name)) {
+    return(NULL)
+  }
+  Encoding(name) <- "UTF-8"
+  name <- sub("\r?\n$", "", name)
+  if (!startsWith(name, prefix) || nchar(name) == nchar(prefix)) {
+    return(NULL)
+  }
+  substring(name, nchar(prefix) + 1L)
 }
 
 # The folders of the site that a release publishes as they are.

@@ -77,18 +77,38 @@
 #' release stays staged, so a later `git commit` adds it.
 #'
 #' After the commands, the function prints how to publish the release on
-#' GitHub. It reads the address of the `origin` remote with
-#' `git remote get-url origin` in the site folder. When that address is
-#' `https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
-#' `ssh://git@github.com/<owner>/<name>`, with or without `.git` at the
-#' end, it prints the address of GitHub's new-release form with the tag
-#' set, such as
-#' `https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z`. Otherwise,
-#' for example when there is no `origin` remote, it prints the steps to make
-#' the release from the repository's Releases page. Push the release commit
-#' first: GitHub makes the tag on the default branch when you publish the
-#' release, so a release published before the push tags an older commit.
-#' The function opens no page.
+#' GitHub. It reads the push address of the `origin` remote with
+#' `git remote get-url --push origin` in the site folder, which gives the
+#' fetch address, after any `pushInsteadOf` rewrite, when no push address
+#' is set. The address is on GitHub
+#' when it starts with `https://` or `http://` and the host `github.com` or
+#' `www.github.com`, with `ssh://` and the host `github.com`, or with
+#' `git@github.com:` (any user name, or none). `ssh://` also takes the
+#' host `ssh.github.com`. The host can be in any letter case.
+#' A user name can come before the host, and in the https, http, and ssh
+#' forms a port can come after it. Then come
+#' `<owner>/<name>`, an optional `.git`, and an optional `/`. For such an
+#' address, the function prints the address of GitHub's new-release form
+#' with the tag set. When the site folder is on a branch, the address also
+#' names that branch as the target, such as
+#' `https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z&target=main`,
+#' so the address names the current branch. Otherwise, for example when
+#' there is no `origin` remote, it prints the steps to make the release
+#' from the repository's Releases page, with the current branch as the
+#' target, or the default branch when the folder is not on a branch.
+#'
+#' Push the release commit first, and publish the release right after the
+#' push. GitHub makes the tag on the current branch when you publish the
+#' release, so a release published before the push tags an older commit,
+#' and one published after a later push tags the later commit. When the
+#' folder is not on a branch (a detached HEAD), the address names no
+#' target, and GitHub makes the tag on the default branch. When the
+#' current branch is not the default branch that `refs/remotes/origin/HEAD`
+#' names, the function prints a warning that names both branches. A clone
+#' sets that ref, and `git remote add` followed by a push does not. While
+#' the ref is not set, no warning is printed.
+#' `git remote set-head origin --auto` sets it. The function opens no
+#' page.
 #'
 #' When Zenodo's GitHub integration is turned on for the repository,
 #' Zenodo archives the release and gives it a version DOI. Add that DOI to
@@ -102,8 +122,8 @@
 #' @return The release commands as a character vector, invisibly.
 #'
 #' @section Errors:
-#' An error while the function reads the `origin` address or prints the
-#' commands, after it wrote
+#' An error while the function reads the `origin` address or the current
+#' branch, or prints the commands, after it wrote
 #' the files, reaches you as it is. Otherwise the function stops with an
 #' error of class `supplement_error` and one of these classes. When it
 #' stops with one of these classes, no file is changed, unless a file that
@@ -228,7 +248,8 @@ release_supplement <- function(bump, path = ".") {
   write_release_files(read, lines, file, outputs, texts, old)
   # The files are the release, so a failure while printing keeps them.
   commands <- release_commands(new)
-  report_release(path, new, commands, release_address(origin_url(path), new))
+  branches <- release_branches(path)
+  report_release(path, new, commands, release_address(origin_url(path), new, branches$current), branches)
   invisible(commands)
 }
 
@@ -509,30 +530,64 @@ release_commands <- function(version) {
 }
 
 # The address of GitHub's new-release form for version `version` in the
-# repository that `origin` names, or NULL when `origin` is NULL or is not
-# `https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
-# `ssh://git@github.com/<owner>/<name>`, each with or without `.git`.
-release_address <- function(origin, version) {
-  rx <- "^(https://github\\.com/|git@github\\.com:|ssh://git@github\\.com/)([A-Za-z0-9-]+)/([A-Za-z0-9._-]+?)(\\.git)?\\z"
+# repository that `origin` names, with `branch` as the target when it is
+# not NULL. NULL when `origin` is NULL or is not a GitHub url: `https://`
+# or `http://` with an optional user and port and the host `github.com` or
+# `www.github.com`, `ssh://` (also `git+ssh://` or `ssh+git://`) with an
+# optional user and port and the host `github.com` or `ssh.github.com`, or
+# the scp-like `[<user>@]github.com:`, the host in any letter case, then
+# `<owner>/<name>` with an optional `.git` in any case and an optional `/`.
+# A name of `.`, `..`, or `.git` alone is not a repository.
+release_address <- function(origin, version, branch = NULL) {
+  rx <- paste0(
+    "^(?:https?://(?:[^@/\\s]*@)?(?i:(?:www\\.)?github\\.com)(?::[0-9]+)?/",
+    "|(?:git\\+)?ssh(?:\\+git)?://(?:[^@/\\s]*@)?(?i:(?:ssh\\.)?github\\.com)(?::[0-9]+)?/",
+    "|(?:[^@/:\\s]+@)?(?i:github\\.com):/?)",
+    "([A-Za-z0-9_][A-Za-z0-9_-]*)/",
+    "(?!\\.{1,2}/?\\z)(?!(?i:\\.git)/?\\z)",
+    "([A-Za-z0-9._-]+?)(?i:\\.git)?/?\\z"
+  )
   if (is.null(origin) || !grepl(rx, origin, perl = TRUE)) {
     return(NULL)
   }
-  repo <- sub(rx, "\\2/\\3", origin, perl = TRUE)
-  sprintf("https://github.com/%s/releases/new?tag=v%s", repo, version)
+  repo <- sub(rx, "\\1/\\2", origin, perl = TRUE)
+  address <- sprintf("https://github.com/%s/releases/new?tag=v%s", repo, version)
+  if (!is.null(branch)) address <- paste0(address, "&target=", url_encode(branch))
+  address
 }
 
-report_release <- function(path, version, commands, address) {
+# `x` with each byte outside `A-Za-z0-9-._~` of its UTF-8 form written as
+# `%XX`, as in a url query value.
+url_encode <- function(x) {
+  bytes <- as.integer(charToRaw(enc2utf8(x)))
+  keep <- (bytes >= 48L & bytes <= 57L) | (bytes >= 65L & bytes <= 90L) |
+    (bytes >= 97L & bytes <= 122L) | bytes %in% c(45L, 46L, 95L, 126L)
+  out <- sprintf("%%%02X", bytes)
+  out[keep] <- intToUtf8(bytes[keep], multiple = TRUE)
+  paste(out, collapse = "")
+}
+
+report_release <- function(path, version, commands, address, branches = list()) {
   tag <- paste0("v", version)
+  branch <- branches$current
+  where <- if (is.null(branch)) "the default branch" else paste("the branch", branch)
   cli::cli_alert_success(
     "Set {.field version} to {.val {version}} in {.file _supplement.yml}, and wrote {.file CITATION.cff} and {.file .zenodo.json}."
   )
   cli::cli_text("Run these commands in {.path {path}} to commit the release and push it. The {.code git add} and {.code git commit} commands stage and commit only the files in this folder, and {.code git status -- .} shows them.")
   cli::cli_code(commands)
-  cli::cli_text("Then publish the release on GitHub. Push first: GitHub makes the tag {tag} on the default branch when you publish the release, so a release published before the push tags an older commit.")
+  if (!is.null(branch) && !is.null(branches$default) && !identical(branch, branches$default)) {
+    default <- branches$default
+    cli::cli_alert_warning("This release is on the branch {branch}, not the default branch {default} of origin. GitHub makes the tag on {branch}.")
+  }
+  cli::cli_text("Then publish the release on GitHub. Push first, and publish right after the push: GitHub makes the tag {tag} on {where} when you publish the release, so a release published before the push tags an older commit, and one published after a later push tags the later commit.")
   if (is.null(address)) {
-    cli::cli_text("On the repository's page on GitHub, open Releases and draft a new release. Then enter {tag} as the tag, and publish the release.")
-  } else {
+    cli::cli_text("On the repository's page on GitHub, open Releases and draft a new release. Then enter {tag} as the tag, pick {where} as the target, and publish the release.")
+  } else if (is.null(branch)) {
     cli::cli_text("Open this page, check that the tag is {tag}, and publish the release:")
+    cli::cli_text("{.url {address}}")
+  } else {
+    cli::cli_text("Open this page, check that the tag is {tag} and the target is {branch}, and publish the release:")
     cli::cli_text("{.url {address}}")
   }
   cli::cli_text(
