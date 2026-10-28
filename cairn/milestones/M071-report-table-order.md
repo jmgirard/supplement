@@ -1,6 +1,6 @@
 # M071: List reports in menu order on the home page
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -21,8 +21,8 @@ Make the home page's report table list reports in the order of the Analyses menu
 
 ## Acceptance criteria
 
-- [ ] AC1: `create_supplement()` makes a site whose `analyses/example.qmd` front matter holds `order: 1`, shown by a test that reads the front matter of the copied file.
-- [ ] AC2: `add_report()` writes the new report's `order` field by these rules, where a report "has an `order`" when its front matter, as the yaml package reads it, holds an `order` that is one number whose absolute value is below 1000000. Each rule is shown by its own test in `tests/testthat/test-add-report.R`: (a) when `analysis_reports()` lists no other report, `order: 1`; (b) when at least one other listed report has an `order`, the smallest whole number greater than the largest such value, written as a whole number (`order: 4` after `order: 1` and `order: 3`; `order: 3` after `order: 2.5`); (c) when other reports are listed and none has an `order`, no `order` line, a report with `order: 10000000` included; (d) a listed report whose front matter the yaml package cannot read counts as having no `order`, and `add_report()` still writes the report.
+- [x] AC1: `create_supplement()` makes a site whose `analyses/example.qmd` front matter holds `order: 1`, shown by a test that reads the front matter of the copied file.
+- [x] AC2: `add_report()` writes the new report's `order` field by these rules, where a report "has an `order`" when its front matter, as the yaml package reads it, holds an `order` that is one number whose absolute value is below 1000000. Each rule is shown by its own test in `tests/testthat/test-add-report.R`: (a) when `analysis_reports()` lists no other report, `order: 1`; (b) when at least one other listed report has an `order`, the smallest whole number greater than the largest such value, written as a whole number (`order: 4` after `order: 1` and `order: 3`; `order: 3` after `order: 2.5`); (c) when other reports are listed and none has an `order`, no `order` line, a report with `order: 10000000` included; (d) a listed report whose front matter the yaml package cannot read counts as having no `order`, and `add_report()` still writes the report.
 - [ ] AC3: On a site that `create_supplement()` makes and that gets three reports from `add_report()`, at least one of whose titles sorts before "Example Analysis" and which are added in an order that differs from their title order, `quarto render` writes a home page whose report table lists the four reports in the order of the Analyses menu in `_quarto.yml`, the example report first, shown by a render test in `tests/testthat/test-add-render.R` that skips when Quarto is missing.
 - [ ] AC4: Each text that `grep -rniE 'home page|listing|Analysis Reports'` finds in `README.md`, `NEWS.md`, `vignettes/`, `R/`, `inst/template/`, and `cairn/DESIGN.md` and that describes how the home page's report table orders reports states the rule: reports with an `order` field first, by that value, then the others by title. The `add_report()` help page states when the function writes `order` and when it does not.
 - [ ] AC5: `devtools::test()` gives 0 failures and `devtools::check()` gives 0 errors and 0 warnings.
@@ -63,7 +63,15 @@ Make the home page's report table list reports in the order of the Analyses menu
 - 2026-10-28: T6: `devtools::check()` at 61e304f gave 0 errors, 0 warnings, 1 note (local `.claude`, as in M070). The demo built from the branch (installed to a temp library) passed `check_supplement()` and its table reads Sample Description, Main Analysis, Robustness Checks, the menu's order. After the claim-audit fixes, `devtools::test()`: 481 tests, 0 failed, 12 skipped.
 - 2026-10-28: claim audit: 40 claims read, 11 corrected — NEWS.md, R/add-report.R, R/check-supplement.R, README.md, inst/template/GUIDE.md, man/add_report.Rd, tests/testthat/test-add-render.R, tests/testthat/test-add-report.R. The false claims were the cap's reason (`sprintf` never writes `1e+06`; yaml reads 3000000000 as NA) and two test comments; the partly true ones gained the condition that every report has an `order` and the menu follows it, the full-site render step, and "higher than every other report's". The one re-read cleared 9 and found README and one GUIDE line still lacking the menu condition and one comment word, all fixed with no further read.
 - 2026-10-28: status review: all tasks checked; verify slot clean.
+- 2026-10-28: review return 1: AC4 — `README.md:93-97` and `inst/template/GUIDE.md:32-35` describe the table's order as the menu's without stating the rule (reports with an `order` first, by that value, then the others by title).
 
 ## Decisions
 
 ## Review
+
+Pass 1 (2026-10-28, head 54b39f2, branch level with main at 84e53af; Copilot round off, no PR yet).
+
+- AC1: `test-create-supplement.R` "the example report has order 1, so it lists first on the home page" passed (1 expectation, 0 failed).
+- AC2: in `test-add-report.R`, rule (a) "the first report of a site gets order 1" (1 expectation), (b) "a new report gets the next whole number after the largest order" (3: `order: 4` after 1 and 3, `order: 3` after 2.5, `order: 8` beside a report with none), (c) "a site whose reports have no order gets no order line" (3: none, quoted `"3"`, 10000000), (d) "a report whose front matter does not parse counts as having no order" (1: the bad report's 5 ignored, `order: 3` after the good 2, report written) all passed, 0 failed.
+- AC3: `test-add-render.R` "the home page lists added reports in the order of the Analyses menu" ran with `NOT_CRAN=true` and Quarto 1.10.19 and passed (3 expectations, 0 failed): menu and table both read example, zeta, alpha, beta; "Alpha Models" and "Beta Sample" sort before "Example Analysis".
+- AC4: FAILED. The grep found 41 lines. Texts that describe how the table orders reports: `README.md:93-97`, `NEWS.md:3-10`, `R/add-report.R:9-22` (help), `R/add-report.R:266-275` (comment), `inst/template/index.qmd:4-7`, `inst/template/GUIDE.md:12-20`, `inst/template/GUIDE.md:32-35`, `cairn/DESIGN.md:301-304`. All state the rule except `README.md:93-97` and `GUIDE.md:32-35`, which say the home page lists reports in menu order without the rule (reports with an `order` first by that value, then the others by title). The other 33 lines are about the data table, DOIs, the setup box, the page text, or the listing's existence (`NEWS.md:129-130`, `R/add-report.R:5`), not the order.
