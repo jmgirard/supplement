@@ -276,7 +276,7 @@ test_that("valid UTF-8 text marked as bytes is written as UTF-8", {
   Encoding(marked) <- "bytes"
   suppressMessages(add_report("bytes", marked, marked, path = site))
   meta <- front_matter(file.path(site, "analyses", "bytes.qmd"))
-  expect_identical(meta, list(title = value, description = value))
+  expect_identical(meta[c("title", "description")], list(title = value, description = value))
 })
 
 test_that("a missing name or title stops with an argument error", {

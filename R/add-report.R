@@ -234,7 +234,8 @@ add_report <- function(name, title, description = "", path = ".") {
     write_checked(readBin(template, "raw", file.size(template)), shared)
   }
   made <- c(made, report)
-  text <- paste0(paste(report_lines(title, description), collapse = "\n"), "\n")
+  order <- next_report_order(path)
+  text <- paste0(paste(report_lines(title, description, order), collapse = "\n"), "\n")
   write_checked(charToRaw(enc2utf8(text)), report)
   write_text_lines(edit$read, edit$lines, config)
   done <- TRUE
@@ -247,11 +248,36 @@ add_report <- function(name, title, description = "", path = ".") {
   invisible(report)
 }
 
-report_lines <- function(title, description) {
+# The `order` of a new report, as text, or NULL for none. The home page's
+# listing puts reports with a numeric `order` first, by that value, and
+# the others after them by title. The new report goes after every report
+# that has an `order`: the next whole number after the largest. A site
+# whose reports all lack an `order` lists them by title, and an `order`
+# would put the new report first, so it gets none. An `order` that the
+# yaml package reads as text, or of a million or more, counts as none:
+# its next whole number would be written as `1e+06`, which yaml reads as
+# text.
+next_report_order <- function(path) {
+  reports <- analysis_reports(path)
+  if (length(reports) == 0) {
+    return("1")
+  }
+  orders <- unlist(lapply(reports, function(report) {
+    order <- report_front_matter(read_report_lines(report))[["order"]]
+    if (is.numeric(order) && length(order) == 1 && is.finite(order) && abs(order) < 1e6) order
+  }))
+  if (length(orders) == 0) {
+    return(NULL)
+  }
+  sprintf("%.0f", floor(max(orders)) + 1)
+}
+
+report_lines <- function(title, description, order = NULL) {
   c(
     "---",
     paste0("title: ", yaml_quote(title)),
     if (nzchar(description)) paste0("description: ", yaml_quote(description)),
+    if (!is.null(order)) paste0("order: ", order),
     "---",
     "",
     "Write the report here. The `site` chunk finds the site folder, so the",
