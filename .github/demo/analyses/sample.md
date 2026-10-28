@@ -28,7 +28,8 @@ sum(completed >= 10)
 
 ## Sleep and Mood
 
-Sleep is in hours. Mood is rated from 1 (very low) to 7 (very high).
+Sleep is in hours. Mood is a score from 1 (very low) to 7 (very high),
+with one decimal place.
 
 ```{r}
 #| label: sleep-mood

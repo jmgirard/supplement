@@ -368,16 +368,18 @@ and manual runs. Its `build` job runs on every trigger with read access
 diary study of sleep and next-day mood (D-034, M070). It starts from
 `create_supplement(repo = "jmgirard/supplement")`, adds the data that
 `.github/demo/simulate.R` simulates with `add_data()` and the reports in
-`.github/demo/analyses/` with `add_report()`, and edits the template's
-values, licenses, home page, and example files through `replace_once()`.
-That helper stops unless its text occurs exactly once. The script also
+`.github/demo/analyses/` with `add_report()`. It edits the template's
+values, licenses, and home page, and drops the example entries from
+`_quarto.yml` and `_supplement.yml`, through `replace_once()`, which stops
+unless its text occurs exactly once. It deletes the example files with
+`remove_file()`. The script also
 writes `CITATION.cff` and `.zenodo.json`, renders twice (D-018), and runs
 `check_supplement()`. It then copies `docs/` into `docs/demo`. The
 navbar's `Demo` entry and the README link that folder (M069). The script
 refuses an output folder that already exists. It stops before any copy
 when Quarto is missing, a render fails, the render writes no
-`docs/index.html`, `check_supplement()` returns a row or skips other
-checks than the three that read git, or a template text that it edits is
+`docs/index.html`, `check_supplement()` returns a row or does not skip
+exactly the three checks that read git, or a template text that it edits is
 missing or doubled. So a broken demo fails the job and stops the deploy
 of the whole package site (D-033). The step has a 15-minute limit. The job then uploads
 `docs/` as a run artifact. Only a run on main
