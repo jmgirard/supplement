@@ -133,6 +133,11 @@ folder of the branch that you pushed:
 usethis::use_github_pages(branch = usethis::git_default_branch(), path = "/docs")
 ```
 
+If the function stops with a message that the default branch of the local
+repository and of the remote do not match, wait a minute and run it
+again. Right after `use_github()` pushes, GitHub can still report another
+default branch for a short time.
+
 The function prints the site's address. The site is at
 `https://owner.github.io/my-supplement/`, with the owner in lowercase.
 For a repository named `owner.github.io`, the site is at
