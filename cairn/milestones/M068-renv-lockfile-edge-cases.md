@@ -72,6 +72,7 @@ The lockfile readers of `write_dockerfile()` and `check_supplement(renv_lock = T
 - 2026-10-28: implement done; status review.
 - 2026-10-28: step-7 approval: m068-renv-lockfile-edge-cases approved for merge
 - 2026-10-28: CI on PR #69: windows-latest failed at test-check-supplement.R:2759, case `dev `, one `"renv-mismatch"` row where the test expected none (the log does not show the row's text; M066 skipped `dev ` on Windows because its lockfile read fails there). The test now asserts that no row is the spelling row, not that no row comes; with both guards off it still fails twice on macOS. Test-only change; the test file passes (127 tests), so the approval stands.
+- 2026-10-28: CI wait on PR #69 at 579933d hit the command time limit and was stopped: 6 checks passed (build, and each of ubuntu, macOS, windows release once), deploy skipped, 2 pending (macos-latest and windows-latest release of the second workflow run). Not merged; the merge marker stays in place.
 
 ## Decisions
 
