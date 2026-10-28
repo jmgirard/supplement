@@ -82,3 +82,31 @@ Pass 1 (2026-10-28, head 54b39f2, branch level with main at 84e53af; Copilot rou
 Pass 2 (2026-10-28, head c12846a after T7; branch level with main at 84e53af). T7 changed only `README.md`, `inst/template/GUIDE.md`, and tracking, so the AC1 to AC3 test evidence of pass 1 stands on unchanged code and tests.
 
 - AC4: the grep found 41 lines, the same set as pass 1. The texts that describe the table's order are the eight passages of pass 1, now at `README.md:93-99` and `inst/template/GUIDE.md:32-36`; each states the rule (reports with an `order` first, by that number, then the others by title). The `add_report()` help (`R/add-report.R:9-22`, `man/add_report.Rd`) states when the function writes `order` (`order: 1` with no other report, the next whole number otherwise) and when it does not (no other report has one).
+- spawned: diff-bug, blame-history, prior-review, ripple (user-facing tier, four lenses).
+- diff-bug #1: a report saved with a UTF-8 BOM gives `report_front_matter()` no `---` first line, so `next_report_order()` ignores its `order` while Quarto reads it, and the new report can list before it — fix now, fixed c3c1a90 (BOM dropped from the first line; test "the order of a report saved with a UTF-8 BOM counts", red without the fix).
+- diff-bug #2: with a largest `order` of 999999 to 999999.99, the function writes `order: 1000000`, which the next call ignores — follow-up, row "Keep new reports after large orders".
+- diff-bug #3: the yaml package reads `010` as 8 and `1e3` and `1_000` as text where Quarto reads YAML 1.2 numbers — reject, planned change: AC2 names the yaml package as the reader, and the help says so.
+- diff-bug #4: an `order` set in `analyses/_metadata.yml` is not read — follow-up, row "Keep new reports after large orders".
+- diff-bug #5: `next_report_order()` runs after the first folder and file writes — reject, false: it catches its read and parse errors, so it cannot throw, and `on.exit` cleans up on an interrupt.
+- diff-bug #6: `report_front_matter()` lives in `R/check-supplement.R`, not a shared-helper file — reject, style.
+- diff-bug #7: nothing enforces renaming `current` — reject, false as a defect: no code reads the names, so a missed rename gives no wrong result.
+- diff-bug #8: a 117-character line in `GUIDE.md` — reject, style.
+- diff-bug #9 (tests): the quoted `"3"` case runs the same path as no `order` — reject, false: it pins the help's stated yaml-text rule (a documented claim).
+- diff-bug #10 (tests): `order: 7` beside a report with none repeats the max path — reject, false: it is AC2(b)'s mixed case, where a report without `order` drops out of the max.
+- diff-bug #11 (tests): the rule (c) test comment restated its expectation in its second clause — fix now, fixed c3c1a90 (clause removed).
+- diff-bug #12 (tests): the render test's menu check repeats the menu-append coverage — reject, false: it is the reference order the table is compared against.
+- blame-history #1: existing orders of a million or more are ignored, but Quarto sorts them, so a new report can list before them — reject, planned change (AC2(c)); the remedy joins row "Keep new reports after large orders".
+- blame-history #2: a quoted `order` counts as none though Quarto might sort it — reject, false: the claim audit saw Quarto 1.10.19 stop the render on `order: "5"` ("must instead be a number").
+- blame-history #3: the stub line cap moved from 40 to 41 — reject, planned change (T1).
+- blame-history #4: `current` breaks the key rule — reject, false as a defect (as diff-bug #7); the comment states the `current` rule.
+- blame-history #5: a 170-column line in `GUIDE.md` — reject, style.
+- blame-history #6: `GUIDE.md` did not say what to do when no other report has an `order` — fix now, fixed c3c1a90 (give it none, and the table lists by title).
+- prior-review #1: the BOM gap of the M026 review reaches `add_report()` — fix now, as diff-bug #1, fixed c3c1a90.
+- prior-review #2: `current` rename not enforced — reject, false as a defect (as diff-bug #7).
+- prior-review #3: the rule is restated in five files that can drift apart — reject, planned change (AC4 requires each to state it).
+- prior-review #4: stub cap 40 to 41 — reject, planned change (T1).
+- ripple #1: the candidate row "Order the home page report table" describes the old title sort — reject, planned change: step 9 hygiene removes the row at the merge.
+- ripple #2: `README.md:89-90` names only the title and description in a new report's front matter — reject, false: the sentence is true, and the same paragraph says the report gets the next `order`.
+- ripple #3: `cairn/DESIGN.md:208` says `example_versions` holds versions the default branch has held — reject, false after the merge, which puts this version on the default branch.
+- ripple #4: `data-raw/example-qmd-fixtures.R:6-8` says `example_versions` holds each fixture's hash — reject, false: the statement is about the fixtures, and each fixture's hash is still listed.
+- After the fixes, `devtools::test()`: 482 tests, 0 failed, 12 skipped.
