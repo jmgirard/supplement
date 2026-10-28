@@ -2,6 +2,26 @@
 
 ## supplement 0.0.0.9000
 
+- New
+  [`render_supplement()`](https://jmgirard.github.io/supplement/reference/render_supplement.md)
+  renders a site from the R console. With no arguments it runs
+  `quarto render` in the site folder. With report names, such as
+  `render_supplement("models")`, it first renders each report by name,
+  which runs its code again, and then the whole site. When the full
+  render leaves a file of `figures/` out of `docs/figures/`, it renders
+  the whole site once more. It runs the Quarto copy that
+  [`check_tools()`](https://jmgirard.github.io/supplement/reference/check_tools.md)
+  reports, also one that is only inside RStudio or Positron. It runs no
+  git command. A report name must match its file’s letter case. The
+  messages of
+  [`create_supplement()`](https://jmgirard.github.io/supplement/reference/create_supplement.md),
+  [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md),
+  and
+  [`check_tools()`](https://jmgirard.github.io/supplement/reference/check_tools.md)
+  name it. So do the template’s `GUIDE.md` and the steps in the rows of
+  [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+  that render a changed report again.
+
 - The home page lists reports in the order of the Analyses menu, when
   each report has an `order` from
   [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md)

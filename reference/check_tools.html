@@ -94,7 +94,8 @@ path that R sees, and its version is 1.4.0 or later or unknown.</p></li>
 <li><p><code>not on path</code>: a copy of Quarto was found only in <code>QUARTO_PATH</code> or in
 an editor's folder, and its version is 1.4.0 or later or unknown. An
 older copy there is <code>too old</code>. The copy is not on the system path that
-R sees, so <code>quarto render</code> in a terminal can miss it. Add its <code>bin</code>
+R sees, so <code>quarto render</code> in a terminal can miss it, while
+<code><a href="render_supplement.html">render_supplement()</a></code> runs it. To render in a terminal, add its <code>bin</code>
 folder to the system path, or install Quarto.</p></li>
 <li><p><code>too old</code>: the Quarto version is below 1.4.0, the minimum that the
 template's Quarto extension states.</p></li>

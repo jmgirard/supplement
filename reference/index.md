@@ -11,6 +11,14 @@ Make a site from the template, then add reports and data files.
 - [`add_data()`](https://jmgirard.github.io/supplement/reference/add_data.md)
   : Add a data file to a supplement site
 
+## Render a site
+
+Render the site from the R console, after a report changes or before a
+commit.
+
+- [`render_supplement()`](https://jmgirard.github.io/supplement/reference/render_supplement.md)
+  : Render the site from the R console
+
 ## Check tools and sites
 
 Find missing tools, and check a site before a release.
