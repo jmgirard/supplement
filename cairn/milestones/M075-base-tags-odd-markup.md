@@ -78,7 +78,7 @@
 - 2026-10-28: plan chose to join the base folder and the link into one path for `link_ok()` over a separate URL resolver, because `link_ok()` already decodes and normalizes parts and counts a path above `docs/` as broken; falsified by a base and link inside `docs/` whose joined path resolves to another file than the URL Standard gives.
 - 2026-10-28: changelog: one NEWS.md entry for the whole milestone.
 - 2026-10-28: implement started on branch m075-base-tags-odd-markup, cut from main at ed28d21.
-- 2026-10-28: T1 done: wrote `cairn/references/whatwg-html.md` from the HTML Standard copy of 26 October 2026 (sections 2.4.3, 4.2.3, 13.2.5.4 to 13.2.5.52), with its INDEX line.
+- 2026-10-28: T1 done: wrote `cairn/references/whatwg-html.md` from the HTML Standard copy last updated 2026-10-26 (sections 2.4.3, 4.2.3, 13.2.5.4 to 13.2.5.52), with its INDEX line.
 - 2026-10-28: T2 done: `tag_links()` gives the first `<base>` href as the attribute `base` and leaves base tags out of the links; `page_values()` cleans it with the new `link_text()`; `page_links()` sorts it with `base_kind()` and `base_address()` and gives each link a `targets` path for `link_ok()`. Four tests red before the change, green after; the whole `test-check-supplement.R` passes (131 tests, 0 failed, 7 skipped).
 - 2026-10-28: implement choice: a `broken-link` row under a base names the link as written on the page, not the joined path, so the author can find it in the page.
 - 2026-10-28: T3 done: `html_skipped` ends a comment at `<!-->`, `<!--->`, or the first `-->` or `--!>`, and removes `</` with a non-letter to the next `>` and end tags through their attributes. Two tests red before, green after; the old skipped-text and large-page tests still pass.
@@ -87,6 +87,7 @@
 - 2026-10-28: claim audit: 74 claims read, 8 corrected — R/check-supplement.R (help script sentences, the row-text sentence, the scheme-base difference, the `page_links()` and `html_skipped` comments, "except as listed below"), NEWS.md (scheme base, ASCII letter, script sentence), man/check_supplement.Rd. The re-read passed all 8 and found one gap in the help script sentence (the `<!--` dashes and the six delimiters), fixed with no further pass.
 - 2026-10-28: T6 done: `devtools::test()` 525 tests, 0 failed, 0 errors, 12 skipped (at 0e43ffd, before the comment-only claim fixes); `devtools::check()` on 15f3b23 gave 0 errors, 0 warnings, 1 NOTE. The NOTE names `.claude/`, which holds only `scheduled_tasks.lock` that this session's wakeup timer wrote; git ignores it, so a clone and CI do not have it.
 - 2026-10-28: implement done; status review.
+- 2026-10-28: format fix: the T1 line's date, written with the month as a word, is rewritten as 2026-10-26 for the `iso date format` check; the fact is unchanged.
 
 ## Decisions
 
