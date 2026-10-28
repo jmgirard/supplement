@@ -2,10 +2,12 @@
 # makes, rendered once by Quarto with no edit between the two steps. The
 # script copies the rendered docs/ folder into the folder that its argument
 # names, which must not exist yet. It stops before any copy when Quarto is
-# missing or the render fails, so a broken demo fails the pkgdown build.
+# missing, the render fails, or the render writes no docs/index.html, so a
+# broken demo fails the pkgdown build.
 #
 # Usage: Rscript build-demo.R <output folder>
-# It needs the supplement package installed and Quarto on the PATH.
+# It needs the supplement, knitr, and rmarkdown packages installed and
+# Quarto on the PATH.
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 1) {
@@ -30,8 +32,11 @@ if (!identical(status, 0L)) {
   stop("quarto render exited with status ", status, ".", call. = FALSE)
 }
 
-dir.create(out, recursive = TRUE)
 docs <- file.path(site, "docs")
+if (!file.exists(file.path(docs, "index.html"))) {
+  stop("quarto render wrote no docs/index.html.", call. = FALSE)
+}
+dir.create(out, recursive = TRUE)
 entries <- list.files(docs, all.files = TRUE, no.. = TRUE, full.names = TRUE)
 copied <- file.copy(entries, out, recursive = TRUE, copy.date = TRUE)
 if (!all(copied)) {
