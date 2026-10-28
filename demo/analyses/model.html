@@ -6,9 +6,9 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="description" content="A short example report. Replace it with your own.">
+<meta name="description" content="Within-person and between-person links of sleep with mood.">
 
-<title>Example Analysis – Supplemental Materials</title>
+<title>Main Analysis – Supplemental Materials</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -81,7 +81,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-12a87ce4a3db8ae78ad34dc8821cdee3.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-166690b9c768161ed89deb9505a7d440.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -140,8 +140,16 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-analyses">    
         <li>
-    <a class="dropdown-item" href="../analyses/example.html">
- <span class="dropdown-text">Example Analysis</span></a>
+    <a class="dropdown-item" href="../analyses/sample.html">
+ <span class="dropdown-text">Sample Description</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../analyses/model.html">
+ <span class="dropdown-text">Main Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../analyses/robustness.html">
+ <span class="dropdown-text">Robustness Checks</span></a>
   </li>  
     </ul>
   </li>
@@ -168,10 +176,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#site-folder" id="toc-site-folder" class="nav-link active" data-scroll-target="#site-folder">Site Folder</a></li>
-  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
-  <li><a href="#bootstrap-means" id="toc-bootstrap-means" class="nav-link" data-scroll-target="#bootstrap-means">Bootstrap Means</a></li>
-  <li><a href="#paper-figures" id="toc-paper-figures" class="nav-link" data-scroll-target="#paper-figures">Paper Figures</a></li>
+  <li><a href="#person-mean-centering" id="toc-person-mean-centering" class="nav-link active" data-scroll-target="#person-mean-centering">Person-Mean Centering</a></li>
+  <li><a href="#within-person-effect" id="toc-within-person-effect" class="nav-link" data-scroll-target="#within-person-effect">Within-Person Effect</a></li>
+  <li><a href="#between-person-effect" id="toc-between-person-effect" class="nav-link" data-scroll-target="#between-person-effect">Between-Person Effect</a></li>
+  <li><a href="#figure-1" id="toc-figure-1" class="nav-link" data-scroll-target="#figure-1">Figure 1</a></li>
   <li><a href="#computing-environment" id="toc-computing-environment" class="nav-link" data-scroll-target="#computing-environment">Computing environment</a></li>
   </ul>
 </nav>
@@ -181,12 +189,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Example Analysis</h1>
+<h1 class="title">Main Analysis</h1>
 </div>
 
 <div>
   <div class="description">
-    A short example report. Replace it with your own.
+    Within-person and between-person links of sleep with mood.
   </div>
 </div>
 
@@ -203,10 +211,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </header>
 
 
-<p>This report shows the parts of an analysis page. Replace it with your own report, and keep one <code>.qmd</code> file per report in this folder.</p>
-<section id="site-folder" class="level2">
-<h2 class="anchored" data-anchor-id="site-folder">Site Folder</h2>
-<p>The code reads and writes files through <code>site</code>, the site folder. Quarto sets <code>QUARTO_PROJECT_DIR</code> to the site folder during a render. When you run the code by hand, the variable is usually missing. If it is missing or empty, the code looks for <code>_quarto.yml</code> in the current folder and then in the folder above it. It uses the first folder that holds the file. If neither folder holds it, the code stops with an error. So run it from the site folder or from <code>analyses/</code>. Then the code reads <code>_scripts/report.R</code>, which holds the functions that the reports share.</p>
+<p>This report fits the main models of the paper, which ask two questions. The within-person effect is the change in a person’s mood on days after they sleep more than usual. The between-person effect is the difference in mood between people who sleep more overall and people who sleep less.</p>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>site <span class="ot">&lt;-</span> <span class="fu">Sys.getenv</span>(<span class="st">"QUARTO_PROJECT_DIR"</span>)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">nzchar</span>(site)) {</span>
@@ -217,46 +222,64 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>}</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(<span class="fu">file.path</span>(site, <span class="st">"_scripts"</span>, <span class="st">"report.R"</span>), <span class="at">local =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
-</section>
-<section id="data" class="level2">
-<h2 class="anchored" data-anchor-id="data">Data</h2>
+<section id="person-mean-centering" class="level2">
+<h2 class="anchored" data-anchor-id="person-mean-centering">Person-Mean Centering</h2>
+<p>Each night’s sleep is split into the person’s own average and the night’s difference from it.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(site, <span class="st">"data"</span>, <span class="st">"example.csv"</span>))</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(dat)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>diary <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">file.path</span>(site, <span class="st">"data"</span>, <span class="st">"diary.csv"</span>))</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>diary<span class="sc">$</span>sleep_mean <span class="ot">&lt;-</span> <span class="fu">ave</span>(diary<span class="sc">$</span>sleep_hours, diary<span class="sc">$</span>id)</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>diary<span class="sc">$</span>sleep_within <span class="ot">&lt;-</span> diary<span class="sc">$</span>sleep_hours <span class="sc">-</span> diary<span class="sc">$</span>sleep_mean</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>diary<span class="sc">$</span>mood_within <span class="ot">&lt;-</span> diary<span class="sc">$</span>mood <span class="sc">-</span> <span class="fu">ave</span>(diary<span class="sc">$</span>mood, diary<span class="sc">$</span>id)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+</section>
+<section id="within-person-effect" class="level2">
+<h2 class="anchored" data-anchor-id="within-person-effect">Within-Person Effect</h2>
+<p>A model with one intercept for each participant estimates the change in mood for each hour of sleep above the person’s own average.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>fit_within <span class="ot">&lt;-</span> <span class="fu">lm</span>(mood <span class="sc">~</span> sleep_within <span class="sc">+</span> <span class="fu">factor</span>(id), <span class="at">data =</span> diary)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">summary</span>(fit_within)<span class="sc">$</span>coefficients[<span class="st">"sleep_within"</span>, ], <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       id              group        score      
- Min.   : 1.00   Length   :10   Min.   :11.00  
- 1st Qu.: 3.25   N.unique : 2   1st Qu.:13.25  
- Median : 5.50   N.blank  : 0   Median :15.50  
- Mean   : 5.50   Min.nchar: 1   Mean   :15.50  
- 3rd Qu.: 7.75   Max.nchar: 1   3rd Qu.:17.75  
- Max.   :10.00                  Max.   :20.00  </code></pre>
+<pre><code>  Estimate Std. Error    t value   Pr(&gt;|t|) 
+     0.227      0.033      6.900      0.000 </code></pre>
+</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">confint</span>(fit_within)[<span class="st">"sleep_within"</span>, ], <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code> 2.5 % 97.5 % 
+ 0.162  0.292 </code></pre>
 </div>
 </div>
 </section>
-<section id="bootstrap-means" class="level2">
-<h2 class="anchored" data-anchor-id="bootstrap-means">Bootstrap Means</h2>
-<p>Seed every random draw, so that each render gives the same numbers and the same figures.</p>
+<section id="between-person-effect" class="level2">
+<h2 class="anchored" data-anchor-id="between-person-effect">Between-Person Effect</h2>
+<p>A model of each person’s average mood on their average sleep estimates the difference between people.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2026</span>)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>boot_means <span class="ot">&lt;-</span> <span class="fu">replicate</span>(<span class="dv">200</span>, <span class="fu">mean</span>(<span class="fu">sample</span>(dat<span class="sc">$</span>score, <span class="at">replace =</span> <span class="cn">TRUE</span>)))</span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(boot_means, <span class="at">main =</span> <span class="st">"Bootstrap means of score"</span>, <span class="at">xlab =</span> <span class="st">"Mean score"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output-display">
-<div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>person <span class="ot">&lt;-</span> <span class="fu">aggregate</span>(<span class="fu">cbind</span>(sleep_hours, mood) <span class="sc">~</span> id, <span class="at">data =</span> diary, <span class="at">FUN =</span> mean)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>fit_between <span class="ot">&lt;-</span> <span class="fu">lm</span>(mood <span class="sc">~</span> sleep_hours, <span class="at">data =</span> person)</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">summary</span>(fit_between)<span class="sc">$</span>coefficients, <span class="dv">3</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)    1.804      0.974   1.853    0.069
+sleep_hours    0.316      0.140   2.256    0.028</code></pre>
+</div>
+</div>
+</section>
+<section id="figure-1" class="level2">
+<h2 class="anchored" data-anchor-id="figure-1">Figure 1</h2>
+<p>Figure 1 of the paper shows the within-person link. The code saves it in <code>figures/</code> for the paper and the page shows the saved file.</p>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_png</span>(<span class="st">"figure-1.png"</span>, <span class="cf">function</span>() {</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">plot</span>(diary<span class="sc">$</span>sleep_within, diary<span class="sc">$</span>mood_within, <span class="at">pch =</span> <span class="dv">16</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">col =</span> <span class="fu">adjustcolor</span>(<span class="st">"steelblue"</span>, <span class="fl">0.4</span>),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">xlab =</span> <span class="st">"Sleep (hours from own average)"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">ylab =</span> <span class="st">"Mood (points from own average)"</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">abline</span>(<span class="fu">lm</span>(mood_within <span class="sc">~</span> sleep_within, <span class="at">data =</span> diary), <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
+<div class="quarto-figure quarto-figure-center">
 <figure class="figure">
-<p><img src="example_files/figure-html/bootstrap-1.png" class="img-fluid figure-img" width="672"></p>
+<p><img src="../figures/figure-1.png" class="img-fluid figure-img"></p>
+<figcaption>Figure 1. Daily mood against the night’s sleep, each centered on the person’s own average.</figcaption>
 </figure>
-</div>
-</div>
-</div>
-</section>
-<section id="paper-figures" class="level2">
-<h2 class="anchored" data-anchor-id="paper-figures">Paper Figures</h2>
-<p>Save each figure for the paper in <code>figures/</code>, which git tracks and the site publishes. <code>save_png()</code>, from <code>_scripts/report.R</code>, runs a function that draws the plot. For a ggplot <code>p</code>, pass <code>function() print(p)</code>. It stops when <code>figures</code> is a link or a file. It draws into a temporary file in <code>figures/</code>. It gives that file its name only when the plot succeeds and the file ends as a whole PNG file does. So a failed plot, or a file cut short, leaves no partial file there.</p>
-<div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">save_png</span>(<span class="st">"bootstrap-means.png"</span>, <span class="cf">function</span>() {</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">hist</span>(boot_means, <span class="at">main =</span> <span class="st">"Bootstrap means of score"</span>, <span class="at">xlab =</span> <span class="st">"Mean score"</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>})</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="computing-environment" class="level2">
@@ -275,7 +298,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print_environment</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">print_environment</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>─ Session info ───────────────────────────────────────────────────────────────
  setting  value

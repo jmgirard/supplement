@@ -2,7 +2,9 @@
   {
     "listing": "/index.html",
     "items": [
-      "/analyses/example.html"
+      "/analyses/model.html",
+      "/analyses/robustness.html",
+      "/analyses/sample.html"
     ]
   }
 ]

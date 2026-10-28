@@ -47,7 +47,7 @@ ul.task-list li input[type="checkbox"] {
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-12a87ce4a3db8ae78ad34dc8821cdee3.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-166690b9c768161ed89deb9505a7d440.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -164,8 +164,16 @@ window.Quarto = {
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-analyses">    
         <li>
-    <a class="dropdown-item" href="./analyses/example.html">
- <span class="dropdown-text">Example Analysis</span></a>
+    <a class="dropdown-item" href="./analyses/sample.html">
+ <span class="dropdown-text">Sample Description</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./analyses/model.html">
+ <span class="dropdown-text">Main Analysis</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./analyses/robustness.html">
+ <span class="dropdown-text">Robustness Checks</span></a>
   </li>  
     </ul>
   </li>
@@ -205,7 +213,7 @@ window.Quarto = {
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
 <h1 class="title">Supplemental Materials</h1>
-<p class="subtitle lead">Title of the paper</p>
+<p class="subtitle lead">Sleep Duration and Next-Day Mood: A 14-Day Diary Study</p>
 </div>
 
 
@@ -222,28 +230,27 @@ window.Quarto = {
 </header>
 
 
-<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Before your first commit
+<span class="screen-reader-only">Note</span>About this demo
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Run <code>quarto render</code> once in this folder. The first render adds the template’s rules to <code>.gitignore</code>, which keep fitted models and other large files out of git. It also writes <code>README.md</code>, the page for the site’s readers, unless a <code>README.md</code> already exists. The guide for authors is <code>GUIDE.md</code>.</p>
-<p>Put the paper title, citation, DOIs, and data files in <code>_supplement.yml</code>. This page reads them from there. Then delete this box.</p>
+<p>This site is a demo of the <a href="https://jmgirard.github.io/supplement/">supplement</a> R package. The paper, its authors, its data, its DOI, and its archive link are made up for this demo. The data are simulated, and the DOI and the archive link lead to no Zenodo record. The package’s <a href="https://github.com/jmgirard/supplement/blob/main/.github/scripts/build-demo.R">build script</a> makes this site from the template.</p>
 </div>
 </div>
 <p>This site hosts the supplemental analysis reports, code, and data for:</p>
 <blockquote class="blockquote">
-<p>Author, A. A., &amp; Author, B. B. (Year). Title of the paper. <em>Journal Name</em>.</p>
+<p>Rivera, M. L., &amp; Chen, D. K. (2026). Sleep duration and next-day mood: A 14-day diary study. <em>Journal of Example Studies</em>, <em>1</em>(1), 1-12.</p>
 </blockquote>
 <section id="archived-version" class="level2">
 <h2 class="anchored" data-anchor-id="archived-version">Archived Version</h2>
-<p>A frozen, citable copy of these materials is archived on Zenodo. The DOI badge and the download link show here after you add the values under <code>zenodo</code> in <code>_supplement.yml</code>.</p>
-<p> </p>
+<p>A frozen, citable copy of these materials is archived on Zenodo.</p>
+<p><a href="https://doi.org/10.5281/zenodo.0000000"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.0000000.svg" class="img-fluid" alt="DOI"></a> <a href="https://zenodo.org/records/0000000">Download the archive from Zenodo</a></p>
 </section>
 <section id="analysis-reports" class="level2">
 <h2 class="anchored" data-anchor-id="analysis-reports">Analysis Reports</h2>
@@ -265,12 +272,32 @@ Description
 </thead>
 <tbody class="list">
 
-<tr data-index="0" data-listing-file-modified-sort="1793153563910" data-listing-reading-time-sort="2" data-listing-word-count-sort="356" data-listing-title-sort="Example Analysis" data-listing-filename-sort="example.qmd">
+<tr data-index="0" data-listing-file-modified-sort="1793178215249" data-listing-reading-time-sort="2" data-listing-word-count-sort="353" data-listing-title-sort="Main Analysis" data-listing-filename-sort="model.qmd">
 <td>
-<a href="./analyses/example.html" class="title listing-title">Example Analysis</a>
+<a href="./analyses/model.html" class="title listing-title">Main Analysis</a>
 </td>
 <td>
-<span class="listing-description">A short example report. Replace it with your own.</span>
+<span class="listing-description">Within-person and between-person links of sleep with mood.</span>
+</td>
+
+</tr>
+
+<tr data-index="1" data-listing-file-modified-sort="1793178215277" data-listing-reading-time-sort="2" data-listing-word-count-sort="262" data-listing-title-sort="Robustness Checks" data-listing-filename-sort="robustness.qmd">
+<td>
+<a href="./analyses/robustness.html" class="title listing-title">Robustness Checks</a>
+</td>
+<td>
+<span class="listing-description">The within-person effect under other analysis choices.</span>
+</td>
+
+</tr>
+
+<tr data-index="2" data-listing-file-modified-sort="1793178215220" data-listing-reading-time-sort="1" data-listing-word-count-sort="199" data-listing-title-sort="Sample Description" data-listing-filename-sort="sample.qmd">
+<td>
+<a href="./analyses/sample.html" class="title listing-title">Sample Description</a>
+</td>
+<td>
+<span class="listing-description">Who took part, and how many diary days each person completed.</span>
 </td>
 
 </tr>
@@ -292,16 +319,21 @@ Description
 </thead>
 <tbody>
 <tr class="odd">
-<td><a href="data/example.csv" download=""><code>example.csv</code></a></td>
-<td>Example data for the example report</td>
-<td style="text-align: right;">86 B</td>
+<td><a href="data/participants.csv" download=""><code>participants.csv</code></a></td>
+<td>Age and chronotype of each participant (simulated)</td>
+<td style="text-align: right;">1.1 KB</td>
+</tr>
+<tr class="even">
+<td><a href="data/diary.csv" download=""><code>diary.csv</code></a></td>
+<td>Nightly sleep and daily mood for each diary day (simulated)</td>
+<td style="text-align: right;">9.9 KB</td>
 </tr>
 </tbody>
 </table>
 </section>
 <section id="contact" class="level2">
 <h2 class="anchored" data-anchor-id="contact">Contact</h2>
-<p>Your Name, Your Institution. Your email address.</p>
+<p>M. L. Rivera, Department of Psychology, Example University. m.rivera@example.org</p>
 
 
 

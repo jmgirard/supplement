@@ -8,13 +8,19 @@ report holds stored output, the site rebuilds without the data. GitHub
 Pages serves the site, and Zenodo’s GitHub integration can archive each
 GitHub release with a DOI.
 
-The [demo site](https://jmgirard.github.io/supplement/demo/) is the site
-that
+The [demo site](https://jmgirard.github.io/supplement/demo/) is a
+supplement for a made-up diary study of sleep and next-day mood. The
+package site’s build makes it with
 [`create_supplement()`](https://jmgirard.github.io/supplement/reference/create_supplement.md)
-and one `quarto render` make, with no edits. `repo` is set to this
-package’s repository, so the site’s GitHub link has no placeholder. It
-shows the template’s placeholder title and citation, its setup box, and
-its example report and data file.
+and fills in the paper’s details. It adds two simulated data files with
+[`add_data()`](https://jmgirard.github.io/supplement/reference/add_data.md)
+and three reports with
+[`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md).
+The build stops unless
+[`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+finds no problem in the rendered site. The paper, its authors, its data,
+its DOI, and its archive link are made up. The DOI and the link lead to
+no Zenodo record.
 
 The package is in early development.
 
