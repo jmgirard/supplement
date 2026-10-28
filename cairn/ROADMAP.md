@@ -7,6 +7,7 @@ _Last hygiene check: 2026-10-28 (M069 review: archived; pruned the M066 row; one
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
+| M070 | Fill in the demo site | planned | — | normal | milestones/M070-filled-in-demo-site.md |
 | M069 | Publish a demo of the template site | done | — | normal | milestones/archive/M069-demo-template-site.md |
 | M068 | Handle renv lockfile edge cases | done | — | normal | milestones/archive/M068-renv-lockfile-edge-cases.md |
 | M067 | Write Dockerfiles from profile lockfiles | done | — | normal | milestones/archive/M067-dockerfile-profile-lockfile.md |
@@ -40,4 +41,5 @@ _Last hygiene check: 2026-10-28 (M069 review: archived; pruned the M066 row; one
 - [low] Flag a wrong-case renv/profile file: from the M068 plan. On macOS and Windows, `lock_source()` reads a `renv/profile` listed under another letter case, such as `renv/Profile`, and picks that profile's lockfile, while renv on Linux reads no profile and uses `renv.lock`. Neither `check_supplement(renv_lock = TRUE)` nor `write_dockerfile()` says so. M068 covers the lockfile path only. — added 2026-10-28
 - [parked] Recommend a pinned tag in the README: template install from GitHub: recommend a pinned tag (`@vX.Y.Z`) in the README once a release exists. Narrowed 2026-10-18: the untagged route ran after the M003 merge and rendered. From the M003 review. — added 2026-10-18
 - [parked] Migrate old sites to the freeze layout: existing-site migration: a helper that converts a site with the old `src/` and `analyses/` layout to the freeze layout. Out of scope for version 1. — added 2026-10-18
+- [parked] Link a real supplement from the README: from the M070 plan. The demo is a made-up study built in CI (D-034). A README line and a navbar entry could also link a real paper's supplement made with the package, to show use in a real paper. Promote when the user has such a site, made with the package. — added 2026-10-28
 - [parked] Record the Python setup of reports: from the M030 plan. The Computing environment section and the renv and Docker layers (M030 to M032) cover R reports only, and `check_tools()` (M037) does not look for Python or Jupyter. A Python report could print its Python and package versions, and a site could keep a `requirements.txt` or `uv.lock`. Parked 2026-10-27: the user judged Python support out of scope for an R package. Promote when the user widens the package's scope to Python reports. — added 2026-10-21
