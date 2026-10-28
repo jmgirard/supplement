@@ -1,7 +1,8 @@
-# The local steps of vignettes/publishing.Rmd, in its order: make the site,
-# render it with render_supplement(), commit, render again after a report
-# changes, and render again after the DOIs are added. The guide commits in
-# the Git pane, so the test commits with git.
+# The local steps of vignettes/publishing.Rmd: make the site, render it
+# with render_supplement(), commit, render again after a report changes,
+# and render again after the DOIs are added. The test renders the report
+# change before it adds the DOIs. The guide commits in the Git pane, so the
+# test commits with git.
 
 test_that("the publishing guide's local steps give a site that Pages can serve and that renders changes", {
   skip_if_no_quarto()

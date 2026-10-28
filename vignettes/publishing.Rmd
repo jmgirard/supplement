@@ -15,8 +15,9 @@ rendering again after you change a report.
 You need three things: the R console, a web browser, and the Git pane of
 RStudio or the Source Control view of Positron. Run each code block in the
 R console. Each step names the folder to run its code in. To run R in the
-site folder, open the folder as a project in RStudio or Positron, or run
-`setwd()` with the path of the folder. If you prefer a terminal for git
+site folder, open the folder as a project in RStudio, or open the folder
+in Positron. The Git pane and the Source Control view need this. For the
+R steps alone, `setwd()` with the path of the folder also works. If you prefer a terminal for git
 and Quarto, the last part of this guide gives the commands for the same
 steps.
 
@@ -110,8 +111,8 @@ usethis::use_git()
 
 `use_git()` adds a few lines to `.gitignore` and lists the files to
 commit. When it asks whether it can commit them, choose the answer that
-means yes. In RStudio, it then offers to restart RStudio so that the Git
-pane appears.
+means yes. When the site folder is open as a project in RStudio, it then
+offers to restart RStudio so that the Git pane appears.
 
 Then make the repository on GitHub and push the site to it:
 
@@ -136,7 +137,8 @@ usethis::use_github_pages(branch = usethis::git_default_branch(), path = "/docs"
 If the function stops with a message that the default branch of the local
 repository and of the remote do not match, wait a minute and run it
 again. Right after `use_github()` pushes, GitHub can still report another
-default branch for a short time.
+default branch for a short time. Do not run the function that the message
+names in that time.
 
 The function prints the site's address. The site is at
 `https://owner.github.io/my-supplement/`, with the owner in lowercase.
