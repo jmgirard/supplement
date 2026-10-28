@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-28 (M068 review: archived; graduated three rows; pruned the M065 row; one lesson captured, the M022 Windows unlink lesson evicted by rank, the M064 BOM sentence retired, six marked used; LESSONS holds 25 lessons; validate green)_
+_Last hygiene check: 2026-10-28 (M069 review: archived; pruned the M066 row; one lesson captured, the M023 skip_on_os lesson evicted by rank, two marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M069 | Publish a demo of the template site | review | — | normal | milestones/M069-demo-template-site.md |
+| M069 | Publish a demo of the template site | done | — | normal | milestones/archive/M069-demo-template-site.md |
 | M068 | Handle renv lockfile edge cases | done | — | normal | milestones/archive/M068-renv-lockfile-edge-cases.md |
 | M067 | Write Dockerfiles from profile lockfiles | done | — | normal | milestones/archive/M067-dockerfile-profile-lockfile.md |
-| M066 | Read the lockfile of the active renv profile | done | — | normal | milestones/archive/M066-renv-profile-lockfile.md |
 ## Candidates
 
 - Handle short folder names on Windows: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
