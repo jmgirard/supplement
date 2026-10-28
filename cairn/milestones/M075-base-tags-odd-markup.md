@@ -1,6 +1,6 @@
 # M075: Read base tags and odd markup in pages
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -62,7 +62,7 @@
 - [x] T4: Write the AC5 tests first, the 1 MB page included. Then add the escaped and double escaped states to the script part of `html_raw_text()` (`:1912`), with possessive repeats only. Run the existing large-page tests, such as the 6 MB script page.
 - [x] T5: Update the roxygen help of `check_supplement()` (`:316` to `:358`) and run `devtools::document()`. Add the NEWS.md entry under the development heading. Update the DESIGN.md "Link reader limits" entry.
 - [x] T6: Run `devtools::test()` and `devtools::check()`.
-- [ ] T7: Review return 1. Unroll `html_script_body` so each `<` run and dash run costs one loop pass, add a test past the old PCRE margin, re-measure the PCRE figure, and fix the other fix-now items of review pass 1.
+- [x] T7: Review return 1. Unroll `html_script_body` so each `<` run and dash run costs one loop pass, add a test past the old PCRE margin, re-measure the PCRE figure, and fix the other fix-now items of review pass 1.
 
 ## Work log
 
@@ -96,6 +96,7 @@
 - 2026-10-28: T7: fixed the other pass-1 fix-now items. The help notes the sooner limit for escaped script text, the `#` exception in the handling-order sentence, `data:` and `javascript:` in any letter case, and two new differences (a `<base>` in `<template>`, a scheme base a browser cannot parse). The `tag_links()` and PCRE-limit comments are updated. NEWS.md drops "as a browser does" and says `#` and `?` links under a base can give rows. DESIGN.md's link check text names end tags and the base folder, and its known issues entry adds the two cases. The `//example.org/` base test case is removed.
 - 2026-10-28: claim audit (T7 lines): 21 claims read, 3 corrected — R/check-supplement.R (the escaped-script limit sentence in the help and the comment now name millions of `</` or separate `-` runs, and the `<svg>` base case is narrowed to outside `<foreignObject>`), cairn/DESIGN.md, man/check_supplement.Rd; the `html_script_body` comment drops its unmeasured "about half" figure. Re-read pending.
 - 2026-10-28: claim audit re-read: the limit sentences and the `html_script_body` comment match (its reason rests on the T7 lookahead comparison, where every form with a second check per `<` reached the limit at 4.4M `<` and the one-check forms read 4.8M); the `<svg>` base case also excludes `<desc>`, fixed with no further pass, and the help paragraph is rewrapped.
+- 2026-10-28: T7 done: `devtools::test()` on efe3c10 gives 526 tests, 0 failed, 0 errors, 12 skipped; `devtools::check()` from the same run gives 0 errors, 0 warnings, 1 NOTE (the session's git-ignored `.claude/` lock file). Later commits change comments and help text only. Status review.
 
 ## Decisions
 
