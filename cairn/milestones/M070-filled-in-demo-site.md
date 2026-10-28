@@ -1,13 +1,13 @@
 # M070: Fill in the demo site
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — readers of the package site see the demo pages, the README, and NEWS
-- **Branch/PR:** —
+- **Branch/PR:** m070-filled-in-demo-site
 
 ## Goal
 
@@ -49,7 +49,7 @@ Make the package site's demo a finished-looking supplement for a made-up study, 
 
 ## Tasks
 
-- [ ] T1: Write `.github/demo/`: `simulate.R` (seeded base R, writes `participants.csv` and `diary.csv` into a folder it is given), the three report body files, and the demo values. Each report body reads its data through `file.path(site, "data", ...)`, and at least one saves a paper figure with `save_png()`. The example DOI is well-formed and resolves to no Zenodo record.
+- [x] T1: Write `.github/demo/`: `simulate.R` (seeded base R, writes `participants.csv` and `diary.csv` into a folder it is given), the three report body files, and the demo values. Each report body reads its data through `file.path(site, "data", ...)`, and at least one saves a paper figure with `save_png()`. The example DOI is well-formed and resolves to no Zenodo record.
 - [ ] T2: Extend `.github/scripts/build-demo.R`. Add a `replace_once()` helper that stops, naming the file and the text, unless the text occurs exactly once, and route every replace and remove through it. Order the steps as follows. Run `create_supplement()`, then simulate the data into a temporary folder outside the site. Run `add_data()` and `add_report()` before the example entries are removed, because a list left empty may refuse a new item. Put each report body into its stub in place of the "Write the report here" paragraph and the `setup` chunk. Remove the example report, data file, and figure, and their menu and data entries. Fill `_supplement.yml`, the LICENSE files, the setup box, and the Archived Version text. Render twice, since a figure saved under a new name reaches `docs/` only on the next render (D-018). Then stop on any `check_supplement()` row or an unexpected `skipped` value, and copy. Rewrite the header comment.
 - [ ] T3: Run the build locally into a new folder and read the output for AC2 to AC4 (grep, `index.html`, report pages, `figures/`). Probe AC5 against a temporary install of the package whose template has one edited text, once with the text gone and once with it doubled, and once with a planted `check_supplement()` row. Each probe exits non-zero, and the output folder is absent afterward.
 - [ ] T4: Edit the README paragraph, the NEWS.md demo bullet, the DESIGN.md demo paragraph, and the demo step comment in `pkgdown.yaml`, written against the T3 build. Run `devtools::test()` and `devtools::check()`.
@@ -70,3 +70,4 @@ Make the package site's demo a finished-looking supplement for a made-up study, 
 - 2026-10-28: plan chose inserting report bodies into the `add_report()` stubs over copying whole report files, so the `site` chunk and Computing environment section come from the installed template; falsified by `report_lines()` changes that break the insertion on most template edits.
 - 2026-10-28: lessons used: 2026-10-28 (M069), 2026-10-28 (M068), 2026-10-21 (M028).
 - 2026-10-28: changelog: edit the unreleased NEWS.md demo bullet rather than add a bullet.
+- 2026-10-28: T1: wrote `.github/demo/simulate.R` (60 people, 14 days, about 1 in 12 days missed) and three report bodies, each an intro and an analysis part split by an `<!-- analysis -->` line. The demo values live beside their replacements in `build-demo.R`, not in a separate file (minor task edit). The model report saves `figure-1.png` and shows it with a Markdown image, not a second inline plot.

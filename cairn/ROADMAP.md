@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-28 (M069 review: archived; pruned the M066 row; one
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M070 | Fill in the demo site | planned | — | normal | milestones/M070-filled-in-demo-site.md |
+| M070 | Fill in the demo site | in-progress | — | normal | milestones/M070-filled-in-demo-site.md |
 | M069 | Publish a demo of the template site | done | — | normal | milestones/archive/M069-demo-template-site.md |
 | M068 | Handle renv lockfile edge cases | done | — | normal | milestones/archive/M068-renv-lockfile-edge-cases.md |
 | M067 | Write Dockerfiles from profile lockfiles | done | — | normal | milestones/archive/M067-dockerfile-profile-lockfile.md |
