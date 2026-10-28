@@ -101,7 +101,8 @@ fetch address, after any \code{pushInsteadOf} rewrite, when no push address
 is set. The address is on GitHub
 when it starts with \verb{https://} or \verb{http://} and the host \code{github.com} or
 \code{www.github.com}, with \verb{ssh://} and the host \code{github.com}, or with
-\verb{git@github.com:} (any user name). The host can be in any letter case.
+\verb{git@github.com:} (any user name, or none). \verb{ssh://} also takes the
+host \code{ssh.github.com}. The host can be in any letter case.
 A user name can come before the host, and in the https, http, and ssh
 forms a port can come after it. Then come
 \verb{<owner>/<name>}, an optional \code{.git}, and an optional \code{/}. For such an
@@ -134,8 +135,8 @@ that the home page shows it.
 }
 \section{Errors}{
 
-An error while the function reads the \code{origin} address or prints the
-commands, after it wrote
+An error while the function reads the \code{origin} address or the current
+branch, or prints the commands, after it wrote
 the files, reaches you as it is. Otherwise the function stops with an
 error of class \code{supplement_error} and one of these classes. When it
 stops with one of these classes, no file is changed, unless a file that

@@ -83,7 +83,8 @@
 #' is set. The address is on GitHub
 #' when it starts with `https://` or `http://` and the host `github.com` or
 #' `www.github.com`, with `ssh://` and the host `github.com`, or with
-#' `git@github.com:` (any user name). The host can be in any letter case.
+#' `git@github.com:` (any user name, or none). `ssh://` also takes the
+#' host `ssh.github.com`. The host can be in any letter case.
 #' A user name can come before the host, and in the https, http, and ssh
 #' forms a port can come after it. Then come
 #' `<owner>/<name>`, an optional `.git`, and an optional `/`. For such an
@@ -121,8 +122,8 @@
 #' @return The release commands as a character vector, invisibly.
 #'
 #' @section Errors:
-#' An error while the function reads the `origin` address or prints the
-#' commands, after it wrote
+#' An error while the function reads the `origin` address or the current
+#' branch, or prints the commands, after it wrote
 #' the files, reaches you as it is. Otherwise the function stops with an
 #' error of class `supplement_error` and one of these classes. When it
 #' stops with one of these classes, no file is changed, unless a file that
@@ -532,15 +533,19 @@ release_commands <- function(version) {
 # repository that `origin` names, with `branch` as the target when it is
 # not NULL. NULL when `origin` is NULL or is not a GitHub url: `https://`
 # or `http://` with an optional user and port and the host `github.com` or
-# `www.github.com`, `ssh://` with an optional user and port and the host
-# `github.com`, or the scp-like `<user>@github.com:`, the host in any
-# letter case, then `<owner>/<name>` with an optional `.git` and `/`.
+# `www.github.com`, `ssh://` (also `git+ssh://` or `ssh+git://`) with an
+# optional user and port and the host `github.com` or `ssh.github.com`, or
+# the scp-like `[<user>@]github.com:`, the host in any letter case, then
+# `<owner>/<name>` with an optional `.git` in any case and an optional `/`.
+# A name of `.`, `..`, or `.git` alone is not a repository.
 release_address <- function(origin, version, branch = NULL) {
   rx <- paste0(
-    "^(?:https?://(?:[^@/]*@)?(?i:(?:www\\.)?github\\.com)(?::[0-9]+)?/",
-    "|ssh://(?:[^@/]*@)?(?i:github\\.com)(?::[0-9]+)?/",
-    "|[^@/:]+@(?i:github\\.com):)",
-    "([A-Za-z0-9_-]+)/([A-Za-z0-9._-]+?)(?:\\.git)?/?\\z"
+    "^(?:https?://(?:[^@/\\s]*@)?(?i:(?:www\\.)?github\\.com)(?::[0-9]+)?/",
+    "|(?:git\\+)?ssh(?:\\+git)?://(?:[^@/\\s]*@)?(?i:(?:ssh\\.)?github\\.com)(?::[0-9]+)?/",
+    "|(?:[^@/:\\s]+@)?(?i:github\\.com):/?)",
+    "([A-Za-z0-9_][A-Za-z0-9_-]*)/",
+    "(?!\\.{1,2}/?\\z)(?!(?i:\\.git)/?\\z)",
+    "([A-Za-z0-9._-]+?)(?i:\\.git)?/?\\z"
   )
   if (is.null(origin) || !grepl(rx, origin, perl = TRUE)) {
     return(NULL)

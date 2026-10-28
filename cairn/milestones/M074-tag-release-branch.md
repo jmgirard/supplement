@@ -100,3 +100,22 @@ The release address that `release_supplement()` prints tags the author's current
 - AC6: in the built-in browser, signed in, `releases/new?tag=v9.9.9&target=%67h-pages` on jmgirard/supplement showed tag `v9.9.9` and the checked target `gh-pages`; left for the Releases page without publishing; `gh release view v9.9.9 --repo jmgirard/supplement` printed "release not found".
 - gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; `pkgdown::check_pkgdown()` no problems; no README.Rmd; NEWS.md has the entry; no new top-level file; `devtools::check()` at 4ff1aa5: 0 errors, 0 warnings, 1 note (local `.claude/`, not in the built package); no principle changed, so `cairn_impact` skipped.
 - spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: the target is the local branch name, so under `push.default=upstream` with an upstream of another name the address names a branch the push did not update — follow-up, row "Print a push that works on any branch" (under git's default `simple`, that `git push` stops with an error).
+- diff-bug #2: the other-branch warning also prints with a non-GitHub origin and says "GitHub makes the tag" — reject (false): the Releases-page steps in that case also publish on GitHub's page, so the sentence holds.
+- diff-bug #3: real GitHub remotes rejected: `ssh://git@ssh.github.com:443/…`, `git+ssh://`, `ssh+git://`, scp with no user, `git@github.com:/o/r` — fix now.
+- diff-bug #4: false accepts or parses: `jdoe/..`, `jdoe/.git`, a kept `.GIT`, owner `-` — fix now.
+- diff-bug #5: each url form ran a full release, checking the same `report_release()` path 21 times — fix now: the tables call `release_address()` directly, with one end-to-end case each.
+- diff-bug #6: `expect_identical(got$output, push)` tests git — reject (false): it checks that the fixture set the push url, as the fetch-url line above it does.
+- diff-bug #7: no test of `_ . -` kept unencoded, and the non-UTF-8 branch checked only by hand — fix now: two direct tests.
+- diff-bug #8: README and NEWS name no detached-HEAD exception; a long README line; a repeated roxygen clause — reject (false: a detached HEAD has no current branch, and the help page states the case; style for the other two).
+- diff-bug #9 to #11: no defect (branch read, encoder, cli interpolation, CI portability) — noted.
+- blame-history #1: a detached HEAD cannot run the printed `git push` — follow-up, row "Print a push that works on any branch" (the bare `git push` came with M073, not this diff).
+- blame-history #2: a new branch with no upstream fails `git push` — follow-up, same row.
+- blame-history #3: `&target=` unverified — reject (false): AC6 saw GitHub's form fill the target.
+- blame-history #4: local versus pushed branch name — follow-up, same row (same as diff-bug #1).
+- blame-history #5: `_` in owners widens the accepted strings — reject (planned change): the absorbed row asked for it, and GitHub Enterprise Managed User names hold `_`.
+- blame-history #6: wider url forms match D-038 — noted. Nits on wrap width — reject (style).
+- prior-review #1: the warning needs `refs/remotes/origin/HEAD` — follow-up, already in row "Read the default branch after a push". #2 wrap width — reject (style). No prior-review regression; `pulls/comments` probe returned none.
+- ripple #1: README, GUIDE.md, the vignette, and `check_tools()` help say the `origin` remote decides — reject (false): the push url is still the `origin` remote's.
+- ripple #2 and #3: the rows "Read more GitHub remote address forms" and "Tag releases made from other branches" now state old behavior — reject (planned change): post-merge hygiene graduates both.
+- ripple #4: the Errors section names only the `origin` read, not the branch read — fix now.

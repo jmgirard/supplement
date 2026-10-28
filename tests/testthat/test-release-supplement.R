@@ -1291,10 +1291,10 @@ test_that("an origin that is not on GitHub gives the steps on the Releases page"
 })
 
 test_that("more GitHub url forms give the release address", {
-  skip_if_no_git()
   forms <- c(
     "https://github.com/jdoe/my-site/",
     "https://github.com/jdoe/my-site.git/",
+    "https://github.com/jdoe/my-site.GIT",
     "http://github.com/jdoe/my-site",
     "https://www.github.com/jdoe/my-site",
     "https://GitHub.COM/jdoe/my-site",
@@ -1303,21 +1303,25 @@ test_that("more GitHub url forms give the release address", {
     "https://jdoe:x@github.com/jdoe/my-site",
     "https://github.com:443/jdoe/my-site",
     "ssh://git@github.com:22/jdoe/my-site.git",
+    "ssh://git@ssh.github.com:443/jdoe/my-site.git",
+    "git+ssh://git@github.com/jdoe/my-site.git",
+    "ssh+git://git@github.com/jdoe/my-site.git",
     "ssh://github.com/jdoe/my-site",
-    "org-1@github.com:jdoe/my-site.git"
+    "org-1@github.com:jdoe/my-site.git",
+    "github.com:jdoe/my-site.git",
+    "git@github.com:/jdoe/my-site.git"
   )
   for (form in forms) {
-    expect_release_address(release_text_with_origin(form), "jdoe/my-site")
+    expect_identical(release_address(form, "1.3.0"),
+                     "https://github.com/jdoe/my-site/releases/new?tag=v1.3.0", label = form)
   }
-})
-
-test_that("an owner name with an underscore keeps it in the release address", {
+  expect_identical(release_address("https://github.com/my_org/my-site", "1.3.0"),
+                   "https://github.com/my_org/my-site/releases/new?tag=v1.3.0")
   skip_if_no_git()
-  expect_release_address(release_text_with_origin("https://github.com/my_org/my-site"), "my_org/my-site")
+  expect_release_address(release_text_with_origin("git@GitHub.com:jdoe/my-site/"), "jdoe/my-site")
 })
 
 test_that("a url that only looks like GitHub gives the steps on the Releases page", {
-  skip_if_no_git()
   forms <- c(
     "https://github.com.evil.org/jdoe/my-site",
     "https://evil.org/github.com/jdoe/my-site",
@@ -1327,11 +1331,28 @@ test_that("a url that only looks like GitHub gives the steps on the Releases pag
     "https://github.com/jdoe/my-site?x",
     "https://github.com/jdoe/my-site//",
     "git://github.com/jdoe/my-site",
-    "git@github-work:jdoe/my-site"
+    "git@github-work:jdoe/my-site",
+    "https://github.com/jdoe/..",
+    "https://github.com/jdoe/.git",
+    "https://github.com/-x/my-site"
   )
   for (form in forms) {
-    expect_release_steps(release_text_with_origin(form))
+    expect_null(release_address(form, "1.3.0"), label = form)
   }
+  skip_if_no_git()
+  expect_release_steps(release_text_with_origin("https://github.com.evil.org/jdoe/my-site"))
+})
+
+test_that("a branch name keeps letters, digits, and - . _ unencoded in the target", {
+  expect_identical(release_address("https://github.com/jdoe/my-site", "1.3.0", "Release_1.0-rc"),
+                   "https://github.com/jdoe/my-site/releases/new?tag=v1.3.0&target=Release_1.0-rc")
+})
+
+test_that("a branch name that is not valid UTF-8 is read as no branch", {
+  local_mocked_bindings(git_run = function(args, dir) {
+    list(status = 0L, stdout = c(charToRaw("refs/heads/caf"), as.raw(0xe9), charToRaw("\n")))
+  })
+  expect_identical(release_branches("."), list(current = NULL, default = NULL))
 })
 
 test_that("the release address comes from the push url of origin", {
