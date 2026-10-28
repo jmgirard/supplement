@@ -1,6 +1,6 @@
 # M075: Read base tags and odd markup in pages
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -61,7 +61,7 @@
 - [x] T3: Write the AC3 and AC4 tests first. Then change the comment part of `html_skipped` (`:1895`) and add parts for `</` and end tags. Keep every repeat possessive.
 - [x] T4: Write the AC5 tests first, the 1 MB page included. Then add the escaped and double escaped states to the script part of `html_raw_text()` (`:1912`), with possessive repeats only. Run the existing large-page tests, such as the 6 MB script page.
 - [x] T5: Update the roxygen help of `check_supplement()` (`:316` to `:358`) and run `devtools::document()`. Add the NEWS.md entry under the development heading. Update the DESIGN.md "Link reader limits" entry.
-- [ ] T6: Run `devtools::test()` and `devtools::check()`.
+- [x] T6: Run `devtools::test()` and `devtools::check()`.
 
 ## Work log
 
@@ -85,6 +85,8 @@
 - 2026-10-28: T4 done: `html_script_body` (possessive parts only) gives the script text of `html_raw_text("script")` the escaped and double escaped states. The double-escape test was red before and green after; the 1 MB test passed before too, as a guard on the PCRE limit. Measured on macOS, R 4.6: `<!--<script></script>-->` repeated reads at 4 MB and reaches the match limit by 16 MB; a plain 6 MB script still reads; the old large-page and linear-time tests pass.
 - 2026-10-28: T5 done: the `check_supplement()` help page states the end rules, the base paragraph, and the new differences (end tags of the four skipped elements, `<base>` in `<svg>`, `\` in a base, empty links, links under a scheme or `/` base); `devtools::document()` rewrote `man/check_supplement.Rd`. NEWS.md has one entry; the DESIGN.md "Link reader limits" entry names the base cases and is marked narrowed M075. README, GUIDE.md, `_README.md`, and the vignettes state no link reading rules (grep), so they are unchanged.
 - 2026-10-28: claim audit: 74 claims read, 8 corrected — R/check-supplement.R (help script sentences, the row-text sentence, the scheme-base difference, the `page_links()` and `html_skipped` comments, "except as listed below"), NEWS.md (scheme base, ASCII letter, script sentence), man/check_supplement.Rd. The re-read passed all 8 and found one gap in the help script sentence (the `<!--` dashes and the six delimiters), fixed with no further pass.
+- 2026-10-28: T6 done: `devtools::test()` 525 tests, 0 failed, 0 errors, 12 skipped (at 0e43ffd, before the comment-only claim fixes); `devtools::check()` on 15f3b23 gave 0 errors, 0 warnings, 1 NOTE. The NOTE names `.claude/`, which holds only `scheduled_tasks.lock` that this session's wakeup timer wrote; git ignores it, so a clone and CI do not have it.
+- 2026-10-28: implement done; status review.
 
 ## Decisions
 
