@@ -56,8 +56,10 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
-      # The demo is the site that create_supplement() makes, rendered once
-      # with no edit. The script stops when the render fails, which fails
+      # The demo is a filled-in site for a made-up diary study of sleep and
+      # mood, made from create_supplement() with the content in .github/demo/.
+      # The script stops when a render fails, check_supplement() finds a
+      # problem, or a template text that it edits has changed. That fails
       # this job, so a broken demo also stops the deploy of the whole site.
       # The time limit fails a hung render instead of holding the job.
       - name: Build demo site

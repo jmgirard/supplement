@@ -364,14 +364,22 @@ tests read the package's R files, from the checkout (D-020).
 `_pkgdown.yml` on Ubuntu with Quarto 1.10 on pull requests, pushes to main,
 and manual runs. Its `build` job runs on every trigger with read access
 (`contents: read`). After the pkgdown build, it runs
-`.github/scripts/build-demo.R`, which makes a site with
-`create_supplement(repo = "jmgirard/supplement")`, renders it once with no
-edit, and copies its `docs/` into `docs/demo`. The navbar's `Demo` entry
-and the README link that folder (M069). The script refuses an output
-folder that already exists. It stops before any copy when Quarto is
-missing, the render fails, or the render writes no `docs/index.html`, so
-a broken demo fails the job and stops the deploy of the whole package
-site (D-033). The step has a 15-minute limit. The job then uploads
+`.github/scripts/build-demo.R`, which makes a filled-in site for a made-up
+diary study of sleep and next-day mood (D-034, M070). It starts from
+`create_supplement(repo = "jmgirard/supplement")`, adds the data that
+`.github/demo/simulate.R` simulates with `add_data()` and the reports in
+`.github/demo/analyses/` with `add_report()`, and edits the template's
+values, licenses, home page, and example files through `replace_once()`.
+That helper stops unless its text occurs exactly once. The script also
+writes `CITATION.cff` and `.zenodo.json`, renders twice (D-018), and runs
+`check_supplement()`. It then copies `docs/` into `docs/demo`. The
+navbar's `Demo` entry and the README link that folder (M069). The script
+refuses an output folder that already exists. It stops before any copy
+when Quarto is missing, a render fails, the render writes no
+`docs/index.html`, `check_supplement()` returns a row or skips other
+checks than the three that read git, or a template text that it edits is
+missing or doubled. So a broken demo fails the job and stops the deploy
+of the whole package site (D-033). The step has a 15-minute limit. The job then uploads
 `docs/` as a run artifact. Only a run on main
 (a push or a manual run) also runs the `deploy` job, the one job with write
 access (`contents: write`), which pushes that artifact to the `gh-pages`

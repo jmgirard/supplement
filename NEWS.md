@@ -1,9 +1,11 @@
 # supplement 0.0.0.9000
 
 * The package site has a demo, at
-  <https://jmgirard.github.io/supplement/demo/>: the site that
-  `create_supplement()`, with `repo` set, and one `quarto render` make,
-  with no edits. The README and the site's navbar link it.
+  <https://jmgirard.github.io/supplement/demo/>: a supplement for a
+  made-up diary study of sleep and next-day mood. The package site's build
+  makes it with `create_supplement()`, `add_data()`, and `add_report()`,
+  and stops unless `check_supplement()` finds no problem in it. The README
+  and the site's navbar link it.
 
 * `check_supplement()` has a new argument, `renv_lock`. With
   `renv_lock = TRUE`, it compares the R and package versions that
