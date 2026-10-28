@@ -97,11 +97,13 @@ release stays staged, so a later \verb{git commit} adds it.
 After the commands, the function prints how to publish the release on
 GitHub. It reads the push address of the \code{origin} remote with
 \verb{git remote get-url --push origin} in the site folder, which gives the
-fetch address when no push address is set. The address is on GitHub
+fetch address, after any \code{pushInsteadOf} rewrite, when no push address
+is set. The address is on GitHub
 when it starts with \verb{https://} or \verb{http://} and the host \code{github.com} or
 \code{www.github.com}, with \verb{ssh://} and the host \code{github.com}, or with
-\verb{git@github.com:} (any user name). The host can be in any letter case,
-and a user name and a port can come before it. Then come
+\verb{git@github.com:} (any user name). The host can be in any letter case.
+A user name can come before the host, and in the https, http, and ssh
+forms a port can come after it. Then come
 \verb{<owner>/<name>}, an optional \code{.git}, and an optional \code{/}. For such an
 address, the function prints the address of GitHub's new-release form
 with the tag set. When the site folder is on a branch, the address also
@@ -110,7 +112,7 @@ names that branch as the target, such as
 so the address names the current branch. Otherwise, for example when
 there is no \code{origin} remote, it prints the steps to make the release
 from the repository's Releases page, with the current branch as the
-target.
+target, or the default branch when the folder is not on a branch.
 
 Push the release commit first, and publish the release right after the
 push. GitHub makes the tag on the current branch when you publish the
@@ -119,8 +121,11 @@ and one published after a later push tags the later commit. When the
 folder is not on a branch (a detached HEAD), the address names no
 target, and GitHub makes the tag on the default branch. When the
 current branch is not the default branch that \code{refs/remotes/origin/HEAD}
-names, the function prints a warning that names both branches. The
-function opens no page.
+names, the function prints a warning that names both branches. A clone
+sets that ref, and \verb{git remote add} followed by a push does not. While
+the ref is not set, no warning is printed.
+\verb{git remote set-head origin --auto} sets it. The function opens no
+page.
 
 When Zenodo's GitHub integration is turned on for the repository,
 Zenodo archives the release and gives it a version DOI. Add that DOI to

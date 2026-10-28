@@ -288,8 +288,9 @@ GitHub's page: when the `origin` remote is on GitHub, the function prints
 the address of GitHub's new-release form with the tag filled in. The
 address names the current branch as the target. When you publish the
 release, GitHub makes the tag on that branch. So push before you
-publish, and publish right after the push. If the current branch is not
-the default branch of `origin`, the function says so. The printed `git status -- .` shows only files under this folder, and
+publish, and publish right after the push. If git knows the default
+branch of `origin` and the current branch is another one, the function
+says so. The printed `git status -- .` shows only files under this folder, and
 `git add -A -- .` and `git commit -m "Release vX.Y.Z" -- .` stage and
 commit only these files. These are the files that the file size and saved
 object checks of `check_supplement()` read. If this folder

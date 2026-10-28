@@ -9,10 +9,11 @@
   address of GitHub's new-release form. The address fills in the tag and
   the current branch, so GitHub tags the branch that holds the release. It reads
   the repository from the push address of the `origin` remote, in the
-  https, http, ssh, or `git@github.com:` form. When `origin` is not a
-  GitHub address, it prints the steps on the repository's Releases page.
-  When the current branch is not the default branch of `origin`, it says
-  so. When you publish the release, GitHub makes the tag. So push first,
+  https, http, ssh, or scp-like `<user>@github.com:` form. When `origin`
+  is not a GitHub address, it prints the steps on the repository's
+  Releases page. When git knows the default branch of `origin`
+  (`refs/remotes/origin/HEAD`) and the current branch is another one, it
+  says so. When you publish the release, GitHub makes the tag. So push first,
   and publish right after the push.
   `check_tools()` no longer reports `gh`. The publishing guide sets up git,
   the GitHub sign-in, the repository, and GitHub Pages with usethis. It

@@ -622,7 +622,7 @@ git_files <- function(path) {
 # `path`, as `git remote get-url --push origin` prints it, or NULL when git
 # is not on the PATH, the folder is not in a repository, it has no such
 # remote, or the address is not valid UTF-8. With no push url set, git
-# prints the fetch url.
+# prints the fetch url after any `pushInsteadOf` rewrite.
 origin_url <- function(path) {
   out <- git_run(c("remote", "get-url", "--push", "origin"), path)
   if (is.null(out) || !identical(out$status, 0L) || !validUTF8(rawToChar(out$stdout))) {

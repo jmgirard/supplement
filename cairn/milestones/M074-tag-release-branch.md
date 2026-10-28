@@ -1,6 +1,6 @@
 # M074: Tag the release on the branch that holds it
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -63,7 +63,7 @@ The release address that `release_supplement()` prints tags the author's current
 - [x] T4: Add a branch read beside `origin_url()` through `git_run()`. It runs `git symbolic-ref --quiet HEAD` and strips `refs/heads/`. It runs `git symbolic-ref --quiet refs/remotes/origin/HEAD` and strips `refs/remotes/origin/`. Each read gives NULL on a failure, on another prefix, or on bytes that are not UTF-8. Pass the branch to `release_address()`, which adds `&target=` with a byte encoder `url_encode()`. Pass it to `report_release()`, which names the branch in the push-first text and in the Releases-page steps, and prints the other-branch line. `test-source.R` stays as it is. T3 passes.
 - [x] T5: Update the roxygen of `release_supplement()`, `README.md`, `inst/template/GUIDE.md` "Make a release", `vignettes/publishing.Rmd`, the `NEWS.md` entry, and `cairn/DESIGN.md` (Conventions and Architecture). Run `devtools::document()`, then read each `default branch` sentence that AC5 names.
 - [x] T6: Open the AC6 address in the built-in browser and read the tag and target fields. Leave without publishing, then run `gh release view v9.9.9 --repo jmgirard/supplement`.
-- [ ] T7: Run `devtools::test()` and `devtools::check()`, then push and read CI.
+- [x] T7: Run `devtools::test()` and `devtools::check()`, then push and read CI.
 
 ## Work log
 
@@ -84,3 +84,7 @@ The release address that `release_supplement()` prints tags the author's current
 - 2026-10-28: implement wording: the push-first text now says to publish right after the push, and the other-branch line is a cli warning that names both branches.
 - 2026-10-28: T5 done: roxygen, README, GUIDE.md, vignette, NEWS, and DESIGN updated; `devtools::document()` rewrote `man/release_supplement.Rd`. A joined-line read of the AC5 files finds four release-tag sentences with `default branch`, each about a detached HEAD or the other-branch line.
 - 2026-10-28: T6 done: the built-in browser, signed in, opened `releases/new?tag=v9.9.9&target=%67h-pages` on jmgirard/supplement; the form showed Tag v9.9.9 and Target gh-pages (the checked target radio was `gh-pages`). Left for the Releases page without publishing; `gh release view v9.9.9` printed "release not found".
+- 2026-10-28: T7: `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude/`, as in M073); its tests passed. The CI read moves to review, which pushes the branch and opens the PR at its merge step.
+- 2026-10-28: claim audit: 29 claims read, 5 corrected — R/release-supplement.R, R/check-supplement.R, man/release_supplement.Rd, NEWS.md, inst/template/GUIDE.md. The re-read found the new origin/HEAD sentence's fetch clause unverified; it now says only what a scratch repo showed: a push leaves `refs/remotes/origin/HEAD` unset, and `git remote set-head origin --auto` sets it.
+- 2026-10-28: the scratch repo shows that a repository started with `git remote add` and a push has no `refs/remotes/origin/HEAD`, so the other-branch line does not print there; the plan's falsifier for the local read fired in part. AC2 holds as written; the follow-up goes to the candidate row "Read the default branch after a push".
+- 2026-10-28: all tasks done; status review.
