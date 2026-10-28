@@ -1,16 +1,17 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-28 (M070 review: archived; pruned the M067 row; two candidate rows added; one lesson captured, the M024 engine-scan lesson evicted by rank, four marked used; LESSONS holds 25 lessons; validate green)_
+_Last hygiene check: 2026-10-28 (M071 review: archived; pruned the M068 row; graduated "Order the home page report table", added "Keep new reports after large orders"; one lesson captured, the M025 YAML-path lesson evicted by rank, two marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M071 | List reports in menu order on the home page | review | — | normal | milestones/M071-report-table-order.md |
+| M071 | List reports in menu order on the home page | done | — | normal | milestones/archive/M071-report-table-order.md |
 | M070 | Fill in the demo site | done | — | normal | milestones/archive/M070-filled-in-demo-site.md |
 | M069 | Publish a demo of the template site | done | — | normal | milestones/archive/M069-demo-template-site.md |
-| M068 | Handle renv lockfile edge cases | done | — | normal | milestones/archive/M068-renv-lockfile-edge-cases.md |## Candidates
+
+## Candidates
 
 - Handle short folder names on Windows: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19
 - Measure the cost of large data files: from the M018 review. Quarto copies each file the data table links into `docs/`, the size fixtures included (seen on macOS, where the 2 GiB copy stays sparse at 4 KB); the disk cost of the 1 GB, 2 GiB, and 4 GiB fixtures on Linux and Windows was not measured. On Windows the data table counts the bytes of each file of 2 GiB or more on every render, and the time for a 4 GiB file was not measured. — added 2026-10-19
@@ -30,7 +31,6 @@ _Last hygiene check: 2026-10-28 (M070 review: archived; pruned the M067 row; two
 - Read report names that are not UTF-8: from the M042 review. `analysis_reports()` lists `analyses/` with `list.files(pattern =)`, and `check_stored_output()` and `check_stale_output()` run `sub()` on each report name without `useBytes`, which stops with "input string is invalid" on a name that is not valid UTF-8 (possible on Linux); whether a `.qmd` name with such bytes stops `check_supplement()` was not checked. `check_leftover_output()` (M042) cuts names with `useBytes = TRUE`. — added 2026-10-23
 - Measure Sass lock reruns on Windows: from the M052 review. Since M052, Windows test processes share Quarto's Sass cache, as macOS and Linux ones did, and `run_in()` and `run_split()` rerun a render once on "database is locked"; no Windows lock rate is on record (macOS: 1 of 18 parallel first renders, M033). See also "Log render retries after a cache lock". — added 2026-10-24
 - Trace the Windows crash in create tests: from the M060 review. The windows-latest job of CI run 40310323002, on main at 4fad253 (a commit that changed only `cairn/` files), failed when the R session of `test-create-supplement.R` exited with -1073741819 (an access violation), where the run on 918a2d6 passed. No cause was looked for; a rerun shows whether it comes again. See also "Measure Sass lock reruns on Windows". — added 2026-10-26
-- Order the home page report table: from the M070 review. The listing in the template's `index.qmd` sorts reports by title, so the home-page table and the Analyses menu, which keeps the order `add_report()` added them, can list them in different orders (M070 demo: Main, Robustness, Sample against Sample, Main, Robustness). A listing `sort` setting or an `order` front-matter field could fix it for every site. — added 2026-10-28 — started M071
 - [low] Retry refused web links with GET: from the M063 plan. The web link check of `check_supplement(web_links = TRUE)` sends HEAD requests through `curlGetHeaders()`, and some servers answer a HEAD request or a script with 403 or 405 while a browser gets the page. A GET request for such an address, read through `url()` with no new package, would tell the two apart. From the M063 review: some servers answer a HEAD request with 400, 404, or 501, and those rows carry no browser note. Promote when such rows turn out common on real sites. — added 2026-10-26
 - [low] Read each page once for web links: from the M063 review. With `web_links = TRUE`, `web_addresses()` runs `docs_entries()`, `outside_links()`, and `page_values()` again for each page that `check_links()` already read, so each page is read and parsed twice. — added 2026-10-26
 - [low] Parse each stored output file once: from the M064 review. With `renv_lock = TRUE`, `check_supplement()` parses each `.json` file in `_freeze/analyses/<name>/execute-results/` three times, in `check_stale_output()`, `check_stale_script()`, and `check_renv_lock()`, which costs time on large stored output. See also "Read each page once for web links". — added 2026-10-27
