@@ -45,7 +45,7 @@ Let an author follow the publishing guide from an empty folder to a release with
 - [x] T2: In `R/release-supplement.R`, cut `release_commands()` to the four commands, read the `origin` address through `git_run()` (`R/check-supplement.R:567`), and print the address or the Releases-page steps in `report_release()`; update the roxygen.
 - [x] T3: In `R/check-tools.R`, remove the `gh` row (line 107) and its roxygen item.
 - [x] T4: Rewrite `vignettes/publishing.Rmd` per AC4, keeping its step order and its rule for rendering again after a report changes, with the last section "Use a terminal instead".
-- [ ] T5: Add usethis to Suggests. Update `README.md`'s setup and release sections, `GUIDE.md`'s "Make a release", `NEWS.md` (the `check_tools()` entry and a new entry), and `cairn/DESIGN.md`'s Conventions; append the two D-entries. Run AC6's grep and record its lines in the Review section.
+- [x] T5: Add usethis to Suggests. Update `README.md`'s setup and release sections, `GUIDE.md`'s "Make a release", `NEWS.md` (the `check_tools()` entry and a new entry), and `cairn/DESIGN.md`'s Conventions; append the two D-entries. Run AC6's grep and record its lines in the Review section.
 - [ ] T6: Walk AC4's steps in a new folder outside the repo with a new public repository on the user's account, as the question set allowed, and record AC5's evidence. Tell the user the repository's name so that they can delete it.
 - [ ] T7: Run `devtools::document()`, `devtools::test()`, and `devtools::check()`.
 
@@ -71,5 +71,6 @@ Let an author follow the publishing guide from an empty folder to a release with
 - 2026-10-28: T4 decisions: step 2 becomes "Set up git and sign in to GitHub" and step 5 "Make the repository, commit, and push" (`use_git()` then `use_github()`), so the ten steps keep their order; `use_github()` names the repository after the site folder (read from its body), so step 3 names the folder and `repo` alike; the release step names the Git pane for the printed commands; usethis claims read from usethis 3.2.2 source and `git_sitrep()` output. Correction to the plan note: usethis brings gitcreds through gh, not as its own import.
 - 2026-10-28: T4 done: guide rewritten; 13 fences above "## Use a terminal instead", all `r`; the terminal section holds the `sh` blocks.
 - 2026-10-28: T5 checkpoint (not checked off, full suite running): usethis in Suggests; README setup and release sections, GUIDE.md "Make a release", NEWS (new entry, `check_tools()` entry), DESIGN Conventions, D-036 and D-037 written. AC6 grep: 8 lines, none tells the author to install or run the GitHub tool (Quarto CLI in `R/check-tools.R:12`, `man/check_tools.Rd:27`, `README.md:29`, NEWS:146; "no GitHub command-line tool" at `README.md:35` and NEWS:4; NEWS:8 and :13 say `gh` is no longer printed or reported).
+- 2026-10-28: T5 done: `devtools::test()` 505 tests, 0 failed, 12 skipped; `test-publishing.R` ran its renders.
 
 ## Decisions
