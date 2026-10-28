@@ -3,6 +3,16 @@ url: https://jmgirard.github.io/supplement/
 template:
   bootstrap: 5
 
+# The pkgdown workflow puts the demo in docs/demo after the build. See
+# .github/scripts/build-demo.R.
+navbar:
+  structure:
+    left: [intro, reference, articles, tutorials, demo, news]
+  components:
+    demo:
+      text: Demo
+      href: demo/index.html
+
 reference:
   - title: Make a site
     desc: Make a site from the template, then add reports and data files.

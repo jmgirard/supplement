@@ -56,6 +56,12 @@ jobs:
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)
         shell: Rscript {0}
 
+      # The demo is the site that create_supplement() makes, rendered once
+      # with no edit. The script stops when the render fails, which fails
+      # this job, so a broken demo also stops the deploy of the whole site.
+      - name: Build demo site
+        run: Rscript .github/scripts/build-demo.R docs/demo
+
       # The upload skips hidden files unless told otherwise, and the build
       # writes docs/.nojekyll. The artifact is kept for one day, so after
       # that a failed deploy needs a re-run of all jobs, not of the deploy
