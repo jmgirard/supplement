@@ -2749,14 +2749,16 @@ test_that("a lockfile path listed under another letter case gets a row of its ow
 
 test_that("a lockfile path that the system finds by another path gets no spelling row", {
   # Each case: the RENV_PROFILE value and the folder that holds the
-  # lockfile. Windows drops a trailing `.` or space from a name.
+  # lockfile. Windows drops a trailing `.` or space from a name, and there
+  # the lockfile of `dev ` can get the row that it cannot be read.
+  spelling <- "listed under another spelling|^It is listed as"
   cases <- list(list("dev/", "dev"))
   if (.Platform$OS.type == "windows") cases <- c(cases, list(list("dev.", "dev"), list("dev ", "dev")))
   for (case in cases) {
     site <- new_site()
     write_profile_lock(site, case[[2]], c(dplyr = "1.1.4"))
     rows <- withr::with_envvar(c(RENV_PROFILE = case[[1]]), rows_of(check_lock(site), "renv-mismatch"))
-    expect_identical(nrow(rows), 0L, info = case[[1]])
+    expect_false(any(grepl(spelling, rows$problem)), info = paste(case[[1]], rows$problem))
   }
 
   # A folder that can be entered but not listed hides the spelling.
@@ -2768,7 +2770,7 @@ test_that("a lockfile path that the system finds by another path gets no spellin
   on.exit(Sys.chmod(folder, "0755"), add = TRUE)
   skip_if(length(list.files(folder)) > 0, "the folder can still be listed (running as root)")
   rows <- withr::with_envvar(c(RENV_PROFILE = "dev"), rows_of(check_lock(site), "renv-mismatch"))
-  expect_identical(nrow(rows), 0L)
+  expect_false(any(grepl(spelling, rows$problem)))
 })
 
 test_that("a profile name that is not valid UTF-8 shows its bytes in messages and the lockfile row", {

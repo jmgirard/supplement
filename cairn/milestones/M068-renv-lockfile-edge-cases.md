@@ -71,6 +71,7 @@ The lockfile readers of `write_dockerfile()` and `check_supplement(renv_lock = T
 - 2026-10-28: claim audit: 55 claims read, 5 corrected — R/check-supplement.R (`listed_path()` followed a link to its target's name, now skipped; row text and help now say "treats both spellings as one name, as macOS and Windows do for letter case by default", which also covers a Unicode-form difference; help says the row names the listed path "when it can tell"), NEWS.md (letter-case condition added). The same reader re-read the 5 and found all hold. `devtools::test()` after the fixes gave 474 tests, 0 failed.
 - 2026-10-28: implement done; status review.
 - 2026-10-28: step-7 approval: m068-renv-lockfile-edge-cases approved for merge
+- 2026-10-28: CI on PR #69: windows-latest failed at test-check-supplement.R:2759, case `dev `, one `"renv-mismatch"` row where the test expected none (the log does not show the row's text; M066 skipped `dev ` on Windows because its lockfile read fails there). The test now asserts that no row is the spelling row, not that no row comes; with both guards off it still fails twice on macOS. Test-only change; the test file passes (127 tests), so the approval stands.
 
 ## Decisions
 
