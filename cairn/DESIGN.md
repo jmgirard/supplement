@@ -298,7 +298,10 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   runs the same value shapes through both sides, except on Windows, where
   only its null-and-block test runs (D-020).
 - `index.qmd` reads its paper facts from `_supplement.yml` and lists the
-  reports in `analyses/` through a Quarto table listing.
+  reports in `analyses/` through a Quarto table listing. Quarto's default
+  sort lists reports with an `order` first, by that number, and the others
+  by title; the example has `order: 1`, and `add_report()` writes the next
+  whole number (none on a site whose reports have no `order`).
   `analyses/example.qmd`, `data/example.csv`, and license files are starter
   content for the author to replace. The template ships
   `figures/bootstrap-means.png`, so the first render publishes it. The

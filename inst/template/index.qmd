@@ -2,7 +2,9 @@
 title: "Supplemental Materials"
 subtitle: "{{< meta supplement.paper-title >}}"
 # The table under "Analysis Reports" lists each report in analyses/, with
-# the title and description from the report's front matter.
+# the title and description from the report's front matter. Reports with an
+# `order` in their front matter come first, by that number, and the others
+# after them by title.
 listing:
   id: reports
   type: table

@@ -1,5 +1,13 @@
 # supplement 0.0.0.9000
 
+* The home page lists reports in the order of the Analyses menu. The
+  template's example report has `order: 1` in its front matter.
+  `add_report()` gives each new report the next whole number after the
+  largest `order` in `analyses/`. The home page's table lists reports with
+  an `order` first, by that number, and the others after them by title. In
+  a site made earlier, whose reports have no `order`, `add_report()` writes
+  none, and the table keeps listing reports by title.
+
 * The package site has a demo, at
   <https://jmgirard.github.io/supplement/demo/>: a supplement for a
   made-up diary study of sleep and next-day mood. The package site's build
