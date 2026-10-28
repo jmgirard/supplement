@@ -42,7 +42,7 @@ Let an author follow the publishing guide from an empty folder to a release with
 ## Tasks
 
 - [x] T1: Tests first. Update `expected_commands()` and the command tests in `test-release-supplement.R`. Switch the tests that read the printed text for `git tag` to tell whether the commands were printed (near lines 907, 989, and 1009) to `git push`. Add the AC2 cases, each in a temporary repository from `git init` with `git remote add origin <address>`. Update the row tests in `test-check-tools.R` (lines 35, 53-54, and 66) and the mocked `gh` row in `test-create-supplement.R` (lines 383-418). In `test-publishing.R`, replace the terminal renders with `render_supplement()`. See them fail.
-- [ ] T2: In `R/release-supplement.R`, cut `release_commands()` to the four commands, read the `origin` address through `git_run()` (`R/check-supplement.R:567`), and print the address or the Releases-page steps in `report_release()`; update the roxygen.
+- [x] T2: In `R/release-supplement.R`, cut `release_commands()` to the four commands, read the `origin` address through `git_run()` (`R/check-supplement.R:567`), and print the address or the Releases-page steps in `report_release()`; update the roxygen.
 - [ ] T3: In `R/check-tools.R`, remove the `gh` row (line 107) and its roxygen item.
 - [ ] T4: Rewrite `vignettes/publishing.Rmd` per AC4, keeping its step order and its rule for rendering again after a report changes, with the last section "Use a terminal instead".
 - [ ] T5: Add usethis to Suggests. Update `README.md`'s setup and release sections, `GUIDE.md`'s "Make a release", `NEWS.md` (the `check_tools()` entry and a new entry), and `cairn/DESIGN.md`'s Conventions; append the two D-entries. Run AC6's grep and record its lines in the Review section.
@@ -65,5 +65,7 @@ Let an author follow the publishing guide from an empty folder to a release with
 - 2026-10-28: note from M072 implement: `tests/testthat/test-source.R` ("release_supplement() starts no process of its own") refuses `git_run` and `system2` in `R/release-supplement.R`, so T2's read of the `origin` address needs a helper outside that file (for example beside `git_files()` in `R/check-supplement.R`) or a change to that test, decided at implement with a work-log line.
 - 2026-10-28: implement started on branch m073-publish-from-r, cut from main at b5823a7.
 - 2026-10-28: T1 done: tests updated and failing on their assertions (release: 12 tests, check_tools: 3); the nine AC2 tests sit at the end of `test-release-supplement.R`, after `git_repo()`; `render_quiet()` moved to `helper-template.R` so `test-publishing.R` can use it; the create test's mocked row change is now `git = "missing"`.
+- 2026-10-28: T2 decision: the `origin` read is `origin_url()` beside `git_files()` in `R/check-supplement.R`, so `test-source.R` stays as it is and `release_supplement()` still calls no process helper itself, as `check_supplement()` already runs git for it (D-035 "of its own" read that way); the address parse is `release_address()` in `R/release-supplement.R`, one regex for the three forms with optional `.git`.
+- 2026-10-28: T2 done: four commands, the address or the Releases-page steps after them with the push-first text, roxygen updated; release tests 58/58 and `test-source.R` 2/2 pass.
 
 ## Decisions

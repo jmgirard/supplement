@@ -4,9 +4,11 @@
 #' [check_supplement()] and stops when that finds a problem, or when one
 #' of the files that it writes changes while the check runs. It then raises
 #' `version` in `_supplement.yml`, writes `CITATION.cff` and `.zenodo.json`
-#' again with the new version, and prints the git and GitHub commands that
-#' make the release. It runs none of these commands, so you can read them
-#' first and run them yourself in the site folder.
+#' again with the new version, and prints the git commands that commit and
+#' push the release. It runs none of these commands, so you can read them
+#' first and run them yourself in the site folder, or commit and push in
+#' the Git pane of RStudio or Positron. You then publish the release on
+#' GitHub's page, which makes the tag.
 #'
 #' `bump` is one of:
 #'
@@ -62,9 +64,8 @@
 #' the files of the release.
 #'
 #' The printed commands, for version `X.Y.Z`, are `git status -- .`,
-#' `git add -A -- .`, `git commit -m "Release vX.Y.Z" -- .`,
-#' `git tag vX.Y.Z`, `git push`, `git push origin vX.Y.Z`, and
-#' `gh release create vX.Y.Z --generate-notes`. The `-- .` limits the first
+#' `git add -A -- .`, `git commit -m "Release vX.Y.Z" -- .`, and
+#' `git push`. The `-- .` limits the first
 #' three commands to the site folder: `git status` shows, and `git add` and
 #' `git commit` stage and commit, only files under the site folder. These
 #' are the files that the `"large-file"` and `"saved-object"` checks of
@@ -73,12 +74,26 @@
 #' When the site is a subfolder of its repository, a change outside the
 #' site folder, also one that was staged before, stays out of the release
 #' commit. A file outside the site folder that was staged before the
-#' release stays staged, so a later `git commit` adds it. The last command
-#' needs the GitHub command-line tool (`gh`). When Zenodo's GitHub
-#' integration is turned on for the repository, Zenodo archives the release
-#' and gives it a version DOI. Add that DOI to `zenodo.version-doi` in
-#' `_supplement.yml`, and render the site again, so that the home page shows
-#' it.
+#' release stays staged, so a later `git commit` adds it.
+#'
+#' After the commands, the function prints how to publish the release on
+#' GitHub. It reads the address of the `origin` remote with
+#' `git remote get-url origin` in the site folder. When that address is
+#' `https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
+#' `ssh://git@github.com/<owner>/<name>`, with or without `.git` at the
+#' end, it prints the address of GitHub's new-release form with the tag
+#' set, such as
+#' `https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z`. Otherwise,
+#' for example when there is no `origin` remote, it prints the steps to make
+#' the release from the repository's Releases page. Push the release commit
+#' first: GitHub makes the tag on the default branch when you publish the
+#' release, so a release published before the push tags an older commit.
+#' The function opens no page.
+#'
+#' When Zenodo's GitHub integration is turned on for the repository,
+#' Zenodo archives the release and gives it a version DOI. Add that DOI to
+#' `zenodo.version-doi` in `_supplement.yml`, and render the site again, so
+#' that the home page shows it.
 #'
 #' @param bump `"patch"`, `"minor"`, `"major"`, or a version such as
 #'   `"1.0.0"`.
@@ -87,7 +102,8 @@
 #' @return The release commands as a character vector, invisibly.
 #'
 #' @section Errors:
-#' An error while the function prints the commands, after it wrote
+#' An error while the function reads the `origin` address or prints the
+#' commands, after it wrote
 #' the files, reaches you as it is. Otherwise the function stops with an
 #' error of class `supplement_error` and one of these classes. When it
 #' stops with one of these classes, no file is changed, unless a file that
@@ -212,7 +228,7 @@ release_supplement <- function(bump, path = ".") {
   write_release_files(read, lines, file, outputs, texts, old)
   # The files are the release, so a failure while printing keeps them.
   commands <- release_commands(new)
-  report_release(path, new, commands)
+  report_release(path, new, commands, release_address(origin_url(path), new))
   invisible(commands)
 }
 
@@ -488,19 +504,37 @@ release_commands <- function(version) {
     "git status -- .",
     "git add -A -- .",
     sprintf('git commit -m "Release %s" -- .', tag),
-    paste("git tag", tag),
-    "git push",
-    paste("git push origin", tag),
-    sprintf("gh release create %s --generate-notes", tag)
+    "git push"
   )
 }
 
-report_release <- function(path, version, commands) {
+# The address of GitHub's new-release form for version `version` in the
+# repository that `origin` names, or NULL when `origin` is NULL or is not
+# `https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
+# `ssh://git@github.com/<owner>/<name>`, each with or without `.git`.
+release_address <- function(origin, version) {
+  rx <- "^(https://github\\.com/|git@github\\.com:|ssh://git@github\\.com/)([A-Za-z0-9-]+)/([A-Za-z0-9._-]+?)(\\.git)?$"
+  if (is.null(origin) || !grepl(rx, origin, perl = TRUE)) {
+    return(NULL)
+  }
+  repo <- sub(rx, "\\2/\\3", origin, perl = TRUE)
+  sprintf("https://github.com/%s/releases/new?tag=v%s", repo, version)
+}
+
+report_release <- function(path, version, commands, address) {
+  tag <- paste0("v", version)
   cli::cli_alert_success(
     "Set {.field version} to {.val {version}} in {.file _supplement.yml}, and wrote {.file CITATION.cff} and {.file .zenodo.json}."
   )
-  cli::cli_text("Run these commands in {.path {path}} to make the release. The {.code git add} and {.code git commit} commands stage and commit only the files in this folder, and {.code git status -- .} shows them.")
+  cli::cli_text("Run these commands in {.path {path}} to commit the release and push it. The {.code git add} and {.code git commit} commands stage and commit only the files in this folder, and {.code git status -- .} shows them.")
   cli::cli_code(commands)
+  cli::cli_text("Then publish the release on GitHub. Push first: GitHub makes the tag {tag} on the default branch when you publish the release, so a release published before the push tags an older commit.")
+  if (is.null(address)) {
+    cli::cli_text("On the repository's page on GitHub, open Releases and draft a new release. Then enter {tag} as the tag, and publish the release.")
+  } else {
+    cli::cli_text("Open this page, check that the tag is {tag}, and publish the release:")
+    cli::cli_text("{.url {address}}")
+  }
   cli::cli_text(
     "After Zenodo archives the release, add its new version DOI to {.field zenodo.version-doi} in {.file _supplement.yml}, and render the site again."
   )

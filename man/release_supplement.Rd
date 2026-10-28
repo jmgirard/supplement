@@ -20,9 +20,11 @@ The release commands as a character vector, invisibly.
 \code{\link[=check_supplement]{check_supplement()}} and stops when that finds a problem, or when one
 of the files that it writes changes while the check runs. It then raises
 \code{version} in \verb{_supplement.yml}, writes \code{CITATION.cff} and \code{.zenodo.json}
-again with the new version, and prints the git and GitHub commands that
-make the release. It runs none of these commands, so you can read them
-first and run them yourself in the site folder.
+again with the new version, and prints the git commands that commit and
+push the release. It runs none of these commands, so you can read them
+first and run them yourself in the site folder, or commit and push in
+the Git pane of RStudio or Positron. You then publish the release on
+GitHub's page, which makes the tag.
 }
 \details{
 \code{bump} is one of:
@@ -80,9 +82,8 @@ files are written, so an error or an interrupt while it prints keeps
 the files of the release.
 
 The printed commands, for version \code{X.Y.Z}, are \verb{git status -- .},
-\verb{git add -A -- .}, \verb{git commit -m "Release vX.Y.Z" -- .},
-\verb{git tag vX.Y.Z}, \verb{git push}, \verb{git push origin vX.Y.Z}, and
-\verb{gh release create vX.Y.Z --generate-notes}. The \code{-- .} limits the first
+\verb{git add -A -- .}, \verb{git commit -m "Release vX.Y.Z" -- .}, and
+\verb{git push}. The \code{-- .} limits the first
 three commands to the site folder: \verb{git status} shows, and \verb{git add} and
 \verb{git commit} stage and commit, only files under the site folder. These
 are the files that the \code{"large-file"} and \code{"saved-object"} checks of
@@ -91,16 +92,31 @@ the release when git does not ignore them, as in the template.
 When the site is a subfolder of its repository, a change outside the
 site folder, also one that was staged before, stays out of the release
 commit. A file outside the site folder that was staged before the
-release stays staged, so a later \verb{git commit} adds it. The last command
-needs the GitHub command-line tool (\code{gh}). When Zenodo's GitHub
-integration is turned on for the repository, Zenodo archives the release
-and gives it a version DOI. Add that DOI to \code{zenodo.version-doi} in
-\verb{_supplement.yml}, and render the site again, so that the home page shows
-it.
+release stays staged, so a later \verb{git commit} adds it.
+
+After the commands, the function prints how to publish the release on
+GitHub. It reads the address of the \code{origin} remote with
+\verb{git remote get-url origin} in the site folder. When that address is
+\verb{https://github.com/<owner>/<name>}, \verb{git@github.com:<owner>/<name>}, or
+\verb{ssh://git@github.com/<owner>/<name>}, with or without \code{.git} at the
+end, it prints the address of GitHub's new-release form with the tag
+set, such as
+\verb{https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z}. Otherwise,
+for example when there is no \code{origin} remote, it prints the steps to make
+the release from the repository's Releases page. Push the release commit
+first: GitHub makes the tag on the default branch when you publish the
+release, so a release published before the push tags an older commit.
+The function opens no page.
+
+When Zenodo's GitHub integration is turned on for the repository,
+Zenodo archives the release and gives it a version DOI. Add that DOI to
+\code{zenodo.version-doi} in \verb{_supplement.yml}, and render the site again, so
+that the home page shows it.
 }
 \section{Errors}{
 
-An error while the function prints the commands, after it wrote
+An error while the function reads the \code{origin} address or prints the
+commands, after it wrote
 the files, reaches you as it is. Otherwise the function stops with an
 error of class \code{supplement_error} and one of these classes. When it
 stops with one of these classes, no file is changed, unless a file that
