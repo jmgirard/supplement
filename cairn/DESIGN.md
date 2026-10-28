@@ -367,9 +367,11 @@ and manual runs. Its `build` job runs on every trigger with read access
 `.github/scripts/build-demo.R`, which makes a site with
 `create_supplement(repo = "jmgirard/supplement")`, renders it once with no
 edit, and copies its `docs/` into `docs/demo`. The navbar's `Demo` entry
-and the README link that folder (M069). The script stops before any copy
-when Quarto is missing or the render fails, so a broken demo fails the
-job and stops the deploy of the whole package site. The job then uploads
+and the README link that folder (M069). The script refuses an output
+folder that already exists. It stops before any copy when Quarto is
+missing, the render fails, or the render writes no `docs/index.html`, so
+a broken demo fails the job and stops the deploy of the whole package
+site (D-033). The step has a 15-minute limit. The job then uploads
 `docs/` as a run artifact. Only a run on main
 (a push or a manual run) also runs the `deploy` job, the one job with write
 access (`contents: write`), which pushes that artifact to the `gh-pages`

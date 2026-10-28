@@ -36,11 +36,14 @@ docs <- file.path(site, "docs")
 if (!file.exists(file.path(docs, "index.html"))) {
   stop("quarto render wrote no docs/index.html.", call. = FALSE)
 }
-dir.create(out, recursive = TRUE)
+if (!dir.create(out, recursive = TRUE)) {
+  stop("Could not make ", out, ".", call. = FALSE)
+}
 entries <- list.files(docs, all.files = TRUE, no.. = TRUE, full.names = TRUE)
 copied <- file.copy(entries, out, recursive = TRUE, copy.date = TRUE)
 if (!all(copied)) {
   stop("Could not copy ", paste(basename(entries[!copied]), collapse = ", "), " into ", out, ".",
        call. = FALSE)
 }
+unlink(site, recursive = TRUE)
 cat("Wrote the demo site to ", out, "\n", sep = "")

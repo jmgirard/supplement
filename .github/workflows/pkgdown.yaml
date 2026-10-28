@@ -59,7 +59,9 @@ jobs:
       # The demo is the site that create_supplement() makes, rendered once
       # with no edit. The script stops when the render fails, which fails
       # this job, so a broken demo also stops the deploy of the whole site.
+      # The time limit fails a hung render instead of holding the job.
       - name: Build demo site
+        timeout-minutes: 15
         run: Rscript .github/scripts/build-demo.R docs/demo
 
       # The upload skips hidden files unless told otherwise, and the build
