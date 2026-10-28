@@ -1,13 +1,13 @@
 # M071: List reports in menu order on the home page
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes the home page of every new site and the reports `add_report()` writes
-- **Branch/PR:** —
+- **Branch/PR:** m071-report-table-order
 
 ## Goal
 
@@ -37,7 +37,7 @@ Make the home page's report table list reports in the order of the Analyses menu
 
 ## Tasks
 
-- [ ] T1: Tests first. In `test-create-supplement.R`, read the copied example's front matter and expect `order` 1 (AC1). In `test-add-report.R`, add one test for each of AC2's rules (a) to (d), the 10000000 case in (c), and update the two tests the `order` line breaks: "an empty description writes no description key" (front matter equal to `list(title = "Plain")`) and "a report stub reads the shared functions" (`expect_lte(length(lines), 40L)`). See them fail.
+- [x] T1: Tests first. In `test-create-supplement.R`, read the copied example's front matter and expect `order` 1 (AC1). In `test-add-report.R`, add one test for each of AC2's rules (a) to (d), the 10000000 case in (c), and update the two tests the `order` line breaks: "an empty description writes no description key" (front matter equal to `list(title = "Plain")`) and "a report stub reads the shared functions" (`expect_lte(length(lines), 40L)`). See them fail.
 - [ ] T2: Add `order: 1` to `inst/template/analyses/example.qmd`. Add its `text_hash()` to `example_versions` in `R/check-supplement.R` (near line 2109), write the fixture in `tests/testthat/fixtures/example-qmd/` with `data-raw/example-qmd-fixtures.R`, and update the commit list of the test near `test-check-supplement.R:1898`, so the test at line 1945 passes.
 - [ ] T3: In `R/add-report.R`, read the front matter of each other report that `analysis_reports()` lists, reusing the front-matter reading of `engine_is_knitr()` in `R/check-supplement.R` (factor out a shared helper if it keeps both readers the same), find the largest `order` per AC2, and pass it to `report_lines()`, which writes the `order` line after `description`.
 - [ ] T4: Add the AC3 render test to `test-add-render.R`, reading the table with `listing_rows()` and the menu from `_quarto.yml`, with titles such as "Alpha Models", "Zeta Checks", "Beta Sample" added in that order.
@@ -55,6 +55,7 @@ Make the home page's report table list reports in the order of the Analyses menu
 - 2026-10-28: plan gate chose an `order` field in each report over an explicit file list in the `index.qmd` listing with `sort: false` because a list would hide a report added by hand until the author also edits `index.qmd`; falsified by a Quarto version whose default listing sort ignores `order`.
 - 2026-10-28: plan gate chose writing no `order` on a site whose reports have none over always writing max + 1 because Quarto lists reports with `order` first, so the new report would jump to the top of an old site's table; falsified by finding that old sites' authors add `order` to every report anyway.
 - 2026-10-28: criteria audit (full mode, fresh Opus reader) returned 7 findings, all accepted: AC2 bounds `order` below 1000000 in absolute value with a test above it (large values write as `1e+15`, which yaml reads back as a string); AC2 names the yaml package as the reader (quoted `"3"` is a string to it and a number to Quarto); AC3 needs a title that sorts before the example's; AC4 says "orders" not "orders or lists", adds `Analysis Reports` to the grep and `cairn/DESIGN.md` to the paths, and drops its recording sentence, now in T5; T1 names the two existing tests the `order` line breaks; T2 names the `example_versions` hash and fixture that editing `example.qmd` needs.
+- 2026-10-28: T1: added the example-order test and five `order` tests (rules a to d, the quoted `"3"` and 10000000 cases under c) and updated the two tests the `order` line breaks; 7 fail on main as planned, and the rule (c) tests pass there, since main writes no `order`.
 
 ## Decisions
 

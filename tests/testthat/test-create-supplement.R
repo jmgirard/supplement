@@ -28,6 +28,11 @@ test_that("a new folder gets every template file with the same bytes", {
   expect_false(file.exists(file.path(site, "README.md")))
 })
 
+test_that("the example report has order 1, so it lists first on the home page", {
+  site <- new_site()
+  expect_identical(front_matter(file.path(site, "analyses", "example.qmd"))$order, 1L)
+})
+
 test_that("an existing folder keeps its files and gains the template", {
   site <- withr::local_tempdir()
   dir.create(file.path(site, "data"))
