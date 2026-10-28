@@ -306,7 +306,8 @@
 #'   link or junction that resolves to `docs/` or a place in it gives no row
 #'   of its own. Links
 #'   that start with `/`, `#`, or a scheme such as
-#'   `https:` are not checked here. Only the `"web-link"` check, with
+#'   `https:` are not checked here, except a `#` link under a local base
+#'   (below). Only the `"web-link"` check, with
 #'   `web_links = TRUE`, requests web addresses. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
 #'   name counts as broken, also on a disk that ignores case. A link that
@@ -314,9 +315,16 @@
 #'   as `e` plus an accent) is not caught.
 #'
 #'   Links are read from start tags only, as a browser reads them. Comments,
-#'   `<!...>` and `<?...>` markup, and the text of `<script>`, `<style>`,
-#'   `<textarea>`, and `<title>` elements are skipped, and so is page text
-#'   such as `<code>` text. Attribute names match in any letter case, and
+#'   `<!...>` and `<?...>` markup, end tags, and the text of `<script>`,
+#'   `<style>`, `<textarea>`, and `<title>` elements are skipped, and so is
+#'   page text such as `<code>` text. These parts end as the HTML Standard
+#'   says. A comment ends at the `>` of `<!-->` or `<!--->`, and otherwise
+#'   at its first `-->` or `--!>`. `</` followed by a character that is not
+#'   a letter or `>` starts a bogus comment, which ends at the next `>`. An
+#'   end tag is read through its attributes, so a `>` in a quoted value does
+#'   not end it. In the text of a script, `<!--` and then `<script` make the
+#'   next `</script>` part of the text. A later `</script>` ends the script,
+#'   unless a `-->` came first. Attribute names match in any letter case, and
 #'   only whole names count, so `data-href` and `data-src` are not read. A
 #'   value can be in double quotes, in single quotes, or unquoted, where it
 #'   runs to the next space or `>`. An attribute with no `=`, such as
@@ -338,6 +346,18 @@
 #'   159. A row shows the link after the references are decoded, the ends
 #'   removed, and the tabs and line breaks inside it dropped.
 #'
+#'   A `<base>` tag changes where the links of its page lead. Only the
+#'   first `<base>` tag with an `href` counts, and its `href` is not a link
+#'   itself. Its value is read as a link value is. If the value is empty,
+#'   starts with `#` or `?`, or starts with `data:` or `javascript:`, links
+#'   resolve against the page's own folder, as with no base. If the value
+#'   has another scheme, such as `https:`, or starts with `/`, the page's
+#'   relative links are not checked. Any other value is a local base.
+#'   Relative links then resolve against the folder of the base address,
+#'   with its `?` and `#` parts removed. A base whose last part is `.` or
+#'   `..` names a folder. A link of only a `#` or `?` part resolves to the
+#'   base address itself. A row shows the link as the page writes it.
+#'
 #'   These are the main cases where the check reads a page differently
 #'   from a browser. Every other reference (such as `&eacute;`, `&AMP;`, or
 #'   `&#38` with no `;`) stays as written. Other control characters at the
@@ -345,11 +365,15 @@
 #'   text of `<noscript>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`,
 #'   and `<plaintext>` elements is read as markup, and so is the text of a
 #'   `<![CDATA[...]]>` section after its first `>`. The four skipped
-#'   elements are also skipped inside `<svg>` and `<math>`. A comment ends
-#'   only at the first `-->`, so `<!-->` and `<!--->` also run to the next
-#'   `-->`, and `--!>` does not end it. A script ends at its first `</script>`, also when its text holds
-#'   `<!--` and `<script>`, where a browser reads on to a later
-#'   `</script>`. A `"` or `'` with no closing quote starts an unquoted
+#'   elements are also skipped inside `<svg>` and `<math>`. The end tags of
+#'   those four elements end at their first `>`, also inside a quoted
+#'   value. A `<base>` tag inside `<svg>` counts as a base, though a
+#'   browser does not use it. A `\` in a base is not read as `/`, while a
+#'   browser reads it so. An empty link, such as `href=""`, is not checked,
+#'   also under a local base, while a browser resolves it to the base
+#'   address. Under a base with a scheme or a leading `/`, a browser
+#'   follows the page's relative links to another place, and the check
+#'   does not check them. A `"` or `'` with no closing quote starts an unquoted
 #'   value, so the next `>` ends that tag and it is read, where a browser
 #'   reads on to the end of the page and drops the tag. A byte that is not
 #'   valid UTF-8 is read as text such as `<e9>`; outside a quoted value,

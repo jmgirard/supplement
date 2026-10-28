@@ -336,7 +336,8 @@ a folder, the folder's \code{index.html} is part of that path. A symbolic
 link or junction that resolves to \verb{docs/} or a place in it gives no row
 of its own. Links
 that start with \code{/}, \verb{#}, or a scheme such as
-\verb{https:} are not checked here. Only the \code{"web-link"} check, with
+\verb{https:} are not checked here, except a \verb{#} link under a local base
+(below). Only the \code{"web-link"} check, with
 \code{web_links = TRUE}, requests web addresses. GitHub
 Pages matches letter case, so a link whose case differs from the file
 name counts as broken, also on a disk that ignores case. A link that
@@ -344,9 +345,16 @@ also differs from the name in Unicode form (for example \code{é} written
 as \code{e} plus an accent) is not caught.
 
 Links are read from start tags only, as a browser reads them. Comments,
-\verb{<!...>} and \verb{<?...>} markup, and the text of \verb{<script>}, \verb{<style>},
-\verb{<textarea>}, and \verb{<title>} elements are skipped, and so is page text
-such as \verb{<code>} text. Attribute names match in any letter case, and
+\verb{<!...>} and \verb{<?...>} markup, end tags, and the text of \verb{<script>},
+\verb{<style>}, \verb{<textarea>}, and \verb{<title>} elements are skipped, and so is
+page text such as \verb{<code>} text. These parts end as the HTML Standard
+says. A comment ends at the \code{>} of \verb{<!-->} or \verb{<!--->}, and otherwise
+at its first \verb{-->} or \verb{--!>}. \verb{</} followed by a character that is not
+a letter or \code{>} starts a bogus comment, which ends at the next \code{>}. An
+end tag is read through its attributes, so a \code{>} in a quoted value does
+not end it. In the text of a script, \verb{<!--} and then \verb{<script} make the
+next \verb{</script>} part of the text. A later \verb{</script>} ends the script,
+unless a \verb{-->} came first. Attribute names match in any letter case, and
 only whole names count, so \code{data-href} and \code{data-src} are not read. A
 value can be in double quotes, in single quotes, or unquoted, where it
 runs to the next space or \code{>}. An attribute with no \code{=}, such as
@@ -368,6 +376,18 @@ name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
 159. A row shows the link after the references are decoded, the ends
 removed, and the tabs and line breaks inside it dropped.
 
+A \verb{<base>} tag changes where the links of its page lead. Only the
+first \verb{<base>} tag with an \code{href} counts, and its \code{href} is not a link
+itself. Its value is read as a link value is. If the value is empty,
+starts with \verb{#} or \verb{?}, or starts with \verb{data:} or \verb{javascript:}, links
+resolve against the page's own folder, as with no base. If the value
+has another scheme, such as \verb{https:}, or starts with \code{/}, the page's
+relative links are not checked. Any other value is a local base.
+Relative links then resolve against the folder of the base address,
+with its \verb{?} and \verb{#} parts removed. A base whose last part is \code{.} or
+\code{..} names a folder. A link of only a \verb{#} or \verb{?} part resolves to the
+base address itself. A row shows the link as the page writes it.
+
 These are the main cases where the check reads a page differently
 from a browser. Every other reference (such as \verb{&eacute;}, \verb{&AMP;}, or
 \verb{&#38} with no \verb{;}) stays as written. Other control characters at the
@@ -375,11 +395,15 @@ ends of a link, such as \verb{&#1;}, stay, while a browser removes them. The
 text of \verb{<noscript>}, \verb{<xmp>}, \verb{<iframe>}, \verb{<noembed>}, \verb{<noframes>},
 and \verb{<plaintext>} elements is read as markup, and so is the text of a
 \verb{<![CDATA[...]]>} section after its first \code{>}. The four skipped
-elements are also skipped inside \verb{<svg>} and \verb{<math>}. A comment ends
-only at the first \verb{-->}, so \verb{<!-->} and \verb{<!--->} also run to the next
-\verb{-->}, and \verb{--!>} does not end it. A script ends at its first \verb{</script>}, also when its text holds
-\verb{<!--} and \verb{<script>}, where a browser reads on to a later
-\verb{</script>}. A \verb{"} or \verb{'} with no closing quote starts an unquoted
+elements are also skipped inside \verb{<svg>} and \verb{<math>}. The end tags of
+those four elements end at their first \code{>}, also inside a quoted
+value. A \verb{<base>} tag inside \verb{<svg>} counts as a base, though a
+browser does not use it. A \verb{\\} in a base is not read as \code{/}, while a
+browser reads it so. An empty link, such as \code{href=""}, is not checked,
+also under a local base, while a browser resolves it to the base
+address. Under a base with a scheme or a leading \code{/}, a browser
+follows the page's relative links to another place, and the check
+does not check them. A \verb{"} or \verb{'} with no closing quote starts an unquoted
 value, so the next \code{>} ends that tag and it is read, where a browser
 reads on to the end of the page and drops the tag. A byte that is not
 valid UTF-8 is read as text such as \verb{<e9>}; outside a quoted value,

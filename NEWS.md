@@ -1,5 +1,15 @@
 # supplement 0.0.0.9000
 
+* `check_supplement()` now resolves the links of a page that has a
+  `<base>` tag against the base's `href`, as a browser does, and no longer
+  reads that `href` as a link. Under a base with a scheme such as
+  `https:`, or one that starts with `/`, the page's relative links are not
+  checked. Comments now also end at `<!-->`, `<!--->`, and `--!>`. `</`
+  followed by a character that is not a letter starts a bogus comment.
+  An end tag is read to its closing `>`. Links inside either are not
+  read. A script whose text holds `<!--` and then `<script>` now runs past
+  its next `</script>` to a later one, as in a browser.
+
 * A site can now be published with the R console, a web browser, and the
   Git pane of RStudio or Positron, with no GitHub command-line tool.
   `release_supplement()` prints and returns four git commands,

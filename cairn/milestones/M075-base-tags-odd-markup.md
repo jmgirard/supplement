@@ -60,7 +60,7 @@
 - [x] T2: Write the AC1 and AC2 tests first in `tests/testthat/test-check-supplement.R`. Then make `tag_links()` (`R/check-supplement.R:1937`) give the `href` of the first `<base>` tag that has one, apart from the link values. `page_values()` (`:1766`) leaves that value out, so `web_addresses()` does not request it. `page_links()` (`:1755`) and `check_links()` (`:1639`) join the base folder to each relative link before `link_ok()` (`:1998`).
 - [x] T3: Write the AC3 and AC4 tests first. Then change the comment part of `html_skipped` (`:1895`) and add parts for `</` and end tags. Keep every repeat possessive.
 - [x] T4: Write the AC5 tests first, the 1 MB page included. Then add the escaped and double escaped states to the script part of `html_raw_text()` (`:1912`), with possessive repeats only. Run the existing large-page tests, such as the 6 MB script page.
-- [ ] T5: Update the roxygen help of `check_supplement()` (`:316` to `:358`) and run `devtools::document()`. Add the NEWS.md entry under the development heading. Update the DESIGN.md "Link reader limits" entry.
+- [x] T5: Update the roxygen help of `check_supplement()` (`:316` to `:358`) and run `devtools::document()`. Add the NEWS.md entry under the development heading. Update the DESIGN.md "Link reader limits" entry.
 - [ ] T6: Run `devtools::test()` and `devtools::check()`.
 
 ## Work log
@@ -83,6 +83,7 @@
 - 2026-10-28: implement choice: a `broken-link` row under a base names the link as written on the page, not the joined path, so the author can find it in the page.
 - 2026-10-28: T3 done: `html_skipped` ends a comment at `<!-->`, `<!--->`, or the first `-->` or `--!>`, and removes `</` with a non-letter to the next `>` and end tags through their attributes. Two tests red before, green after; the old skipped-text and large-page tests still pass.
 - 2026-10-28: T4 done: `html_script_body` (possessive parts only) gives the script text of `html_raw_text("script")` the escaped and double escaped states. The double-escape test was red before and green after; the 1 MB test passed before too, as a guard on the PCRE limit. Measured on macOS, R 4.6: `<!--<script></script>-->` repeated reads at 4 MB and reaches the match limit by 16 MB; a plain 6 MB script still reads; the old large-page and linear-time tests pass.
+- 2026-10-28: T5 done: the `check_supplement()` help page states the end rules, the base paragraph, and the new differences (end tags of the four skipped elements, `<base>` in `<svg>`, `\` in a base, empty links, links under a scheme or `/` base); `devtools::document()` rewrote `man/check_supplement.Rd`. NEWS.md has one entry; the DESIGN.md "Link reader limits" entry names the base cases and is marked narrowed M075. README, GUIDE.md, `_README.md`, and the vignettes state no link reading rules (grep), so they are unchanged.
 
 ## Decisions
 
