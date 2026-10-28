@@ -77,18 +77,32 @@
 #' release stays staged, so a later `git commit` adds it.
 #'
 #' After the commands, the function prints how to publish the release on
-#' GitHub. It reads the address of the `origin` remote with
-#' `git remote get-url origin` in the site folder. When that address is
-#' `https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
-#' `ssh://git@github.com/<owner>/<name>`, with or without `.git` at the
-#' end, it prints the address of GitHub's new-release form with the tag
-#' set, such as
-#' `https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z`. Otherwise,
-#' for example when there is no `origin` remote, it prints the steps to make
-#' the release from the repository's Releases page. Push the release commit
-#' first: GitHub makes the tag on the default branch when you publish the
-#' release, so a release published before the push tags an older commit.
-#' The function opens no page.
+#' GitHub. It reads the push address of the `origin` remote with
+#' `git remote get-url --push origin` in the site folder, which gives the
+#' fetch address when no push address is set. The address is on GitHub
+#' when it starts with `https://` or `http://` and the host `github.com` or
+#' `www.github.com`, with `ssh://` and the host `github.com`, or with
+#' `git@github.com:` (any user name). The host can be in any letter case,
+#' and a user name and a port can come before it. Then come
+#' `<owner>/<name>`, an optional `.git`, and an optional `/`. For such an
+#' address, the function prints the address of GitHub's new-release form
+#' with the tag set. When the site folder is on a branch, the address also
+#' names that branch as the target, such as
+#' `https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z&target=main`,
+#' so the address names the current branch. Otherwise, for example when
+#' there is no `origin` remote, it prints the steps to make the release
+#' from the repository's Releases page, with the current branch as the
+#' target.
+#'
+#' Push the release commit first, and publish the release right after the
+#' push. GitHub makes the tag on the current branch when you publish the
+#' release, so a release published before the push tags an older commit,
+#' and one published after a later push tags the later commit. When the
+#' folder is not on a branch (a detached HEAD), the address names no
+#' target, and GitHub makes the tag on the default branch. When the
+#' current branch is not the default branch that `refs/remotes/origin/HEAD`
+#' names, the function prints a warning that names both branches. The
+#' function opens no page.
 #'
 #' When Zenodo's GitHub integration is turned on for the repository,
 #' Zenodo archives the release and gives it a version DOI. Add that DOI to
