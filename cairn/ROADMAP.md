@@ -1,17 +1,16 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-28 (M071 review: archived; pruned the M068 row; graduated "Order the home page report table", added "Keep new reports after large orders"; one lesson captured, the M025 YAML-path lesson evicted by rank, two marked used; LESSONS holds 25 lessons; validate green)_
+_Last hygiene check: 2026-10-28 (M072 review: archived; pruned the M069 row; added "Check Windows console renders from R"; one lesson captured, the M060 fs-link lesson evicted by rank, four marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M072 | Render a site from the R console | review | — | normal | milestones/M072-render-from-r.md |
 | M073 | Publish a site from the R console and a browser | planned | M072 | normal | milestones/M073-publish-from-r.md |
+| M072 | Render a site from the R console | done | — | normal | milestones/archive/M072-render-from-r.md |
 | M071 | List reports in menu order on the home page | done | — | normal | milestones/archive/M071-report-table-order.md |
 | M070 | Fill in the demo site | done | — | normal | milestones/archive/M070-filled-in-demo-site.md |
-| M069 | Publish a demo of the template site | done | — | normal | milestones/archive/M069-demo-template-site.md |
 
 ## Candidates
 
