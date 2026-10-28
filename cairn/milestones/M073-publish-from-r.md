@@ -72,5 +72,6 @@ Let an author follow the publishing guide from an empty folder to a release with
 - 2026-10-28: T4 done: guide rewritten; 13 fences above "## Use a terminal instead", all `r`; the terminal section holds the `sh` blocks.
 - 2026-10-28: T5 checkpoint (not checked off, full suite running): usethis in Suggests; README setup and release sections, GUIDE.md "Make a release", NEWS (new entry, `check_tools()` entry), DESIGN Conventions, D-036 and D-037 written. AC6 grep: 8 lines, none tells the author to install or run the GitHub tool (Quarto CLI in `R/check-tools.R:12`, `man/check_tools.Rd:27`, `README.md:29`, NEWS:146; "no GitHub command-line tool" at `README.md:35` and NEWS:4; NEWS:8 and :13 say `gh` is no longer printed or reported).
 - 2026-10-28: T5 done: `devtools::test()` 505 tests, 0 failed, 12 skipped; `test-publishing.R` ran its renders.
+- 2026-10-28: T6 stop: the auto-mode permission classifier denied the walk script (reason "Create Public Surface") before it ran; no folder, log, or repository `jmgirard/supplement-publish-walk` exists. The script stands in for console yes answers with a `utils::menu()` stub and prints browser calls; branch build installed to a scratch library. Asking the user how to go on.
 
 ## Decisions
