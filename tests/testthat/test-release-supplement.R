@@ -44,10 +44,7 @@ expected_commands <- function(v) {
     "git status -- .",
     "git add -A -- .",
     sprintf('git commit -m "Release v%s" -- .', v),
-    sprintf("git tag v%s", v),
-    "git push",
-    sprintf("git push origin v%s", v),
-    sprintf("gh release create v%s --generate-notes", v)
+    "git push"
   )
 }
 
@@ -904,7 +901,7 @@ expect_changed_stop <- function(dir, seen, changed) {
   }
   expect_false(is.null(seen$state))
   expect_identical(folder_state(dir), seen$state)
-  expect_false(any(grepl("git tag", out$msgs, fixed = TRUE)))
+  expect_false(any(grepl("git push", out$msgs, fixed = TRUE)))
 }
 
 # An edit that replaces the one line of _supplement.yml that matches
@@ -986,7 +983,7 @@ test_that("a check that reads the files but changes none lets the release finish
   expect_identical(site_version(dir), "1.2.4")
   expect_identical(read_cff(dir)$version, "1.2.4")
   expect_identical(jsonlite::read_json(file.path(dir, ".zenodo.json"))$version, "1.2.4")
-  expect_true(any(grepl("git tag v1.2.4", msgs, fixed = TRUE)))
+  expect_true(any(grepl("git push", msgs, fixed = TRUE)))
 })
 
 # Folders at an output --------------------------------------------------------
@@ -1006,7 +1003,7 @@ expect_folder_stop <- function(dir, state) {
   expect_false(inherits(err, "supplement_error_release_write"))
   expect_false(is.null(state))
   expect_identical(folder_state(dir), state)
-  expect_false(any(grepl("git tag", out$msgs, fixed = TRUE)))
+  expect_false(any(grepl("git push", out$msgs, fixed = TRUE)))
 }
 
 test_that("a folder at an output before the release stops it before the check", {
@@ -1153,4 +1150,97 @@ test_that("for a site at the top of the repository, the release commit holds its
   paths <- committed_paths(repo)
   expect_true(all(c("CITATION.cff", "_supplement.yml", "docs/index.html") %in% paths),
               label = paste(paths, collapse = ", "))
+})
+
+# Release address -------------------------------------------------------------
+
+# The text that the release of a site at the top of a new git repository
+# prints, with `address` as its origin remote, or with no remote when
+# `address` is NULL.
+release_text_with_origin <- function(address) {
+  local_plain_git()
+  mock_check()
+  repo <- git_repo()
+  write_site_yml(repo)
+  if (!is.null(address)) {
+    expect_status(git_in(repo, c("remote", "add", "origin", address)))
+    got <- git_in(repo, c("remote", "get-url", "origin"))
+    expect_identical(got$output, address)
+  }
+  withr::local_options(cli.width = 1000)
+  out <- new.env()
+  out$msgs <- character()
+  commands <- capture_messages_to(release_supplement("minor", path = repo), out)
+  expect_identical(commands, expected_commands("1.3.0"))
+  paste(out$msgs, collapse = "")
+}
+
+expect_push_first <- function(text) {
+  expect_match(text, "Push first", fixed = TRUE)
+  expect_match(text, "GitHub makes the tag v1.3.0 on the default branch when you publish the release", fixed = TRUE)
+}
+
+# Expect `text` to give the new-release address of the GitHub repository
+# `repo` ("owner/name") after the commands.
+expect_release_address <- function(text, repo) {
+  address <- sprintf("https://github.com/%s/releases/new?tag=v1.3.0", repo)
+  at <- regexpr(address, text, fixed = TRUE)
+  expect_gt(at, 0)
+  expect_gt(at, regexpr("git push", text, fixed = TRUE))
+  expect_length(gregexpr("releases/new", text, fixed = TRUE)[[1]], 1L)
+  expect_push_first(text)
+}
+
+# Expect `text` to give the steps on the Releases page, and no address.
+expect_release_steps <- function(text) {
+  expect_no_match(text, "releases/new", fixed = TRUE)
+  expect_match(text, "open Releases", fixed = TRUE)
+  expect_match(text, "enter v1.3.0 as the tag", fixed = TRUE)
+  expect_gt(regexpr("open Releases", text, fixed = TRUE), regexpr("git push", text, fixed = TRUE))
+  expect_push_first(text)
+}
+
+test_that("an https origin gives the release address", {
+  skip_if_no_git()
+  expect_release_address(release_text_with_origin("https://github.com/jdoe/my-site"), "jdoe/my-site")
+})
+
+test_that("an https origin that ends in .git gives the release address", {
+  skip_if_no_git()
+  expect_release_address(release_text_with_origin("https://github.com/jdoe/my-site.git"), "jdoe/my-site")
+})
+
+test_that("an scp-like ssh origin gives the release address", {
+  skip_if_no_git()
+  expect_release_address(release_text_with_origin("git@github.com:jdoe/my-site"), "jdoe/my-site")
+})
+
+test_that("an scp-like ssh origin that ends in .git gives the release address", {
+  skip_if_no_git()
+  expect_release_address(release_text_with_origin("git@github.com:jdoe/my-site.git"), "jdoe/my-site")
+})
+
+test_that("an ssh:// origin gives the release address", {
+  skip_if_no_git()
+  expect_release_address(release_text_with_origin("ssh://git@github.com/jdoe/my-site"), "jdoe/my-site")
+})
+
+test_that("an ssh:// origin that ends in .git gives the release address", {
+  skip_if_no_git()
+  expect_release_address(release_text_with_origin("ssh://git@github.com/jdoe/my-site.git"), "jdoe/my-site")
+})
+
+test_that("a repository name with a dot keeps the dot in the release address", {
+  skip_if_no_git()
+  expect_release_address(release_text_with_origin("https://github.com/jdoe/my.site.git"), "jdoe/my.site")
+})
+
+test_that("a repository with no origin remote gives the steps on the Releases page", {
+  skip_if_no_git()
+  expect_release_steps(release_text_with_origin(NULL))
+})
+
+test_that("an origin that is not on GitHub gives the steps on the Releases page", {
+  skip_if_no_git()
+  expect_release_steps(release_text_with_origin("https://gitlab.com/jdoe/my-site.git"))
 })

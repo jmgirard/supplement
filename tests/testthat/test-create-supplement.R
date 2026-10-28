@@ -380,9 +380,9 @@ test_that("a site made with repo renders", {
 # statuses in `changed` (named by tool) in their place.
 mock_tool_rows <- function(changed = character(), env = parent.frame()) {
   rows <- data.frame(
-    tool = c("Quarto", "knitr", "rmarkdown", "git", "gh", "GitHub account", "Zenodo account"),
-    status = c(rep("found", 5), "reminder", "reminder"),
-    detail = paste("detail of", c("Quarto", "knitr", "rmarkdown", "git", "gh", "GitHub", "Zenodo")),
+    tool = c("Quarto", "knitr", "rmarkdown", "git", "GitHub account", "Zenodo account"),
+    status = c(rep("found", 4), "reminder", "reminder"),
+    detail = paste("detail of", c("Quarto", "knitr", "rmarkdown", "git", "GitHub", "Zenodo")),
     stringsAsFactors = FALSE
   )
   rows$status[match(names(changed), rows$tool)] <- changed
@@ -409,13 +409,13 @@ test_that("the closing message names each missing, old, or off-path tool", {
   expect_no_match(clean$message, "check_tools", fixed = TRUE)
   expect_no_match(clean$message, "detail of", fixed = TRUE)
 
-  mock_tool_rows(c(Quarto = "not on path", knitr = "missing", gh = "too old"))
+  mock_tool_rows(c(Quarto = "not on path", knitr = "missing", git = "missing"))
   noted <- made_site(file.path(dir, "noted"))
   lines <- strsplit(noted$message, "\n", fixed = TRUE)[[1]]
   expect_length(grep("detail of", lines, fixed = TRUE), 3L)
   expect_match(noted$message, "Quarto: not on path. detail of Quarto", fixed = TRUE)
   expect_match(noted$message, "knitr: missing. detail of knitr", fixed = TRUE)
-  expect_match(noted$message, "gh: too old. detail of gh", fixed = TRUE)
+  expect_match(noted$message, "git: missing. detail of git", fixed = TRUE)
   expect_match(noted$message, "check_tools()", fixed = TRUE)
   expect_identical(noted$files, clean$files)
 })

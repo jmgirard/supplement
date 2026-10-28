@@ -122,6 +122,22 @@ command_failure <- function(result, expected) {
   sprintf("The command exited with status %s; expected %s. It printed:\n%s", status, expected, shown)
 }
 
+# render_supplement() with its messages suppressed. Quarto 1.10 can stop a
+# render with "database is locked" when test files render at once (see
+# sass_cache_locked()). Quarto prints to the console, not to R, so the lock
+# text cannot be read here: a call that fails runs once more, and a real
+# failure fails twice.
+render_quiet <- function(...) {
+  suppressMessages(tryCatch(
+    render_supplement(...),
+    supplement_error_render = function(e) {
+      # Written to standard error, so the test log shows each rerun.
+      cat("render_supplement() failed once, running it again:", conditionMessage(e), "\n", file = stderr())
+      render_supplement(...)
+    }
+  ))
+}
+
 # Run git without the user's global or system configuration and without a
 # global excludes file, so that only the repository's own .gitignore
 # decides what is ignored. GIT_DIR, GIT_WORK_TREE, and GIT_INDEX_FILE are

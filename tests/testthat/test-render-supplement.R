@@ -227,22 +227,7 @@ test_that("render_supplement() runs each render in the site folder and gives bac
   expect_identical(getwd(), before)
 })
 
-# Render tests with the real Quarto.
-
-# Quarto 1.10 can stop a render with "database is locked" when test files
-# render at once (see sass_cache_locked() in helper-template.R). Quarto
-# prints to the console, not to R, so the lock text cannot be read here: a
-# call that fails runs once more, and a real failure fails twice.
-render_quiet <- function(...) {
-  suppressMessages(tryCatch(
-    render_supplement(...),
-    supplement_error_render = function(e) {
-      # Written to standard error, so the test log shows each rerun.
-      cat("render_supplement() failed once, running it again:", conditionMessage(e), "\n", file = stderr())
-      render_supplement(...)
-    }
-  ))
-}
+# Render tests with the real Quarto. render_quiet() is in helper-template.R.
 
 test_that("render_supplement() renders a new site", {
   skip_if_no_quarto()

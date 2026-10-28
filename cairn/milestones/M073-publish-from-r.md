@@ -1,13 +1,13 @@
 # M073: Publish a site from the R console and a browser
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** M072
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes what `release_supplement()` prints and returns, the rows of `check_tools()`, and the publishing guide
-- **Branch/PR:** —
+- **Branch/PR:** m073-publish-from-r
 
 ## Goal
 
@@ -41,7 +41,7 @@ Let an author follow the publishing guide from an empty folder to a release with
 
 ## Tasks
 
-- [ ] T1: Tests first. Update `expected_commands()` and the command tests in `test-release-supplement.R`. Switch the tests that read the printed text for `git tag` to tell whether the commands were printed (near lines 907, 989, and 1009) to `git push`. Add the AC2 cases, each in a temporary repository from `git init` with `git remote add origin <address>`. Update the row tests in `test-check-tools.R` (lines 35, 53-54, and 66) and the mocked `gh` row in `test-create-supplement.R` (lines 383-418). In `test-publishing.R`, replace the terminal renders with `render_supplement()`. See them fail.
+- [x] T1: Tests first. Update `expected_commands()` and the command tests in `test-release-supplement.R`. Switch the tests that read the printed text for `git tag` to tell whether the commands were printed (near lines 907, 989, and 1009) to `git push`. Add the AC2 cases, each in a temporary repository from `git init` with `git remote add origin <address>`. Update the row tests in `test-check-tools.R` (lines 35, 53-54, and 66) and the mocked `gh` row in `test-create-supplement.R` (lines 383-418). In `test-publishing.R`, replace the terminal renders with `render_supplement()`. See them fail.
 - [ ] T2: In `R/release-supplement.R`, cut `release_commands()` to the four commands, read the `origin` address through `git_run()` (`R/check-supplement.R:567`), and print the address or the Releases-page steps in `report_release()`; update the roxygen.
 - [ ] T3: In `R/check-tools.R`, remove the `gh` row (line 107) and its roxygen item.
 - [ ] T4: Rewrite `vignettes/publishing.Rmd` per AC4, keeping its step order and its rule for rendering again after a report changes, with the last section "Use a terminal instead".
@@ -63,5 +63,7 @@ Let an author follow the publishing guide from an empty folder to a release with
 - 2026-10-28: plan gate chose one terminal section at the end of the vignette over a terminal line inside each step because the R path stays short to read; falsified by readers who mostly use the terminal.
 - 2026-10-28: criteria audit (full mode, fresh Opus reader), shared with M072, all accepted; for M073: tests that used `git tag` as a marker, six address forms and a dotted name, the stale `gh` row in a create test, every fence and the prose checked (AC4), the token steps left to the user (AC5), the package's own wording in the grep, "runs none of the printed commands" in place of "runs neither", the D-entry bound by a criterion, and "Make a release" named. The usethis sentence of AC6 came from the question set and passed the same questions; it joined AC6 to keep the milestone at 7 criteria.
 - 2026-10-28: note from M072 implement: `tests/testthat/test-source.R` ("release_supplement() starts no process of its own") refuses `git_run` and `system2` in `R/release-supplement.R`, so T2's read of the `origin` address needs a helper outside that file (for example beside `git_files()` in `R/check-supplement.R`) or a change to that test, decided at implement with a work-log line.
+- 2026-10-28: implement started on branch m073-publish-from-r, cut from main at b5823a7.
+- 2026-10-28: T1 done: tests updated and failing on their assertions (release: 12 tests, check_tools: 3); the nine AC2 tests sit at the end of `test-release-supplement.R`, after `git_repo()`; `render_quiet()` moved to `helper-template.R` so `test-publishing.R` can use it; the create test's mocked row change is now `git = "missing"`.
 
 ## Decisions
