@@ -73,7 +73,9 @@ Publish the site that `create_supplement()` and one `quarto render` make under `
 - 2026-10-28: T3 done. The README paragraph after the opening one links the demo and names what its home page shows, read from the local render's `demo/index.html` (the setup box, the placeholder title, the example report, and `example.csv`). One NEWS.md bullet. DESIGN.md's pkgdown paragraph names the demo step and the deploy trade-off.
 - 2026-10-28: T4 done. Pushed the branch at f39dd89 and ran `gh workflow run pkgdown.yaml --ref m069-demo-template-site` (run 40614339385): build success, deploy skipped. Its `site` artifact holds `demo/index.html`, `demo/analyses/example.html`, and `demo/data/example.csv`. Its `index.html` links `demo/index.html` and `reference/create_supplement.html` links `../demo/index.html`.
 - 2026-10-28: claim audit: 16 claims read, 1 corrected — README.md, NEWS.md (the demo sentence now says that `repo` is set, so the GitHub link has no placeholder). The reader also found that a render that exits 0 with no `docs/` gave an empty demo, so the script now stops when `docs/index.html` is missing (a stub `quarto` that exits 0 gives exit 1 and no `<out>`). The usage line now names knitr and rmarkdown. The same reader re-read the corrections once and found them accurate.
+- 2026-10-28: review pushed the branch at 3ffe1d9 before the merge question, to run the pkgdown workflow on the head whose script AC3 and AC4 verify. The T4 run predates the claim-audit change to the script.
 - 2026-10-28: verify: `devtools::test()` 475 tests, 0 failed, 0 errors, 12 skipped (macOS). All tasks done, status review.
+- 2026-10-28: step-7 approval: m069-demo-template-site approved for merge
 
 ## Decisions
 
