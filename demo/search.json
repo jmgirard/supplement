@@ -95,7 +95,7 @@
     "href": "index.html#analysis-reports",
     "title": "Supplemental Materials",
     "section": "Analysis Reports",
-    "text": "Analysis Reports\nEach report is a rendered Quarto document with its complete code and output. The source files (.qmd) are in the analyses/ folder of the repository.\n\n\n\n\n\n\nReport\n\n\n\nDescription\n\n\n\n\n\n\n\n\nMain Analysis\n\n\nWithin-person and between-person links of sleep with mood.\n\n\n\n\n\n\nRobustness Checks\n\n\nThe within-person effect under other analysis choices.\n\n\n\n\n\n\nSample Description\n\n\nWho took part, and how many diary days each person completed.\n\n\n\n\n\n\nNo matching items"
+    "text": "Analysis Reports\nEach report is a rendered Quarto document with its complete code and output. The source files (.qmd) are in the analyses/ folder of the repository.\n\n\n\n\n\n\nReport\n\n\n\nDescription\n\n\n\n\n\n\n\n\nSample Description\n\n\nWho took part, and how many diary days each person completed.\n\n\n\n\n\n\nMain Analysis\n\n\nWithin-person and between-person links of sleep with mood.\n\n\n\n\n\n\nRobustness Checks\n\n\nThe within-person effect under other analysis choices.\n\n\n\n\n\n\nNo matching items"
   },
   {
     "objectID": "index.html#data-availability",

@@ -42,6 +42,21 @@ The path of the new report file, invisibly.
 
 ## Details
 
+The home page's table lists the reports that have an `order` field in
+their front matter first, by that number, and the others after them by
+title. The template's example report has `order: 1`. The function gives
+the new report the next whole number after the largest `order` of the
+other reports in `analyses/`. So when every report has an `order` and
+the menu lists them in that order, the table lists reports in the order
+of the Analyses menu. The new report gets `order: 1` when `analyses/`
+holds no other report. It gets no `order` when no other report has one,
+as in a site made before the template had `order`, so that its table
+keeps listing reports by title. Here an `order` counts only when the
+yaml package reads it as a number below one million (in absolute value),
+and a report whose front matter cannot be read counts as having none. To
+change the table's order, edit the `order` values, render each changed
+report by name, then render the whole site.
+
 The first code chunk of the new report is the `site` chunk of the
 template's example report, which sets `site` to the site folder. If
 `QUARTO_PROJECT_DIR` is not empty, as in a render, `site` is its value.
@@ -151,20 +166,21 @@ to make a site.
 ``` r
 site <- file.path(tempdir(), "report-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/Rtmpgc2iUM/report-example.
+#> ✔ Made a supplement site in /tmp/Rtmp8MNJMU/report-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/Rtmpgc2iUM/report-example once before your first
+#> ℹ Run `quarto render` in /tmp/Rtmp8MNJMU/report-example once before your first
 #>   commit.
 add_report("models", "Model Comparison", "Fits and compares the models.", path = site)
 #> ✔ Wrote analyses/models.qmd and added it to the Analyses menu in _quarto.yml.
-#> ℹ Run `quarto render analyses/models.qmd` in /tmp/Rtmpgc2iUM/report-example to
+#> ℹ Run `quarto render analyses/models.qmd` in /tmp/Rtmp8MNJMU/report-example to
 #>   run the report.
 cat(readLines(file.path(site, "analyses", "models.qmd")), sep = "\n")
 #> ---
 #> title: "Model Comparison"
 #> description: "Fits and compares the models."
+#> order: 2
 #> ---
 #> 
 #> Write the report here. The `site` chunk finds the site folder, so the

@@ -92,7 +92,21 @@ page shows the start of the report's text in its place.</p></dd>
     </div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>The first code chunk of the new report is the <code>site</code> chunk of the
+    <p>The home page's table lists the reports that have an <code>order</code> field in
+their front matter first, by that number, and the others after them by
+title. The template's example report has <code>order: 1</code>. The function
+gives the new report the next whole number after the largest <code>order</code> of
+the other reports in <code>analyses/</code>. So when every report has an <code>order</code>
+and the menu lists them in that order, the table lists reports in the
+order of the Analyses menu. The new report gets <code>order: 1</code> when
+<code>analyses/</code> holds no other report. It gets no <code>order</code> when no other
+report has one, as in a site made before the template had <code>order</code>, so
+that its table keeps listing reports by title. Here an <code>order</code> counts
+only when the yaml package reads it as a number below one million (in
+absolute value), and a report whose front matter cannot be read counts
+as having none. To change the table's order, edit the <code>order</code> values,
+render each changed report by name, then render the whole site.</p>
+<p>The first code chunk of the new report is the <code>site</code> chunk of the
 template's example report, which sets <code>site</code> to the site folder. If
 <code>QUARTO_PROJECT_DIR</code> is not empty, as in a render, <code>site</code> is its value.
 Otherwise <code>site</code> is <code>"."</code> or <code>".."</code>, the first of the two that holds
@@ -180,20 +194,21 @@ make a site.</p></div>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"report-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/Rtmpgc2iUM/report-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/Rtmp8MNJMU/report-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/Rtmpgc2iUM/report-example</span> once before your first</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/Rtmp8MNJMU/report-example</span> once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="fu">add_report</span><span class="op">(</span><span class="st">"models"</span>, <span class="st">"Model Comparison"</span>, <span class="st">"Fits and compares the models."</span>, path <span class="op">=</span> <span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Wrote <span style="color: #0000BB;">analyses/models.qmd</span> and added it to the Analyses menu in <span style="color: #0000BB;">_quarto.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render analyses/models.qmd` in <span style="color: #0000BB;">/tmp/Rtmpgc2iUM/report-example</span> to</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render analyses/models.qmd` in <span style="color: #0000BB;">/tmp/Rtmp8MNJMU/report-example</span> to</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   run the report.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/cat.html" class="external-link">cat</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html" class="external-link">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">site</span>, <span class="st">"analyses"</span>, <span class="st">"models.qmd"</span><span class="op">)</span><span class="op">)</span>, sep <span class="op">=</span> <span class="st">"\n"</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> title: "Model Comparison"</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> description: "Fits and compares the models."</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> order: 2</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Write the report here. The `site` chunk finds the site folder, so the</span>
