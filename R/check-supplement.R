@@ -337,9 +337,9 @@
 #'   row that says so, in place of its link rows. Such a page holds
 #'   millions of `-` in one comment, millions of `<` in the text of one
 #'   script, style, textarea, or title element (about 5 million did, in a
-#'   page of 20 MB), or millions of attributes in one tag. In script text
-#'   after `<!--`, millions of `</`, or millions of separate runs of `-`,
-#'   can reach the limits sooner.
+#'   page of 20 MB), or millions of attributes in one tag. Script text with
+#'   millions of `</` or `<!`, or, after `<!--`, millions of `<s` or of
+#'   separate runs of `-`, can reach the limits sooner.
 #'   Each value is handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
@@ -1972,8 +1972,9 @@ url_status <- function(url) {
 # match, so a comment that holds millions of `-`, a script, style,
 # textarea, or title body that holds millions of `<`, or one tag with
 # millions of attributes can still reach it (about 5 million `<` in one
-# script body did). Script text after `<!--` with millions of `</`, or
-# millions of separate runs of `-`, can reach it sooner (html_script_body).
+# script body did). Script text with millions of `</` or `<!`, or, after
+# `<!--`, millions of `<s` or of separate runs of `-`, can reach it sooner
+# (html_script_body).
 # page_links() then returns FALSE.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
@@ -2008,10 +2009,11 @@ ascii_lower <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmno
 # `>`, and a `<script` or `</script` that starts or ends double escaped
 # text takes that character with it.
 # Each part is an unrolled loop: a run of other characters, then one `<`
-# or one whole run of `-` per pass. A run of two or more `-` before `>` is
-# the `-->` that ends escaped or double escaped text. Only ordinary `<`
-# loop in the inner part, with one class lookahead, since each further
-# check per `<` brings PCRE's match limit closer.
+# or one whole run of `-` per pass. The escaped and double escaped parts
+# stop before a run of two or more `-` that a `>` follows, the `-->` that
+# ends them. Only ordinary `<` loop in the inner part, with one class
+# lookahead, since each further check per `<` brings PCRE's match limit
+# closer.
 html_script_body <- local({
   name <- ascii_any_case("script")
   start <- paste0("<", name, "[\t\n\f\r />]")

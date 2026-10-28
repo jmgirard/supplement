@@ -133,3 +133,26 @@ Pass 1 (2026-10-28), on branch head ffbb8ba, main at ed28d21 (not moved since th
 - ripple #4: DESIGN.md architecture text (about line 175) omits base hrefs and skipped end tags — fix now
 - ripple #5: DESIGN.md says each link resolves by path segments, with no word on a local base — fix now
 - ripple #6: same as diff-bug #7 — fix now
+- Pass-1 fix-now items: fixed in 643c997, efe3c10, 0a1e205, and f7fba85 (return 1, task T7); pass 2's prior-review lens found each one in the code.
+
+Pass 2 (2026-10-28), on branch head 919cb2c, main at ed28d21 (not moved). One defect return so far (return 1).
+
+- AC1 to AC5: the eight M075 tests named in pass 1, plus "script text with millions of < or of - after <!-- is read", pass in a fresh `devtools::test()` on 919cb2c: 526 tests, 0 failed, 0 errors, 12 skipped.
+- AC6: help text at 919cb2c states the base rules (R/check-supplement.R:352 to :367), the comment, end tag, and script rules (:317 to :331), the `#` exception (:309, :344), and the difference list (:369 to :392) without the four closed cases and with the base cases; NEWS.md and the DESIGN.md entry match.
+- AC7: `devtools::test()` as above; `devtools::check()` on 919cb2c: 0 errors, 0 warnings, 1 NOTE (the session's git-ignored `.claude/` lock file).
+- Gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff at 919cb2c; `pkgdown::check_pkgdown()` no problems (pass 1, `_pkgdown.yml` and exports unchanged since).
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: plain script text with 2M `</a` (or 2M `<!x`) reaches the PCRE limit, where main reads 4M — reject (edge: needs millions of `</` or `<!` in one script; htmlwidgets writes `</` as `<\/`, and 20 MB of HTML-like text holding 1.2M `</` reads; effect is the PCRE-limit row). A one-lookahead variant was fuzzed (109,445 inputs, 0 mismatches) and gained nothing on `</`, so the pattern stays.
+- diff-bug #2: the help and comment named only the escaped cases of the sooner limit — fix now; they now name `</` and `<!` in any script text, and `<s` and separate `-` runs after `<!--` (measured at 3M each)
+- diff-bug #3: three pattern branches had no test (`->` in double escaped text, `<s` that starts no `<script`, `<!` that starts no `<!--`) — fix now; test "->, <s, and <! that start nothing stay script text", which fails on each of the three planted mutants
+- diff-bug #4: the margin test discriminates — noted
+- diff-bug #5: the comment said a `-`-run rule makes `--->` work, though the `-->` tail alone does — fix now; comment reworded
+- diff-bug #6 to #8: the `//` test removal, the help figure, and the NEWS and help script text all match — noted
+- blame-history #1: a base starting with `/` (such as `/supplement/`) or naming the site's own `https:` address leaves relative links unchecked, where main checked them against the page folder — reject (planned change: AC2 and the Scope Out item); follow-up row "Check links under a site-root base" for reading the site's path
+- blame-history #2: a scheme base that does not parse (`http://`) leaves links unchecked, where main matched the browser by chance — follow-up, same row
+- blame-history #3: sooner PCRE limits in escaped script text — reject (edge: millions of `</`, `<s`, or `-` runs after `<!--`; effect is the PCRE-limit row; documented)
+- blame-history #4, #5: `<!-->` endings and `#` links under a base — reject (planned change, AC3 and AC1)
+- blame-history #6: `..` above `docs/` under a base counts as broken — reject (false: such a path leaves the published site, the M022 rule)
+- prior-review: no prior-review evidence; every pass-1 fix present. Its note on the "about 5 million" figure — noted: 5M `<` reaches the limit on main and HEAD, 4.8M reads on both (T7).
+- ripple #1: ROADMAP row "Read huge script bodies past PCRE limits" cross-references "Close the link reader's browser gaps", which hygiene removes — fix now at step 9 hygiene
+- ripple #2: the same row does not name the sooner escaped-script limits — fix now at step 9 hygiene

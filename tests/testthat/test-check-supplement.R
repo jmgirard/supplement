@@ -1094,6 +1094,18 @@ test_that("a script that holds <!-- and <script> runs past its first </script>",
   ))
 })
 
+test_that("->, <s, and <! that start nothing stay script text", {
+  site <- new_site()
+  write_page(site, "arrow.html",
+             '<script><!--<script>-></script><a href="in-1.csv">x</a></script><a href="after-1.csv">x</a>')
+  write_page(site, "s.html",
+             '<script><!--<sx<script></script><a href="in-2.csv">x</a></script><a href="after-2.csv">x</a>')
+  write_page(site, "bang.html", '<script><!x<script></script><a href="after-3.csv">x</a></script>')
+  expect_setequal(broken_pairs(site), c(
+    "docs/arrow.html `after-1.csv`", "docs/s.html `after-2.csv`", "docs/bang.html `after-3.csv`"
+  ))
+})
+
 test_that("1 MB of escaped script text is read", {
   site <- new_site()
   write_page(site, "big.html", c(
