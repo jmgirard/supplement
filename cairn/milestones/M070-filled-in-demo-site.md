@@ -79,6 +79,7 @@ Make the package site's demo a finished-looking supplement for a made-up study, 
 - 2026-10-28: claim audit: 44 claims read, 4 corrected — cairn/DESIGN.md (2), .github/workflows/pkgdown.yaml, .github/demo/analyses/sample.md. The reader also noted that the ORCID example iD, which ORCID keeps for a fictional researcher, reaches `CITATION.cff` and `.zenodo.json` but no demo page. It was kept. The re-read of the corrected claims is pending.
 - 2026-10-28: claim audit re-read: the 4 corrected claims hold. The `sample.md` mood sentence changed after the T3 build and the T5 run, so review's evidence build has to come from the current head.
 - 2026-10-28: implement done; status review.
+- 2026-10-28: review: the Scope and T2 say every replace and remove goes through `replace_once()`. Text edits do, but the three example files are deleted through `remove_file()`, which stops when the file is missing. AC5's promise holds for both.
 
 ## Review
 
@@ -91,3 +92,30 @@ Evidence at 487a8e1, from a fresh install of the head into a scratch library and
 - AC5: the clean build printed "No problems found", skipped exactly the three git checks, and exited 0. Probes at 487a8e1, each into a folder that did not exist: (1) a temporary install whose `index.qmd` heading reads "## Before you commit" exited 1 with "index.qmd holds 0 copies of this text, not 1". (2) A temporary install whose `LICENSE.md` holds the copyright line twice exited 1 with "LICENSE.md holds 2 copies of this text, not 1". (3) A copy of `.github/` whose `model.md` links a missing `codebook.html` exited 1 with "check_supplement() returned 1 rows" after a `broken-link` row. No output folder existed after any probe.
 - AC6: `gh run view 40620592498`: event `workflow_dispatch` on branch commit 3157d27, conclusion success, build success, deploy skipped. The `site` artifact, downloaded again at review, holds `demo/index.html` with "Sleep Duration and Next-Day Mood: A 14-Day Diary Study". Later commits changed text only (`sample.md`, comments, tracking), and the PR's own pkgdown run builds the head again.
 - AC7: read at 487a8e1. All five texts name "a made-up diary study of sleep and (next-day) mood". README lines 10-17 and NEWS lines 3-7 each name all four functions. The DESIGN.md demo paragraph names `add_data()`, `add_report()`, and `check_supplement()`, and names the first function as `create_supplement(repo = "jmgirard/supplement")`, read as naming it. `grep -niE 'no edit|placeholder'` over the five texts finds nothing about the demo. The README and NEWS hits are at README 45 and 172 and NEWS 34 and 189, which describe the template and the check.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: a script path with spaces reaches `--file=` as `~+~`, so `source()` fails — fix now, fixed 2559aaa (a build from a folder named "with space" exits 0).
+- diff-bug #2: `replace_once()` counts overlapping copies as one — fix now, fixed 2559aaa (a probe counts "aa" in "aaa" as 2).
+- diff-bug #3: a `file.copy()` that fails partway leaves a partial output folder (code unchanged since M069) — follow-up, row "Remove a partly copied demo folder".
+- diff-bug #4: the header and the workflow comment leave out the `skipped`, `remove_file()`, and analysis-line stops and the Archived Version edit — fix now, fixed 2559aaa.
+- diff-bug #5: Scope and T2 say every replace and remove goes through one helper, but file deletes use `remove_file()` — fix now as a record: a work-log line states it, and the plan text is left as written.
+- diff-bug #6: the README's list of made-up items leaves out the archive link — fix now, fixed 2559aaa.
+- diff-bug #7: the home-page listing sorts reports by title while the navbar keeps the order they were added — follow-up, row "Order the home page report table".
+- diff-bug #8: the ORCID iD is ORCID's real example record — reject, planned change (Scope names ORCID's example iD).
+- diff-bug #9: `replace_once()` turns CRLF into LF and adds a final newline — fix now, fixed 2559aaa (byte read and write; a CRLF probe keeps `0d 0a`).
+- diff-bug #10: the between-person estimate will be near 0.17, not the 0.15 in the `simulate.R` comment — reject, false: the comment states the simulation's parameter on usual sleep, and no text claims the estimate.
+- diff-bug #11: the workflow comment has an orphan "That fails" line — fix now, fixed 2559aaa.
+- diff-bug #12: the demo note links the script on `main` — reject, false: the demo is published only from main (D-026), so the link names the script that built it.
+- blame-history #1: failure exits leave the temporary site and data folders — reject, false: both are under `tempdir()`, which R removed after a planted `stop()` in a probe.
+- blame-history #2: D-034 does not list `write_citation()`, `write_zenodo()`, or the skip assertion — reject, false: a D-entry holds the decision, and DESIGN.md holds those details.
+- blame-history #3: "renders twice (D-018)" is a loose citation — reject, false: D-018's consequences state that a figure saved under a new name reaches `docs/` only on the next render.
+- blame-history #4: the README no longer says `repo` is set — reject, planned change (the plan rewrote that paragraph).
+- blame-history #5: orphan comment line in `pkgdown.yaml` — fix now, fixed 2559aaa (same fix as diff-bug #11).
+- blame-history #6: `readLines()` cuts text at a NUL byte (LESSONS M026) — fix now, fixed 2559aaa (byte read).
+- prior-review #1: early stops skip temp cleanup (M069 review) — reject, false, as blame-history #1.
+- prior-review #2: D-033 has no pointer to D-034 — reject, false: DECISIONS.md is append-only, and D-034's heading names what it supersedes.
+- ripple #1: the usage message in `stop()` names `build-demo.R` without its folder, unlike the header — fix now, fixed 2559aaa.
+- ripple #2: D-018 is about the PNG write, not rendering twice — reject, false: D-018 is the shipped figure, and its consequences hold the next-render rule.
+
+Re-run after the fixes, on the 2559aaa tree: the build exited 0, `check_supplement()` returned no rows and skipped the three git checks, the 10 AC2 texts were in 0 pages, `figures/` held only `figure-1.png`, and the badge was in `index.html`. All three AC5 probes exited 1 with the errors above and left no output folder.
