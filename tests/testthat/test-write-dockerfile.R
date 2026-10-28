@@ -523,6 +523,8 @@ test_that("a lockfile that starts with a UTF-8 byte order mark is read with no w
     expect_no_warning(dockerfile_messages(site, quarto = "1.10.19"))
     expect_identical(read_bytes(file.path(site, "Dockerfile")),
                      charToRaw(if (profile) dockerfile_dev else dockerfile_461), info = profile)
+    expect_identical(read_bytes(file.path(site, ".dockerignore")),
+                     charToRaw(if (profile) "*\n!renv/profiles/dev/renv.lock\n" else "*\n!renv.lock\n"), info = profile)
   }
 })
 

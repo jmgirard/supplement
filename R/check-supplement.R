@@ -949,7 +949,9 @@ stored_script_hashes <- function(file) {
 # from lock_source(). Rows and messages show its path with show_text(),
 # since a profile name need not be valid UTF-8, and cli stops on such text.
 # A site with no lockfile gets a message and no row, a lockfile that cannot
-# be read gets one row, and so does a renv/profile that cannot be read.
+# be read gets one row, and so does a renv/profile that cannot be read. A
+# lockfile listed under another spelling gets one row before the report
+# rows.
 check_renv_lock <- function(path) {
   source <- lock_source(path)
   if (isFALSE(source)) {
@@ -985,16 +987,21 @@ check_renv_lock <- function(path) {
   # Where the file system ignores letter case, renv reads the lockfile under
   # another spelling, which a case-sensitive file system and the Docker
   # build of write_dockerfile() do not find.
+  # A profile name with `/`, or on Windows with `\` or a trailing space or
+  # `.`, is not one folder name, and the system finds the file by another
+  # path, so its parts cannot be matched with what the folders list.
   parts <- strsplit(source$file, "/", fixed = TRUE)[[1]]
+  rewritten <- !all(nzchar(parts)) ||
+    (.Platform$OS.type == "windows" && any(grepl("[ .]$|\\\\", parts, useBytes = TRUE)))
   spelling <- problem_rows()
-  if (!listed_exactly(path, parts)) {
+  if (!rewritten && !listed_exactly(path, parts)) {
     listed <- listed_path(path, parts)
     spelling <- problem_rows("renv-mismatch", shown, paste0(
       if (is.null(listed)) "A folder or file in its path is listed under another spelling" else
         paste0("It is listed as ", quote_path(show_text(listed))),
-      ". renv finds it under that spelling only where the file system treats both spellings as one name, as ",
-      "macOS and Windows do for letter case by default, and write_dockerfile() refuses it. Rename it to ",
-      quote_path(shown), ", then commit the change."
+      ". renv finds it only where the file system treats both spellings as one name, as macOS and Windows ",
+      "do for letter case by default, and write_dockerfile() refuses it. Rename it to ", quote_path(shown),
+      ", then commit the change."
     ))
   }
   lock$file <- shown
@@ -1174,11 +1181,14 @@ profile_line <- function(path) {
 }
 
 # TRUE when each of `parts`, a path from the folder `path`, is listed in
-# its folder under its exact name, letter case included.
+# its folder under its exact name, letter case included. A folder that
+# lists nothing, such as one that can be entered but not read, counts as
+# listing the part.
 listed_exactly <- function(path, parts) {
   for (i in seq_along(parts)) {
     folder <- do.call(file.path, as.list(c(path, parts[seq_len(i - 1)])))
-    if (!parts[[i]] %in% list.files(folder, all.files = TRUE)) {
+    names <- list.files(folder, all.files = TRUE)
+    if (length(names) > 0 && !parts[[i]] %in% names) {
       return(FALSE)
     }
   }
@@ -1187,11 +1197,10 @@ listed_exactly <- function(path, parts) {
 
 # The path `parts`, from the folder `path`, with each part as its folder
 # lists it, or NULL when a part is not found so. A part is the one name in
-# its folder that differs from it only in ASCII letter case, else, when it
-# is not a link, the name that fs::path_real() gives it, which is the
-# stored name on macOS and Windows.
+# its folder that differs from it only in letter case, by fold_case(),
+# else, when it is not a link, the name that fs::path_real() gives it,
+# which is the stored name on macOS and Windows.
 listed_path <- function(path, parts) {
-  fold <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", x)
   listed <- character()
   for (part in parts) {
     folder <- do.call(file.path, as.list(c(path, listed)))
@@ -1200,8 +1209,7 @@ listed_path <- function(path, parts) {
       listed <- c(listed, part)
       next
     }
-    # chartr() stops on text that is not valid in the locale.
-    same <- tryCatch(names[fold(names) == fold(part)], error = function(e) character())
+    same <- tryCatch(names[fold_case(names) == fold_case(part)], error = function(e) character())
     # fs::path_real() follows a link, so it would give the target's name.
     if (length(same) != 1 && !is_link(file.path(folder, part))) {
       real <- tryCatch(basename(as.character(fs::path_real(file.path(folder, part)))), error = function(e) "")

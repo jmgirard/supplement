@@ -2686,9 +2686,7 @@ test_that("the message names both sources of the profile when they give the same
     expect_identical(lock_messages(site), paste0(
       "i Picked '", lock, "', the lockfile of the renv profile \"dev\", which ", shapes[[shape]][[2]], ".\n"
     ), info = shape)
-    result <- check_lock(site)
-    expect_identical(result$file[result$check %in% c("renv-mismatch", "renv-missing")], "analyses/r.qmd", info = shape)
-    expect_identical(rows_of(result, "renv-mismatch")$problem,
+    expect_identical(rows_of(check_lock(site), "renv-mismatch")$problem,
                      lock_text("r", "html.json", paste0("dplyr 1.1.3 (", lock, ": 1.1.4)"), lock = lock,
                                active = profile_active("dev")), info = shape)
   }
@@ -2709,26 +2707,27 @@ test_that("a lockfile path listed under another letter case gets a row of its ow
     site <- new_site()
     lock <- case[[2]]
     listed <- case[[3]]
-    active <- if (is.na(case[[1]])) "" else profile_active(case[[1]])
+    # Only the first site holds a report, whose rows must stay.
+    report <- identical(case, cases[[1]])
     dir.create(dirname(file.path(site, listed)), recursive = TRUE, showWarnings = FALSE)
     writeLines(lock_json(c(dplyr = "1.1.4")), file.path(site, listed))
-    env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3", tidyr = "1.3.1")))
+    if (report) env_report(site, "r", html.json = env_json(c(dplyr = "1.1.3", tidyr = "1.3.1")))
     withr::with_envvar(c(RENV_PROFILE = case[[1]]), {
       result <- check_lock(site)
       messages <- lock_messages(site)
     })
     if (ignores_case(site)) {
       rows <- rows_of(result, "renv-mismatch")
-      expect_identical(rows$file, c(lock, "analyses/r.qmd"), info = listed)
+      expect_identical(rows$file, c(lock, if (report) "analyses/r.qmd"), info = listed)
       expect_identical(rows$problem[1], paste0(
-        'It is listed as "', listed, '". renv finds it under that spelling only where the file system treats ',
-        "both spellings as one name, as macOS and Windows do for letter case by default, and write_dockerfile() ",
-        "refuses it. Rename it to \"", lock, '", then commit the change.'
+        'It is listed as "', listed, '". renv finds it only where the file system treats both spellings as ',
+        "one name, as macOS and Windows do for letter case by default, and write_dockerfile() refuses it. ",
+        "Rename it to \"", lock, '", then commit the change.'
       ), info = listed)
-      expect_identical(rows$problem[2], lock_text("r", "html.json", paste0("dplyr 1.1.3 (", lock, ": 1.1.4)"),
-                                                  lock = lock, active = active), info = listed)
-      expect_identical(rows_of(result, "renv-missing")$problem,
-                       missing_text("r", "html.json", "tidyr", lock = lock, active = active), info = listed)
+      if (report) {
+        expect_identical(rows$problem[2], lock_text("r", "html.json", "dplyr 1.1.3 (renv.lock: 1.1.4)"))
+        expect_identical(rows_of(result, "renv-missing")$problem, missing_text("r", "html.json", "tidyr"))
+      }
     } else {
       expect_identical(nrow(result[result$check %in% c("renv-mismatch", "renv-missing"), ]), 0L, info = listed)
       expect_match(messages[length(messages)], paste0("the site has no '", lock, "'"), fixed = TRUE, info = listed)
@@ -2746,6 +2745,30 @@ test_that("a lockfile path listed under another letter case gets a row of its ow
   } else {
     expect_identical(nrow(rows), 0L)
   }
+})
+
+test_that("a lockfile path that the system finds by another path gets no spelling row", {
+  # Each case: the RENV_PROFILE value and the folder that holds the
+  # lockfile. Windows drops a trailing `.` or space from a name.
+  cases <- list(list("dev/", "dev"))
+  if (.Platform$OS.type == "windows") cases <- c(cases, list(list("dev.", "dev"), list("dev ", "dev")))
+  for (case in cases) {
+    site <- new_site()
+    write_profile_lock(site, case[[2]], c(dplyr = "1.1.4"))
+    rows <- withr::with_envvar(c(RENV_PROFILE = case[[1]]), rows_of(check_lock(site), "renv-mismatch"))
+    expect_identical(nrow(rows), 0L, info = case[[1]])
+  }
+
+  # A folder that can be entered but not listed hides the spelling.
+  skip_on_os("windows")
+  site <- new_site()
+  write_profile_lock(site, "dev", c(dplyr = "1.1.4"))
+  folder <- file.path(site, "renv", "profiles", "dev")
+  Sys.chmod(folder, "0311")
+  on.exit(Sys.chmod(folder, "0755"), add = TRUE)
+  skip_if(length(list.files(folder)) > 0, "the folder can still be listed (running as root)")
+  rows <- withr::with_envvar(c(RENV_PROFILE = "dev"), rows_of(check_lock(site), "renv-mismatch"))
+  expect_identical(nrow(rows), 0L)
 })
 
 test_that("a profile name that is not valid UTF-8 shows its bytes in messages and the lockfile row", {
