@@ -21,7 +21,7 @@ The lockfile readers of `write_dockerfile()` and `check_supplement(renv_lock = T
 
 ## Acceptance criteria
 
-- [ ] AC1: `write_dockerfile()` reads a lockfile that starts with a UTF-8 byte order mark, `renv.lock` or a profile's `renv/profiles/<name>/renv.lock`, with no warning, and writes the same `Dockerfile` and `.dockerignore` bytes as for that lockfile without the mark. A test in `tests/testthat/test-write-dockerfile.R` runs each of the two lockfiles, and for each one the no-warning check fails without the change.
+- [x] AC1: `write_dockerfile()` reads a lockfile that starts with a UTF-8 byte order mark, `renv.lock` or a profile's `renv/profiles/<name>/renv.lock`, with no warning, and writes the same `Dockerfile` and `.dockerignore` bytes as for that lockfile without the mark. A test in `tests/testthat/test-write-dockerfile.R` runs each of the two lockfiles, and for each one the no-warning check fails without the change.
 - [x] AC2: `write_dockerfile()` refuses a site whose `renv.lock` is listed under another letter case, such as `Renv.lock`, with `supplement_error_no_file`, and writes neither `Dockerfile` nor `.dockerignore`. Where the file system ignores letter case, the message holds the hint that a folder or file in that path is listed under another spelling; elsewhere it holds the existing hint to set up renv. A test in `tests/testthat/test-write-dockerfile.R` runs `Renv.lock` and `RENV.LOCK`, and on macOS and Windows it fails without the change. The existing tests where `renv.lock` has its exact letter case still pass.
 - [x] AC3: With `renv_lock = TRUE`, `check_supplement()` gives one `"renv-mismatch"` row for the picked lockfile when `lock_versions()` read it but a folder or file in its path from the site folder is listed under another spelling, such as `Renv.lock` for `renv.lock`. The row's file is the path as renv picks it, and its text names the path as listed and says to rename it to the path renv picks, then commit the change. A lockfile that cannot be read gets the existing unreadable row and no such row. A lockfile path listed with its exact spelling gets no such row. A test in `tests/testthat/test-check-supplement.R` puts another letter case in each part in turn: `renv.lock` at the top, and `renv`, `profiles`, `<name>`, and `renv.lock` of a profile path whose name comes from `RENV_PROFILE`. Where the file system ignores letter case, each case fails without the change, and one site's report keeps its `"renv-mismatch"` and `"renv-missing"` rows. Where it matches letter case, these sites get the message that the site has no lockfile, with and without the change.
 - [x] AC4: When `RENV_PROFILE` names a profile (not empty and not `default`) and the first line of `renv/profile` is that name byte for byte, the "Picked" message of `check_supplement(renv_lock = TRUE)` and of `write_dockerfile()` says that `RENV_PROFILE` and `renv/profile` both name the profile, and the name error of `write_dockerfile()` (`supplement_error_profile`) says that both give the name. When `renv/profile` is missing, empty, names another profile, or is a folder, these texts name `RENV_PROFILE` alone, as on main, and neither function gives an error or a row from `renv/profile`. Tests in `tests/testthat/test-check-supplement.R` and `tests/testthat/test-write-dockerfile.R` run each of these shapes.
@@ -82,31 +82,36 @@ Evidence at bfd8bc6 (macOS, R 4.6), first pass:
 - AC4: five `renv/profile` shapes beside `RENV_PROFILE = "dev"`: the same name gives "both name" in both functions, the other four give "`RENV_PROFILE` names", no error, no `renv/profile` row; name `a b` gives "both give" in `supplement_error_profile`.
 - AC5: code read of `lock_source()`: with `RENV_PROFILE` not empty, `file` and `profile` come from it alone; `profile_line()` only sets `from`. The tests' `Dockerfile` bytes (`dockerfile_dev`) and "Picked" paths are the same for all five shapes.
 - AC6: `man/write_dockerfile.Rd:92-94` (renv.lock letter case), `:80-82` and `man/check_supplement.Rd:224-227` (both sources), `man/check_supplement.Rd:207-213` (the row), `cairn/DESIGN.md:124-129, 192-199`; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`, outside the package source).
-- Gate: `cairn_validate` all checks passed; `devtools::document()` no diff; README.Rmd absent; `pkgdown::check_pkgdown()` not run yet (no export changed); NEWS entry present (renv_lock sentence); no new top-level file; no principle changed, so `cairn_impact` skipped.
+- Gate: `cairn_validate` all checks passed; `devtools::document()` no diff; README.Rmd absent; `pkgdown::check_pkgdown()` no problems; NEWS entry present (renv_lock sentence); no new top-level file; no principle changed, so `cairn_impact` skipped.
+
+Evidence at db6cf7f, after the fix-now commit:
+- AC1: the BOM test now also compares `.dockerignore` (`*\n!renv.lock\n` and `*\n!renv/profiles/dev/renv.lock\n`) and passes; with the `drop_bom()` call removed at bfd8bc6 it gave 2 failures, one per lockfile.
+- Fixes: a profile name with an empty part (`dev/`), and on Windows a part with `\` or a trailing space or `.`, skip the spelling check; a folder that lists nothing counts as listing the part; `listed_path()` folds with `fold_case()`; the fallback text no longer says "that spelling". New test "a lockfile path that the system finds by another path gets no spelling row": with both guards off it gave 2 failures (`dev/`, the 0311 folder); its Windows cases run only on the Windows CI job.
+- Re-verify: `devtools::test()` 475 tests, 0 failed, 12 skipped; `devtools::document()` no diff; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude`). AC2 to AC6 hold at this head (same tests pass; AC3's row text changed only in "renv finds it only where").
 
 spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: `RENV_PROFILE = "dev/"` gives an empty path part, so a false spelling row on every system — fix now
-- diff-bug #2: on Windows a backslash or a trailing dot or space in the name gives a false row whose rename advice cannot be followed — fix now
-- diff-bug #3: a folder that can be entered but not listed (mode 0711) gives a false row, and `write_dockerfile()` refuses its `renv.lock` — fix now
+- diff-bug #1: `RENV_PROFILE = "dev/"` gives an empty path part, so a false spelling row on every system — fix now, fixed db6cf7f
+- diff-bug #2: on Windows a backslash or a trailing dot or space in the name gives a false row whose rename advice cannot be followed — fix now, fixed db6cf7f
+- diff-bug #3: a folder that can be entered but not listed (mode 0711) gives a false row, and `write_dockerfile()` refuses its `renv.lock` — fix now, fixed db6cf7f
 - diff-bug #4: `renv/profile` as a named pipe hangs `lock_source()` when `RENV_PROFILE` is set — reject, edge: a named pipe at `renv/profile` is outside documented and common use, and the effect is a hang (slow running); see "Skip FIFOs and other special files"
-- diff-bug #5: the fallback text's "under that spelling" names no spelling — fix now
+- diff-bug #5: the fallback text's "under that spelling" names no spelling — fix now, fixed db6cf7f
 - diff-bug #6: a Unicode-form difference shows two identical paths in the row — follow-up: absorbed into "Show odd renv profile paths in messages"
-- diff-bug #7: the header comment of `check_renv_lock()` omits the spelling row — fix now
-- diff-bug #8: the BOM test compares only `Dockerfile`, while AC1 also names `.dockerignore` — fix now
-- diff-bug #9: the report-row checks repeat over all five part positions on one code path — fix now
-- diff-bug #10: the `result$file` check in the both-sources test repeats with nothing to add — fix now
+- diff-bug #7: the header comment of `check_renv_lock()` omits the spelling row — fix now, fixed db6cf7f
+- diff-bug #8: the BOM test compares only `Dockerfile`, while AC1 also names `.dockerignore` — fix now, fixed db6cf7f
+- diff-bug #9: the report-row checks repeat over all five part positions on one code path — fix now, fixed db6cf7f
+- diff-bug #10: the `result$file` check in the both-sources test repeats with nothing to add — fix now, fixed db6cf7f
 - diff-bug #11: the test comment on the case hint restates the code — reject, false: it states why the hint differs (renv.lock is found under the other case), which the `if` does not show
 - diff-bug #12: the "Each shape" comments restate the lists — reject, false: they give the meaning of each list element, which the code does not show
-- blame-history #1: on Windows a trailing space in the name gives a false row (M066 skipped that case) — fix now, with diff-bug #2
-- blame-history #2: `listed_path()` folds ASCII only, while `fold_case()` exists for this — fix now
+- blame-history #1: on Windows a trailing space in the name gives a false row (M066 skipped that case) — fix now, fixed db6cf7f, with diff-bug #2
+- blame-history #2: `listed_path()` folds ASCII only, while `fold_case()` exists for this — fix now, fixed db6cf7f
 - blame-history #3: a decomposed name can give identical paths in the row — follow-up: same row as diff-bug #6
 - blame-history #4: the no-profile exemption from the letter-case check is gone — reject, planned change (AC2)
 - blame-history #5: the image copies the BOM bytes, and renv in the image was not checked — reject, false: renv 1.3.1's `renv_lockfile_read()` read a BOM lockfile at the plan (work log, idea vet)
-- prior-review #1: the Windows trailing-space case from M066 — fix now, with diff-bug #2
+- prior-review #1: the Windows trailing-space case from M066 — fix now, fixed db6cf7f, with diff-bug #2
 - prior-review #2: the letter-case rule now covers `renv.lock` without a profile — reject, planned change (AC2)
 - ripple #1: ROADMAP row "Read renv.lock with a byte order mark" is stale — reject, planned change: it ends with "started M068" and post-merge hygiene removes it
 - ripple #2: ROADMAP row "Match the letter case of renv.lock" is stale — reject, planned change: same
 - ripple #3: ROADMAP row "Name the real source of a profile name" is stale — reject, planned change: same
-- ripple #4: the header comment of `check_renv_lock()` — fix now, with diff-bug #7
+- ripple #4: the header comment of `check_renv_lock()` — fix now, fixed db6cf7f, with diff-bug #7
 - ripple #5: the help sentence on an unreadable `renv/profile` row does not say the file is now read with `RENV_PROFILE` set — reject, false: no row comes in that case, so the sentence stays true
 - ripple #6: "M068 covers the lockfile path only" in the new row is out of date — reject, false: that row is about `renv/profile`, and the sentence holds
