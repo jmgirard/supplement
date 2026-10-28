@@ -49,7 +49,7 @@ Publish the site that `create_supplement()` and one `quarto render` make under `
 
 - [x] T1: Write `.github/scripts/build-demo.R` with a usage comment in the shape of `check-skips.R`. It makes the site in a temporary folder, runs `quarto render` through `system2()`, stops on a non-zero status before any copy, then copies `docs/` (hidden files included) into the folder that the first argument names. Run it locally and compare its listing with a separate render (AC1). Run it once with Quarto off the PATH, calling `Rscript` by its full path where the two share a folder, and once with a stub `quarto` that writes `docs/index.html` and exits 1 (AC2).
 - [x] T2: Add a `Build demo site` step after `Build site` in the `build` job of `.github/workflows/pkgdown.yaml`, with a comment, that runs the script into `docs/demo`. Add a `demo` navbar component to `_pkgdown.yml` with a relative `href`, and place it in the navbar structure. Build the pkgdown site locally, run the script into `docs/demo`, and read the `Demo` hrefs on the home page and on a reference page.
-- [ ] T3: Add the README sentence and link, the NEWS.md bullet, and the demo step to DESIGN.md's pkgdown paragraph, with the deploy trade-off. Write each against the local render.
+- [x] T3: Add the README sentence and link, the NEWS.md bullet, and the demo step to DESIGN.md's pkgdown paragraph, with the deploy trade-off. Write each against the local render.
 - [ ] T4: Push the branch and start the workflow on it with `gh workflow run pkgdown.yaml --ref <branch>`. Wait for the run, then list its `site` artifact within the day it is kept (AC3) and read the navbar hrefs in it (AC4).
 
 ## Work log
@@ -70,6 +70,7 @@ Publish the site that `create_supplement()` and one `quarto render` make under `
 - 2026-10-28: implement started on branch m069-demo-template-site, cut from main at aada685.
 - 2026-10-28: T1 done. The script also stops when `<out>` already exists, so stale files never mix with a new demo. Local runs with the package installed in a scratch library: the output and a separate render list the same 27 paths. Quarto off the PATH exits 1 with "quarto is not on the PATH." A stub `quarto` that writes `docs/index.html` and exits 1 gives exit 1 with "quarto render exited with status 1.", and no `<out>` folder.
 - 2026-10-28: T2 done. `_pkgdown.yml` keeps pkgdown's default left navbar items and adds `demo` before `news`, with `href: demo/index.html`. A local `pkgdown::build_site()` plus the script: the home page links `demo/index.html` and `reference/create_supplement.html` links `../demo/index.html`. `pkgdown::check_pkgdown()` found no problems. The build's Pandoc `--mathml` warnings come from pkgdown, not from this change.
+- 2026-10-28: T3 done. The README paragraph after the opening one links the demo and names what its home page shows, read from the local render's `demo/index.html` (the setup box, the placeholder title, the example report, and `example.csv`). One NEWS.md bullet. DESIGN.md's pkgdown paragraph names the demo step and the deploy trade-off.
 
 ## Decisions
 
