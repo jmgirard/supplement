@@ -1660,8 +1660,9 @@ check_links <- function(path) {
       ))
     }
     # With no link in docs/, no part of a path can resolve outside it, so
-    # link_ok() skips that test.
-    broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page,
+    # link_ok() skips that test. Each link is tested at its target, the
+    # path that a base on the page makes of it.
+    broken <- links[!vapply(attr(links, "targets"), link_ok, logical(1), docs = docs, page = page,
                             root = if (length(entries$links) > 0) root)]
     problem_rows(
       "broken-link", rep_len(file.path("docs", page), length(broken)),
@@ -1751,18 +1752,64 @@ utf8_lower <- function(x) {
 # inside the site, each once, or NULL when the page cannot be read, such
 # as a link whose target is missing. It is FALSE after a warning from
 # tag_links(), such as a PCRE match limit, which makes gsub() return its
-# input unchanged.
+# input unchanged. The attribute `targets` holds the path of each link
+# relative to the page's folder, after a local base (base_kind()). Under
+# such a base a link of only a `#` or `?` part points to the base address,
+# so it is kept. A base that points away from the site leaves no link.
 page_links <- function(file) {
   values <- page_values(file)
   if (!is.character(values)) {
     return(values)
   }
-  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
-  unique(values[!skip])
+  base <- attr(values, "base")
+  kind <- base_kind(base)
+  if (kind == "away") {
+    return(structure(character(), targets = character()))
+  }
+  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/)", values)
+  if (kind == "page") {
+    skip <- skip | startsWith(values, "#")
+  }
+  links <- unique(values[!skip])
+  if (kind == "page") {
+    return(structure(links, targets = links))
+  }
+  address <- base_address(base)
+  part_only <- grepl("^[#?]", links)
+  targets <- paste0(ifelse(part_only, address, sub("[^/]*$", "", address)), links)
+  structure(links, targets = targets)
+}
+
+# How the links of a page resolve under `base`, the value of the page's
+# first <base> href, or NULL (whatwg-html, 4.2.3). "page": against the
+# page's own folder, as with no base. This holds for an empty value, one
+# that starts with `#` or `?`, and a data: or javascript: base. "away": to
+# a place that this check does not read, for another scheme or a value
+# that starts with `/`. "local": against the base, a path relative to the
+# page.
+base_kind <- function(base) {
+  if (is.null(base) || !nzchar(base) || grepl("^[#?]", base) ||
+      grepl("^(data|javascript):", ascii_lower(base))) {
+    return("page")
+  }
+  if (grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/)", base)) {
+    return("away")
+  }
+  "local"
+}
+
+# The address that a local base names, with its `?` and `#` parts
+# removed. A last part of `.` or `..`, also when written with `%2e`,
+# names a folder, so it gets a `/`.
+base_address <- function(base) {
+  address <- sub("[?#].*$", "", base)
+  last <- percent_decode(sub("^.*/", "", address))
+  if (!is.na(last) && last %in% c(".", "..")) paste0(address, "/") else address
 }
 
 # Every href, src, and xlink:href value on a page, decoded and trimmed, each
-# once, or NULL or FALSE as for page_links().
+# once, or NULL or FALSE as for page_links(). The attribute `base` holds
+# the value of the first <base> href, read the same way, or NULL.
 page_values <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
@@ -1772,14 +1819,19 @@ page_values <- function(file) {
   if (isFALSE(links)) {
     return(FALSE)
   }
-  values <- decode_refs(unique(links))
-  # A browser trims spaces and control characters from the ends of a
-  # link; here only spaces, tabs, line breaks, and form feeds are trimmed.
-  # Tabs and line breaks inside a link are dropped, as the URL standard's
-  # parser does.
+  base <- attr(links, "base")
+  structure(unique(link_text(unique(links))), base = if (!is.null(base)) link_text(base))
+}
+
+# Link values with their character references decoded and their ends
+# trimmed. A browser trims spaces and control characters from the ends of
+# a link; here only spaces, tabs, line breaks, and form feeds are trimmed.
+# Tabs and line breaks inside a link are dropped, as the URL standard's
+# parser does.
+link_text <- function(values) {
+  values <- decode_refs(values)
   values <- gsub("^[\t\n\f\r ]+|[\t\n\f\r ]+$", "", values, perl = TRUE)
-  values <- gsub("[\t\n\r]", "", values)
-  unique(values)
+  gsub("[\t\n\r]", "", values)
 }
 
 # Web links -------------------------------------------------------------------
@@ -1955,12 +2007,25 @@ tag_links <- function(html) {
   # parsed further.
   tags <- tags[endsWith(tags, ">") & grepl("[Hh][Rr][Ee][Ff]|[Ss][Rr][Cc]", tags)]
   rests <- sub("^<[^\t\n\f\r />]*", "", tags)
-  attrs <- unlist(regmatches(rests, gregexpr(html_attr, rests, perl = TRUE)))
+  per_tag <- regmatches(rests, gregexpr(html_attr, rests, perl = TRUE))
+  attrs <- unlist(per_tag)
   attr_names <- ascii_lower(sub("(?s)^([^=\t\n\f\r ]*).*", "\\1", attrs, perl = TRUE))
-  links <- attrs[attr_names %in% c("href", "src", "xlink:href")]
+  # A <base> href is not a link. The first href of the first <base> tag
+  # that has one sets the address that the other links resolve against.
+  tag_names <- ascii_lower(sub("(?s)^<([^\t\n\f\r />]*).*", "\\1", tags, perl = TRUE))
+  in_base <- (tag_names == "base")[rep(seq_along(per_tag), lengths(per_tag))]
+  base <- attrs[in_base & attr_names == "href"]
+  links <- attrs[!in_base & attr_names %in% c("href", "src", "xlink:href")]
   # An attribute with no `=`, such as `<a href>`, has an empty value.
   links <- links[grepl("=", links, fixed = TRUE)]
-  values <- sub(paste0("(?s)^[^=]*=", html_space, "*"), "", links, perl = TRUE)
+  structure(attr_value(links), base = if (length(base) > 0) attr_value(base[1]))
+}
+
+# The raw value of each attribute, such as `href="x"` or `href=x`, or ""
+# for one with no `=`.
+attr_value <- function(attrs) {
+  values <- sub(paste0("(?s)^[^=]*=", html_space, "*"), "", attrs, perl = TRUE)
+  values[!grepl("=", attrs, fixed = TRUE)] <- ""
   sub("(?s)^([\"'])(.*)\\1$", "\\2", values, perl = TRUE)
 }
 

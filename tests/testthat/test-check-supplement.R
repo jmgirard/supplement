@@ -1105,6 +1105,86 @@ test_that("character references in a link are decoded by the stated rules", {
   expect_identical(decode_refs(c("é&amp;", "", "&amp;amp;", "none")), c("é&", "", "&amp;", "none"))
 })
 
+test_that("relative links resolve against the folder of a local base", {
+  site <- new_site()
+  # at-base.csv is only in the folders that the bases name, and
+  # only-here.csv only in the pages' own folder.
+  touch(file.path(site, "docs", "at-base.csv"))
+  touch(file.path(site, "docs", "a", "sub", "at-base.csv"))
+  touch(file.path(site, "docs", "a", "only-here.csv"))
+  bases <- c("../", "..", "sub/", "sub/.", "sub/page.html", "sub/page.html#f", " sub/page.html?v=1 ")
+  pages <- sprintf("a/base-%d.html", seq_along(bases))
+  for (i in seq_along(bases)) {
+    write_page(site, pages[i], c(
+      sprintf('<base href="%s">', bases[i]),
+      '<a href="at-base.csv">x</a>',
+      '<a href="only-here.csv">x</a>'
+    ))
+  }
+  expect_setequal(broken_pairs(site), paste0("docs/", pages, " `only-here.csv`"))
+})
+
+test_that("a link of only a # or ? part resolves to the base address", {
+  site <- new_site()
+  dir.create(file.path(site, "docs", "a", "sub"), recursive = TRUE)
+  write_page(site, "a/folder.html", c('<base href="sub/">', '<a href="#x">x</a>', '<a href="?q">x</a>'))
+  write_page(site, "a/file.html", c('<base href="sub/page.html">', '<a href="#x">x</a>', '<a href="?q">x</a>'))
+  # With no base, such links are not checked.
+  write_page(site, "a/none.html", c('<a href="#x">x</a>', '<a href="?q">x</a>', '<a href="">x</a>'))
+  # An empty link is not checked, also under a base.
+  write_page(site, "a/empty.html", c('<base href="sub/page.html">', '<a href="">x</a>'))
+  expect_setequal(broken_pairs(site), c(
+    "docs/a/folder.html `#x`", "docs/a/folder.html `?q`",
+    "docs/a/file.html `#x`", "docs/a/file.html `?q`"
+  ))
+  touch(file.path(site, "docs", "a", "sub", "index.html"))
+  touch(file.path(site, "docs", "a", "sub", "page.html"))
+  expect_identical(broken_pairs(site), character())
+})
+
+test_that("a base href is not a link, and only the first base with an href counts", {
+  site <- new_site()
+  touch(file.path(site, "docs", "a", "here.csv"))
+  touch(file.path(site, "docs", "a", "sub", "there.csv"))
+  write_page(site, "a/only-base.html", '<base href="missing/">')
+  # Each first base value here leaves the links resolved against the
+  # page's own folder, so here.csv is found.
+  fallback <- c("", "#top", "?q", "data:text/html,x", "javascript:void(0)", "DATA:x")
+  pages <- sprintf("a/fallback-%d.html", seq_along(fallback))
+  for (i in seq_along(fallback)) {
+    write_page(site, pages[i], c(
+      sprintf('<base href="%s">', fallback[i]),
+      '<a href="here.csv">x</a>',
+      '<a href="gone.csv">x</a>'
+    ))
+  }
+  write_page(site, "a/no-value.html", c("<base href>", '<a href="here.csv">x</a>', '<a href="gone.csv">x</a>'))
+  # A later base is not used, whether the first is usable or not.
+  write_page(site, "a/empty-then-sub.html", c(
+    '<base href=""><base href="sub/">', '<a href="here.csv">x</a>', '<a href="gone.csv">x</a>'
+  ))
+  write_page(site, "a/sub-then-parent.html", c(
+    '<base href="sub/"><base href="../">', '<a href="there.csv">x</a>', '<a href="here.csv">x</a>'
+  ))
+  # A base with no href does not count, so the later one is used.
+  write_page(site, "a/target-then-sub.html", c(
+    '<base target="_blank"><BASE HREF="sub/">', '<a href="there.csv">x</a>', '<a href="here.csv">x</a>'
+  ))
+  # These bases leave the page's relative links unchecked.
+  away <- c("https://example.org/", "/site/", "//example.org/")
+  for (i in seq_along(away)) {
+    write_page(site, sprintf("a/away-%d.html", i),
+               c(sprintf('<base href="%s">', away[i]), '<a href="gone.csv">x</a>', '<a href="#x">x</a>'))
+  }
+  expect_setequal(broken_pairs(site), c(
+    paste0("docs/", pages, " `gone.csv`"),
+    "docs/a/no-value.html `gone.csv`",
+    "docs/a/empty-then-sub.html `gone.csv`",
+    "docs/a/sub-then-parent.html `here.csv`",
+    "docs/a/target-then-sub.html `here.csv`"
+  ))
+})
+
 test_that("large skipped text and unclosed markup give the stated rows", {
   site <- new_site()
   # Over 5 MB of script text, as a large htmlwidget writes, is still
@@ -2098,6 +2178,14 @@ test_that("web_links = TRUE requests each web address on the pages once", {
   check_quiet_web(site, TRUE)
   expect_setequal(calls$urls, names(web_expected))
   expect_false(anyDuplicated(calls$urls) > 0)
+})
+
+test_that("web_links = TRUE does not request the address of a base", {
+  site <- new_site()
+  write_page(site, "index.html", c('<base href="https://example.org/base/">', '<a href="https://example.org/a">a</a>'))
+  calls <- mock_status()
+  check_quiet_web(site, TRUE)
+  expect_identical(calls$urls, "https://example.org/a")
 })
 
 test_that("url_status() follows redirects with a timeout and gives the status or the error message", {
