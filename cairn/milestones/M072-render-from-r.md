@@ -147,3 +147,4 @@ spawned: diff-bug, ripple, blame-history, prior-review (the two history lenses i
 - blame-history #1: `render_quiet()` reruns any failure and silently, unlike the lock-only rerun of M033 — fix now (each rerun is written to standard error with its error), fixed 885e776; the wider trigger stays (diff-bug #2).
 - blame-history #2: GUIDE.md's renv steps name `supplement::render_supplement()` after `renv::restore()`, when the restored library may not hold supplement (D-028) — fix now (the two renv sentences removed), fixed 885e776.
 - prior-review: no prior-review findings.
+- verify after the pass-2 fixes, at 885e776: `devtools::test()` with `NOT_CRAN=true` 5875 expectations, 0 failed, 0 errors, 12 skipped, no `render_quiet()` rerun in the log; `devtools::check()` 0 errors, 0 warnings, 1 note (local `.claude/`). No snapshot file changed.
