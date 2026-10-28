@@ -128,7 +128,7 @@ create_supplement <- function(path, repo = NULL) {
       c("i" = "Replace {.code OWNER/REPO} in {.file _quarto.yml}, and {.code OWNER} and {.code REPO} in the site address in {.file _README.md}, with your GitHub repository.")
     },
     "i" = "Put the paper facts in {.file _supplement.yml}.",
-    "i" = "Run {.code quarto render} in {.path {path}} once before your first commit.",
+    "i" = "Run {.code quarto render} in {.path {path}}, or {.fn render_supplement} in R with that folder as {.arg path}, once before your first commit.",
     # Each line refers to an element of `tools`, so that cli reads the
     # tool text as a value and not as markup.
     named_all(sprintf("{tools[%d]}", seq_along(tools)), "!"),

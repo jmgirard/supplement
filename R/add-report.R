@@ -132,21 +132,14 @@ add_report <- function(name, title, description = "", path = ".") {
   if (missing(name)) name <- NULL
   if (missing(title)) title <- NULL
   check_path(path)
-  if (!is.character(name) || length(name) != 1 || is.na(name) ||
-      !grepl("^[A-Za-z0-9][A-Za-z0-9_-]*$", name)) {
+  if (!is.character(name) || length(name) != 1 || is.na(name)) {
     cli::cli_abort(
       c("{.arg name} must be one file name made of ASCII letters, digits, {.code -}, and {.code _}.",
         "i" = "It must start with a letter or a digit, and it has no {.code .qmd} at the end."),
       class = c("supplement_error_report_name", "supplement_error")
     )
   }
-  if (windows_reserved(name)) {
-    cli::cli_abort(
-      c("{.arg name} cannot be {.val {name}}, because Windows reserves that name for a device and cannot make the file.",
-        "i" = "Choose another {.arg name}. Nothing was written."),
-      class = c("supplement_error_report_name", "supplement_error")
-    )
-  }
+  check_report_name(name, "name", "Choose another {.arg name}. Nothing was written.")
   title <- check_text(title, "title", required = TRUE)
   description <- check_text(description, "description")
 
@@ -258,7 +251,7 @@ add_report <- function(name, title, description = "", path = ".") {
   cli::cli_inform(c(
     "v" = "Wrote {.file {href}} and added it to the Analyses menu in {.file _quarto.yml}.",
     "v" = if (copied) "Copied the template's {.file _scripts/report.R}, which the report reads. Commit it with the report.",
-    "i" = "Run {.code quarto render {href}} in {.path {path}} to run the report."
+    "i" = "Run {.code quarto render {href}} in {.path {path}}, or {.code render_supplement(\"{name}\")} in R in that folder, to run the report."
   ))
   invisible(report)
 }

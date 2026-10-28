@@ -32,6 +32,36 @@ check_text <- function(x, arg, required = FALSE, call = parent.frame()) {
   utf8_text(x)
 }
 
+# Stop unless the string `name` is a report name: ASCII letters, digits,
+# `-`, and `_`, starting with a letter or a digit, and not a name that
+# Windows reserves. add_report() checks its `name` with it, and
+# render_supplement() each entry of `reports` (`each = TRUE`). `hint` ends
+# the reserved-name message.
+check_report_name <- function(name, arg, hint, each = FALSE, call = parent.frame()) {
+  if (!grepl("^[A-Za-z0-9][A-Za-z0-9_-]*$", name)) {
+    cli::cli_abort(
+      c(if (each) {
+        "Each entry of {.arg {arg}} must be a report name made of ASCII letters, digits, {.code -}, and {.code _}, not {.val {name}}."
+      } else {
+        "{.arg {arg}} must be one file name made of ASCII letters, digits, {.code -}, and {.code _}."
+      },
+      "i" = "It must start with a letter or a digit, and it has no {.code .qmd} at the end."),
+      class = c("supplement_error_report_name", "supplement_error"),
+      call = call
+    )
+  }
+  if (windows_reserved(name)) {
+    verb <- if (each) "hold" else "be"
+    cli::cli_abort(
+      c("{.arg {arg}} cannot {verb} {.val {name}}, because Windows reserves that name for a device and cannot make the file.",
+        "i" = hint),
+      class = c("supplement_error_report_name", "supplement_error"),
+      call = call
+    )
+  }
+  invisible()
+}
+
 # TRUE for each element of `x` that is a name Windows reserves for a
 # device, in any letter case. Windows cannot make a file of that name, and
 # reads `con.csv` as `con` too, so callers pass the part before the first

@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-28 (M071 review: archived; pruned the M068 row; gra
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M072 | Render a site from the R console | planned | — | normal | milestones/M072-render-from-r.md |
+| M072 | Render a site from the R console | review | — | normal | milestones/M072-render-from-r.md |
 | M073 | Publish a site from the R console and a browser | planned | M072 | normal | milestones/M073-publish-from-r.md |
 | M071 | List reports in menu order on the home page | done | — | normal | milestones/archive/M071-report-table-order.md |
 | M070 | Fill in the demo site | done | — | normal | milestones/archive/M070-filled-in-demo-site.md |
@@ -43,6 +43,7 @@ _Last hygiene check: 2026-10-28 (M071 review: archived; pruned the M068 row; gra
 - [low] Flag a wrong-case renv/profile file: from the M068 plan. On macOS and Windows, `lock_source()` reads a `renv/profile` listed under another letter case, such as `renv/Profile`, and picks that profile's lockfile, while renv on Linux reads no profile and uses `renv.lock`. Neither `check_supplement(renv_lock = TRUE)` nor `write_dockerfile()` says so. M068 covers the lockfile path only. — added 2026-10-28
 - [low] Keep new reports after large orders: from the M071 review. `next_report_order()` in `R/add-report.R` counts only an `order` below 1000000 in absolute value, but Quarto sorts every numeric `order`, so a new report lists before a report with `order: 2000000`. After a largest `order` of 999999 it writes `order: 1000000`, which the next call ignores, so two new reports share it and sort by title. It reads each report's own front matter, not an `order` set in `analyses/_metadata.yml`, which Quarto merges in. — added 2026-10-28
 - [low] Remove a partly copied demo folder: from the M070 review. When `file.copy()` fails partway in `.github/scripts/build-demo.R` (code unchanged since M069), the output folder stays with some of the files, and a rerun refuses it as existing. Removing the folder before the stop would fix it. — added 2026-10-28
+- [low] Check Windows console renders from R: from the M072 review. `render_supplement()` runs Quarto with `system2(stdout = "")`. On Windows, whether its output reaches the Rgui console, and whether an Esc or Ctrl-C in R stops Quarto or leaves it writing `docs/` after the function returns, was not checked. — added 2026-10-28
 - [parked] Recommend a pinned tag in the README: template install from GitHub: recommend a pinned tag (`@vX.Y.Z`) in the README once a release exists. Narrowed 2026-10-18: the untagged route ran after the M003 merge and rendered. From the M003 review. — added 2026-10-18
 - [parked] Migrate old sites to the freeze layout: existing-site migration: a helper that converts a site with the old `src/` and `analyses/` layout to the freeze layout. Out of scope for version 1. — added 2026-10-18
 - [parked] Link a real supplement from the README: from the M070 plan. The demo is a made-up study built in CI (D-034). A README line and a navbar entry could also link a real paper's supplement made with the package, to show use in a real paper. Promote when the user has such a site, made with the package. — added 2026-10-28
