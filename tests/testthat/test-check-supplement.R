@@ -1044,6 +1044,34 @@ test_that("link-shaped text outside start tags gives no broken-link row", {
   )
 })
 
+test_that("comments end at <!-->, <!--->, --!>, and -->, and nowhere else", {
+  site <- new_site()
+  write_page(site, "comments.html", c(
+    '<!--> <a href="after-1.csv">x</a>',
+    '<!---> <a href="after-2.csv">x</a>',
+    '<!-- x --!> <a href="after-3.csv">x</a>',
+    '<!----!> <a href="after-4.csv">x</a>',
+    '<!--!> <a href="in-1.csv">x</a> --> <a href="after-5.csv">x</a>',
+    '<!---!> <a href="in-2.csv">x</a> -->',
+    '<!-- -!> <a href="in-3.csv">x</a> -->',
+    '<!-- - -> <a href="in-4.csv">x</a> -->'
+  ))
+  expect_setequal(broken_pairs(site), paste0("docs/comments.html `after-", 1:5, ".csv`"))
+})
+
+test_that("</ and a non-letter is a bogus comment, and an end tag is read to its >", {
+  site <- new_site()
+  write_page(site, "end-tags.html", c(
+    '</ foo <a href="x.csv"> <a href="after-1.csv">x</a>',
+    "</p title=\"<a href='y.csv'>\"> <a href=\"after-2.csv\">x</a>",
+    '</> <a href="after-3.csv">x</a>',
+    # Inside a script or a comment, </ is plain text.
+    '<script>if (a </ b) {}</script><a href="after-4.csv">x</a>',
+    '<!-- </ --> <a href="after-5.csv">x</a>'
+  ))
+  expect_setequal(broken_pairs(site), paste0("docs/end-tags.html `after-", 1:5, ".csv`"))
+})
+
 test_that("only href, src, and xlink:href attributes are read, in any letter case", {
   site <- new_site()
   write_page(site, "names.html", c(

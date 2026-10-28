@@ -58,7 +58,7 @@
 
 - [x] T1: Write the source note `cairn/references/whatwg-html.md` and its `INDEX.md` line. Read the HTML Standard at html.spec.whatwg.org. Record the comment states, the end tag open state, the script data escaped and double escaped states, and the base element rules for the document base URL. Name each section, and give the provenance block.
 - [x] T2: Write the AC1 and AC2 tests first in `tests/testthat/test-check-supplement.R`. Then make `tag_links()` (`R/check-supplement.R:1937`) give the `href` of the first `<base>` tag that has one, apart from the link values. `page_values()` (`:1766`) leaves that value out, so `web_addresses()` does not request it. `page_links()` (`:1755`) and `check_links()` (`:1639`) join the base folder to each relative link before `link_ok()` (`:1998`).
-- [ ] T3: Write the AC3 and AC4 tests first. Then change the comment part of `html_skipped` (`:1895`) and add parts for `</` and end tags. Keep every repeat possessive.
+- [x] T3: Write the AC3 and AC4 tests first. Then change the comment part of `html_skipped` (`:1895`) and add parts for `</` and end tags. Keep every repeat possessive.
 - [ ] T4: Write the AC5 tests first, the 1 MB page included. Then add the escaped and double escaped states to the script part of `html_raw_text()` (`:1912`), with possessive repeats only. Run the existing large-page tests, such as the 6 MB script page.
 - [ ] T5: Update the roxygen help of `check_supplement()` (`:316` to `:358`) and run `devtools::document()`. Add the NEWS.md entry under the development heading. Update the DESIGN.md "Link reader limits" entry.
 - [ ] T6: Run `devtools::test()` and `devtools::check()`.
@@ -81,6 +81,7 @@
 - 2026-10-28: T1 done: wrote `cairn/references/whatwg-html.md` from the HTML Standard copy of 26 October 2026 (sections 2.4.3, 4.2.3, 13.2.5.4 to 13.2.5.52), with its INDEX line.
 - 2026-10-28: T2 done: `tag_links()` gives the first `<base>` href as the attribute `base` and leaves base tags out of the links; `page_values()` cleans it with the new `link_text()`; `page_links()` sorts it with `base_kind()` and `base_address()` and gives each link a `targets` path for `link_ok()`. Four tests red before the change, green after; the whole `test-check-supplement.R` passes (131 tests, 0 failed, 7 skipped).
 - 2026-10-28: implement choice: a `broken-link` row under a base names the link as written on the page, not the joined path, so the author can find it in the page.
+- 2026-10-28: T3 done: `html_skipped` ends a comment at `<!-->`, `<!--->`, or the first `-->` or `--!>`, and removes `</` with a non-letter to the next `>` and end tags through their attributes. Two tests red before, green after; the old skipped-text and large-page tests still pass.
 
 ## Decisions
 

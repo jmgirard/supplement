@@ -1972,10 +1972,16 @@ html_raw_text <- function(name) {
 }
 
 # Comments, `<!...>` and `<?...>` markup, the four raw-text elements (groups
-# 1 to 4 keep their start tags), and other start tags (group 5).
+# 1 to 4 keep their start tags), end tags, `</` and a non-letter, and other
+# start tags (group 5). A comment ends at `>` right after `<!--` or
+# `<!---`, else at its first `-->` or `--!>` after `<!--`. `</` and a
+# character that is not a letter is a bogus comment that runs to the next
+# `>`, and an end tag is read through its attributes, as a start tag is
+# (whatwg-html, 13.2.5.7 and 13.2.5.43 to 13.2.5.52).
 html_skipped <- paste0(
-  "<!--[^-]*+(?:-(?!->)[^-]*+)*+(?:-->|\\z)|<[!?][^>]*+(?:>|\\z)|",
+  "<!--(?:-?>|[^-]*+(?:-(?!-!?>)[^-]*+)*+(?:--!?>|\\z))|<[!?][^>]*+(?:>|\\z)|",
   paste(vapply(c("script", "style", "textarea", "title"), html_raw_text, character(1)), collapse = "|"),
+  "|</(?![A-Za-z])[^>]*+(?:>|\\z)|</[A-Za-z][^\t\n\f\r />]*+", html_tag_rest,
   "|(", html_start_tag, ")"
 )
 
