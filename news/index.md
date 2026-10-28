@@ -2,6 +2,12 @@
 
 ## supplement 0.0.0.9000
 
+- The package site has a demo, at
+  <https://jmgirard.github.io/supplement/demo/>: the site that
+  [`create_supplement()`](https://jmgirard.github.io/supplement/reference/create_supplement.md),
+  with `repo` set, and one `quarto render` make, with no edits. The
+  README and the site’s navbar link it.
+
 - [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   has a new argument, `renv_lock`. With `renv_lock = TRUE`, it compares
   the R and package versions that `print_environment()` prints into each
@@ -20,6 +26,7 @@
   it. The default is `FALSE`, which does not read `renv.lock`, and
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
   does not run these checks.
+
 - [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   has a new argument, `web_links`. With `web_links = TRUE`, it requests
   each `http` and `https` address on the pages in `docs/`. An address
@@ -29,13 +36,16 @@
   makes no web request, and
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
   does not run this check.
+
 - The package now needs R 4.1.0 or later.
+
 - [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   gives the `"placeholder"` row for the example report of an earlier
   version of the template, so a site made before the example last
   changed still gets it. An unchanged example file also gets the row
   after an editor saves it with small changes. These are a UTF-8 byte
   order mark at its start, CR line ends, or no line break at its end.
+
 - Reports now share their setup code through one file in the site,
   `_scripts/report.R`, which the template ships. It defines
   `save_png()`, which saves a figure in `figures/`, and
@@ -52,6 +62,7 @@
   is there. Older reports keep their own code and still render. After a
   change to `_scripts/report.R`, render each report by name to take the
   change.
+
 - `print_environment()` in `_scripts/report.R` ends the Computing
   environment section with a line that gives the MD5 of the file, with
   each CR LF read as LF. If the stored output of a report directly in
@@ -63,6 +74,7 @@
   stops before it releases that output. A report whose stored output
   gives no MD5, such as one rendered before the site had this version of
   the file, gets no row.
+
 - If the site has no `_scripts/report.R` file and a report directly in
   `analyses/` names it, as the template’s
   [`source()`](https://rdrr.io/r/base/source.html) line does,
@@ -73,10 +85,12 @@
   before the template had the file has reports that do not name it,
   [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   gives no row.
+
 - The help pages, the guide “Publish a supplement site”, and this news
   file are built into a pkgdown website for
   <https://jmgirard.github.io/supplement/>, which DESCRIPTION’s `URL`
   field lists first.
+
 - A new site’s `README.md` is now a short page for the people who read
   the site’s repository: the citation, the site address, the contents,
   and the licenses. The guide for the site’s authors is a separate file,
@@ -90,6 +104,7 @@
   had no `README.md` before the first render, the old guide is
   `README.md`. If the folder had a `README.md` and no `SUPPLEMENT.md`,
   the old guide is `SUPPLEMENT.md`.
+
 - The template’s `.gitignore` now holds the lines that Quarto 1.10 adds
   to a `.gitignore` that lacks them. A new site’s `.gitignore` no longer
   changes on its second render, unless an `env/` folder in the site
@@ -98,6 +113,7 @@
   which hold settings for one computer. Sites made earlier need no
   change, because Quarto adds the lines it needs to their `.gitignore`
   itself.
+
 - The template’s two project scripts are now Lua files,
   `_scripts/setup.lua` and `_scripts/nojekyll.lua`, that Quarto runs
   through Pandoc, so a render starts no Deno process for them. On macOS,
@@ -107,19 +123,23 @@
   `system.file("template", "_scripts", package = "supplement")` into its
   `_scripts/` folder. Change the `pre-render` and `post-render` lines of
   `_quarto.yml` to name them, and delete `setup.ts` and `nojekyll.ts`.
+
 - Initial package with a Quarto website template for supplemental
   materials in `inst/template/`.
+
 - The template’s home page reads the paper title, citation, and contact
   from `_supplement.yml`. A Quarto extension in the template adds three
   shortcodes: `supplement-doi` shows a Zenodo DOI badge,
   `supplement-download` links to the Zenodo archive, and
   `supplement-data-table` lists the data files with their sizes and
   download links. A data file that does not exist stops the render.
+
 - [`create_supplement()`](https://jmgirard.github.io/supplement/reference/create_supplement.md)
   makes a new site folder from the template without the Quarto
   command-line interface. With `repo = "owner/name"`, it also writes the
   GitHub repository into the site’s links. If the folder already holds a
   file that the template writes, it stops and writes nothing.
+
 - [`check_tools()`](https://jmgirard.github.io/supplement/reference/check_tools.md)
   reports whether Quarto, knitr, rmarkdown, git, and gh are installed,
   and lists the GitHub and Zenodo accounts that a site needs. It finds
@@ -129,9 +149,11 @@
   [`create_supplement()`](https://jmgirard.github.io/supplement/reference/create_supplement.md)
   names each tool that is missing, too old, or not on the system path in
   its closing message.
+
 - The template’s home page lists the reports in `analyses/` through a
   Quarto listing, with the title and the description from the front
   matter of each report, in place of a hand-written table.
+
 - [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md)
   writes a new report file in `analyses/` and adds it to the Analyses
   menu in `_quarto.yml`.
@@ -143,6 +165,7 @@
   [`add_data()`](https://jmgirard.github.io/supplement/reference/add_data.md)
   also refuses such a name with an extension, such as `con.csv`, and a
   file name that ends in `.`.
+
 - The template guide, `GUIDE.md`, has a part on recording a site’s R
   packages with renv:
   [`renv::init()`](https://rstudio.github.io/renv/reference/init.html),
@@ -154,6 +177,7 @@
   [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   finds no problem in the files that renv adds, and git keeps
   `renv/library/` out.
+
 - [`write_dockerfile()`](https://jmgirard.github.io/supplement/reference/write_dockerfile.md)
   reads the R and renv versions in the site’s renv lockfile and writes a
   `Dockerfile` that builds an image with that R, the packages in the
@@ -169,6 +193,7 @@
   a `.dockerignore` that lets only the lockfile of the site’s files into
   the image. `digest` pins the base image. The template guide shows how
   to build the image and render a report in it.
+
 - [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   lists the problems in a site before a release, and changes no file. It
   finds files larger than 100 MiB, and saved R objects that git tracks
@@ -214,6 +239,7 @@
   report and data while they are unchanged. Each such row stops
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md).
   It returns the problems as a data frame.
+
 - [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
   prepares a release. An empty `citation` is one value that stops
   [`write_citation()`](https://jmgirard.github.io/supplement/reference/write_citation.md)
@@ -243,6 +269,7 @@
   stops, the files get their old text back. The commands are printed
   after the files are written, so an error while printing keeps the
   files.
+
 - [`write_citation()`](https://jmgirard.github.io/supplement/reference/write_citation.md)
   and
   [`write_zenodo()`](https://jmgirard.github.io/supplement/reference/write_zenodo.md)
@@ -253,6 +280,7 @@
   link to a missing file, and so does
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md).
   supplement now imports the fs package to find such a link there.
+
 - The template’s page footer shows the licenses in `license.code` and
   `license.content` of `_supplement.yml`, in place of a fixed MIT and CC
   BY 4.0. A new `supplement-license` shortcode shows a readable name for
@@ -263,6 +291,7 @@
   that is not one SPDX id stops the render. Examples are `CC BY 4.0`,
   `GPL--3.0`, and a list. A call also stops the render unless it has one
   argument, `code` or `content`, and no named argument.
+
 - The `supplement-doi` badge removes the prefixes in front of a DOI that
   [`write_citation()`](https://jmgirard.github.io/supplement/reference/write_citation.md)
   removes: `doi:`, and `http://` or `https://` with `doi.org/`,
@@ -271,6 +300,7 @@
   `zenodo.concept-doi` value that
   [`write_citation()`](https://jmgirard.github.io/supplement/reference/write_citation.md)
   refuses, such as `doi:` alone, stops the render.
+
 - [`write_citation()`](https://jmgirard.github.io/supplement/reference/write_citation.md)
   stops with `supplement_error_license` for a `license.code` or
   `license.content` value that does not have the shape of an SPDX id. An
@@ -281,6 +311,7 @@
   does the same for `license.content`, and the footer’s
   `supplement-license` shortcode uses the same rule. When the two ids
   differ only in letter case, `CITATION.cff` holds one of them.
+
 - The template’s `_supplement.yml` has a `version` field for the site
   version, such as `"1.0.0"`. When it is not empty,
   [`write_citation()`](https://jmgirard.github.io/supplement/reference/write_citation.md)
@@ -288,9 +319,11 @@
   [`write_zenodo()`](https://jmgirard.github.io/supplement/reference/write_zenodo.md)
   write it. They stop for a value that is not three whole numbers joined
   by `.`, or that has a leading zero.
+
 - Authors in the template’s `_supplement.yml` now have `family:` and
   `given:` in place of `name:`. Both functions stop with an error for an
   author without them.
+
 - When a write fails,
   [`create_supplement()`](https://jmgirard.github.io/supplement/reference/create_supplement.md),
   [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md),
@@ -300,6 +333,7 @@
   functions read `[`, `*`, and `?` in a site path as a pattern. For a
   site path such as `site[ab]`, the cleanup then removed files in
   another folder, such as `sitea`, and kept its own.
+
 - A `_supplement.yml` or `_quarto.yml` that the yaml package cannot read
   now gives an error of class `supplement_error_parse`. Examples are a
   `[` or a `{` that is not closed and a key given twice. The message
@@ -322,6 +356,7 @@
   not read back as planned. For a key line indented with a tab,
   [`add_data()`](https://jmgirard.github.io/supplement/reference/add_data.md)
   gave `supplement_error_no_data_list`.
+
 - The template publishes paper figures from a `figures/` folder, which
   git tracks. The template ships `figures/bootstrap-means.png`, so the
   first render of a new site publishes it. The example report saves it
@@ -340,6 +375,7 @@
   the report also stops. The template guide, `GUIDE.md`, says how a
   report writes a figure to `figures/`. In new sites, git ignores `.png`
   and `.pdf` files saved directly in `analyses/` in any letter case.
+
 - The template’s example report and each report that
   [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md)
   writes end with a “Computing environment” section. It prints the R and
@@ -350,6 +386,7 @@
   [`utils::sessionInfo()`](https://rdrr.io/r/utils/sessionInfo.html). It
   shows the home folder as `~`, and folders outside it in full. The
   stored output keeps the versions of each report’s last render.
+
 - In each report that
   [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md)
   writes, the first code chunk is the example report’s `site` chunk, so
@@ -360,6 +397,7 @@
   read fit files as `file.path(site, "analyses", "fits", ...)`. In a
   site made before this change, copy the `site` chunk from a new site’s
   `analyses/example.qmd` into each report.
+
 - Fixes on Windows.
   [`create_supplement()`](https://jmgirard.github.io/supplement/reference/create_supplement.md),
   [`add_report()`](https://jmgirard.github.io/supplement/reference/add_report.md),
@@ -373,6 +411,7 @@
   valid UTF-8,
   [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   no longer stops with an error.
+
 - [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   now reads links from start tags only. Before, it also read link-shaped
   text in comments, in `<script>` and `<style>` text, and in page text
@@ -383,6 +422,7 @@
   `xlink:href`) and unquoted values, and it removes the spaces at the
   ends of a link. The help page lists the main cases that it still reads
   differently from a browser.
+
 - [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   now reads pages in hidden folders of `docs/` and hidden pages, such as
   `docs/.page.html`. It does not enter a linked folder. Before, a
@@ -393,9 +433,11 @@
   not have its target. On Windows, a junction in `docs/` to a folder
   outside `docs/` also gives that row. A link on a page that goes
   through such a link also gives a row.
+
 - Package functions read YAML files without running `!expr` code, also
   when `options(yaml.eval.expr = TRUE)` is set. Such a value is read as
   the text of its R code.
+
 - New guide,
   [`vignette("publishing")`](https://jmgirard.github.io/supplement/articles/publishing.md):
   the steps from an empty folder to a site on GitHub Pages with a Zenodo
