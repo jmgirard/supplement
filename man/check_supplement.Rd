@@ -367,12 +367,14 @@ whose markup goes past the limits of the PCRE pattern engine gives one
 row that says so, in place of its link rows. Such a page holds
 millions of \code{-} in one comment, millions of \code{<} in the text of one
 script, style, textarea, or title element (about 5 million did, in a
-page of 20 MB), or millions of attributes in one tag. Each value is
-handled in this order:
+page of 20 MB), or millions of attributes in one tag. In script text
+after \verb{<!--}, millions of \code{-} or of \verb{</} can reach the limits sooner.
+Each value is handled in this order:
 character references are decoded; spaces, tabs, line breaks, and form
 feeds at its ends are removed and tabs and line breaks inside it are
-dropped; links with a scheme, \code{/}, or \verb{#} at the start are skipped;
-then \verb{\%} escapes are decoded. The decoded references are \verb{&amp;},
+dropped; links with a scheme, \code{/}, or \verb{#} at the start are skipped,
+except a \verb{#} link under a local base (below); then \verb{\%} escapes are
+decoded. The decoded references are \verb{&amp;},
 \verb{&lt;}, \verb{&gt;}, \verb{&quot;}, and \verb{&apos;} (in lower case, with the \verb{;}),
 and number references such as \verb{&#38;} or \verb{&#x26;} with the \verb{;} that
 name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
@@ -382,8 +384,9 @@ removed, and the tabs and line breaks inside it dropped.
 A \verb{<base>} tag changes where the links of its page lead. Only the
 first \verb{<base>} tag with an \code{href} counts, and its \code{href} is not a link
 itself. Its value is read as a link value is. If the value is empty,
-starts with \verb{#} or \verb{?}, or starts with \verb{data:} or \verb{javascript:}, links
-resolve against the page's own folder, as with no base. If the value
+starts with \verb{#} or \verb{?}, or starts with \verb{data:} or \verb{javascript:} in any
+letter case, links resolve against the page's own folder, as with no
+base. If the value
 has another scheme, such as \verb{https:}, or starts with \code{/}, the page's
 relative links are not checked. Any other value is a local base.
 Relative links then resolve against the folder of the base address,
@@ -401,8 +404,11 @@ and \verb{<plaintext>} elements is read as markup, and so is the text of a
 \verb{<![CDATA[...]]>} section after its first \code{>}. The four skipped
 elements are also skipped inside \verb{<svg>} and \verb{<math>}. The end tags of
 those four elements end at their first \code{>}, also inside a quoted
-value. A \verb{<base>} tag inside \verb{<svg>} counts as a base, though a
-browser does not use it. A \verb{\\} in a base is not read as \code{/}, while a
+value. A \verb{<base>} tag inside \verb{<svg>} or \verb{<template>} counts as a base,
+though a browser does not use it. A base with a scheme whose address a
+browser cannot read, such as \verb{http://}, leaves the page's relative
+links unchecked, while a browser resolves them against the page's own
+folder. A \verb{\\} in a base is not read as \code{/}, while a
 browser reads it so. An empty link, such as \code{href=""}, is not checked,
 also under a local base, while a browser resolves it to the base
 address. Under a base with another scheme or a leading \code{/}, a browser

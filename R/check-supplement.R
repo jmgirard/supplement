@@ -337,12 +337,14 @@
 #'   row that says so, in place of its link rows. Such a page holds
 #'   millions of `-` in one comment, millions of `<` in the text of one
 #'   script, style, textarea, or title element (about 5 million did, in a
-#'   page of 20 MB), or millions of attributes in one tag. Each value is
-#'   handled in this order:
+#'   page of 20 MB), or millions of attributes in one tag. In script text
+#'   after `<!--`, millions of `-` or of `</` can reach the limits sooner.
+#'   Each value is handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
-#'   dropped; links with a scheme, `/`, or `#` at the start are skipped;
-#'   then `%` escapes are decoded. The decoded references are `&amp;`,
+#'   dropped; links with a scheme, `/`, or `#` at the start are skipped,
+#'   except a `#` link under a local base (below); then `%` escapes are
+#'   decoded. The decoded references are `&amp;`,
 #'   `&lt;`, `&gt;`, `&quot;`, and `&apos;` (in lower case, with the `;`),
 #'   and number references such as `&#38;` or `&#x26;` with the `;` that
 #'   name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
@@ -352,8 +354,9 @@
 #'   A `<base>` tag changes where the links of its page lead. Only the
 #'   first `<base>` tag with an `href` counts, and its `href` is not a link
 #'   itself. Its value is read as a link value is. If the value is empty,
-#'   starts with `#` or `?`, or starts with `data:` or `javascript:`, links
-#'   resolve against the page's own folder, as with no base. If the value
+#'   starts with `#` or `?`, or starts with `data:` or `javascript:` in any
+#'   letter case, links resolve against the page's own folder, as with no
+#'   base. If the value
 #'   has another scheme, such as `https:`, or starts with `/`, the page's
 #'   relative links are not checked. Any other value is a local base.
 #'   Relative links then resolve against the folder of the base address,
@@ -371,8 +374,11 @@
 #'   `<![CDATA[...]]>` section after its first `>`. The four skipped
 #'   elements are also skipped inside `<svg>` and `<math>`. The end tags of
 #'   those four elements end at their first `>`, also inside a quoted
-#'   value. A `<base>` tag inside `<svg>` counts as a base, though a
-#'   browser does not use it. A `\` in a base is not read as `/`, while a
+#'   value. A `<base>` tag inside `<svg>` or `<template>` counts as a base,
+#'   though a browser does not use it. A base with a scheme whose address a
+#'   browser cannot read, such as `http://`, leaves the page's relative
+#'   links unchecked, while a browser resolves them against the page's own
+#'   folder. A `\` in a base is not read as `/`, while a
 #'   browser reads it so. An empty link, such as `href=""`, is not checked,
 #'   also under a local base, while a browser resolves it to the base
 #'   address. Under a base with another scheme or a leading `/`, a browser
@@ -1964,7 +1970,8 @@ url_status <- function(url) {
 # match, so a comment that holds millions of `-`, a script, style,
 # textarea, or title body that holds millions of `<`, or one tag with
 # millions of attributes can still reach it (about 5 million `<` in one
-# script body did); page_links() then returns FALSE.
+# script body did). Script text after `<!--` with millions of `-` or `</`
+# reaches it sooner (html_script_body). page_links() then returns FALSE.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
   "[^\t\n\f\r />][^\t\n\f\r />=]*+",
@@ -2050,9 +2057,11 @@ html_skipped <- paste0(
 )
 
 # The raw values of the href, src, and xlink:href attributes in the start
-# tags of `html`. Comments, `<!...>` and `<?...>` markup, and the text of
-# script, style, textarea, and title elements are not read, as a browser
-# reads no tags there. Each start tag is kept, so `<script src>` is read.
+# tags of `html`, other than <base> tags. The attribute `base` holds the
+# raw href of the first <base> tag that has one, or NULL. Comments, `<!...>`
+# and `<?...>` markup, end tags, and the text of script, style, textarea,
+# and title elements are not read, as a browser reads no tags there. Each
+# start tag of those four elements is kept, so `<script src>` is read.
 # A start tag that the end of the page cuts off is not read, as a browser
 # drops it. A quote that never closes is read as the start of an unquoted
 # value instead, so that tag ends at the next `>` and is read.

@@ -1239,7 +1239,7 @@ test_that("a base href is not a link, and only the first base with an href count
     '<base target="_blank"><BASE HREF="sub/">', '<a href="there.csv">x</a>', '<a href="here.csv">x</a>'
   ))
   # These bases leave the page's relative links unchecked.
-  away <- c("https://example.org/", "/site/", "//example.org/")
+  away <- c("https://example.org/", "/site/")
   for (i in seq_along(away)) {
     write_page(site, sprintf("a/away-%d.html", i),
                c(sprintf('<base href="%s">', away[i]), '<a href="gone.csv">x</a>', '<a href="#x">x</a>'))

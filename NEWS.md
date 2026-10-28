@@ -1,8 +1,11 @@
 # supplement 0.0.0.9000
 
 * `check_supplement()` now resolves the links of a page that has a
-  `<base>` tag against the base's `href`, as a browser does, and no longer
-  reads that `href` as a link. A base can have a scheme other than
+  `<base>` tag against the base's `href`, and no longer reads that `href`
+  as a link. The help page lists the cases where this differs from a
+  browser. Under such a base, a link of only a `#` or `?` part points to
+  the base address. If no file is there, the link gives a row. A base can
+  have a scheme other than
   `data:` or `javascript:`, such as `https:`, or start with `/`. Then the
   page's relative links are not checked. Comments now also end at
   `<!-->`, `<!--->`, and `--!>`. `</` followed by a character that is not
