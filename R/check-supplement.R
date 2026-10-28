@@ -2006,12 +2006,12 @@ html_script_body <- local({
   start <- paste0("<", name, "[\t\n\f\r />]")
   end <- paste0("</", name, "[\t\n\f\r />]")
   no_end <- paste0("</(?!", name, "[\t\n\f\r />])")
-  plain_run <- paste0("[^<]*+(?:(?:<(?![/!])|", no_end, ")[^<]*+)*+")
-  plain <- paste0(plain_run, "(?:<!(?!--)", plain_run, ")*+")
+  plain_run <- "[^<]*+(?:<(?![/!])[^<]*+)*+"
+  plain <- paste0(plain_run, "(?:(?:", no_end, "|<!(?!--))", plain_run, ")*+")
   dashes <- "-++(?!>)|->"
-  double_run <- "[^<-]*+(?:(?:<(?!/)|-(?![->]))[^<-]*+)*+"
+  double_run <- "[^<-]*+(?:<(?!/)[^<-]*+)*+"
   double_text <- paste0(double_run, "(?:(?:", dashes, "|", no_end, ")", double_run, ")*+")
-  escaped_run <- "[^<-]*+(?:(?:<(?![/Ss])|-(?![->]))[^<-]*+)*+"
+  escaped_run <- "[^<-]*+(?:<(?![/Ss])[^<-]*+)*+"
   escaped <- paste0(
     "<!", escaped_run,
     "(?:(?:", dashes, "|", no_end, "|<(?=[Ss])(?!", name, "[\t\n\f\r />])|", start, double_text, end, ")",

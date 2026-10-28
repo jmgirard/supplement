@@ -1104,6 +1104,14 @@ test_that("1 MB of escaped script text is read", {
   expect_identical(pairs, "docs/big.html `after-big.csv`")
 })
 
+test_that("script text with millions of < or of - after <!-- is read", {
+  site <- new_site()
+  write_page(site, "lt.html", c(sprintf("<script>%s</script>", strrep("<", 3e6)), '<a href="after-lt.csv">x</a>'))
+  write_page(site, "dash.html", c(sprintf("<script><!--%s</script>", strrep("-", 5e6)), '<a href="after-dash.csv">x</a>'))
+  expect_warning(pairs <- broken_pairs(site), NA)
+  expect_setequal(pairs, c("docs/lt.html `after-lt.csv`", "docs/dash.html `after-dash.csv`"))
+})
+
 test_that("only href, src, and xlink:href attributes are read, in any letter case", {
   site <- new_site()
   write_page(site, "names.html", c(
