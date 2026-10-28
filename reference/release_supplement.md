@@ -109,18 +109,36 @@ folder that was staged before the release stays staged, so a later
 `git commit` adds it.
 
 After the commands, the function prints how to publish the release on
-GitHub. It reads the address of the `origin` remote with
-`git remote get-url origin` in the site folder. When that address is
-`https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
-`ssh://git@github.com/<owner>/<name>`, with or without `.git` at the
-end, it prints the address of GitHub's new-release form with the tag
-set, such as
-`https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z`. Otherwise,
-for example when there is no `origin` remote, it prints the steps to
-make the release from the repository's Releases page. Push the release
-commit first: GitHub makes the tag on the default branch when you
-publish the release, so a release published before the push tags an
-older commit. The function opens no page.
+GitHub. It reads the push address of the `origin` remote with
+`git remote get-url --push origin` in the site folder, which gives the
+fetch address, after any `pushInsteadOf` rewrite, when no push address
+is set. The address is on GitHub when it starts with `https://` or
+`http://` and the host `github.com` or `www.github.com`, with `ssh://`
+and the host `github.com`, or with `git@github.com:` (any user name, or
+none). `ssh://` also takes the host `ssh.github.com`. The host can be in
+any letter case. A user name can come before the host, and in the https,
+http, and ssh forms a port can come after it. Then come
+`<owner>/<name>`, an optional `.git`, and an optional `/`. For such an
+address, the function prints the address of GitHub's new-release form
+with the tag set. When the site folder is on a branch, the address also
+names that branch as the target, such as
+`https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z&target=main`,
+so the address names the current branch. Otherwise, for example when
+there is no `origin` remote, it prints the steps to make the release
+from the repository's Releases page, with the current branch as the
+target, or the default branch when the folder is not on a branch.
+
+Push the release commit first, and publish the release right after the
+push. GitHub makes the tag on the current branch when you publish the
+release, so a release published before the push tags an older commit,
+and one published after a later push tags the later commit. When the
+folder is not on a branch (a detached HEAD), the address names no
+target, and GitHub makes the tag on the default branch. When the current
+branch is not the default branch that `refs/remotes/origin/HEAD` names,
+the function prints a warning that names both branches. A clone sets
+that ref, and `git remote add` followed by a push does not. While the
+ref is not set, no warning is printed.
+`git remote set-head origin --auto` sets it. The function opens no page.
 
 When Zenodo's GitHub integration is turned on for the repository, Zenodo
 archives the release and gives it a version DOI. Add that DOI to
@@ -129,12 +147,13 @@ that the home page shows it.
 
 ## Errors
 
-An error while the function reads the `origin` address or prints the
-commands, after it wrote the files, reaches you as it is. Otherwise the
-function stops with an error of class `supplement_error` and one of
-these classes. When it stops with one of these classes, no file is
-changed, unless a file that changed cannot be put back. The
-`supplement_error_release_write` message then names that file.
+An error while the function reads the `origin` address or the current
+branch, or prints the commands, after it wrote the files, reaches you as
+it is. Otherwise the function stops with an error of class
+`supplement_error` and one of these classes. When it stops with one of
+these classes, no file is changed, unless a file that changed cannot be
+put back. The `supplement_error_release_write` message then names that
+file.
 
 The function checks in this order, and stops at the first problem:
 `bump` and `path`; `_supplement.yml` (no file, not UTF-8, not valid

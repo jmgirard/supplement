@@ -273,16 +273,19 @@ that page. It runs none of the commands and opens no page.</p>
 <ol style="list-style-type: decimal">
 <li>In the Git pane, commit every changed file with the message “Release
 v1.0.0”, and push. Push before the next step: GitHub makes the tag on
-the default branch when you publish the release, so a release published
+the current branch when you publish the release, so a release published
 before the push tags an older commit.</li>
 <li>Open the address that the function printed, such as
-<code>https://github.com/owner/my-supplement/releases/new?tag=v1.0.0</code>.
-The page has the tag <code>v1.0.0</code> filled in, with the default
-branch as its target. Click <strong>Publish release</strong>.</li>
+<code>https://github.com/owner/my-supplement/releases/new?tag=v1.0.0&amp;target=main</code>.
+The address names the current branch, so the page has the tag
+<code>v1.0.0</code> filled in, with that branch as its target. Click
+<strong>Publish release</strong> right after the push, because a later
+push moves the branch.</li>
 </ol>
 <p>If the function printed steps in place of an address, follow them: on
 the repository’s page on GitHub, open <strong>Releases</strong>, draft a
-new release, enter <code>v1.0.0</code> as the tag, and publish it.</p>
+new release, enter <code>v1.0.0</code> as the tag, pick the branch that
+the steps name as the target, and publish it.</p>
 </div>
 <div class="section level2">
 <h2 id="add-the-dois-and-render-again">10. Add the DOIs and render again<a class="anchor" aria-label="anchor" href="#add-the-dois-and-render-again"></a>

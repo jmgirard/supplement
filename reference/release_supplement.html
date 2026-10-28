@@ -148,18 +148,37 @@ site folder, also one that was staged before, stays out of the release
 commit. A file outside the site folder that was staged before the
 release stays staged, so a later <code>git commit</code> adds it.</p>
 <p>After the commands, the function prints how to publish the release on
-GitHub. It reads the address of the <code>origin</code> remote with
-<code>git remote get-url origin</code> in the site folder. When that address is
-<code>https://github.com/&lt;owner&gt;/&lt;name&gt;</code>, <code>git@github.com:&lt;owner&gt;/&lt;name&gt;</code>, or
-<code>ssh://git@github.com/&lt;owner&gt;/&lt;name&gt;</code>, with or without <code>.git</code> at the
-end, it prints the address of GitHub's new-release form with the tag
-set, such as
-<code>https://github.com/&lt;owner&gt;/&lt;name&gt;/releases/new?tag=vX.Y.Z</code>. Otherwise,
-for example when there is no <code>origin</code> remote, it prints the steps to make
-the release from the repository's Releases page. Push the release commit
-first: GitHub makes the tag on the default branch when you publish the
-release, so a release published before the push tags an older commit.
-The function opens no page.</p>
+GitHub. It reads the push address of the <code>origin</code> remote with
+<code>git remote get-url --push origin</code> in the site folder, which gives the
+fetch address, after any <code>pushInsteadOf</code> rewrite, when no push address
+is set. The address is on GitHub
+when it starts with <code>https://</code> or <code>http://</code> and the host <code>github.com</code> or
+<code>www.github.com</code>, with <code>ssh://</code> and the host <code>github.com</code>, or with
+<code>git@github.com:</code> (any user name, or none). <code>ssh://</code> also takes the
+host <code>ssh.github.com</code>. The host can be in any letter case.
+A user name can come before the host, and in the https, http, and ssh
+forms a port can come after it. Then come
+<code>&lt;owner&gt;/&lt;name&gt;</code>, an optional <code>.git</code>, and an optional <code>/</code>. For such an
+address, the function prints the address of GitHub's new-release form
+with the tag set. When the site folder is on a branch, the address also
+names that branch as the target, such as
+<code>https://github.com/&lt;owner&gt;/&lt;name&gt;/releases/new?tag=vX.Y.Z&amp;target=main</code>,
+so the address names the current branch. Otherwise, for example when
+there is no <code>origin</code> remote, it prints the steps to make the release
+from the repository's Releases page, with the current branch as the
+target, or the default branch when the folder is not on a branch.</p>
+<p>Push the release commit first, and publish the release right after the
+push. GitHub makes the tag on the current branch when you publish the
+release, so a release published before the push tags an older commit,
+and one published after a later push tags the later commit. When the
+folder is not on a branch (a detached HEAD), the address names no
+target, and GitHub makes the tag on the default branch. When the
+current branch is not the default branch that <code>refs/remotes/origin/HEAD</code>
+names, the function prints a warning that names both branches. A clone
+sets that ref, and <code>git remote add</code> followed by a push does not. While
+the ref is not set, no warning is printed.
+<code>git remote set-head origin --auto</code> sets it. The function opens no
+page.</p>
 <p>When Zenodo's GitHub integration is turned on for the repository,
 Zenodo archives the release and gives it a version DOI. Add that DOI to
 <code>zenodo.version-doi</code> in <code>_supplement.yml</code>, and render the site again, so
@@ -169,8 +188,8 @@ that the home page shows it.</p>
     <h2 id="errors">Errors<a class="anchor" aria-label="anchor" href="#errors"></a></h2>
 
 
-<p>An error while the function reads the <code>origin</code> address or prints the
-commands, after it wrote
+<p>An error while the function reads the <code>origin</code> address or the current
+branch, or prints the commands, after it wrote
 the files, reaches you as it is. Otherwise the function stops with an
 error of class <code>supplement_error</code> and one of these classes. When it
 stops with one of these classes, no file is changed, unless a file that

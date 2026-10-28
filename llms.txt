@@ -244,12 +244,13 @@ It runs none of them. Run them yourself in the site folder, or commit
 and push in the Git pane of RStudio or Positron. If the site is a
 subfolder of its repository, select only the files in the site folder in
 the Git pane. Then publish the release on GitHub’s page. When the
-`origin` remote is on GitHub, the function prints that page’s address
-with the tag filled in, such as
-`https://github.com/owner/name/releases/new?tag=v1.0.0`. When you
-publish the release, GitHub makes the tag on the default branch. So push
-before you publish. After Zenodo archives the release, add the new
-version DOI to `_supplement.yml` and render the site again.
+`origin` remote is on GitHub, the function prints that page’s address.
+The address fills in the tag and the current branch, such as
+`https://github.com/owner/name/releases/new?tag=v1.0.0&target=main`.
+When you publish the release, GitHub makes the tag on that branch. So
+push before you publish, and publish right after the push. After Zenodo
+archives the release, add the new version DOI to `_supplement.yml` and
+render the site again.
 [`?release_supplement`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
 describes the cases that stop the function and how it puts back the
 files after a failed write. It also explains the `-- .` in the git

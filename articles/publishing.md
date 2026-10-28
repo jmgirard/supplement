@@ -245,16 +245,19 @@ commands and opens no page.
 
 1.  In the Git pane, commit every changed file with the message “Release
     v1.0.0”, and push. Push before the next step: GitHub makes the tag
-    on the default branch when you publish the release, so a release
+    on the current branch when you publish the release, so a release
     published before the push tags an older commit.
 2.  Open the address that the function printed, such as
-    `https://github.com/owner/my-supplement/releases/new?tag=v1.0.0`.
-    The page has the tag `v1.0.0` filled in, with the default branch as
-    its target. Click **Publish release**.
+    `https://github.com/owner/my-supplement/releases/new?tag=v1.0.0&target=main`.
+    The address names the current branch, so the page has the tag
+    `v1.0.0` filled in, with that branch as its target. Click **Publish
+    release** right after the push, because a later push moves the
+    branch.
 
 If the function printed steps in place of an address, follow them: on
 the repository’s page on GitHub, open **Releases**, draft a new release,
-enter `v1.0.0` as the tag, and publish it.
+enter `v1.0.0` as the tag, pick the branch that the steps name as the
+target, and publish it.
 
 ## 10. Add the DOIs and render again
 
