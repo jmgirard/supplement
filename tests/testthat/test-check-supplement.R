@@ -1072,6 +1072,38 @@ test_that("</ and a non-letter is a bogus comment, and an end tag is read to its
   expect_setequal(broken_pairs(site), paste0("docs/end-tags.html `after-", 1:5, ".csv`"))
 })
 
+test_that("a script that holds <!-- and <script> runs past its first </script>", {
+  site <- new_site()
+  inner <- c("<script>", "<SCRIPT/>", "<script\t>")
+  for (i in seq_along(inner)) {
+    write_page(site, sprintf("double-%d.html", i), sprintf(
+      '<script><!--%s</script><a href="in.csv">x</a></script><a href="after.csv">x</a>', inner[i]
+    ))
+  }
+  # Each of these scripts ends at its first </script>.
+  ends <- c("<!-- -->", "<!--", "<!--<script>-->", "<!--<scripts>", "<!--><script>")
+  for (i in seq_along(ends)) {
+    write_page(site, sprintf("single-%d.html", i), sprintf(
+      '<script>%s</script><a href="after.csv">x</a><a href="more.csv">x</a></script>', ends[i]
+    ))
+  }
+  expect_setequal(broken_pairs(site), c(
+    sprintf("docs/double-%d.html `after.csv`", seq_along(inner)),
+    sprintf("docs/single-%d.html `after.csv`", seq_along(ends)),
+    sprintf("docs/single-%d.html `more.csv`", seq_along(ends))
+  ))
+})
+
+test_that("1 MB of escaped script text is read", {
+  site <- new_site()
+  write_page(site, "big.html", c(
+    sprintf("<script>%s</script>", strrep("<!--<script></script>-->", ceiling(2^20 / 24))),
+    '<a href="after-big.csv">x</a>'
+  ))
+  expect_warning(pairs <- broken_pairs(site), NA)
+  expect_identical(pairs, "docs/big.html `after-big.csv`")
+})
+
 test_that("only href, src, and xlink:href attributes are read, in any letter case", {
   site <- new_site()
   write_page(site, "names.html", c(

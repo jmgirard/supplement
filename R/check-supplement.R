@@ -1959,14 +1959,38 @@ ascii_any_case <- function(word) {
 
 ascii_lower <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", x)
 
+# The text of a script, by the script data states (whatwg-html, 13.2.5.4
+# and 13.2.5.15 to 13.2.5.31). In plain text, `<!--` starts escaped text.
+# Escaped text returns to plain text at its first `-->`, whose dashes can
+# be those of the `<!--`, and `</script` there ends the script. In escaped
+# text, `<script` starts double escaped text, which returns to escaped text
+# at `</script` and to plain text at `-->`. Each `script` is in any ASCII
+# letter case and followed by a space, tab, line break, form feed, `/`, or
+# `>`, and a `<script` or `</script` that starts or ends double escaped
+# text takes that character with it.
+html_script_body <- local({
+  name <- ascii_any_case("script")
+  start <- paste0("<", name, "[\t\n\f\r />]")
+  end <- paste0("</", name, "[\t\n\f\r />]")
+  plain <- paste0("(?:[^<]++|<(?!/", name, "[\t\n\f\r />]|!--))*+")
+  escaped_part <- paste0("[^<-]++|-(?!->)|<(?!/?", name, "[\t\n\f\r />])")
+  double_text <- paste0("(?:[^<-]++|-(?!->)|<(?!/", name, "[\t\n\f\r />]))*+")
+  escaped <- paste0(
+    "<!(?:", escaped_part, "|", start, double_text, end, ")*+",
+    "(?:-->|", start, double_text, "(?:-->)?+)?+"
+  )
+  paste0(plain, "(?:", escaped, plain, ")*+")
+})
+
 # One script, style, textarea, or title element: its start tag (kept, in a
 # capture group), then its text up to its end tag or the end of the page.
 html_raw_text <- function(name) {
+  body <- if (name == "script") html_script_body
   name <- ascii_any_case(name)
   end <- paste0("/", name, "(?=[\t\n\f\r />])")
   paste0(
     "(<", name, "(?=[\t\n\f\r />])", html_tag_rest, ")",
-    "[^<]*+(?:<(?!", end, ")[^<]*+)*+",
+    if (is.null(body)) paste0("[^<]*+(?:<(?!", end, ")[^<]*+)*+") else body,
     "(?:<", end, "[^>]*+(?:>|\\z))?+"
   )
 }
