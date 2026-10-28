@@ -62,6 +62,7 @@
 - [x] T4: Write the AC5 tests first, the 1 MB page included. Then add the escaped and double escaped states to the script part of `html_raw_text()` (`:1912`), with possessive repeats only. Run the existing large-page tests, such as the 6 MB script page.
 - [x] T5: Update the roxygen help of `check_supplement()` (`:316` to `:358`) and run `devtools::document()`. Add the NEWS.md entry under the development heading. Update the DESIGN.md "Link reader limits" entry.
 - [x] T6: Run `devtools::test()` and `devtools::check()`.
+- [ ] T7: Review return 1. Unroll `html_script_body` so each `<` run and dash run costs one loop pass, add a test past the old PCRE margin, re-measure the PCRE figure, and fix the other fix-now items of review pass 1.
 
 ## Work log
 
@@ -89,6 +90,7 @@
 - 2026-10-28: implement done; status review.
 - 2026-10-28: format fix: the T1 line's date, written with the month as a word, is rewritten as 2026-10-26 for the `iso date format` check; the fact is unchanged.
 - 2026-10-28: review return 1: `html_script_body` reaches the PCRE match limit at about half the size main reads (2.5M `<` in one script body, and `<!--` with 3M dashes, where main reads 3M and 6M); unroll the plain, escaped, and double escaped parts so each `<` run and each dash run costs one loop pass, add a test past the old margin, and re-measure the "about 5 million" figure. Also fix the review's other fix-now items listed in the Review section (help, NEWS, DESIGN.md, the `tag_links()` comment, possessive `?`, and the repeated `//` base test).
+- 2026-10-28: T7 checkpoint, half done: dash runs and the escaped `<!--<script></script>-->` repeat now read past main's sizes (6M dashes, 8 MB repeat), and the comment pattern's `?` are possessive. The committed `html_script_body` still reaches the PCRE limit before main on runs of `<` (any second check per `<` in the loop costs steps); a measurement of candidate shapes is running.
 
 ## Decisions
 

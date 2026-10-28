@@ -1997,16 +1997,26 @@ ascii_lower <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmno
 # letter case and followed by a space, tab, line break, form feed, `/`, or
 # `>`, and a `<script` or `</script` that starts or ends double escaped
 # text takes that character with it.
+# Each part is an unrolled loop: a run of other characters, then one `<`
+# or one whole run of `-` per pass. A run of two or more `-` before `>` is
+# the `-->` that ends escaped or double escaped text. A pass for each
+# character would reach PCRE's match limit at about half the size.
 html_script_body <- local({
   name <- ascii_any_case("script")
   start <- paste0("<", name, "[\t\n\f\r />]")
   end <- paste0("</", name, "[\t\n\f\r />]")
-  plain <- paste0("(?:[^<]++|<(?!/", name, "[\t\n\f\r />]|!--))*+")
-  escaped_part <- paste0("[^<-]++|-(?!->)|<(?!/?", name, "[\t\n\f\r />])")
-  double_text <- paste0("(?:[^<-]++|-(?!->)|<(?!/", name, "[\t\n\f\r />]))*+")
+  no_end <- paste0("</(?!", name, "[\t\n\f\r />])")
+  plain_run <- paste0("[^<]*+(?:(?:<(?![/!])|", no_end, ")[^<]*+)*+")
+  plain <- paste0(plain_run, "(?:<!(?!--)", plain_run, ")*+")
+  dashes <- "-++(?!>)|->"
+  double_run <- "[^<-]*+(?:(?:<(?!/)|-(?![->]))[^<-]*+)*+"
+  double_text <- paste0(double_run, "(?:(?:", dashes, "|", no_end, ")", double_run, ")*+")
+  escaped_run <- "[^<-]*+(?:(?:<(?![/Ss])|-(?![->]))[^<-]*+)*+"
   escaped <- paste0(
-    "<!(?:", escaped_part, "|", start, double_text, end, ")*+",
-    "(?:-->|", start, double_text, "(?:-->)?+)?+"
+    "<!", escaped_run,
+    "(?:(?:", dashes, "|", no_end, "|<(?=[Ss])(?!", name, "[\t\n\f\r />])|", start, double_text, end, ")",
+    escaped_run, ")*+",
+    "(?:--++>|", start, double_text, "(?:--++>)?+)?+"
   )
   paste0(plain, "(?:", escaped, plain, ")*+")
 })
@@ -2033,7 +2043,7 @@ html_raw_text <- function(name) {
 # browser drops it. An end tag is read through its attributes, as a start
 # tag is (whatwg-html, 13.2.5.7 and 13.2.5.43 to 13.2.5.52).
 html_skipped <- paste0(
-  "<!--(?:-?>|[^-]*+(?:-(?!-!?>)[^-]*+)*+(?:--!?>|\\z))|<[!?][^>]*+(?:>|\\z)|",
+  "<!--(?:-?+>|[^-]*+(?:-(?!-!?+>)[^-]*+)*+(?:--!?+>|\\z))|<[!?][^>]*+(?:>|\\z)|",
   paste(vapply(c("script", "style", "textarea", "title"), html_raw_text, character(1)), collapse = "|"),
   "|</(?![A-Za-z])[^>]*+(?:>|\\z)|</[A-Za-z][^\t\n\f\r />]*+", html_tag_rest,
   "|(", html_start_tag, ")"
