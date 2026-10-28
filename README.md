@@ -13,8 +13,8 @@ package site's build makes it with `create_supplement()` and fills in the
 paper's details. It adds two simulated data files with `add_data()` and
 three reports with `add_report()`. The build stops unless
 `check_supplement()` finds no problem in the rendered site. The paper, its
-authors, its data, and its DOI are made up, and the DOI leads to no
-Zenodo record.
+authors, its data, its DOI, and its archive link are made up. The DOI and
+the link lead to no Zenodo record.
 
 The package is in early development.
 

@@ -5,16 +5,19 @@
 # .github/demo/analyses/ with add_report(). It fills in _supplement.yml and
 # the licenses, replaces the setup box with a note that the study is made up,
 # removes the template's example report, data file, and figure, and writes
-# CITATION.cff and .zenodo.json. It renders twice, because a figure saved
-# under a new name reaches docs/ only on the next render. Then it runs
+# CITATION.cff and .zenodo.json. It also drops the instruction under
+# Archived Version on the home page. It renders twice, because a figure
+# saved under a new name reaches docs/ only on the next render. Then it runs
 # check_supplement() and copies the rendered docs/ folder into the folder
 # that its argument names, which must not exist yet.
 #
 # The script stops before it makes that folder when Quarto is missing, a
 # render fails, the render writes no docs/index.html, check_supplement()
-# finds a problem, or a template text that it edits is missing or occurs
-# more than once. So a template change that breaks the demo fails the
-# pkgdown build.
+# returns a row or does not skip exactly the three checks that read git, a
+# template text that it edits is missing or occurs more than once, a
+# template file that it deletes is missing, or a report body file has no
+# `<!-- analysis -->` line. So a template change that breaks the demo fails
+# the pkgdown build.
 #
 # Usage: Rscript .github/scripts/build-demo.R <output folder>
 # It needs the supplement, knitr, and rmarkdown packages installed and
@@ -22,7 +25,8 @@
 
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args) != 1) {
-  stop("Name one output folder: Rscript build-demo.R <output folder>", call. = FALSE)
+  stop("Name one output folder: Rscript .github/scripts/build-demo.R <output folder>",
+       call. = FALSE)
 }
 out <- args[[1]]
 if (file.exists(out)) {
@@ -33,8 +37,10 @@ if (!nzchar(quarto)) {
   stop("quarto is not on the PATH.", call. = FALSE)
 }
 
-# The demo content is in .github/demo/, beside this script's folder.
+# The demo content is in .github/demo/, beside this script's folder. Rscript
+# writes each space in the script's path as ~+~.
 script <- sub("^--file=", "", grep("^--file=", commandArgs(), value = TRUE))
+script <- gsub("~+~", " ", script, fixed = TRUE)
 demo <- file.path(dirname(dirname(normalizePath(script))), "demo")
 source(file.path(demo, "simulate.R"), local = TRUE)
 
@@ -42,15 +48,23 @@ site <- tempfile("demo-")
 
 # Replaces `old` in a site file with `new`. With `until`, the text replaced
 # runs from `old` to the end of the first `until` after it. It stops unless
-# `old` occurs exactly once, so the demo cannot drift from the template
-# without notice.
+# `old` occurs exactly once, overlapping copies counted, so the demo cannot
+# drift from the template without notice. The file is read and written as
+# bytes, so its line endings stay as they are.
 replace_once <- function(file, old, new = "", until = NULL) {
   path <- file.path(site, file)
-  text <- paste(readLines(path, encoding = "UTF-8", warn = FALSE), collapse = "\n")
-  starts <- gregexpr(old, text, fixed = TRUE)[[1]]
-  count <- sum(starts > 0)
-  if (count != 1) {
-    stop(file, " holds ", count, " copies of this text, not 1:\n", old, call. = FALSE)
+  text <- rawToChar(readBin(path, "raw", file.size(path)))
+  Encoding(text) <- "UTF-8"
+  starts <- integer()
+  from <- 1
+  repeat {
+    at <- regexpr(old, substring(text, from), fixed = TRUE)
+    if (at < 0) break
+    starts <- c(starts, from + at - 1)
+    from <- from + at
+  }
+  if (length(starts) != 1) {
+    stop(file, " holds ", length(starts), " copies of this text, not 1:\n", old, call. = FALSE)
   }
   end <- starts + nchar(old) - 1
   if (!is.null(until)) {
@@ -62,7 +76,7 @@ replace_once <- function(file, old, new = "", until = NULL) {
     end <- end + at + nchar(until) - 1
   }
   text <- paste0(substring(text, 1, starts - 1), new, substring(text, end + 1))
-  writeLines(enc2utf8(text), path, useBytes = TRUE)
+  writeBin(charToRaw(enc2utf8(text)), path)
 }
 
 remove_file <- function(file) {

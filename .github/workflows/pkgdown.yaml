@@ -59,9 +59,9 @@ jobs:
       # The demo is a filled-in site for a made-up diary study of sleep and
       # mood, made from create_supplement() with the content in .github/demo/.
       # The script stops when a render fails, check_supplement() finds a
-      # problem, or a template text that it edits is missing or occurs more
-      # than once. That fails
-      # this job, so a broken demo also stops the deploy of the whole site.
+      # problem, or a template text or file that it edits is missing or a
+      # text occurs more than once. That fails this job, so a broken demo
+      # also stops the deploy of the whole site.
       # The time limit fails a hung render instead of holding the job.
       - name: Build demo site
         timeout-minutes: 15
