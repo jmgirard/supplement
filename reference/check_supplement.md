@@ -223,6 +223,15 @@ The checks, by the value in the `check` column:
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
   does not run this check, so its rows never stop a release.
 
+  `renv.lock` also gets a row of its own when the check reads it but a
+  folder or file in its path is listed under another spelling, such as
+  `Renv.lock`. renv finds such a file only where the file system treats
+  both spellings as one name, as macOS and Windows do for letter case by
+  default, and
+  [`write_dockerfile()`](https://jmgirard.github.io/supplement/reference/write_dockerfile.md)
+  refuses it. The row names the path as listed, when it can tell, and
+  says to rename it. The reports still get their rows.
+
   In this item and the next, `renv.lock` is the lockfile that renv 1.3.1
   picks for the site's renv profile. The profile's name comes from the
   `RENV_PROFILE` environment variable of the R session that runs the
@@ -232,12 +241,16 @@ The checks, by the value in the `check` column:
   the lockfile is `renv.lock` in the site folder. With a profile, the
   lockfile is `renv/profiles/<name>/renv.lock`, with the name joined as
   given. The function then says which profile it picked and where the
-  name came from. The rows name that path where they name `renv.lock`,
-  and they say to run the renv commands with the profile active. When
-  `renv/profile` is read and is a folder or a file that cannot be
-  opened, it gets one row of its own, and no report gets a row. The
-  check does not read `RENV_PATHS_LOCKFILE` or `RENV_PATHS_RENV`, which
-  renv reads to move the lockfile and the `renv` folder.
+  name came from. When `RENV_PROFILE` and the first line of
+  `renv/profile` give the same name, as in an R session that the site's
+  `renv/activate.R` started, because it copies that line into
+  `RENV_PROFILE`, the message names both. The rows name that path where
+  they name `renv.lock`, and they say to run the renv commands with the
+  profile active. When `renv/profile` is read and is a folder or a file
+  that cannot be opened, it gets one row of its own, and no report gets
+  a row. The check does not read `RENV_PATHS_LOCKFILE` or
+  `RENV_PATHS_RENV`, which renv reads to move the lockfile and the
+  `renv` folder.
 
 - `"renv-missing"`: only with `renv_lock = TRUE`, a report from the same
   list whose stored output shows that it attached a package that the
@@ -535,17 +548,17 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/Rtmp89wkzE/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpLn1To3/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/Rtmp89wkzE/check-example once before your first
+#> ℹ Run `quarto render` in /tmp/RtmpLn1To3/check-example once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/Rtmp89wkzE/check-example:
+#> ✖ 11 problems found in /tmp/RtmpLn1To3/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. If you added the report

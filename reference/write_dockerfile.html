@@ -155,7 +155,10 @@ not empty, it names the profile. Otherwise the first line of
 name <code>default</code>, an empty name, or no name means no profile, and the
 lockfile is <code>renv.lock</code> in the site folder. With a profile, the lockfile
 is <code>renv/profiles/&lt;name&gt;/renv.lock</code>, and the function prints a message
-that names the lockfile, the profile, and where the name came from.</p>
+that names the lockfile, the profile, and where the name came from.
+When <code>RENV_PROFILE</code> and the first line of <code>renv/profile</code> give the same
+name, as in an R session that the site's <code>renv/activate.R</code> started,
+because it copies that line into <code>RENV_PROFILE</code>, the message names both.</p>
 <p>With a profile, the <code>.dockerignore</code> lets that lockfile into the image.
 The <code>Dockerfile</code> copies it to the same path and sets the <code>RENV_PROFILE</code>
 environment variable of the image to the name. renv keeps the packages
@@ -164,8 +167,9 @@ and each render in the image uses the profile, whatever <code>renv/profile</code
 the mounted site folder names. The name must hold only ASCII letters,
 digits, <code>.</code>, <code>_</code>, and <code>-</code>, and must not start with <code>.</code>, so that the
 <code>Dockerfile</code> can hold it. Each folder and file in the path
-<code>renv/profiles/&lt;name&gt;/renv.lock</code> must have that letter case, because
-Docker matches file names with letter case.</p>
+<code>renv/profiles/&lt;name&gt;/renv.lock</code> must have that letter case, as
+<code>renv.lock</code> must without a profile, because Docker matches file names
+with letter case.</p>
     </div>
     <div class="section level2">
     <h2 id="build-and-render">Build and render<a class="anchor" aria-label="anchor" href="#build-and-render"></a></h2>
@@ -221,9 +225,10 @@ a file that cannot be opened, or the profile name holds a character
 other than an ASCII letter, a digit, <code>.</code>, <code>_</code>, or <code>-</code>, or starts with
 <code>.</code>. The name check comes before any check of a lockfile.</p></li>
 <li><p><code>supplement_error_no_file</code>: the folder has no <code>renv.lock</code>, or
-<code>renv.lock</code> is a folder or a link to a missing file. With a profile,
-this is also the error when a folder or file in the path
-<code>renv/profiles/&lt;name&gt;/renv.lock</code> has another letter case.</p></li>
+<code>renv.lock</code> is a folder or a link to a missing file. This is also the
+error when <code>renv.lock</code>, or with a profile a folder or file in the path
+<code>renv/profiles/&lt;name&gt;/renv.lock</code>, is listed under another spelling,
+such as another letter case.</p></li>
 <li><p><code>supplement_error_lockfile</code>: <code>renv.lock</code> is not a JSON object, has no
 <code>R</code> object with a <code>Version</code>, or has no <code>renv</code> entry with a <code>Version</code>
 under <code>Packages</code>, or one of the two versions is not one string of three
