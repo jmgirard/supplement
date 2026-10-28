@@ -78,9 +78,10 @@ code in reports. They are looked for in the libraries of the R session
 that runs <code>check_tools()</code>. Quarto can run another R installation, with
 other libraries.</p></li>
 <li><p><code>git</code>: to commit the site and push it to GitHub.</p></li>
-<li><p><code>gh</code>: the GitHub command-line interface, for the
-<code>gh release create</code> command that <code><a href="release_supplement.html">release_supplement()</a></code> prints.</p></li>
-</ul><p>It then lists two accounts that it cannot check:</p><ul><li><p><code>GitHub account</code>: hosts the site with GitHub Pages.</p></li>
+</ul><p>It then lists two accounts that it cannot check:</p><ul><li><p><code>GitHub account</code>: hosts the site with GitHub Pages. For each release,
+you push the release commit and then publish the release on GitHub's
+page. When the <code>origin</code> remote is on GitHub, <code><a href="release_supplement.html">release_supplement()</a></code>
+prints that page's address.</p></li>
 <li><p><code>Zenodo account</code>: archives each GitHub release with a DOI.</p></li>
 </ul><p>The function only looks for the tools. It runs none of them, and it
 reads the Quarto version from a file.</p>
@@ -137,7 +138,6 @@ or <code>not on path</code>.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> knitr: found. version 1.52</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> rmarkdown: found. version 2.32</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> git: found. /usr/bin/git</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> gh: found. /usr/bin/gh</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> GitHub account: reminder. A GitHub account hosts the site with GitHub Pages:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   https://github.com/signup</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Zenodo account: reminder. A Zenodo account archives each GitHub release with</span>

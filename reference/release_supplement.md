@@ -5,9 +5,11 @@
 and stops when that finds a problem, or when one of the files that it
 writes changes while the check runs. It then raises `version` in
 `_supplement.yml`, writes `CITATION.cff` and `.zenodo.json` again with
-the new version, and prints the git and GitHub commands that make the
+the new version, and prints the git commands that commit and push the
 release. It runs none of these commands, so you can read them first and
-run them yourself in the site folder.
+run them yourself in the site folder, or commit and push in the Git pane
+of RStudio or Positron. You then publish the release on GitHub's page,
+which makes the tag.
 
 ## Usage
 
@@ -93,32 +95,46 @@ files are written, so an error or an interrupt while it prints keeps the
 files of the release.
 
 The printed commands, for version `X.Y.Z`, are `git status -- .`,
-`git add -A -- .`, `git commit -m "Release vX.Y.Z" -- .`,
-`git tag vX.Y.Z`, `git push`, `git push origin vX.Y.Z`, and
-`gh release create vX.Y.Z --generate-notes`. The `-- .` limits the first
-three commands to the site folder: `git status` shows, and `git add` and
-`git commit` stage and commit, only files under the site folder. These
-are the files that the `"large-file"` and `"saved-object"` checks of
+`git add -A -- .`, `git commit -m "Release vX.Y.Z" -- .`, and
+`git push`. The `-- .` limits the first three commands to the site
+folder: `git status` shows, and `git add` and `git commit` stage and
+commit, only files under the site folder. These are the files that the
+`"large-file"` and `"saved-object"` checks of
 [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
 read, so `docs/`, `_freeze/`, and `figures/` reach the release when git
 does not ignore them, as in the template. When the site is a subfolder
 of its repository, a change outside the site folder, also one that was
 staged before, stays out of the release commit. A file outside the site
 folder that was staged before the release stays staged, so a later
-`git commit` adds it. The last command needs the GitHub command-line
-tool (`gh`). When Zenodo's GitHub integration is turned on for the
-repository, Zenodo archives the release and gives it a version DOI. Add
-that DOI to `zenodo.version-doi` in `_supplement.yml`, and render the
-site again, so that the home page shows it.
+`git commit` adds it.
+
+After the commands, the function prints how to publish the release on
+GitHub. It reads the address of the `origin` remote with
+`git remote get-url origin` in the site folder. When that address is
+`https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
+`ssh://git@github.com/<owner>/<name>`, with or without `.git` at the
+end, it prints the address of GitHub's new-release form with the tag
+set, such as
+`https://github.com/<owner>/<name>/releases/new?tag=vX.Y.Z`. Otherwise,
+for example when there is no `origin` remote, it prints the steps to
+make the release from the repository's Releases page. Push the release
+commit first: GitHub makes the tag on the default branch when you
+publish the release, so a release published before the push tags an
+older commit. The function opens no page.
+
+When Zenodo's GitHub integration is turned on for the repository, Zenodo
+archives the release and gives it a version DOI. Add that DOI to
+`zenodo.version-doi` in `_supplement.yml`, and render the site again, so
+that the home page shows it.
 
 ## Errors
 
-An error while the function prints the commands, after it wrote the
-files, reaches you as it is. Otherwise the function stops with an error
-of class `supplement_error` and one of these classes. When it stops with
-one of these classes, no file is changed, unless a file that changed
-cannot be put back. The `supplement_error_release_write` message then
-names that file.
+An error while the function reads the `origin` address or prints the
+commands, after it wrote the files, reaches you as it is. Otherwise the
+function stops with an error of class `supplement_error` and one of
+these classes. When it stops with one of these classes, no file is
+changed, unless a file that changed cannot be put back. The
+`supplement_error_release_write` message then names that file.
 
 The function checks in this order, and stops at the first problem:
 `bump` and `path`; `_supplement.yml` (no file, not UTF-8, not valid

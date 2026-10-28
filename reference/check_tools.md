@@ -35,14 +35,13 @@ The function looks for these tools, in this order:
 
 - `git`: to commit the site and push it to GitHub.
 
-- `gh`: the GitHub command-line interface, for the `gh release create`
-  command that
-  [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
-  prints.
-
 It then lists two accounts that it cannot check:
 
-- `GitHub account`: hosts the site with GitHub Pages.
+- `GitHub account`: hosts the site with GitHub Pages. For each release,
+  you push the release commit and then publish the release on GitHub's
+  page. When the `origin` remote is on GitHub,
+  [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
+  prints that page's address.
 
 - `Zenodo account`: archives each GitHub release with a DOI.
 
@@ -116,7 +115,6 @@ check_tools()
 #> ✔ knitr: found. version 1.52
 #> ✔ rmarkdown: found. version 2.32
 #> ✔ git: found. /usr/bin/git
-#> ✔ gh: found. /usr/bin/gh
 #> ℹ GitHub account: reminder. A GitHub account hosts the site with GitHub Pages:
 #>   https://github.com/signup
 #> ℹ Zenodo account: reminder. A Zenodo account archives each GitHub release with

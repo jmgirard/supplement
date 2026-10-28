@@ -67,62 +67,81 @@
     
 <p>This guide takes you from an empty folder to a published site. GitHub
 Pages serves the site, and Zenodo archives each GitHub release with a
-DOI. You do each step once, in this order. The last part gives the rule
+DOI. You do each step once, in this order. A later part gives the rule
 for rendering again after you change a report.</p>
-<p>The code blocks run in two places. Run each <code>r</code> block in
-the R console. Run each <code>sh</code> block in a terminal, such as the
-Terminal tab of RStudio or Positron. Each step names the folder to run
-its commands in. To run R in the site folder, start R there or open the
-folder as a project. You can also run <code><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd()</a></code> with the path
-of the folder.</p>
+<p>You need three things: the R console, a web browser, and the Git pane
+of RStudio or the Source Control view of Positron. Run each code block
+in the R console. Each step names the folder to run its code in. To run
+R in the site folder, open the folder as a project in RStudio, or open
+the folder in Positron. The Git pane and the Source Control view need
+this. For the R steps alone, <code><a href="https://rdrr.io/r/base/getwd.html" class="external-link">setwd()</a></code> with the path of the
+folder also works. If you prefer a terminal for git and Quarto, the last
+part of this guide gives the commands for the same steps.</p>
 <div class="section level2">
 <h2 id="find-missing-tools">1. Find missing tools<a class="anchor" aria-label="anchor" href="#find-missing-tools"></a>
 </h2>
-<p>In the R console, in any folder, install the package and list the
+<p>In the R console, in any folder, install the packages and list the
 tools:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"pak"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"pak"</span>, <span class="st">"usethis"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html" class="external-link">pak</a></span><span class="op">(</span><span class="st">"jmgirard/supplement"</span><span class="op">)</span></span>
 <span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/check_tools.html">check_tools</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>usethis sets up git and GitHub from R. Installing it also installs
+gitcreds, which stores your GitHub sign-in.</p>
 <p><code><a href="../reference/check_tools.html">check_tools()</a></code> reports whether Quarto, knitr, rmarkdown,
-git, and the GitHub command-line tool (<code>gh</code>) are installed.
-Install each tool that it reports as missing or too old. If it reports
-Quarto as not on the system path, add Quarto’s <code>bin</code> folder
-to the path. It also reminds you of the two accounts that you need: a
-GitHub account and a Zenodo account.</p>
+and git are installed. Install each tool that it reports as missing or
+too old. A Quarto that it reports as not on the system path is fine:
+<code><a href="../reference/render_supplement.html">render_supplement()</a></code> finds it. It also reminds you of the
+two accounts that you need: a GitHub account and a Zenodo account.</p>
 </div>
 <div class="section level2">
-<h2 id="make-the-github-repository-and-clone-it">2. Make the GitHub repository and clone it<a class="anchor" aria-label="anchor" href="#make-the-github-repository-and-clone-it"></a>
+<h2 id="set-up-git-and-sign-in-to-github">2. Set up git and sign in to GitHub<a class="anchor" aria-label="anchor" href="#set-up-git-and-sign-in-to-github"></a>
 </h2>
-<p>On GitHub, make a new public repository. Do not add a README, a
-<code>.gitignore</code>, or a license. The template writes those
-files.</p>
-<p>In a terminal, in the folder that will hold the site folder, clone
-the repository. Use your GitHub user name for <code>owner</code> and the
-repository’s name for <code>name</code>:</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/owner/name.git my-supplement</span></code></pre></div>
-<p>git says that you cloned an empty repository. The new folder,
-<code>my-supplement</code>, is the site folder.</p>
+<p>In the R console, in any folder, give git your name and email
+address. Git writes them into each commit:</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_git_config.html" class="external-link">use_git_config</a></span><span class="op">(</span>user.name <span class="op">=</span> <span class="st">"Your Name"</span>, user.email <span class="op">=</span> <span class="st">"you@example.com"</span><span class="op">)</span></span></code></pre></div>
+<p>Then make a GitHub token, which lets R and git act on your GitHub
+account. <code>create_github_token()</code> opens GitHub’s page for a
+new token with the right settings. Click <strong>Generate token</strong>
+at the bottom of the page and copy the token. Then run
+<code>gitcreds_set()</code> and paste the token when it asks:</p>
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/github-token.html" class="external-link">create_github_token</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">gitcreds</span><span class="fu">::</span><span class="fu"><a href="https://gitcreds.r-lib.org/reference/gitcreds_get.html" class="external-link">gitcreds_set</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Check the setup:</p>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/git_sitrep.html" class="external-link">git_sitrep</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Under <strong>Git global (user)</strong>, it shows your name and
+email address. Under <strong>GitHub user</strong>, it shows
+<code>&lt;discovered&gt;</code> for the personal access token and your
+GitHub user name. If it reports a problem, it says what to do.</p>
 </div>
 <div class="section level2">
 <h2 id="make-the-site">3. Make the site<a class="anchor" aria-label="anchor" href="#make-the-site"></a>
 </h2>
-<p>In the R console, in the folder that holds
-<code>my-supplement</code>, run:</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="st">"my-supplement"</span>, repo <span class="op">=</span> <span class="st">"owner/name"</span><span class="op">)</span></span></code></pre></div>
-<p>The function copies the template into the clone. It writes the
-repository into the GitHub link in <code>_quarto.yml</code>. It also
-writes the site’s GitHub Pages address,
-<code>https://owner.github.io/name/</code>, into the site’s README and
-into the guide for authors. If the folder already holds a file that the
-template writes, the function stops and writes nothing.</p>
+<p>Pick a name for the site’s GitHub repository, such as
+<code>my-supplement</code>. In the R console, in the folder that will
+hold the site folder, run the code below. Use your GitHub user name for
+<code>owner</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="st">"my-supplement"</span>, repo <span class="op">=</span> <span class="st">"owner/my-supplement"</span><span class="op">)</span></span></code></pre></div>
+<p>The function makes the folder <code>my-supplement</code>, the site
+folder, and copies the template into it. Give the folder the same name
+as the repository: step 5 names the repository after the folder. The
+function writes the repository into the GitHub link in
+<code>_quarto.yml</code>. It also writes the site’s GitHub Pages
+address, <code>https://owner.github.io/my-supplement/</code>, into the
+site’s README and into the guide for authors. If the folder already
+holds a file that the template writes, the function stops and writes
+nothing.</p>
 </div>
 <div class="section level2">
 <h2 id="render-the-site">4. Render the site<a class="anchor" aria-label="anchor" href="#render-the-site"></a>
 </h2>
-<p>In a terminal, in the site folder, run:</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="ex">quarto</span> render</span></code></pre></div>
+<p>In the R console, in the site folder, run:</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/render_supplement.html">render_supplement</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>The first render writes <code>.gitignore</code> and
 <code>README.md</code>, the page for the people who read the site’s
 repository. The guide for authors is <code>GUIDE.md</code>. The render
@@ -130,40 +149,43 @@ also writes the site into <code>docs/</code>, the folder that GitHub
 Pages serves.</p>
 </div>
 <div class="section level2">
-<h2 id="commit-and-push">5. Commit and push<a class="anchor" aria-label="anchor" href="#commit-and-push"></a>
+<h2 id="make-the-repository-commit-and-push">5. Make the repository, commit, and push<a class="anchor" aria-label="anchor" href="#make-the-repository-commit-and-push"></a>
 </h2>
-<p>In a terminal, in the site folder, run:</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Start the site"</span></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin HEAD</span></code></pre></div>
-<p><code>HEAD</code> pushes the branch that you are on. To see its name,
-run <code>git branch --show-current</code>. You need that name in the
-next step.</p>
-<p>If git asks who you are, give it your name and email address, then
-run the commit again:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.name <span class="st">"Your Name"</span></span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.email <span class="st">"you@example.com"</span></span></code></pre></div>
-<p>If the push asks for a password, GitHub refuses it. Sign in with
-<code>gh</code> instead, let git use that sign-in, and run the push
-again:</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="ex">gh</span> auth login</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="ex">gh</span> auth setup-git</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin HEAD</span></code></pre></div>
+<p>In the R console, in the site folder, start a git repository:</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_git.html" class="external-link">use_git</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code>use_git()</code> adds a few lines to <code>.gitignore</code>
+and lists the files to commit. When it asks whether it can commit them,
+choose the answer that means yes. When the site folder is open as a
+project in RStudio, it then offers to restart RStudio so that the Git
+pane appears.</p>
+<p>Then make the repository on GitHub and push the site to it:</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_github.html" class="external-link">use_github</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><code>use_github()</code> makes a public repository with the name of
+the site folder on your GitHub account, pushes the commit, and opens the
+repository in the browser. It stops if you already have a repository
+with that name.</p>
 </div>
 <div class="section level2">
 <h2 id="serve-the-site-with-github-pages">6. Serve the site with GitHub Pages<a class="anchor" aria-label="anchor" href="#serve-the-site-with-github-pages"></a>
 </h2>
-<p>On GitHub, open the repository’s <strong>Settings</strong> tab and
-click <strong>Pages</strong>. Under <strong>Build and
-deployment</strong>, set <strong>Source</strong> to <strong>Deploy from
-a branch</strong>. Select the branch that you pushed and the
-<code>/docs</code> folder, and click <strong>Save</strong>. GitHub’s
-page <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site" class="external-link">Configuring
-a publishing source for your GitHub Pages site</a> shows these
-settings.</p>
-<p>The site is at <code>https://owner.github.io/name/</code>, with the
-owner in lowercase. For a repository named <code>owner.github.io</code>,
-the site is at <code>https://owner.github.io/</code>.</p>
+<p>In the R console, in the site folder, turn on GitHub Pages for the
+<code>docs/</code> folder of the branch that you pushed:</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/use_github_pages.html" class="external-link">use_github_pages</a></span><span class="op">(</span>branch <span class="op">=</span> <span class="fu">usethis</span><span class="fu">::</span><span class="fu"><a href="https://usethis.r-lib.org/reference/git-default-branch.html" class="external-link">git_default_branch</a></span><span class="op">(</span><span class="op">)</span>, path <span class="op">=</span> <span class="st">"/docs"</span><span class="op">)</span></span></code></pre></div>
+<p>If the function stops with a message that the default branch of the
+local repository and of the remote do not match, wait a minute and run
+it again. Right after <code>use_github()</code> pushes, GitHub can still
+report another default branch for a short time. Do not run the function
+that the message names in that time.</p>
+<p>The function prints the site’s address. The site is at
+<code>https://owner.github.io/my-supplement/</code>, with the owner in
+lowercase. For a repository named <code>owner.github.io</code>, the site
+is at <code>https://owner.github.io/</code>. GitHub then builds the
+site, and the address works when the build ends. The repository’s
+<strong>Settings</strong> tab, under <strong>Pages</strong>, shows the
+same setting.</p>
 </div>
 <div class="section level2">
 <h2 id="turn-on-zenodo-for-the-repository">7. Turn on Zenodo for the repository<a class="anchor" aria-label="anchor" href="#turn-on-zenodo-for-the-repository"></a>
@@ -206,17 +228,15 @@ menu of <code>_quarto.yml</code>. Delete <code>data/example.csv</code>
 and its entry under <code>data</code> in
 <code>_supplement.yml</code>.</li>
 <li>Delete the example’s figure,
-<code>figures/bootstrap-means.png</code>. For a site with no figures of
-its own, also leave out <code>figures</code> from the
-<code>git add</code> command in the last part of this guide.</li>
+<code>figures/bootstrap-means.png</code>.</li>
 <li>In <code>README.md</code>, replace the example citation under the
 title with the paper’s citation.</li>
 </ol>
-<p>Then, in a terminal in the site folder, render the whole site:</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="ex">quarto</span> render</span></code></pre></div>
-<p>In the R console, in the site folder, look for problems:</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/check_supplement.html">check_supplement</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Then, in the R console in the site folder, render the whole site and
+look for problems:</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/render_supplement.html">render_supplement</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/check_supplement.html">check_supplement</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
 <p>Fix each problem that it prints, render again, and run it again. To
 also test the web addresses on the site’s pages, which needs a network,
 run <code>supplement::check_supplement(web_links = TRUE)</code>. A row
@@ -232,10 +252,10 @@ not name. When renv picks a profile for the site, from
 read the profile’s lockfile in place of <code>renv.lock</code>. A
 release does not run these checks either.</p>
 <p>When <code><a href="../reference/check_supplement.html">supplement::check_supplement()</a></code> with its defaults
-finds no problem, commit and push in a terminal in the site folder:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Add the paper and the reports"</span></span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>
+finds no problem, commit and push in the Git pane. Select every changed
+file, deleted files included, click <strong>Commit</strong>, write a
+message such as “Add the paper and the reports”, and commit. Then click
+<strong>Push</strong>.</p>
 </div>
 <div class="section level2">
 <h2 id="make-the-first-release">9. Make the first release<a class="anchor" aria-label="anchor" href="#make-the-first-release"></a>
@@ -244,13 +264,25 @@ finds no problem, commit and push in a terminal in the site folder:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/release_supplement.html">release_supplement</a></span><span class="op">(</span><span class="st">"major"</span><span class="op">)</span></span></code></pre></div>
 <p>The function runs <code><a href="../reference/check_supplement.html">check_supplement()</a></code> and stops if it
-finds a problem. Then it sets the site version to <code>1.0.0</code>,
-writes <code>CITATION.cff</code> and <code>.zenodo.json</code>, and
-prints the commands that make the release. It runs none of them. Run the
-printed commands in a terminal in the site folder. The last command,
-<code>gh release create</code>, makes the GitHub release. If
-<code>gh</code> asks you to run <code>gh auth login</code>, run it, then
-run <code>gh release create</code> again.</p>
+finds a problem. Then it sets the site version to <code>1.0.0</code> and
+writes <code>CITATION.cff</code> and <code>.zenodo.json</code>. It
+prints the git commands that commit and push the release. Then it prints
+the address of GitHub’s page for the new release, or, when the
+<code>origin</code> remote is not a GitHub address, the steps to reach
+that page. It runs none of the commands and opens no page.</p>
+<ol style="list-style-type: decimal">
+<li>In the Git pane, commit every changed file with the message “Release
+v1.0.0”, and push. Push before the next step: GitHub makes the tag on
+the default branch when you publish the release, so a release published
+before the push tags an older commit.</li>
+<li>Open the address that the function printed, such as
+<code>https://github.com/owner/my-supplement/releases/new?tag=v1.0.0</code>.
+The page has the tag <code>v1.0.0</code> filled in, with the default
+branch as its target. Click <strong>Publish release</strong>.</li>
+</ol>
+<p>If the function printed steps in place of an address, follow them: on
+the repository’s page on GitHub, open <strong>Releases</strong>, draft a
+new release, enter <code>v1.0.0</code> as the tag, and publish it.</p>
 </div>
 <div class="section level2">
 <h2 id="add-the-dois-and-render-again">10. Add the DOIs and render again<a class="anchor" aria-label="anchor" href="#add-the-dois-and-render-again"></a>
@@ -264,37 +296,81 @@ every release of the repository. If you write it as
 <code>version-doi</code> is empty. Write each DOI in the form
 <code>10.5281/zenodo.1234567</code>.</p>
 <p>In the R console, in the site folder, write the DOI into
-<code>CITATION.cff</code>:</p>
+<code>CITATION.cff</code> and render the site:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/write_citation.html">write_citation</a></span><span class="op">(</span>overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p>Then, in a terminal in the site folder, render the site and push
-it:</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="ex">quarto</span> render</span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Add the Zenodo DOIs"</span></span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>
-<p>The home page now shows the DOI badge and the download link.</p>
+<code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/write_citation.html">write_citation</a></span><span class="op">(</span>overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/render_supplement.html">render_supplement</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Then commit every changed file in the Git pane with a message such as
+“Add the Zenodo DOIs”, and push. The home page now shows the DOI badge
+and the download link.</p>
 </div>
 <div class="section level2">
 <h2 id="render-again-after-a-report-changes">Render again after a report changes<a class="anchor" aria-label="anchor" href="#render-again-after-a-report-changes"></a>
 </h2>
 <p>Quarto stores the output of each report in <code>_freeze/</code>, and
 a full render reuses that output. A full render does not run a report
-again after you change it. So after a report changes, do these steps in
-a terminal in the site folder, with the report’s data in place:</p>
+again after you change it. So after a report changes, with the report’s
+data in place:</p>
 <ol style="list-style-type: decimal">
-<li>Render that report by name. This runs its code again.</li>
-<li>Render the whole site.</li>
-<li>Commit the changed report with <code>_freeze/</code>,
-<code>docs/</code>, and <code>figures/</code>, and push.</li>
+<li>
+<p>Render that report by name, which runs its code again, and then
+the whole site. For a report in <code>analyses/models.qmd</code>, run in
+the R console, in the site folder:</p>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">supplement</span><span class="fu">::</span><span class="fu"><a href="../reference/render_supplement.html">render_supplement</a></span><span class="op">(</span><span class="st">"models"</span><span class="op">)</span></span></code></pre></div>
+</li>
+<li><p>In the Git pane, commit the changed report with its changed files
+in <code>_freeze/</code>, <code>docs/</code>, and <code>figures/</code>,
+and push.</p></li>
 </ol>
-<p>For a report in <code>analyses/models.qmd</code>, the commands
-are:</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="ex">quarto</span> render analyses/models.qmd</span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="ex">quarto</span> render</span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="fu">git</span> add analyses/models.qmd _freeze docs figures</span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update the models report"</span></span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="use-a-terminal-instead">Use a terminal instead<a class="anchor" aria-label="anchor" href="#use-a-terminal-instead"></a>
+</h2>
+<p>Each step above that uses R for git or Quarto, or the Git pane, has
+terminal commands. Run them in a terminal, such as the Terminal tab of
+RStudio or Positron. The rest of each step stays as it is.</p>
+<p>For step 2, give git your name and email address:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.name <span class="st">"Your Name"</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">git</span> config <span class="at">--global</span> user.email <span class="st">"you@example.com"</span></span></code></pre></div>
+<p>When <code>git push</code> later asks for a password, GitHub refuses
+your account password. Give a GitHub token instead, made on GitHub’s
+page <a href="https://github.com/settings/tokens" class="external-link">Personal access
+tokens</a>, or set up the <a href="https://github.com/git-ecosystem/git-credential-manager" class="external-link">Git
+Credential Manager</a>.</p>
+<p>For step 4, and for each full render, run in the site folder:</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="ex">quarto</span> render</span></code></pre></div>
+<p>For step 5, make a new public repository on GitHub with the name of
+the site folder. Do not add a README, a <code>.gitignore</code>, or a
+license. Then, in the site folder, commit and push, with your user name
+for <code>owner</code>:</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">git</span> init</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Start the site"</span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="fu">git</span> remote add origin https://github.com/owner/my-supplement.git</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="fu">git</span> push <span class="at">-u</span> origin HEAD</span></code></pre></div>
+<p>For step 6, on GitHub, open the repository’s
+<strong>Settings</strong> tab and click <strong>Pages</strong>. Under
+<strong>Build and deployment</strong>, set <strong>Source</strong> to
+<strong>Deploy from a branch</strong>. Select the branch that you pushed
+and the <code>/docs</code> folder, and click <strong>Save</strong>.
+GitHub’s page <a href="https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site" class="external-link">Configuring
+a publishing source for your GitHub Pages site</a> shows these
+settings.</p>
+<p>For each commit and push in the Git pane, run in the site folder:</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Add the paper and the reports"</span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>
+<p>For step 9, run the commands that <code><a href="../reference/release_supplement.html">release_supplement()</a></code>
+prints in the site folder, then publish the release on GitHub’s page as
+in step 9.</p>
+<p>To render again after a report changes, for a report in
+<code>analyses/models.qmd</code>, run in the site folder:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode sh"><code class="sourceCode bash"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a><span class="ex">quarto</span> render analyses/models.qmd</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a><span class="ex">quarto</span> render</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="fu">git</span> add analyses/models.qmd _freeze docs figures</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">"Update the models report"</span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="fu">git</span> push</span></code></pre></div>
 <p>When a path is missing from disk and git tracks no file under it,
 <code>git add</code> stops and stages nothing. So for a site with no
 <code>figures/</code> folder, leave out <code>figures</code>.</p>

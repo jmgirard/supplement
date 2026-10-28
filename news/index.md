@@ -2,6 +2,25 @@
 
 ## supplement 0.0.0.9000
 
+- A site can now be published with the R console, a web browser, and the
+  Git pane of RStudio or Positron, with no GitHub command-line tool.
+  [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)
+  prints and returns four git commands, `git status -- .`,
+  `git add -A -- .`, `git commit -m "Release vX.Y.Z" -- .`, and
+  `git push`, and no longer prints `git tag` or `gh release create`.
+  After them it prints the address of GitHub’s new-release form with the
+  tag filled in. It reads the repository from the `origin` remote. When
+  `origin` is not a GitHub address, it prints the steps on the
+  repository’s Releases page. When you publish the release there, GitHub
+  makes the tag. So push first.
+  [`check_tools()`](https://jmgirard.github.io/supplement/reference/check_tools.md)
+  no longer reports `gh`. The publishing guide sets up git, the GitHub
+  sign-in, the repository, and GitHub Pages with usethis. It renders
+  with
+  [`render_supplement()`](https://jmgirard.github.io/supplement/reference/render_supplement.md).
+  Its last part gives the terminal commands. usethis is a suggested
+  package.
+
 - New
   [`render_supplement()`](https://jmgirard.github.io/supplement/reference/render_supplement.md)
   renders a site from the R console. With no arguments it runs
@@ -180,8 +199,8 @@
   file that the template writes, it stops and writes nothing.
 
 - [`check_tools()`](https://jmgirard.github.io/supplement/reference/check_tools.md)
-  reports whether Quarto, knitr, rmarkdown, git, and gh are installed,
-  and lists the GitHub and Zenodo accounts that a site needs. It finds
+  reports whether Quarto, knitr, rmarkdown, and git are installed, and
+  lists the GitHub and Zenodo accounts that a site needs. It finds
   Quarto on the system path, in `QUARTO_PATH`, or in the copy that
   RStudio or Positron installs. It reports a copy that is not on the
   system path or is older than Quarto 1.4.0. It runs none of the tools.
@@ -300,8 +319,8 @@
   from `_supplement.yml` does not stop it. It then raises the version in
   `_supplement.yml` by `"patch"`, `"minor"`, or `"major"`, or sets a
   given greater version. It writes `CITATION.cff` and `.zenodo.json`
-  again with the new version. It prints the git and GitHub commands that
-  make the release, and runs none of them. The printed `git status`,
+  again with the new version. It prints the git commands that commit and
+  push the release, and runs none of them. The printed `git status`,
   `git add`, and `git commit` commands end in `-- .`. So `git add` and
   `git commit` stage and commit only files under the site folder. This
   is also true for a site in a subfolder of its repository. If a write
