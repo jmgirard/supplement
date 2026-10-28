@@ -20,7 +20,8 @@
 #'
 #' * `GitHub account`: hosts the site with GitHub Pages. For each release,
 #'   you push the release commit and then publish the release on GitHub's
-#'   page, whose address [release_supplement()] prints.
+#'   page. When the `origin` remote is on GitHub, [release_supplement()]
+#'   prints that page's address.
 #' * `Zenodo account`: archives each GitHub release with a DOI.
 #'
 #' The function only looks for the tools. It runs none of them, and it

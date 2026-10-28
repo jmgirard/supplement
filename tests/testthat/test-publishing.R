@@ -16,9 +16,10 @@ test_that("the publishing guide's local steps give a site that Pages can serve a
               "commit", "-q", "-m")
 
   site <- file.path(long_dir(withr::local_tempdir("site-")), "my-supplement")
-  suppressMessages(create_supplement(site, repo = "owner/name"))
+  suppressMessages(create_supplement(site, repo = "owner/my-supplement"))
   expect_identical(render_quiet(path = site), "quarto render")
-  # usethis::use_git() starts the repository and commits the site.
+  # The guide starts the repository and commits with usethis::use_git(),
+  # which also adds lines to .gitignore; the test runs git init and commits.
   expect_status(git_in(site, c("init", "-q")))
   expect_status(git_in(site, c("add", "-A")))
   expect_status(git_in(site, c(commit, "Site")))

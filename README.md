@@ -216,7 +216,9 @@ git push
 ```
 
 It runs none of them. Run them yourself in the site folder, or commit and
-push in the Git pane of RStudio or Positron. Then publish the release on
+push in the Git pane of RStudio or Positron. If the site is a subfolder of
+its repository, select only the files in the site folder in the Git pane.
+Then publish the release on
 GitHub's page. When the `origin` remote is on GitHub, the function prints
 that page's address with the tag filled in, such as
 `https://github.com/owner/name/releases/new?tag=v1.0.0`. When you publish

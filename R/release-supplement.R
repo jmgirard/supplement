@@ -513,7 +513,7 @@ release_commands <- function(version) {
 # `https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
 # `ssh://git@github.com/<owner>/<name>`, each with or without `.git`.
 release_address <- function(origin, version) {
-  rx <- "^(https://github\\.com/|git@github\\.com:|ssh://git@github\\.com/)([A-Za-z0-9-]+)/([A-Za-z0-9._-]+?)(\\.git)?$"
+  rx <- "^(https://github\\.com/|git@github\\.com:|ssh://git@github\\.com/)([A-Za-z0-9-]+)/([A-Za-z0-9._-]+?)(\\.git)?\\z"
   if (is.null(origin) || !grepl(rx, origin, perl = TRUE)) {
     return(NULL)
   }

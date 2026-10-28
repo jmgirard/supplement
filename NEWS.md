@@ -245,7 +245,7 @@
   `CITATION.cff` that differs from `_supplement.yml` does not stop it. It then raises the version in
   `_supplement.yml` by `"patch"`, `"minor"`, or `"major"`, or sets a given
   greater version. It writes `CITATION.cff` and `.zenodo.json` again with
-  the new version. It prints the git and GitHub commands that make the
+  the new version. It prints the git commands that commit and push the
   release, and runs none of them. The printed `git status`, `git add`, and
   `git commit` commands end in `-- .`. So `git add` and `git commit` stage
   and commit only files under the site folder. This is also true for a site in a subfolder

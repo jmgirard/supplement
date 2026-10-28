@@ -220,8 +220,9 @@ supplement::release_supplement("major")
 The function runs `check_supplement()` and stops if it finds a problem.
 Then it sets the site version to `1.0.0` and writes `CITATION.cff` and
 `.zenodo.json`. It prints the git commands that commit and push the
-release, and the address of GitHub's page for the new release. It runs
-none of the commands and opens no page.
+release. Then it prints the address of GitHub's page for the new release,
+or, when the `origin` remote is not a GitHub address, the steps to reach
+that page. It runs none of the commands and opens no page.
 
 1. In the Git pane, commit every changed file with the message
    "Release v1.0.0", and push. Push before the next step: GitHub makes the

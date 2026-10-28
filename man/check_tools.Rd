@@ -36,7 +36,8 @@ It then lists two accounts that it cannot check:
 \itemize{
 \item \verb{GitHub account}: hosts the site with GitHub Pages. For each release,
 you push the release commit and then publish the release on GitHub's
-page, whose address \code{\link[=release_supplement]{release_supplement()}} prints.
+page. When the \code{origin} remote is on GitHub, \code{\link[=release_supplement]{release_supplement()}}
+prints that page's address.
 \item \verb{Zenodo account}: archives each GitHub release with a DOI.
 }
 

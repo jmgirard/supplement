@@ -1,7 +1,9 @@
 # check_supplement() is mocked in most of these tests, so they need no
 # render and no git. The tests that run the printed commands in a git
-# repository, and the test of a stale-output row, use git, and that test
-# runs the real check. Its own tests are in test-check-supplement.R.
+# repository, the tests of the release address, which set an origin
+# remote in a git repository, and the test of a stale-output row use git,
+# and that last test runs the real check. Its own tests are in
+# test-check-supplement.R.
 
 # Make check_supplement() return `rows` with the `skipped` attribute, and
 # count its calls in the returned environment.
@@ -745,6 +747,16 @@ test_that("a failure while printing the commands keeps the released files", {
   expect_released(dir, "1.2.4")
 })
 
+test_that("a failure while reading the origin address keeps the released files", {
+  mock_check()
+  dir <- release_site('  version: "1.2.3"')
+  local_mocked_bindings(origin_url = function(path) stop("git failed"))
+  err <- expect_error(release("patch", path = dir))
+  expect_identical(conditionMessage(err), "git failed")
+  expect_identical(class(err), c("simpleError", "error", "condition"))
+  expect_released(dir, "1.2.4")
+})
+
 test_that("an interrupt while printing the commands keeps the released files", {
   mock_check()
   dir <- release_site('  version: "1.2.3"')
@@ -983,7 +995,7 @@ test_that("a check that reads the files but changes none lets the release finish
   expect_identical(site_version(dir), "1.2.4")
   expect_identical(read_cff(dir)$version, "1.2.4")
   expect_identical(jsonlite::read_json(file.path(dir, ".zenodo.json"))$version, "1.2.4")
-  expect_true(any(grepl("git push", msgs, fixed = TRUE)))
+  expect_true(any(grepl('git commit -m "Release v1.2.4" -- .', msgs, fixed = TRUE)))
 })
 
 # Folders at an output --------------------------------------------------------
@@ -1187,7 +1199,8 @@ expect_release_address <- function(text, repo) {
   at <- regexpr(address, text, fixed = TRUE)
   expect_gt(at, 0)
   expect_gt(at, regexpr("git push", text, fixed = TRUE))
-  expect_length(gregexpr("releases/new", text, fixed = TRUE)[[1]], 1L)
+  expect_identical(sum(gregexpr("releases/new", text, fixed = TRUE)[[1]] > 0), 1L)
+  expect_no_match(text, "open Releases", fixed = TRUE)
   expect_push_first(text)
 }
 

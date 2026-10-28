@@ -50,7 +50,8 @@ Status and order live in `ROADMAP.md`.
 - The package never runs `git commit`, `git tag`, `git push`, or a GitHub
   release, and opens no web page. `release_supplement()` prints the git
   commands that commit and push the release and the address of GitHub's
-  new-release form, and runs none of the printed commands (D-036). It never runs Docker or
+  new-release form, or the Releases-page steps when `origin` is not on
+  GitHub, and runs none of the printed commands (D-036). It never runs Docker or
   renv either: `write_dockerfile()` writes the recipe, and the help and
   the template guide (`GUIDE.md`, M050) show the commands (M032). This
   covers package code: the repo's pkgdown workflow pushes the package
@@ -91,7 +92,8 @@ or a warning in the lookups gives no line.
 `R/check-tools.R`: `check_tools()` looks for Quarto (system path, then
 `QUARTO_PATH`, then `editor_quarto_paths()`, the RStudio and Positron
 copies), knitr and rmarkdown (`package_version_text()` reads DESCRIPTION
-without loading), git, and gh, and lists two account reminders. It reads
+without loading) and git, and lists two account reminders (gh dropped,
+D-036, corrected M073). It reads
 the Quarto version from `share/version` beside `bin/` after following a
 link, and compares it with `quarto_minimum` (1.4.0, the template
 extension's `quarto-required`). Program lookups use `Sys.which()`, which
@@ -263,11 +265,16 @@ refusals run again on the outputs. It then stops on any problem but a
 `CITATION.cff` DOI row. It then writes `_supplement.yml` and the two built
 texts. When a write stops, or on an interrupt, it puts back each file
 whose bytes changed and removes each file it made. After the writes it
-prints the git and `gh` release commands, outside that guard; `git status`,
+prints four git commands that commit and push the release, outside that
+guard (corrected M073); `git status`,
 `git add -A`, and `git commit` end in `-- .`, so the release commit holds
 only files under the site folder, the files that the git checks of
-`check_supplement()` read. It starts
-no process itself.
+`check_supplement()` read. Then `report_release()` prints the address of
+GitHub's new-release form from `release_address()`, which parses the
+`origin` url that `origin_url()` in `R/check-supplement.R` reads, or the
+Releases-page steps when that url is not a GitHub form (D-036). Its own
+file calls no process helper: git runs for it only inside
+`check_supplement()` and `origin_url()`, through `git_run()` (D-035).
 Depends: R (>= 4.1.0) (D-031). Imports: cli, jsonlite, yaml (D-009), and fs (D-022, corrected M045). Roxygen writes Markdown help.
 
 The package ships a Quarto website template in

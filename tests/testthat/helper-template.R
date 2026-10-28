@@ -177,13 +177,16 @@ expect_figure_rules <- function(dir) {
 
 # Turn off git's global and system configuration and the user's ignore
 # file in $XDG_CONFIG_HOME/git/ignore, so that only a repository's own
-# rules decide what git ignores.
+# rules decide what git ignores. GIT_DIR, GIT_WORK_TREE, and GIT_INDEX_FILE
+# are unset, as in git_in(), so that the package's own git calls in a run
+# inside a git hook do not act on another repository.
 local_plain_git <- function(env = parent.frame()) {
   empty <- withr::local_tempfile(.local_envir = env)
   file.create(empty)
   config <- withr::local_tempdir(.local_envir = env)
   withr::local_envvar(
-    c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1", XDG_CONFIG_HOME = config),
+    c(GIT_CONFIG_GLOBAL = empty, GIT_CONFIG_NOSYSTEM = "1", XDG_CONFIG_HOME = config,
+      GIT_DIR = NA, GIT_WORK_TREE = NA, GIT_INDEX_FILE = NA),
     .local_envir = env
   )
 }

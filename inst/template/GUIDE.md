@@ -281,7 +281,9 @@ in `_supplement.yml` and writes `CITATION.cff` and `.zenodo.json` again.
 Last, it prints the git commands that commit the site and push it, and
 then how to publish the release on GitHub. It runs none of the commands
 and opens no page. Run the commands yourself in this folder, or commit and
-push in the Git pane of RStudio or Positron. Then publish the release on
+push in the Git pane of RStudio or Positron. If this folder is a subfolder
+of its repository, select only the files in this folder in the Git pane.
+Then publish the release on
 GitHub's page: when the `origin` remote is on GitHub, the function prints
 the address of GitHub's new-release form with the tag filled in. When you
 publish the release, GitHub makes the tag on the default branch. So push
