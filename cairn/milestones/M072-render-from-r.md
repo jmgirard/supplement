@@ -1,13 +1,13 @@
 # M072: Render a site from the R console
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — adds an exported function and changes messages and the template guide that authors read
-- **Branch/PR:** —
+- **Branch/PR:** m072-render-from-r
 
 ## Goal
 
@@ -41,7 +41,7 @@ Let an author render the site, or run changed reports again and then render the 
 
 ## Tasks
 
-- [ ] T1: Tests first, in `tests/testthat/test-render-supplement.R`: one test per case of AC1 to AC5. The mocked tests replace an internal runner (one function that runs Quarto with its arguments) through `local_mocked_bindings()`. The render tests sit behind `skip_if_no_quarto()` and run from `long_dir()` folders, as `helper-template.R` does. The AC4 lookup tests mock `tool_which()`, `tool_env()`, and `editor_quarto_paths()`, as `test-check-tools.R` does. See them fail.
+- [x] T1: Tests first, in `tests/testthat/test-render-supplement.R`: one test per case of AC1 to AC5. The mocked tests replace an internal runner (one function that runs Quarto with its arguments) through `local_mocked_bindings()`. The render tests sit behind `skip_if_no_quarto()` and run from `long_dir()` folders, as `helper-template.R` does. The AC4 lookup tests mock `tool_which()`, `tool_env()`, and `editor_quarto_paths()`, as `test-check-tools.R` does. See them fail.
 - [ ] T2: Write `R/render-supplement.R`. Reuse `find_quarto()`, `quarto_version()`, and `quarto_minimum` from `R/check-tools.R`, and `check_path()`. Factor `add_report()`'s name rule (`R/add-report.R:134-149`) into a helper both functions call. Run each command through the runner with `system2()` on the quoted full path, its output shown in the console, with `setwd()` undone by `on.exit()`. Compare `figures/` and `docs/figures/` with `list.files(recursive = TRUE, all.files = TRUE)`.
 - [ ] T3: Run AC6's grep and name the function in each line it finds, among them `R/create-supplement.R:131`, `R/add-report.R:261`, and `R/check-tools.R:151`, and in `rerender_steps` (`R/check-supplement.R:816`). Fix the `system2()` comment above `git_run()` (`R/check-supplement.R:561`). Record the grep's lines in the Review section.
 - [ ] T4: Write the roxygen and run `devtools::document()`. Add the function to `_pkgdown.yml` and `NEWS.md`. In `cairn/DESIGN.md`, add it to the function families and fix the `system2()` sentence (about line 149). Update the two `GUIDE.md` sections.
@@ -59,5 +59,7 @@ Let an author render the site, or run changed reports again and then render the 
 - 2026-10-28: plan gate chose `system2()` on `find_quarto()`'s copy over the quarto R package because it adds no dependency and finds the copy inside RStudio or Positron; falsified by a Quarto path that `system2()` cannot start on Windows.
 - 2026-10-28: agent decided: a repeated report name renders once; a figure still missing after the second full render gives a printed list, not an error, since the render itself succeeded.
 - 2026-10-28: criteria audit (full mode, fresh Opus reader) returned 16 findings over M072 and M073, all accepted; for M072: Out says "commits, tags, or pushes", not "runs git"; a mocked runner counts renders and order (AC1 to AC3); repeated names; a third-render cap test and printed names; an unreadable version is used; `tool_which()` is mocked, not `PATH`; the check order and both parts of the name rule; the grep leaves out the new file; `rerender_steps` and the `system2()` notes are in.
+- 2026-10-28: set in-progress on branch m072-render-from-r.
+- 2026-10-28: T1 done: `test-render-supplement.R` with 9 mocked tests (internal runner `quarto_run(quarto, args)` mocked) and 4 render tests; the mocked tests fail with no function, the render tests skip without `NOT_CRAN`.
 
 ## Decisions

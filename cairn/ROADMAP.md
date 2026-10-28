@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-28 (M071 review: archived; pruned the M068 row; gra
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M072 | Render a site from the R console | planned | — | normal | milestones/M072-render-from-r.md |
+| M072 | Render a site from the R console | in-progress | — | normal | milestones/M072-render-from-r.md |
 | M073 | Publish a site from the R console and a browser | planned | M072 | normal | milestones/M073-publish-from-r.md |
 | M071 | List reports in menu order on the home page | done | — | normal | milestones/archive/M071-report-table-order.md |
 | M070 | Fill in the demo site | done | — | normal | milestones/archive/M070-filled-in-demo-site.md |
