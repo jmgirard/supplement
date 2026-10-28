@@ -89,6 +89,7 @@ The release address that `release_supplement()` prints tags the author's current
 - 2026-10-28: the scratch repo shows that a repository started with `git remote add` and a push has no `refs/remotes/origin/HEAD`, so the other-branch line does not print there; the plan's falsifier for the local read fired in part. AC2 holds as written; the follow-up goes to the candidate row "Read the default branch after a push".
 - 2026-10-28: all tasks done; status review.
 - 2026-10-28: review: main at bdbf62a, not moved since the cut; Copilot round off; no PR yet (route d).
+- 2026-10-28: step-7 approval: m074-tag-release-branch approved for merge
 
 ## Review
 
