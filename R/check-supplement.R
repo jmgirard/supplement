@@ -318,13 +318,16 @@
 #'   `<!...>` and `<?...>` markup, end tags, and the text of `<script>`,
 #'   `<style>`, `<textarea>`, and `<title>` elements are skipped, and so is
 #'   page text such as `<code>` text. These parts end as the HTML Standard
-#'   says. A comment ends at the `>` of `<!-->` or `<!--->`, and otherwise
-#'   at its first `-->` or `--!>`. `</` followed by a character that is not
-#'   a letter or `>` starts a bogus comment, which ends at the next `>`. An
-#'   end tag is read through its attributes, so a `>` in a quoted value does
-#'   not end it. In the text of a script, `<!--` and then `<script` make the
-#'   next `</script>` part of the text. A later `</script>` ends the script,
-#'   unless a `-->` came first. Attribute names match in any letter case, and
+#'   says, except as listed below. A comment ends at the `>` of `<!-->` or
+#'   `<!--->`, and otherwise at its first `-->` or `--!>`. `</` followed by
+#'   a character that is not an ASCII letter or `>` starts a bogus comment,
+#'   which ends at the next `>`. An end tag is read through its attributes,
+#'   so a `>` in a quoted value does not end it. In the text of a script,
+#'   `<!--` starts escaped text, which ends at the next `-->`, whose dashes
+#'   can be those of the `<!--`. In escaped text, `<script` followed by a
+#'   space, tab, line break, form feed, `/`, or `>` makes the next
+#'   `</script>` part of the text, unless a `-->` comes first. Any other
+#'   `</script>` ends the script. Attribute names match in any letter case, and
 #'   only whole names count, so `data-href` and `data-src` are not read. A
 #'   value can be in double quotes, in single quotes, or unquoted, where it
 #'   runs to the next space or `>`. An attribute with no `=`, such as
@@ -356,7 +359,8 @@
 #'   Relative links then resolve against the folder of the base address,
 #'   with its `?` and `#` parts removed. A base whose last part is `.` or
 #'   `..` names a folder. A link of only a `#` or `?` part resolves to the
-#'   base address itself. A row shows the link as the page writes it.
+#'   base address itself. A row shows the link before it is resolved
+#'   against the base.
 #'
 #'   These are the main cases where the check reads a page differently
 #'   from a browser. Every other reference (such as `&eacute;`, `&AMP;`, or
@@ -371,9 +375,9 @@
 #'   browser does not use it. A `\` in a base is not read as `/`, while a
 #'   browser reads it so. An empty link, such as `href=""`, is not checked,
 #'   also under a local base, while a browser resolves it to the base
-#'   address. Under a base with a scheme or a leading `/`, a browser
-#'   follows the page's relative links to another place, and the check
-#'   does not check them. A `"` or `'` with no closing quote starts an unquoted
+#'   address. Under a base with another scheme or a leading `/`, a browser
+#'   can follow the page's relative links to a place that the check does
+#'   not read, and the check does not check them. A `"` or `'` with no closing quote starts an unquoted
 #'   value, so the next `>` ends that tag and it is read, where a browser
 #'   reads on to the end of the page and drops the tag. A byte that is not
 #'   valid UTF-8 is read as text such as `<e9>`; outside a quoted value,
@@ -1779,7 +1783,8 @@ utf8_lower <- function(x) {
 # input unchanged. The attribute `targets` holds the path of each link
 # relative to the page's folder, after a local base (base_kind()). Under
 # such a base a link of only a `#` or `?` part points to the base address,
-# so it is kept. A base that points away from the site leaves no link.
+# so it is kept. A base that points to a place that this check does not
+# read leaves no link.
 page_links <- function(file) {
   values <- page_values(file)
   if (!is.character(values)) {
@@ -2020,12 +2025,13 @@ html_raw_text <- function(name) {
 }
 
 # Comments, `<!...>` and `<?...>` markup, the four raw-text elements (groups
-# 1 to 4 keep their start tags), end tags, `</` and a non-letter, and other
-# start tags (group 5). A comment ends at `>` right after `<!--` or
-# `<!---`, else at its first `-->` or `--!>` after `<!--`. `</` and a
-# character that is not a letter is a bogus comment that runs to the next
-# `>`, and an end tag is read through its attributes, as a start tag is
-# (whatwg-html, 13.2.5.7 and 13.2.5.43 to 13.2.5.52).
+# 1 to 4 keep their start tags), end tags, `</` and a character that is
+# not an ASCII letter, and other start tags (group 5). A comment ends at
+# `>` right after `<!--` or `<!---`, else at its first `-->` or `--!>`
+# after `<!--`. `</` and a character that is not an ASCII letter or `>` is
+# a bogus comment that runs to the next `>`. `</>` is removed too, as a
+# browser drops it. An end tag is read through its attributes, as a start
+# tag is (whatwg-html, 13.2.5.7 and 13.2.5.43 to 13.2.5.52).
 html_skipped <- paste0(
   "<!--(?:-?>|[^-]*+(?:-(?!-!?>)[^-]*+)*+(?:--!?>|\\z))|<[!?][^>]*+(?:>|\\z)|",
   paste(vapply(c("script", "style", "textarea", "title"), html_raw_text, character(1)), collapse = "|"),
