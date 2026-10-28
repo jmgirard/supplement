@@ -30,9 +30,10 @@ supplement::add_data("path/to/scores.csv", "Scores of each participant")
 ```
 
 `add_report()` writes `analyses/models.qmd` and adds it to the Analyses
-menu. It gives the report the next `order`. The home page then lists
-the reports in the order of the menu. This holds while every report has an
-`order` and the menu follows those values. The new report ends with the "Computing environment" section below.
+menu. It gives the report the next `order`. The home page lists the
+reports with an `order` first, by that number, and the others after them by
+title. So it lists the reports in the order of the menu while every report
+has an `order` and the menu follows those values. The new report ends with the "Computing environment" section below.
 `add_data()` copies the file into `data/` and adds it to the `data` list in
 `_supplement.yml`.
 

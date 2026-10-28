@@ -1,6 +1,6 @@
 # M071: List reports in menu order on the home page
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -32,7 +32,7 @@ Make the home page's report table list reports in the order of the Analyses menu
 - AC1 → T1, T2
 - AC2 → T1, T3
 - AC3 → T4
-- AC4 → T5
+- AC4 → T5, T7
 - AC5 → T6
 
 ## Tasks
@@ -43,6 +43,7 @@ Make the home page's report table list reports in the order of the Analyses menu
 - [x] T4: Add the AC3 render test to `test-add-render.R`, reading the table with `listing_rows()` and the menu from `_quarto.yml`, with titles such as "Alpha Models", "Zeta Checks", "Beta Sample" added in that order.
 - [x] T5: Update the `add_report()` roxygen and run `devtools::document()`; update `GUIDE.md`'s Reports section (the rule, adding `order` by hand, editing it to reorder), the `index.qmd` listing comment, `README.md`, `cairn/DESIGN.md`, and add a `NEWS.md` entry. Run AC4's grep and record in the Review section which texts it found describe the table's order.
 - [x] T6: Run `devtools::test()` and `devtools::check()`. Build the demo with `.github/scripts/build-demo.R` and confirm its table reads Sample Description, Main Analysis, Robustness Checks.
+- [x] T7: Review return 1: make `README.md:93-97` and `inst/template/GUIDE.md:32-35` state the rule (reports with an `order` first, by that value, then the others by title).
 
 ## Work log
 
@@ -64,6 +65,8 @@ Make the home page's report table list reports in the order of the Analyses menu
 - 2026-10-28: claim audit: 40 claims read, 11 corrected — NEWS.md, R/add-report.R, R/check-supplement.R, README.md, inst/template/GUIDE.md, man/add_report.Rd, tests/testthat/test-add-render.R, tests/testthat/test-add-report.R. The false claims were the cap's reason (`sprintf` never writes `1e+06`; yaml reads 3000000000 as NA) and two test comments; the partly true ones gained the condition that every report has an `order` and the menu follows it, the full-site render step, and "higher than every other report's". The one re-read cleared 9 and found README and one GUIDE line still lacking the menu condition and one comment word, all fixed with no further read.
 - 2026-10-28: status review: all tasks checked; verify slot clean.
 - 2026-10-28: review return 1: AC4 — `README.md:93-97` and `inst/template/GUIDE.md:32-35` describe the table's order as the menu's without stating the rule (reports with an `order` first, by that value, then the others by title).
+- 2026-10-28: T7 (minor amendment, the return's task; Coverage AC4 → T5, T7): `README.md` and `GUIDE.md`'s `add_report()` note now state the rule before the menu-order condition; the added sentences repeat claims the claim audit read true at `index.qmd:4-7` and `GUIDE.md:15-17`. `devtools::test()`: 481 tests, 0 failed, 12 skipped.
+- 2026-10-28: status review: T7 checked; verify slot clean.
 
 ## Decisions
 

@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-28 (M070 review: archived; pruned the M067 row; two
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M071 | List reports in menu order on the home page | in-progress | — | normal | milestones/M071-report-table-order.md |
+| M071 | List reports in menu order on the home page | review | — | normal | milestones/M071-report-table-order.md |
 | M070 | Fill in the demo site | done | — | normal | milestones/archive/M070-filled-in-demo-site.md |
 | M069 | Publish a demo of the template site | done | — | normal | milestones/archive/M069-demo-template-site.md |
 | M068 | Handle renv lockfile edge cases | done | — | normal | milestones/archive/M068-renv-lockfile-edge-cases.md |## Candidates
