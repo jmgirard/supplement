@@ -133,3 +133,5 @@ Let an author follow the publishing guide from an empty folder to a release with
 - prior-review #3: bytes that are not UTF-8 in the origin address warn — fix now, fixed 2f4d524 (as diff-bug #5)
 - prior-review #4: the guide says the release prints the address, though a non-GitHub origin gets steps — fix now, fixed 2f4d524
 - prior-review #5: long or ragged lines in new prose — reject: style
+- after fixes (2026-10-28, code at 2f4d524): `devtools::test()` 506 tests, 0 failed, 0 errors, 12 skipped (one test added: an `origin` read that fails after the writes keeps the release); `devtools::check()` 0 errors, 0 warnings, the same `.claude/` NOTE; `test-release-supplement.R` 59/59 with the stronger address and version expectations; `devtools::document()` no diff; `cairn_validate.py` all checks passed; AC6 grep still 8 lines, none about the GitHub tool; no snapshot file changed.
+- findings: 39 lines from 4 lenses; 19 fix now (two with parts rejected), 4 follow-up (to rows "Tag releases made from other branches" and "Read more GitHub remote address forms"), 15 rejected, 1 noted; 0 amendments.
