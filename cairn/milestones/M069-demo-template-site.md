@@ -87,18 +87,19 @@ Publish the site that `create_supplement()` and one `quarto render` make under `
 - gate: `cairn_validate.py` all checks passed. `devtools::document()` gave no diff. `pkgdown::check_pkgdown()` found no problems. No README.Rmd, so no knit. NEWS.md has the entry. No new top-level file, and `.github` is already in `.Rbuildignore`. No principle changed, so no impact report.
 - spawned: diff-bug, blame-history, prior-review, ripple
 - diff-bug #1: README.md and NEWS.md link `/demo/`, which 404s until a merge to main deploys it — reject (planned change: the link names the post-merge page, and Pages served the site with 200 on 2026-10-28).
-- diff-bug #2: DESIGN.md names only two of the script's stops and leaves out the missing `docs/index.html` and the existing output folder — fix now.
+- diff-bug #2: DESIGN.md names only two of the script's stops and leaves out the missing `docs/index.html` and the existing output folder — fix now, fixed 308507a.
 - diff-bug #3: a second local run into the same `docs/demo` fails until the folder is deleted — reject (planned change: the script header states that the folder must not exist yet, so stale files never mix with a new demo).
-- diff-bug #4: no timeout on the render, so a hung render holds the job up to GitHub's 6-hour limit — fix now (step `timeout-minutes`).
+- diff-bug #4: no timeout on the render, so a hung render holds the job up to GitHub's 6-hour limit — fix now (step `timeout-minutes: 15`), fixed 308507a.
 - diff-bug #5: `setwd(old)` is not in `on.exit()` — reject (style: the script runs as a top-level Rscript, and an error ends the process).
-- diff-bug #6: the temporary site is never deleted — fix now.
-- diff-bug #7: the `dir.create()` result is not checked — fix now.
+- diff-bug #6: the temporary site is never deleted — fix now, fixed 308507a.
+- diff-bug #7: the `dir.create()` result is not checked — fix now, fixed 308507a.
 - diff-bug #8: the demo pages are not in pkgdown's search index or sitemap — reject (planned change: the demo is a separate Quarto site with its own search).
 - diff-bug #9: the demo's example report prints the CI runner's R and package versions and R home path — reject (planned change: the demo shows the template's output unchanged, and the template documents what `print_environment()` prints).
-- blame-history #1: a failing demo now stops the whole site deploy, against M055's aim that gh-pages match the latest main build, and no D-entry records it — fix now (D-033).
-- blame-history #2: D-001 rejects gh-pages for template sites, and no D-entry says the demo falls under D-025's package-site exception — fix now (D-033).
+- blame-history #1: a failing demo now stops the whole site deploy, against M055's aim that gh-pages match the latest main build, and no D-entry records it — fix now (D-033), fixed 308507a.
+- blame-history #2: D-001 rejects gh-pages for template sites, and no D-entry says the demo falls under D-025's package-site exception — fix now (D-033), fixed 308507a.
 - blame-history #3: the README paragraph adds detail of the kind M051 moved out of the README — reject (planned change: AC5 asks for the sentence, and the claim audit asked for the `repo` note).
-- prior-review #1: the demo step gates the whole site deploy and no D-entry records it — fix now (D-033, same as blame-history #1).
+- prior-review #1: the demo step gates the whole site deploy and no D-entry records it — fix now (D-033, same as blame-history #1), fixed 308507a.
+- after the fixes, at 308507a: the AC1 run again gave the same 27 paths as the separate render, both AC2 probes again exited 1 with no output folder, and `cairn_validate.py` passed. The changed workflow step has not run on GitHub yet. The PR's pkgdown check runs it before the merge.
 - prior-review #2: the step runs the PR's own script in the build job, whose env holds `GITHUB_PAT` — reject (false as a new risk: that job already installs and runs the PR's package code with the same read-only token, M056).
 - prior-review #3: knitr and rmarkdown may not be installed for the script — reject (false: setup-r-dependencies installs Suggests, and run 40615177027 rendered the R report).
 - ripple: no ripple evidence.
