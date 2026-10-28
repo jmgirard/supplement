@@ -7,6 +7,12 @@ each report's computed output in `_freeze/`. So once each report holds
 stored output, the site rebuilds without the data. GitHub Pages serves the site, and Zenodo's GitHub integration
 can archive each GitHub release with a DOI.
 
+The [demo site](https://jmgirard.github.io/supplement/demo/) is the site
+that `create_supplement()` and one `quarto render` make, with no edits.
+`repo` is set to this package's repository, so the site's GitHub link has
+no placeholder. It shows the template's placeholder title and citation,
+its setup box, and its example report and data file.
+
 The package is in early development.
 
 ## Start a new site

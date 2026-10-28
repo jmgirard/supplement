@@ -363,7 +363,16 @@ tests read the package's R files, from the checkout (D-020).
 `.github/workflows/pkgdown.yaml` builds the package site from
 `_pkgdown.yml` on Ubuntu with Quarto 1.10 on pull requests, pushes to main,
 and manual runs. Its `build` job runs on every trigger with read access
-(`contents: read`) and uploads `docs/` as a run artifact. Only a run on main
+(`contents: read`). After the pkgdown build, it runs
+`.github/scripts/build-demo.R`, which makes a site with
+`create_supplement(repo = "jmgirard/supplement")`, renders it once with no
+edit, and copies its `docs/` into `docs/demo`. The navbar's `Demo` entry
+and the README link that folder (M069). The script refuses an output
+folder that already exists. It stops before any copy when Quarto is
+missing, the render fails, or the render writes no `docs/index.html`, so
+a broken demo fails the job and stops the deploy of the whole package
+site (D-033). The step has a 15-minute limit. The job then uploads
+`docs/` as a run artifact. Only a run on main
 (a push or a manual run) also runs the `deploy` job, the one job with write
 access (`contents: write`), which pushes that artifact to the `gh-pages`
 branch with `clean: true`, so files the build did not make are deleted
