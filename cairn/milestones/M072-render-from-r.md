@@ -1,6 +1,6 @@
 # M072: Render a site from the R console
 
-- **Status:** review
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -70,5 +70,45 @@ Let an author render the site, or run changed reports again and then render the 
 - 2026-10-28: first full run (`NOT_CRAN=true`, 5878 expectations) had 3 failures and 1 error: two from test files edited while it ran, and `test-source.R`'s "git runs only through its helper", which pinned one `system2` call in `R/`. That test now allows two, the git call in `check-supplement.R` and `system2(quarto, args)` in `render-supplement.R`, and the `quarto_run()` comment no longer reads as a call. Noted in M073 that `test-source.R` also keeps processes out of `release-supplement.R`.
 - 2026-10-28: T5 done at d565fc4: `devtools::test()` with `NOT_CRAN=true` gives 5882 expectations, 0 failed, 0 errors, 12 skipped; `devtools::check()` gives 0 errors, 0 warnings, 1 note for the hidden `.claude/` folder, which is the Claude app's local lock file, ignored by git and absent from a clone, so CI builds do not see it.
 - 2026-10-28: status review.
+- 2026-10-28: review return 1: AC6 fails as written (`R/check-tools.R:152`, found by the AC6 grep, does not name `render_supplement()`), and diff-bug #1 is a floor defect (a wrong-case report name passes the file check on a case-insensitive file system and renders under that case with no error). Also fix the fix-now findings listed in the Review section: diff-bug #2, #3, #4, #10, #11's test trims; blame-history #2's D-entry; prior-review #1's Sass-lock rerun in the render tests; ripple #1, #5, #6.
 
 ## Decisions
+
+## Review
+
+Pass 1, on df5c7c5, branch level with main at 805e91c. Suite: `devtools::test()` with `NOT_CRAN=true`, 5882 expectations, 0 failed, 0 errors, 12 skipped. Check: `devtools::check()` 0 errors, 0 warnings, 1 note (hidden `.claude/`, the app's local lock file, ignored by git).
+
+- AC1: pass — "render_supplement() with no reports runs one full render" (mocked: value `"quarto render"`, one call with `render`, invisible) and "render_supplement() renders a new site" (real Quarto: value and `docs/index.html`) pass in the suite above.
+- AC2: pass — "named reports render by name, in order and once each, before the full render" (mocked order and value for `c("a","b")` and `c("b","a","b")`) and "a named report runs its code again, which a full render alone does not" (real Quarto: page holds `marker-new` only after the named call) pass.
+- AC3: pass — "a full render that leaves a figure out of docs/figures/ runs once more, and never a third time" (1, 2, and 2 renders plus the printed `figures/new.png`), "a hidden figure missing from docs/figures/ also starts the second render", and "a figure that a full render saves under a new name reaches docs/ in one call" (real Quarto, two full renders, `docs/figures/fig-new.png`) pass.
+- AC4: pass — "render_supplement() runs the Quarto copy that check_tools() reports" (path, then `QUARTO_PATH`, then editor copy, and an unknown version used), "render_supplement() stops before any render when Quarto is missing or too old", and "render_supplement() renders with the copy in QUARTO_PATH when none is on the path" (real Quarto) pass.
+- AC5: pass — "render_supplement() checks its arguments and the site in order, before any render", "a render that fails stops the function and runs no later command", and "render_supplement() runs each render in the site folder and gives back the working folder" pass.
+- AC6: FAIL — the grep finds `R/check-tools.R:152`, `` detail <- paste0(detail, ". `quarto render` in a terminal can miss this copy") ``, which does not name `render_supplement()`; the claim-audit fix moved the name to line 154. The other parts hold: help page, `_pkgdown.yml:26`, `NEWS.md:3`, DESIGN function family, `rerender_steps` (`R/check-supplement.R:818`), the two GUIDE.md sections, and the `git_run()` comment (`R/check-supplement.R:564`).
+- AC7: pass — the suite and check above.
+- Gate: `cairn_validate.py` all checks passed; `devtools::document()` no diff; `pkgdown::check_pkgdown()` no problems (at T4); NEWS entry present; no new top-level file.
+
+spawned: diff-bug, blame-history, prior-review, ripple
+
+- diff-bug #1: on a file system that ignores case, `render_supplement("Models")` passes the file check for `analyses/models.qmd` and renders under the wrong case with no error — fix now (floor return: a wrong result with no error).
+- diff-bug #2: the `add_report()` hint `render_supplement("{name}")` leaves out `path`, so it fails when `add_report()` ran with another `path` — fix now.
+- diff-bug #3: the "still missing" hint tells the author to render again, which cannot help when Quarto never copies the file or `docs/figures` is a file — fix now (reword the hint).
+- diff-bug #4: when Quarto cannot start (status 127) the error points to Quarto's output, which may be empty — fix now (name the start failure).
+- diff-bug #5: on Windows an interrupt may leave Quarto running after the function returns (not verified) — follow-up, row "Check Windows console renders from R".
+- diff-bug #6: on Windows Rgui the output of `system2(stdout = "")` may not reach the console (not verified) — follow-up, same row.
+- diff-bug #7: a status of length 0 prints an empty status — reject, false: `system2()` returns one value; only a test mock could return none.
+- diff-bug #8: `check_report_name()` on invalid UTF-8 may warn or error with another class — reject, edge: a name that is not UTF-8 is outside documented and common use, and the effect is an error; row "Read report names that are not UTF-8" already holds it.
+- diff-bug #9: the local `missing` shadows `base::missing()` — reject, style.
+- diff-bug #10: `is_plain_file_vec()` duplicates `is_plain_file()` — fix now (the case fix replaces the check).
+- diff-bug #11 (tests): repeated inputs on one code path — `bad_reports` holds the profile's R edge cases (empty, `NA`, number, factor, list), kept; the four `path` cases, four pattern names, and the second failing-render case repeat one path — fix now (cut to one each); the `can miss this copy` match in `test-check-tools.R` checks unchanged text — fix now (remove); the full-render-only page check is the discriminating control for the named render — reject, planned test; `test-source.R` relies on alphabetical order — reject, style.
+- blame-history #1: the real-Quarto tests skip the Sass-cache rerun that `run_in()` gives (M033) — fix now (same as prior-review #1).
+- blame-history #2: the one-`system2` rule of `test-source.R` (M008, M037) changed with no D-entry — fix now (append a D-entry: git only through `git_run()`, Quarto only through `quarto_run()`).
+- blame-history #3: GUIDE.md now names a package route beside the Quarto-only route (D-004, D-023) — reject, planned change (AC6), written as conditional on the package.
+- blame-history #4: `rerender_steps` names a function a user without the package cannot run — reject, false: those rows come only from `check_supplement()`, so the reader has the package.
+- blame-history #5 to #9: wording changes with no pinned text or decision broken — reject, planned change.
+- prior-review #1: the real-Quarto tests call `render_supplement()` with no rerun on "database is locked" while tests run in parallel (M033, M052) — fix now: a test helper reruns a render once.
+- prior-review #2: `file.exists()` on a `path` whose bytes are not UTF-8 stops on Windows — reject, edge: such a folder name is outside common use and the effect is an error; `add_report()` does the same on main.
+- prior-review #3: a FIFO in `figures/` forces the second render and the "still missing" message — reject, edge: a special file in `figures/` is outside documented use and the effect is one extra render and a message; row "Skip FIFOs and other special files" holds it.
+- ripple #1: `cairn/DESIGN.md:96` says no looked-up tool is run, above the render paragraph — fix now (scope it to `check_tools()`).
+- ripple #2 to #4: the vignette and README still give `quarto render` only — reject, planned change: M073 rewrites them.
+- ripple #5: GUIDE.md lines 75-76, 112-113, 441, 451, and 621 give the render steps without the R route — fix now (name it where the steps are render steps).
+- ripple #6: `NEWS.md` says the render-again text in the rows names the function, but only `rerender_steps` does — fix now (narrow the NEWS sentence).
