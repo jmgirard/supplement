@@ -67,6 +67,7 @@ Make the home page's report table list reports in the order of the Analyses menu
 - 2026-10-28: review return 1: AC4 — `README.md:93-97` and `inst/template/GUIDE.md:32-35` describe the table's order as the menu's without stating the rule (reports with an `order` first, by that value, then the others by title).
 - 2026-10-28: T7 (minor amendment, the return's task; Coverage AC4 → T5, T7): `README.md` and `GUIDE.md`'s `add_report()` note now state the rule before the menu-order condition; the added sentences repeat claims the claim audit read true at `index.qmd:4-7` and `GUIDE.md:15-17`. `devtools::test()`: 481 tests, 0 failed, 12 skipped.
 - 2026-10-28: status review: T7 checked; verify slot clean.
+- 2026-10-28: step-7 approval: m071-report-table-order approved for merge
 
 ## Decisions
 
