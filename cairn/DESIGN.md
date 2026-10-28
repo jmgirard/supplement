@@ -47,8 +47,10 @@ Status and order live in `ROADMAP.md`.
 - One metadata file (`_supplement.yml`) is the single source for citation,
   authors, ORCIDs, DOIs, and licenses. `CITATION.cff` and `.zenodo.json`
   are generated from it.
-- The package never runs `git tag`, `git push`, or a GitHub release. It
-  prints those commands for the author to run. It never runs Docker or
+- The package never runs `git commit`, `git tag`, `git push`, or a GitHub
+  release, and opens no web page. `release_supplement()` prints the git
+  commands that commit and push the release and the address of GitHub's
+  new-release form, and runs none of the printed commands (D-036). It never runs Docker or
   renv either: `write_dockerfile()` writes the recipe, and the help and
   the template guide (`GUIDE.md`, M050) show the commands (M032). This
   covers package code: the repo's pkgdown workflow pushes the package

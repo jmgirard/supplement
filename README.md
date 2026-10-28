@@ -30,7 +30,9 @@ You need the [Quarto](https://quarto.org) command-line interface, and R
 with the knitr and rmarkdown packages, to render the site. You can make
 the site folder from R or from Quarto. In R, `supplement::check_tools()`
 reports which of these tools are missing, too old, or not on the system
-path. It also checks for git and the GitHub CLI (`gh`).
+path. It also checks for git. The guide sets up git and the GitHub
+repository from R with the usethis package, so you need no GitHub
+command-line tool.
 
 From R, install the package from GitHub with `pak::pak("jmgirard/supplement")`.
 Then run:
@@ -203,22 +205,24 @@ in a git repository, the function also stops. A DOI in `CITATION.cff` that diffe
 again. Then it changes the version in `_supplement.yml` and writes
 `CITATION.cff` and `.zenodo.json` again.
 
-Last, the function prints the commands that make the release, for example:
+Last, the function prints the git commands that commit and push the
+release, for example:
 
 ```sh
 git status -- .
 git add -A -- .
 git commit -m "Release v1.0.0" -- .
-git tag v1.0.0
 git push
-git push origin v1.0.0
-gh release create v1.0.0 --generate-notes
 ```
 
-It runs none of them. Read them, then run them yourself in the site
-folder. The last command needs the [GitHub command-line
-tool](https://cli.github.com), `gh`. After Zenodo archives the release, add the
-new version DOI to `_supplement.yml` and render the site again.
+It runs none of them. Run them yourself in the site folder, or commit and
+push in the Git pane of RStudio or Positron. Then publish the release on
+GitHub's page. When the `origin` remote is on GitHub, the function prints
+that page's address with the tag filled in, such as
+`https://github.com/owner/name/releases/new?tag=v1.0.0`. When you publish
+the release, GitHub makes the tag on the default branch. So push before
+you publish. After Zenodo archives the release, add the new version DOI to
+`_supplement.yml` and render the site again.
 `?release_supplement` describes the cases that stop the function and how
 it puts back the files after a failed write. It also explains the `-- .`
 in the git commands.
