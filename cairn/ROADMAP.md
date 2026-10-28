@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-28 (M073 review: archived; pruned the M070 row; add
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M074 | Tag the release on the branch that holds it | planned | — | normal | milestones/M074-tag-release-branch.md |
+| M074 | Tag the release on the branch that holds it | in-progress | — | normal | milestones/M074-tag-release-branch.md |
 | M073 | Publish a site from the R console and a browser | done | M072 | normal | milestones/archive/M073-publish-from-r.md |
 | M072 | Render a site from the R console | done | — | normal | milestones/archive/M072-render-from-r.md |
 | M071 | List reports in menu order on the home page | done | — | normal | milestones/archive/M071-report-table-order.md |

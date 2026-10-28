@@ -228,7 +228,8 @@ release_supplement <- function(bump, path = ".") {
   write_release_files(read, lines, file, outputs, texts, old)
   # The files are the release, so a failure while printing keeps them.
   commands <- release_commands(new)
-  report_release(path, new, commands, release_address(origin_url(path), new))
+  branches <- release_branches(path)
+  report_release(path, new, commands, release_address(origin_url(path), new, branches$current), branches)
   invisible(commands)
 }
 
@@ -509,30 +510,60 @@ release_commands <- function(version) {
 }
 
 # The address of GitHub's new-release form for version `version` in the
-# repository that `origin` names, or NULL when `origin` is NULL or is not
-# `https://github.com/<owner>/<name>`, `git@github.com:<owner>/<name>`, or
-# `ssh://git@github.com/<owner>/<name>`, each with or without `.git`.
-release_address <- function(origin, version) {
-  rx <- "^(https://github\\.com/|git@github\\.com:|ssh://git@github\\.com/)([A-Za-z0-9-]+)/([A-Za-z0-9._-]+?)(\\.git)?\\z"
+# repository that `origin` names, with `branch` as the target when it is
+# not NULL. NULL when `origin` is NULL or is not a GitHub url: `https://`
+# or `http://` with an optional user and port and the host `github.com` or
+# `www.github.com`, `ssh://` with an optional user and port and the host
+# `github.com`, or the scp-like `<user>@github.com:`, the host in any
+# letter case, then `<owner>/<name>` with an optional `.git` and `/`.
+release_address <- function(origin, version, branch = NULL) {
+  rx <- paste0(
+    "^(?:https?://(?:[^@/]*@)?(?i:(?:www\\.)?github\\.com)(?::[0-9]+)?/",
+    "|ssh://(?:[^@/]*@)?(?i:github\\.com)(?::[0-9]+)?/",
+    "|[^@/:]+@(?i:github\\.com):)",
+    "([A-Za-z0-9_-]+)/([A-Za-z0-9._-]+?)(?:\\.git)?/?\\z"
+  )
   if (is.null(origin) || !grepl(rx, origin, perl = TRUE)) {
     return(NULL)
   }
-  repo <- sub(rx, "\\2/\\3", origin, perl = TRUE)
-  sprintf("https://github.com/%s/releases/new?tag=v%s", repo, version)
+  repo <- sub(rx, "\\1/\\2", origin, perl = TRUE)
+  address <- sprintf("https://github.com/%s/releases/new?tag=v%s", repo, version)
+  if (!is.null(branch)) address <- paste0(address, "&target=", url_encode(branch))
+  address
 }
 
-report_release <- function(path, version, commands, address) {
+# `x` with each byte outside `A-Za-z0-9-._~` of its UTF-8 form written as
+# `%XX`, as in a url query value.
+url_encode <- function(x) {
+  bytes <- as.integer(charToRaw(enc2utf8(x)))
+  keep <- (bytes >= 48L & bytes <= 57L) | (bytes >= 65L & bytes <= 90L) |
+    (bytes >= 97L & bytes <= 122L) | bytes %in% c(45L, 46L, 95L, 126L)
+  out <- sprintf("%%%02X", bytes)
+  out[keep] <- intToUtf8(bytes[keep], multiple = TRUE)
+  paste(out, collapse = "")
+}
+
+report_release <- function(path, version, commands, address, branches = list()) {
   tag <- paste0("v", version)
+  branch <- branches$current
+  where <- if (is.null(branch)) "the default branch" else paste("the branch", branch)
   cli::cli_alert_success(
     "Set {.field version} to {.val {version}} in {.file _supplement.yml}, and wrote {.file CITATION.cff} and {.file .zenodo.json}."
   )
   cli::cli_text("Run these commands in {.path {path}} to commit the release and push it. The {.code git add} and {.code git commit} commands stage and commit only the files in this folder, and {.code git status -- .} shows them.")
   cli::cli_code(commands)
-  cli::cli_text("Then publish the release on GitHub. Push first: GitHub makes the tag {tag} on the default branch when you publish the release, so a release published before the push tags an older commit.")
+  if (!is.null(branch) && !is.null(branches$default) && !identical(branch, branches$default)) {
+    default <- branches$default
+    cli::cli_alert_warning("This release is on the branch {branch}, not the default branch {default} of origin. GitHub makes the tag on {branch}.")
+  }
+  cli::cli_text("Then publish the release on GitHub. Push first, and publish right after the push: GitHub makes the tag {tag} on {where} when you publish the release, so a release published before the push tags an older commit, and one published after a later push tags the later commit.")
   if (is.null(address)) {
-    cli::cli_text("On the repository's page on GitHub, open Releases and draft a new release. Then enter {tag} as the tag, and publish the release.")
-  } else {
+    cli::cli_text("On the repository's page on GitHub, open Releases and draft a new release. Then enter {tag} as the tag, pick {where} as the target, and publish the release.")
+  } else if (is.null(branch)) {
     cli::cli_text("Open this page, check that the tag is {tag}, and publish the release:")
+    cli::cli_text("{.url {address}}")
+  } else {
+    cli::cli_text("Open this page, check that the tag is {tag} and the target is {branch}, and publish the release:")
     cli::cli_text("{.url {address}}")
   }
   cli::cli_text(

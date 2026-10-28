@@ -1,13 +1,13 @@
 # M074: Tag the release on the branch that holds it
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — changes the text and the address that `release_supplement()` prints to authors
-- **Branch/PR:** —
+- **Branch/PR:** m074-tag-release-branch
 
 ## Goal
 
@@ -53,14 +53,14 @@ The release address that `release_supplement()` prints tags the author's current
 
 ## Tasks
 
-- [ ] T1: Write tests first in the release-address block of `tests/testthat/test-release-supplement.R` (from line 1168). Add one test for each AC3 url and one for each AC4 case. A helper sets a separate push url with `git remote set-url --push origin`. See the new tests fail.
-- [ ] T2: Make `origin_url()` (`R/check-supplement.R:625`) run `git remote get-url --push origin`. Widen `release_address()` (`R/release-supplement.R:515`) to these forms, and nothing after the name:
+- [x] T1: Write tests first in the release-address block of `tests/testthat/test-release-supplement.R` (from line 1168). Add one test for each AC3 url and one for each AC4 case. A helper sets a separate push url with `git remote set-url --push origin`. See the new tests fail.
+- [x] T2: Make `origin_url()` (`R/check-supplement.R:625`) run `git remote get-url --push origin`. Widen `release_address()` (`R/release-supplement.R:515`) to these forms, and nothing after the name:
   - `https://` or `http://`, with optional user info and port, host `github.com` or `www.github.com` in any case.
   - `ssh://`, with optional user and port, host `github.com` in any case.
   - The scp-like form `<user>@github.com:`, host in any case.
   - Owner `[A-Za-z0-9_-]+`, name `[A-Za-z0-9._-]+`, an optional `.git`, and at most one trailing `/`.
-- [ ] T3: Write tests first for AC1 and AC2. The cases are: branch `main`, branch `rel/v1#b&c+é` with a tag of that name, a detached HEAD, a non-GitHub origin on a branch, and `refs/remotes/origin/HEAD` set by `git symbolic-ref` to the same branch, to another branch, and unset. Add a local branch `origin/main` to one case. Update `expect_push_first()` for the branch wording. See the new tests fail.
-- [ ] T4: Add a branch read beside `origin_url()` through `git_run()`. It runs `git symbolic-ref --quiet HEAD` and strips `refs/heads/`. It runs `git symbolic-ref --quiet refs/remotes/origin/HEAD` and strips `refs/remotes/origin/`. Each read gives NULL on a failure, on another prefix, or on bytes that are not UTF-8. Pass the branch to `release_address()`, which adds `&target=` with `utils::URLencode(reserved = TRUE)`. Pass it to `report_release()`, which names the branch in the push-first text and in the Releases-page steps, and prints the other-branch line. `test-source.R` stays as it is. T3 passes.
+- [x] T3: Write tests first for AC1 and AC2. The cases are: branch `main`, branch `rel/v1#b&c+é` with a tag of that name, a detached HEAD, a non-GitHub origin on a branch, and `refs/remotes/origin/HEAD` set by `git symbolic-ref` to the same branch, to another branch, and unset. Add a local branch `origin/main` to one case. Update `expect_push_first()` for the branch wording. See the new tests fail.
+- [x] T4: Add a branch read beside `origin_url()` through `git_run()`. It runs `git symbolic-ref --quiet HEAD` and strips `refs/heads/`. It runs `git symbolic-ref --quiet refs/remotes/origin/HEAD` and strips `refs/remotes/origin/`. Each read gives NULL on a failure, on another prefix, or on bytes that are not UTF-8. Pass the branch to `release_address()`, which adds `&target=` with a byte encoder `url_encode()`. Pass it to `report_release()`, which names the branch in the push-first text and in the Releases-page steps, and prints the other-branch line. `test-source.R` stays as it is. T3 passes.
 - [ ] T5: Update the roxygen of `release_supplement()`, `README.md`, `inst/template/GUIDE.md` "Make a release", `vignettes/publishing.Rmd`, the `NEWS.md` entry, and `cairn/DESIGN.md` (Conventions and Architecture). Run `devtools::document()`, then read each `default branch` sentence that AC5 names.
 - [ ] T6: Open the AC6 address in the built-in browser and read the tag and target fields. Leave without publishing, then run `gh release view v9.9.9 --repo jmgirard/supplement`.
 - [ ] T7: Run `devtools::test()` and `devtools::check()`, then push and read CI.
@@ -78,3 +78,7 @@ The release address that `release_supplement()` prints tags the author's current
 - 2026-10-28: collision: absorbed candidate rows "Tag releases made from other branches" and "Read more GitHub remote address forms"; extends M073 (archived); D-036 narrowed by D-038 in this plan commit; D-035 holds, as the new read goes through `git_run()`. Inbox: 0 open issues, 0 open PRs.
 - 2026-10-28: lessons used: 2026-10-28 (M068) on pushing tracking commits before the CI wait; 2026-10-28 (M073) on GitHub's default-branch lag after a push.
 - 2026-10-28: criteria audit (full mode, fresh Opus reader): 9 findings, all fixed. Branch reads use full refs, since `--short` gives `heads/<b>` beside a same-named tag and `remotes/origin/main` beside a local `origin/main` (AC1, AC2, T4). Non-UTF-8 branch names fall to the no-branch case (AC1). The Releases-page steps now name the branch (AC1). The M073 count corrected to 7 address and 2 steps cases (AC3). Steps cases added for a query, a double `/`, and `git://`, and an scp case with an upper-case host (AC3). Test counts moved from the criteria to T1 and T3. D-038 narrows D-036, and the fetch-versus-push default branch went to Out. AC5 reads joined sentences, not grep lines. AC6 encodes `g` as `%67` so the look shows GitHub decodes the target. AC7 passed.
+- 2026-10-28: implement: branch m074-tag-release-branch cut from main at bdbf62a; status in-progress.
+- 2026-10-28: T1-T4 done in one commit, since T1's address checks need T4's target; 516 tests, 0 failed. The new tests failed on the old code (18 of them), and planted `--short` reads of HEAD and of origin/HEAD each turned one test red.
+- 2026-10-28: implement chose a small byte encoder `url_encode()` over `utils::URLencode()`, which would need utils in Imports (a dependency change); T4 wording updated (minor).
+- 2026-10-28: implement wording: the push-first text now says to publish right after the push, and the other-branch line is a cli warning that names both branches.

@@ -1168,17 +1168,37 @@ test_that("for a site at the top of the repository, the release commit holds its
 
 # The text that the release of a site at the top of a new git repository
 # prints, with `address` as its origin remote, or with no remote when
-# `address` is NULL.
-release_text_with_origin <- function(address) {
+# `address` is NULL. `push` sets a separate push url for origin. HEAD is
+# the branch `branch`, or a detached commit when `branch` is NULL.
+# `default` makes refs/remotes/origin/HEAD name that branch of origin.
+# `setup`, when given, runs on the repository before the release.
+release_text_with_origin <- function(address, push = NULL, branch = "main", default = NULL,
+                                     setup = NULL) {
   local_plain_git()
   mock_check()
   repo <- git_repo()
   write_site_yml(repo)
+  if (is.null(branch)) {
+    expect_status(git_in(repo, c("commit", "-q", "--allow-empty", "-m", "start")))
+    expect_status(git_in(repo, c("checkout", "-q", "--detach")))
+  } else {
+    expect_status(git_in(repo, c("symbolic-ref", "HEAD", shQuote(paste0("refs/heads/", branch)))))
+  }
   if (!is.null(address)) {
-    expect_status(git_in(repo, c("remote", "add", "origin", address)))
+    expect_status(git_in(repo, c("remote", "add", "origin", shQuote(address))))
     got <- git_in(repo, c("remote", "get-url", "origin"))
     expect_identical(got$output, address)
   }
+  if (!is.null(push)) {
+    expect_status(git_in(repo, c("remote", "set-url", "--push", "origin", shQuote(push))))
+    got <- git_in(repo, c("remote", "get-url", "--push", "origin"))
+    expect_identical(got$output, push)
+  }
+  if (!is.null(default)) {
+    expect_status(git_in(repo, c("symbolic-ref", "refs/remotes/origin/HEAD",
+                                 shQuote(paste0("refs/remotes/origin/", default)))))
+  }
+  if (!is.null(setup)) setup(repo)
   withr::local_options(cli.width = 1000)
   out <- new.env()
   out$msgs <- character()
@@ -1187,31 +1207,43 @@ release_text_with_origin <- function(address) {
   paste(out$msgs, collapse = "")
 }
 
-expect_push_first <- function(text) {
+# Expect `text` to say where GitHub makes the tag: on the branch `branch`,
+# or on the default branch when `branch` is NULL.
+expect_push_first <- function(text, branch = "main") {
   expect_match(text, "Push first", fixed = TRUE)
-  expect_match(text, "GitHub makes the tag v1.3.0 on the default branch when you publish the release", fixed = TRUE)
+  where <- if (is.null(branch)) "the default branch" else paste("the branch", branch)
+  expect_match(text, sprintf("GitHub makes the tag v1.3.0 on %s when you publish the release", where),
+               fixed = TRUE)
 }
 
 # Expect `text` to give the new-release address of the GitHub repository
-# `repo` ("owner/name") after the commands.
-expect_release_address <- function(text, repo) {
+# `repo` ("owner/name") after the commands, with `target` as its target
+# field, or with no target field when `target` is NULL. `branch` is the
+# branch that the text names.
+expect_release_address <- function(text, repo, target = "main", branch = "main") {
   address <- sprintf("https://github.com/%s/releases/new?tag=v1.3.0", repo)
-  at <- regexpr(address, text, fixed = TRUE)
-  expect_gt(at, 0)
-  expect_gt(at, regexpr("git push", text, fixed = TRUE))
-  expect_identical(sum(gregexpr("releases/new", text, fixed = TRUE)[[1]] > 0), 1L)
+  if (!is.null(target)) address <- paste0(address, "&target=", target)
+  printed <- regmatches(text, gregexpr("https://github\\.com/[^<>[:space:]]*", text))[[1]]
+  expect_identical(printed, address)
+  expect_gt(regexpr(address, text, fixed = TRUE), regexpr("git push", text, fixed = TRUE))
   expect_no_match(text, "open Releases", fixed = TRUE)
-  expect_push_first(text)
+  expect_push_first(text, branch)
 }
 
 # Expect `text` to give the steps on the Releases page, and no address.
-expect_release_steps <- function(text) {
+# The steps name the branch `branch` as the target, or the default branch
+# when `branch` is NULL.
+expect_release_steps <- function(text, branch = "main") {
   expect_no_match(text, "releases/new", fixed = TRUE)
   expect_match(text, "open Releases", fixed = TRUE)
-  expect_match(text, "enter v1.3.0 as the tag", fixed = TRUE)
+  target <- if (is.null(branch)) "the default branch" else paste("the branch", branch)
+  expect_match(text, sprintf("enter v1.3.0 as the tag, pick %s as the target", target), fixed = TRUE)
   expect_gt(regexpr("open Releases", text, fixed = TRUE), regexpr("git push", text, fixed = TRUE))
-  expect_push_first(text)
+  expect_push_first(text, branch)
 }
+
+# The words of the line that names a release branch other than the default.
+other_branch_line <- "not the default branch"
 
 test_that("an https origin gives the release address", {
   skip_if_no_git()
@@ -1256,4 +1288,120 @@ test_that("a repository with no origin remote gives the steps on the Releases pa
 test_that("an origin that is not on GitHub gives the steps on the Releases page", {
   skip_if_no_git()
   expect_release_steps(release_text_with_origin("https://gitlab.com/jdoe/my-site.git"))
+})
+
+test_that("more GitHub url forms give the release address", {
+  skip_if_no_git()
+  forms <- c(
+    "https://github.com/jdoe/my-site/",
+    "https://github.com/jdoe/my-site.git/",
+    "http://github.com/jdoe/my-site",
+    "https://www.github.com/jdoe/my-site",
+    "https://GitHub.COM/jdoe/my-site",
+    "git@GitHub.com:jdoe/my-site",
+    "https://jdoe@github.com/jdoe/my-site",
+    "https://jdoe:x@github.com/jdoe/my-site",
+    "https://github.com:443/jdoe/my-site",
+    "ssh://git@github.com:22/jdoe/my-site.git",
+    "ssh://github.com/jdoe/my-site",
+    "org-1@github.com:jdoe/my-site.git"
+  )
+  for (form in forms) {
+    expect_release_address(release_text_with_origin(form), "jdoe/my-site")
+  }
+})
+
+test_that("an owner name with an underscore keeps it in the release address", {
+  skip_if_no_git()
+  expect_release_address(release_text_with_origin("https://github.com/my_org/my-site"), "my_org/my-site")
+})
+
+test_that("a url that only looks like GitHub gives the steps on the Releases page", {
+  skip_if_no_git()
+  forms <- c(
+    "https://github.com.evil.org/jdoe/my-site",
+    "https://evil.org/github.com/jdoe/my-site",
+    "https://github.com@evil.org/jdoe/my-site",
+    "https://github.example.com/jdoe/my-site",
+    "https://github.com/jdoe/my-site/tree/main",
+    "https://github.com/jdoe/my-site?x",
+    "https://github.com/jdoe/my-site//",
+    "git://github.com/jdoe/my-site",
+    "git@github-work:jdoe/my-site"
+  )
+  for (form in forms) {
+    expect_release_steps(release_text_with_origin(form))
+  }
+})
+
+test_that("the release address comes from the push url of origin", {
+  skip_if_no_git()
+  expect_release_address(
+    release_text_with_origin("https://gitlab.com/jdoe/my-site", push = "https://github.com/jdoe/my-site"),
+    "jdoe/my-site"
+  )
+  expect_release_steps(
+    release_text_with_origin("https://github.com/jdoe/my-site", push = "https://gitlab.com/jdoe/my-site")
+  )
+})
+
+test_that("the release address names a branch with special characters in percent-encoded form", {
+  skip_if_no_git()
+  branch <- "rel/v1#b&c+é"
+  # A tag of the same name makes `git symbolic-ref --short HEAD` print
+  # `heads/<branch>`.
+  same_tag <- function(repo) {
+    expect_status(git_in(repo, c("commit", "-q", "--allow-empty", "-m", "start")))
+    expect_status(git_in(repo, c("tag", shQuote(branch))))
+  }
+  text <- release_text_with_origin("https://github.com/jdoe/my-site", branch = branch, setup = same_tag)
+  expect_release_address(text, "jdoe/my-site", target = "rel%2Fv1%23b%26c%2B%C3%A9", branch = branch)
+  expect_match(text, sprintf("check that the tag is v1.3.0 and the target is %s", branch), fixed = TRUE)
+})
+
+test_that("a detached HEAD gives the release address with no target", {
+  skip_if_no_git()
+  text <- release_text_with_origin("https://github.com/jdoe/my-site", branch = NULL)
+  expect_release_address(text, "jdoe/my-site", target = NULL, branch = NULL)
+  expect_no_match(text, "target", fixed = TRUE)
+})
+
+test_that("the Releases-page steps name the branch, or the default branch on a detached HEAD", {
+  skip_if_no_git()
+  expect_release_steps(release_text_with_origin("https://gitlab.com/jdoe/my-site", branch = "dev"), "dev")
+  expect_release_steps(release_text_with_origin("https://gitlab.com/jdoe/my-site", branch = NULL), NULL)
+})
+
+test_that("a release on a branch other than origin's default branch names both", {
+  skip_if_no_git()
+  text <- release_text_with_origin("https://github.com/jdoe/my-site", branch = "dev", default = "main")
+  expect_release_address(text, "jdoe/my-site", target = "dev", branch = "dev")
+  expect_match(text, "This release is on the branch dev, not the default branch main of origin. GitHub makes the tag on dev.",
+               fixed = TRUE)
+})
+
+test_that("no other-branch line is printed on the default branch, with no default, or on a detached HEAD", {
+  skip_if_no_git()
+  on_default <- release_text_with_origin("https://github.com/jdoe/my-site", default = "main")
+  expect_release_address(on_default, "jdoe/my-site")
+  expect_no_match(on_default, other_branch_line, fixed = TRUE)
+
+  no_default <- release_text_with_origin("https://github.com/jdoe/my-site", branch = "dev")
+  expect_release_address(no_default, "jdoe/my-site", target = "dev", branch = "dev")
+  expect_no_match(no_default, other_branch_line, fixed = TRUE)
+
+  detached <- release_text_with_origin("https://github.com/jdoe/my-site", branch = NULL, default = "main")
+  expect_release_address(detached, "jdoe/my-site", target = NULL, branch = NULL)
+  expect_no_match(detached, other_branch_line, fixed = TRUE)
+})
+
+test_that("a local branch named origin/main does not change the default branch read", {
+  skip_if_no_git()
+  local_origin_main <- function(repo) {
+    expect_status(git_in(repo, c("commit", "-q", "--allow-empty", "-m", "start")))
+    expect_status(git_in(repo, c("branch", "origin/main")))
+  }
+  text <- release_text_with_origin("https://github.com/jdoe/my-site", branch = "dev", default = "main",
+                                   setup = local_origin_main)
+  expect_match(text, "not the default branch main of origin", fixed = TRUE)
 })
