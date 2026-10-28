@@ -44,6 +44,11 @@ test_that("named reports render by name, in order and once each, before the full
   expect_identical(out, c("quarto render analyses/a.qmd", "quarto render analyses/b.qmd", "quarto render"))
   expect_identical(args_of(calls()), list(c("render", "analyses/a.qmd"), c("render", "analyses/b.qmd"), "render"))
 
+  # A character vector with a class, as from fs::path(), is taken as names.
+  calls <- local_runner()
+  out <- suppressMessages(render_supplement(structure("a", class = c("fs_path", "character")), path = site))
+  expect_identical(out, c("quarto render analyses/a.qmd", "quarto render"))
+
   calls <- local_runner()
   out <- suppressMessages(render_supplement(c("b", "a", "b"), path = site))
   expect_identical(out, c("quarto render analyses/b.qmd", "quarto render analyses/a.qmd", "quarto render"))

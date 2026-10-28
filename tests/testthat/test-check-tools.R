@@ -91,6 +91,7 @@ test_that("a copy in QUARTO_PATH or an editor folder is not on the path", {
   expect_identical(row$status, "not on path")
   expect_match(row$detail, "QUARTO_PATH", fixed = TRUE)
   expect_match(row$detail, "`quarto render` in a terminal can miss", fixed = TRUE)
+  expect_match(row$detail, "`render_supplement()` runs it", fixed = TRUE)
 
   editor <- fake_quarto(file.path(dir, "editor"))
   local_tools(editors = c(file.path(dir, "absent", "bin", "quarto"), editor))
@@ -190,6 +191,9 @@ test_that("an old copy off the path is too old and names its place", {
   expect_identical(row$status, "too old")
   expect_match(row$detail, "QUARTO_PATH", fixed = TRUE)
   expect_match(row$detail, "1.4.0", fixed = TRUE)
+  # render_supplement() refuses it, so the row does not offer it.
+  expect_match(row$detail, "can miss this copy", fixed = TRUE)
+  expect_false(grepl("render_supplement", row$detail, fixed = TRUE))
 })
 
 test_that("a link to a copy is resolved before the version is read", {

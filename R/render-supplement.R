@@ -148,7 +148,7 @@ check_reports <- function(reports, call = parent.frame()) {
   if (is.null(reports)) {
     return(character())
   }
-  if (!is.character(reports) || is.object(reports) || length(reports) == 0 || anyNA(reports)) {
+  if (!is.character(reports) || length(reports) == 0 || anyNA(reports)) {
     cli::cli_abort(
       "{.arg reports} must be {.code NULL} or a character vector of report names with no {.code NA}.",
       class = c("supplement_error_argument", "supplement_error"),
