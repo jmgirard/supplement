@@ -156,3 +156,4 @@ Pass 2 (2026-10-28), on branch head 919cb2c, main at ed28d21 (not moved). One de
 - prior-review: no prior-review evidence; every pass-1 fix present. Its note on the "about 5 million" figure — noted: 5M `<` reaches the limit on main and HEAD, 4.8M reads on both (T7).
 - ripple #1: ROADMAP row "Read huge script bodies past PCRE limits" cross-references "Close the link reader's browser gaps", which hygiene removes — fix now at step 9 hygiene
 - ripple #2: the same row does not name the sooner escaped-script limits — fix now at step 9 hygiene
+- Pass 2 fix-now work: diff-bug #2, #3, and #5, fixed 1073076. On 1073076: `devtools::test()` 527 tests, 0 failed, 0 errors, 12 skipped; `devtools::check()` 0 errors, 0 warnings, 1 NOTE (`.claude/` lock file). No changed snapshot files (no `_snaps` path in the diff). Copilot round off.
