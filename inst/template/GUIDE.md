@@ -318,6 +318,14 @@ site. Then commit the report with `_freeze/`, `docs/`, and `figures/`. The
 full render copies into `docs/` the figures that the render by name saved
 under new names.
 
+With the supplement R package installed, you can run these renders from
+the R console, in this folder. `supplement::render_supplement()` renders
+the whole site, as `quarto render` does.
+`supplement::render_supplement("example")` renders
+`analyses/example.qmd` by name and then the whole site. When a full render
+saves a figure under a new name in `figures/`, the function renders the
+whole site once more. It runs no git command, so commit as above.
+
 ## Rendering on the machine with the private data
 
 If a report needs private data or saved model fits, render it on the
@@ -335,7 +343,11 @@ the site folder (see "Paper figures"), as
    changed report, render it by name with
    `quarto render analyses/<name>.qmd`, then render the whole site with
    `quarto render`. If a full render saved a figure under a new name in
-   `figures/`, run `quarto render` again (see "Paper figures").
+   `figures/`, run `quarto render` again (see "Paper figures"). From the R
+   console, `supplement::render_supplement()` does the full render, and
+   `supplement::render_supplement("<name>")` does the render by name and
+   then the full render. Either one renders the whole site again after a
+   new figure name.
 3. Stage only the reports that you added or changed, `_freeze/`, `docs/`,
    and `figures/`, commit, and push. Put the path of each such report in
    place of `analyses/<name>.qmd`:

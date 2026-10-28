@@ -32,6 +32,7 @@ Zenodo API, Python helper functions, and migration of existing sites.
 
 - metadata writers: `write_citation()`, `write_zenodo()`
 - scaffolding: `create_supplement()`, `add_report()`, `add_data()`
+- rendering: `render_supplement()`
 - release steps: `check_supplement()`, `release_supplement()`
 - tool report: `check_tools()`
 - container recipe: `write_dockerfile()`
@@ -93,6 +94,14 @@ the Quarto version from `share/version` beside `bin/` after following a
 link, and compares it with `quarto_minimum` (1.4.0, the template
 extension's `quarto-required`). Program lookups use `Sys.which()`, which
 on Unix starts a shell that runs `which`; no looked-up tool is run.
+`R/render-supplement.R`: `render_supplement()` checks its arguments and
+the site, then runs the Quarto copy that `find_quarto()` picks, by its
+full path, through `quarto_run()`, the package's one `system2()` call for
+Quarto: `quarto render analyses/<name>.qmd` for each named report, then
+`quarto render`, then `quarto render` once more when
+`unpublished_figures()` finds a file of `figures/` missing from
+`docs/figures/` by path. It runs in the site folder and restores the
+working folder on exit. It runs no git command (Conventions).
 `R/add-report.R` and `R/add-data.R`: `add_report()` writes a report stub
 in `analyses/`, starting with the example report's `site` chunk
 (`site_chunk()`) and ending with its "Computing environment" section
@@ -146,7 +155,7 @@ its problems as a data frame (`check`, `file`, `problem`), with a
 ls-files -z --cached --others --exclude-standard`, and its ignored-output
 check reads `git ls-files -z --others --ignored --exclude-standard` over
 `figures/`, `docs/`, and `_freeze/`, both through `git_run()`, the
-package's one `system2()` call. Its `Sys.which()` check, like the
+package's one `system2()` call for git (corrected M072). Its `Sys.which()` check, like the
 lookups of `check_tools()`, starts a shell that runs `which` on Unix. Its unpublished-figure check
 compares the MD5 of each file in `figures/` with its copy in
 `docs/figures/`, walking with `plain_files()`, which skips hidden names

@@ -20,6 +20,10 @@ reference:
       - create_supplement
       - add_report
       - add_data
+  - title: Render a site
+    desc: Render the site from the R console, after a report changes or before a commit.
+    contents:
+      - render_supplement
   - title: Check tools and sites
     desc: Find missing tools, and check a site before a release.
     contents:
