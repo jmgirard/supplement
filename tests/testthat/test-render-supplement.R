@@ -252,6 +252,7 @@ test_that("render_supplement() runs Quarto from the long path of a short site pa
   before <- getwd()
   suppressMessages(render_supplement("a", path = short))
   expect_identical(seen, c(site, site))
+  expect_false(any(grepl("~", seen, fixed = TRUE)))
   expect_identical(getwd(), before)
 
   seen <- character()

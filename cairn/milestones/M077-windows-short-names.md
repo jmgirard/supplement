@@ -58,6 +58,7 @@ On Windows, `render_supplement()` publishes the figures that knitr writes when t
 - 2026-10-29: T2 and T3 done: fix in `render_supplement()` (Windows and `~` only), AC2 mock test with `short_path()` helper, help text, GUIDE.md "How the site renders", DESIGN.md, NEWS.md; `devtools::document()` run.
 - 2026-10-29: T4 done: local `devtools::test()` 0 failures (14 skips, the 2 new tests skip on macOS); local `devtools::check()` 0/0/0; CI run 40923761225 on 1e95df7 green on all three systems, windows-latest FAIL 0 SKIP 45 PASS 5931 (was FAIL 2 SKIP 45 PASS 5922), no new test in its skip list.
 - 2026-10-29: claim audit: 28 claims read, 3 corrected — R/render-supplement.R, man/render_supplement.Rd, NEWS.md (the code comment named mapped drives, which R's normalizePath() keeps as drive letters; the help said "8.3 short name" where the code tests any `~`; "knitr draws" became "knitr saves from code chunks"); the re-read found all three hold and asked for a NEWS rewrap, done.
+- 2026-10-29: review: four reviewers reported; the fix-now edits (help and NEWS example name, `mustWork = FALSE`, a no-`~` assertion in the AC2 test, GUIDE, DESIGN, and NEWS wording, NEWS rewrap) and the follow-up row "Note short Windows paths in the vignette" are committed locally, unpushed, while CI run 40926169509 on 68e083f finishes; dispositions follow in the Review section.
 
 ## Decisions
 

@@ -109,7 +109,7 @@ Quarto: `quarto render analyses/<name>.qmd` for each named report, then
 `docs/figures/` by path. It matches each report name to the `.qmd` files
 that `report_file_names()` lists, with their letter case. It runs in the
 site folder and restores the working folder on exit. On Windows, when the
-working folder's path holds `~` (an 8.3 short name), it runs Quarto from
+working folder's path holds `~`, as an 8.3 short name does, it runs Quarto from
 `normalizePath()` of the folder, since Quarto run from a short path leaves
 knitr figures out of `docs/` (M077). It runs no git
 command (Conventions).

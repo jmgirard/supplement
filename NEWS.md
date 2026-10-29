@@ -2,9 +2,10 @@
 
 * On Windows, `render_supplement()` now publishes the figures that knitr
   saves from code chunks for a site folder whose path holds an 8.3 short
-  name, such as `RUNNER~1`. Quarto run from such a path left them out of `docs/`, and
-  `check_supplement()` reported broken links. The function now runs Quarto
-  from the folder's long path. The site guide tells authors who render in
+  name, such as `JANEDO~1`. Quarto run from such a path left them out of
+  `docs/`, and `check_supplement()` reported broken links. For a path with
+  `~`, the function now runs Quarto from the folder's long path. The site
+  guide tells authors who render in
   a terminal on Windows to open it in the long path.
 
 * `check_supplement()` now reads the links of a page with a large comment
