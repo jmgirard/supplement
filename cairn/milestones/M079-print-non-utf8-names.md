@@ -70,6 +70,8 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 - 2026-10-29: T5: `devtools::document()` no diff and local `devtools::check()` 0/0/0 on e077d4f (macOS). Run 40953514637 on e077d4f: ubuntu and macOS passed; windows-latest failed one test, "pages with many comments, elements, and script state changes are read in time" (`test-check-supplement.R:1357`, 10.19 s against its 10 s bound, M076 code this branch does not touch; it passed on 1c9dd82). Reran the failed job. See the candidate row "Time the large-page tests on Windows".
 - 2026-10-29: T5 done: the windows-latest rerun of run 40953514637 on e077d4f passed, so all three systems are green on the last code commit; status review. Later commits change only `cairn/`.
 
+- 2026-10-29: step-7 approval: m079-print-non-utf8-names approved for merge
+
 ## Decisions
 
 ## Review
