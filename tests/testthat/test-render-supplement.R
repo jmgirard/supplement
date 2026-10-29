@@ -218,6 +218,7 @@ test_that("a report name that is not valid UTF-8 does not stop the no-report mes
   stopifnot(file.create(file.path(site, "analyses", rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9, 0x2e, 0x71, 0x6d, 0x64))))))
   for (locale in c("C.UTF-8", "C")) {
     withr::with_locale(c(LC_CTYPE = locale), {
+      expect_identical(Sys.getlocale("LC_CTYPE"), locale)
       err <- expect_error(render_supplement("Models", path = site), class = "supplement_error_no_report")
     })
     expect_match(conditionMessage(err), "analyses/Models.qmd", fixed = TRUE)

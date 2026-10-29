@@ -762,6 +762,7 @@ test_that("a leftover folder whose name is not valid UTF-8 shows its bytes in th
   }
   for (locale in c("C.UTF-8", "C")) {
     withr::with_locale(c(LC_CTYPE = locale), {
+      expect_identical(Sys.getlocale("LC_CTYPE"), locale)
       expect_no_error(rows <- rows_of(check_quiet(site), "leftover-output"))
     })
     expect_identical(sort(rows$file), c("_freeze/analyses/caf<e9>", "_freeze/analyses/deleted"), info = locale)
