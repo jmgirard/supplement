@@ -98,9 +98,9 @@ for the citation files.
 ``` r
 site <- file.path(tempdir(), "my-supplement")
 create_supplement(site, repo = "jdoe/my-supplement")
-#> ✔ Made a supplement site in /tmp/Rtmp9Zgcef/my-supplement.
+#> ✔ Made a supplement site in /tmp/RtmpuLnrGf/my-supplement.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/Rtmp9Zgcef/my-supplement, or
+#> ℹ Run `quarto render` in /tmp/RtmpuLnrGf/my-supplement, or
 #>   `render_supplement()` in R with that folder as `path`, once before your first
 #>   commit.
 list.files(site, recursive = TRUE)
