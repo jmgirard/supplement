@@ -1,13 +1,13 @@
 # M077: Render from short folder names on Windows
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — `render_supplement()` publishes figures it now leaves out on Windows
-- **Branch/PR:** —
+- **Branch/PR:** m077-windows-short-names
 
 ## Goal
 
