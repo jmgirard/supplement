@@ -1,13 +1,13 @@
 # M076: Read large comments and element text in pages
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — `check_supplement()` gives fewer rows that stop `release_supplement()`
-- **Branch/PR:** —
+- **Branch/PR:** m076-read-large-page-text
 
 ## Goal
 
@@ -44,7 +44,7 @@
 
 ## Tasks
 
-- [ ] T1: Write the AC1 and AC4 pages in `tests/testthat/test-check-supplement.R`, beside "script text with millions of < or of - after <!-- is read" (line 1119), under `skip_on_cran()`. Run them on the current code: each 7 million page must give the PCRE-limit row (red, with that row's text asserted); the `<b` and 3 million words pages and AC4 must pass.
+- [x] T1: Write the AC1 and AC4 pages in `tests/testthat/test-check-supplement.R`, beside "script text with millions of < or of - after <!-- is read" (line 1119), under `skip_on_cran()`. Run them on the current code: each 7 million page must give the PCRE-limit row (red, with that row's text asserted); the `<b` and 3 million words pages and AC4 must pass.
 - [ ] T2: Copy main's reader (`html_skipped` and `tag_links()`, `R/check-supplement.R:2058-2107` at e7ba02a, with the parts they call) into a test helper as the frozen oracle `old_tag_links()`. Write the AC3 test with a fixed seed; it asserts at least 100 pages of each form AC3 lists (by markers the generator records). It passes on the current code.
 - [ ] T3: Replace the `gsub()` in `tag_links()` (line 2086): one `gregexpr()` over a heads pattern that reads no attributes (comment starts, `<!` and `<?` markup, bogus `</` comments, and the `<name` and `</name` of tags); an R walk that takes the next head at or after its position; comment ends from fixed-string positions of `-->` and `--!>`; style, textarea, and title ends from positions of `</name` and a delimiter; script ends from a state walk over the positions of `<!--`, `-->`, `<script` and a delimiter, and `</script` and a delimiter (whatwg-html 13.2.5.15 to 13.2.5.31); a tag's attributes read only for a head the walk reaches, batched in a vector. Where a markup head runs past an element's end, scan again from that end in a window until the heads line up. Remove pattern parts no longer used. AC1, AC3, and the existing reader tests pass.
 - [ ] T4: Write the AC2 test under `skip_on_cran()`. Time the AC1 pages and the AC2 pages on macOS and write the times in the work log.
@@ -62,6 +62,8 @@
 - 2026-10-29: measured on main (macOS, R 4.6, PCRE2 10.47): every AC1 7 million shape warns at 6 million; a tag with 3 million attributes warns and one with 1 million reads; `PCRE_use_JIT` TRUE or FALSE changes nothing, and R has no match-limit option.
 - 2026-10-29: plan gate chose a head scan and an R walk over raising PCRE's match limit (R exposes no option), over cheaper body patterns (each `<` still costs at least one match step, so the limit stays near 10 million), and over xml2 (D-017); falsified by a page within main's limits that the two readers read differently with no rule to explain it, or walk time that grows faster than page size.
 - 2026-10-29: criteria audit (full mode, Opus reader): 19 findings, all taken. T3's head scan reads no attributes, since `</a` runs are one end tag with millions of attributes (AC1 would fail) and tag-like text with 3 million words in a comment or element would regress (AC1 guard pages added); AC1 link placement and AC2 timing scope, count (80,000), state-walk page, and re-scan page fixed; AC3 tokens (`<`, `!`, comment forms, named delimiters, `é`, `xlink:href`), page length, required forms, named straddle pages, and `identical()` added, with the per-form counts moved to T2 as an instrument; AC4 accepts either row, since the limit belongs to the R build; AC5 grep widened and DESIGN.md added; tests under `skip_on_cran()` at 7 million, the smallest size red on main for every shape.
+- 2026-10-29: implement started on branch m076-read-large-page-text, cut from main at 6dc4b1b.
+- 2026-10-29: T1 done: tests "comments and element text past one PCRE match are read" and "a tag with millions of attributes gives its link row or the PCRE-limit row". On the current reader the first fails with the PCRE-limit row for each of the nine 7 million pages and no other difference; the five `<b` and 3 million words pages and the attributes test pass. The rows are compared as file and full problem text, since the PCRE-limit row has no backticked link.
 
 ## Decisions
 

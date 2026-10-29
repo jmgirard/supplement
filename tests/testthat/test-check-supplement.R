@@ -1124,6 +1124,52 @@ test_that("script text with millions of < or of - after <!-- is read", {
   expect_setequal(pairs, c("docs/lt.html `after-lt.csv`", "docs/dash.html `after-dash.csv`"))
 })
 
+test_that("comments and element text past one PCRE match are read", {
+  skip_on_cran()
+  site <- new_site()
+  words <- paste0("<b", strrep(" w", 3e6))
+  pages <- list(
+    script = c("<script>", strrep("<", 7e6), "</script>"),
+    style = c("<style>", strrep("<", 7e6), "</style>"),
+    textarea = c("<textarea>", strrep("<", 7e6), "</textarea>"),
+    title = c("<title>", strrep("<", 7e6), "</title>"),
+    comment = c("<!--", strrep("-", 7e6), "-->"),
+    end = c("<script>", strrep("</a", 7e6), "</script>"),
+    bang = c("<script>", strrep("<!x", 7e6), "</script>"),
+    s = c("<script><!--", strrep("<sx", 7e6), "</script>"),
+    dash = c("<script><!--", strrep("-x", 7e6), "</script>"),
+    words_comment = c("<!--", words, "-->"),
+    words_script = c("<script>", words, "</script>"),
+    words_style = c("<style>", words, "</style>"),
+    words_textarea = c("<textarea>", words, "</textarea>"),
+    words_title = c("<title>", words, "</title>")
+  )
+  for (name in names(pages)) {
+    part <- pages[[name]]
+    write_page(site, paste0(name, ".html"), paste0(
+      part[1], part[2], sprintf('<a href="in-%s.csv">x</a>', name), part[3],
+      sprintf('<a href="after-%s.csv">x</a>', name)
+    ))
+  }
+  rows <- rows_of(check_quiet(site), "broken-link")
+  expect_setequal(
+    paste(rows$file, rows$problem),
+    sprintf("docs/%s.html The page links to a file that is not in the site: `after-%s.csv`", names(pages), names(pages))
+  )
+})
+
+test_that("a tag with millions of attributes gives its link row or the PCRE-limit row", {
+  skip_on_cran()
+  site <- new_site()
+  write_page(site, "attrs.html", paste0("<a", strrep(" b", 3e6), ' href="gone-attrs.csv">x</a>'))
+  expect_no_error(rows <- rows_of(check_quiet(site), "broken-link"))
+  expect_identical(rows$file, "docs/attrs.html")
+  expect_true(rows$problem %in% c(
+    "The page links to a file that is not in the site: `gone-attrs.csv`",
+    "The link check cannot read this page: its markup goes past the limits of the PCRE pattern engine."
+  ))
+})
+
 test_that("only href, src, and xlink:href attributes are read, in any letter case", {
   site <- new_site()
   write_page(site, "names.html", c(
