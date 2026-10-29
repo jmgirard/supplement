@@ -404,6 +404,17 @@ The Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because
 `/tmp` on that runner image has too little space for the render tests'
 large fixtures: on ubuntu-26.04 it is a 7.9 GB tmpfs with a user quota
 (M047).
+The Windows job turns on Windows Error Reporting crash dumps for every
+program before the check, and `tests/testthat/helper-test-log.R` makes each
+test process there write each test it starts to `<pid>.log`. After the
+check, `.github/scripts/read-dumps.py` prints the program, process id,
+exception code, and fault module and offset of each dump, with the last
+test that the process started, and the job uploads the dumps (D-040). The
+`plant_crash` input of a manual run crashes one test process through
+`tests/testthat/test-plant-crash.R` to show these steps work. A test that
+times a call compares the time with `time_bound()` in
+`tests/testthat/helper-files.R`, which gives Windows 5 times the bound
+(M080).
 `.github/scripts/check-skips.R` then reads the skipped tests from the test
 output that R CMD check keeps, with no second test run, and fails on a skip
 for a missing tool. A last step runs `tests/testthat/test-source.R`, whose
