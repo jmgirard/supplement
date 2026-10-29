@@ -59,6 +59,7 @@
 
 - 2026-10-29: implement started on branch m078-non-utf8-report-names, cut from main at 39fd866.
 - 2026-10-29: T1 probe (`tests/testthat/test-probe-m078.R`, fails on purpose to print Quarto's status, output, and `docs/analyses/`) and the T2 test (`test-check-supplement.R:754`) written; both skip on macOS. Committed together so one push runs both on ubuntu-latest.
+- 2026-10-29: question set (implement stop): push the branch before review, after each task, so ubuntu-latest runs the probe and the test — yes.
 
 ## Decisions
 
