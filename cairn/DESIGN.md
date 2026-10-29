@@ -244,11 +244,12 @@ letters of a name that is not valid UTF-8.
 Its report-name check (`check_report_names()`, M078) lists `analyses/`
 with no pattern and gives one row for each `.qmd` file there whose name
 fails `validUTF8()`, which only a file system such as one on Linux can
-hold. In a UTF-8 locale, `analysis_reports()` never lists such a name,
-because `list.files(pattern =)` matches with `tre_regexec()` (R 4.6.1
-`src/main/platform.c`), so the other report checks give it no row. On
-Linux, Quarto 1.10.19 renders such a site with no error and no page for
-the report.
+hold. The stored-output, stale-output, stale-script, and renv checks read
+`utf8_reports()`, which leaves such reports out, because `sub()` stops on
+their names. In a UTF-8 locale `analysis_reports()` already never lists
+such a name, because `list.files(pattern =)` matches with `tre_regexec()`
+(R 4.6.1 `src/main/platform.c`). On Linux, Quarto 1.10.19 renders such a
+site with no error and no page for the report.
 Its missing-script check (`check_missing_script()`, M059) gives one row when
 `_scripts/report.R` is missing, a folder, or a link whose chain
 `link_ends_on_file()` resolves with `fs::path_real()` to no file (a file

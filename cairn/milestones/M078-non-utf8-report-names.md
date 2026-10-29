@@ -6,7 +6,7 @@
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
-- **Surface tier:** user-facing — `check_supplement()` gives a row where it now stops with an error
+- **Surface tier:** user-facing — `check_supplement()` gives a row for a report it now skips with no row
 - **Branch/PR:** m078-non-utf8-report-names
 
 ## Goal
@@ -15,7 +15,7 @@
 
 ## Scope
 
-**In:** In `R/check-supplement.R`, a report that `analysis_reports()` lists and whose file name fails `validUTF8()` gets one row of a new kind, `"report-name"`, whose `file` is `analyses/` and the name passed through `show_text()`, so each such byte shows as `<xx>`. The four checks that cut the report's name with `sub()`, `check_stored_output()`, `check_stale_output()`, `check_stale_script()`, and `check_renv_lock()` (lines 908, 930, 986, 1100), leave such a report out. `check_missing_script()` already shows such a name through `show_text()` and stays as it is, and so do `analysis_reports()` and `add_report()`. The row's text is AC3's. Tests in `tests/testthat/test-check-supplement.R`. The help page of `check_supplement()`, NEWS.md, and DESIGN.md's check paragraph describe the row.
+**In:** In `R/check-supplement.R`, a new `check_report_names()` lists `analyses/` with no pattern and gives each `.qmd` file directly there whose name fails `validUTF8()` one row of a new kind, `"report-name"`, whose `file` is `analyses/` and the name passed through `show_text()`, so each such byte shows as `<xx>`. On main such a report gets no row: in a UTF-8 locale R 4.6.1's `list.files(pattern =)` in `analysis_reports()` never lists it. The four checks that cut a report's name with `sub()`, `check_stored_output()`, `check_stale_output()`, `check_stale_script()`, and `check_renv_lock()`, read a new `utf8_reports()` that leaves such a report out whatever `list.files()` lists. `check_missing_script()` already shows such a name through `show_text()` and stays as it is, and so do `analysis_reports()` and `add_report()`. The row's text is AC3's. Tests in `tests/testthat/test-check-supplement.R`. The help page of `check_supplement()`, NEWS.md, and DESIGN.md's check paragraph describe the row.
 
 **Out:**
 - `render_supplement()` beside such a report: its message for a name with no report runs `tolower()` on the listed names (`R/render-supplement.R:113`), which stops on such a name. Not checked here; the new candidate row "Render by name beside non-UTF-8 reports" holds it.
@@ -24,8 +24,8 @@
 
 ## Acceptance criteria
 
-- [ ] AC1: On a Linux file system in a UTF-8 locale, `check_supplement(site, renv_lock = TRUE)` returns without an error or a warning for a new site whose `analyses/` holds, beside the template's report and `_scripts/report.R`, three reports with an R code chunk: one named `caf`, byte 0xE9, `.qmd`; one named byte 0xFF, `x`, byte 0xC3, `.qmd`; and `café.qmd` in UTF-8. Each has stored output in `_freeze/analyses/<name>/execute-results/html.json` whose hash differs from the report, and the site has a `renv.lock` that holds a `Packages` object. On main the same call stops with the `sub()` error "input string 1 is invalid".
-- [ ] AC2: For the AC1 site, the rows whose `file` is `analyses/caf<e9>.qmd` or `analyses/<ff>x<c3>.qmd` are one row each, of kind `"report-name"`; `café.qmd` gets a `"stale-output"` row and no `"report-name"` row.
+- [ ] AC1: On a Linux file system, `check_supplement(site, renv_lock = TRUE)` returns without an error or a warning for a new site whose `analyses/` holds, beside the template's report and `_scripts/report.R`, three reports with an R code chunk: one named `caf`, byte 0xE9, `.qmd`; one named byte 0xFF, `x`, byte 0xC3, `.qmd`; and `café.qmd` in UTF-8. Each has stored output in `_freeze/analyses/<name>/execute-results/html.json` whose hash differs from the report, and the site has a `renv.lock` that holds a `Packages` object.
+- [ ] AC2: For the AC1 call, the rows whose `file` is `analyses/caf<e9>.qmd` or `analyses/<ff>x<c3>.qmd` are one row each, of kind `"report-name"`; `café.qmd` gets a `"stale-output"` row and no `"report-name"` row.
 - [ ] AC3: The `"report-name"` row's text says that the report's name is not valid UTF-8 and tells the author to rename the report with a valid UTF-8 name, change its item in `_quarto.yml`, delete its folder in `_freeze/analyses/` if there is one, render the whole site, and commit the old and new paths with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. It also gives the outcome of a Quarto 1.10.19 render on Linux of a site that holds such a report: when the render stops with an error that the file name is not valid UTF-8, the text says that a render of the site stops on such a name; when the render ends with no page for the report in `docs/`, the text says that Quarto leaves the report out of the site. A render that publishes the report falsifies this plan and is the goal-wrong stop.
 - [ ] AC4: The help page of `check_supplement()` lists the `"report-name"` row and states that only a file system that holds such a name, such as one on Linux, can give it; NEWS.md and DESIGN.md's paragraph on the checks of `R/check-supplement.R` describe the change.
 - [ ] AC5: The `verify` slot is clean: `devtools::document()` leaves no diff, `devtools::test()` has 0 failures, and R CMD check of the branch head gives 0 errors and 0 warnings on Windows, macOS, and Linux.
@@ -41,9 +41,9 @@
 ## Tasks
 
 - [x] T1: Observe Quarto 1.10.19 on Linux: on the branch, a probe test that renders a new site whose `analyses/` holds a report named `caf`, 0xE9, `.qmd` with `run_in()`, and prints Quarto's exit status and output. Push the branch (ask first: the question set did not cover a push before review), read ubuntu-latest's `tests/testthat.Rout`, write one work-log line with the outcome, then delete the probe.
-- [ ] T2: Write the AC1 and AC2 test near "a name that is not valid UTF-8 matches with ASCII letter case ignored" (`tests/testthat/test-check-supplement.R:739`). Make the bad names with `file.create()`; skip on macOS and Windows, and on Linux fail rather than skip when a file cannot be made. Assert rows by `file`, since the template's report adds its own rows. Commit the test alone and push, so ubuntu-latest runs it on the current code: red on the error from `sub()`. Record the run in the work log.
+- [x] T2: Write the AC1 and AC2 test near "a name that is not valid UTF-8 matches with ASCII letter case ignored" (`tests/testthat/test-check-supplement.R:739`). Make the bad names with `file.create()`; skip on macOS and Windows, and on Linux fail rather than skip when a file cannot be made. Assert rows by `file`, since the template's report adds its own rows. Commit the test alone and push, so ubuntu-latest runs it on the current code: red on the error from `sub()`. Record the run in the work log.
 - [ ] T3: Add the `"report-name"` check and leave such a report out of the four checks, as Scope In says, with the row text that AC3 picks from T1's outcome. Push; read ubuntu-latest's `tests/testthat.Rout` to see the AC1 and AC2 test pass, not skip.
-- [ ] T4: Update the roxygen block of `check_supplement()`, NEWS.md, and DESIGN.md (the check paragraph near line 236); run `devtools::document()`.
+- [x] T4: Update the roxygen block of `check_supplement()`, NEWS.md, and DESIGN.md (the check paragraph near line 236); run `devtools::document()`.
 - [ ] T5: Run the `verify` slot: `devtools::document()`, `devtools::test()`, `devtools::check()`; wait for the R-CMD-check workflow on the branch head, the evidence for Windows and Linux.
 
 ## Work log
@@ -69,6 +69,8 @@
 - 2026-10-29: re-audit: AC2 (full) — 1 finding: "For the AC1 site" becomes "For the AC1 call", so the locale applies. Also noted: Goal, Surface tier, and Scope In still describe a stop; Scope In and Surface tier are amended with AC1, and the Goal stays as created (its deliverable, the rename row, holds; its clause "where it now stops with an error" is false, as recorded above).
 - 2026-10-29: re-audit: AC1 (full) — 2 findings on the fixed wording: AC1 and AC2 hold only because R 4.6.1's `list.files(pattern =)` skips such names, and CI runs one R version against the R 4.1.0 floor (D-031), so on another R the `sub()` stop or extra rows could come back; restoring the `validUTF8()` filter in the four checks makes both hold whatever `list.files()` lists. Main also passes AC1, so only AC2 tells them apart.
 - 2026-10-29: re-audit: AC2 (full) — the same R-version finding as AC1. Second re-audit line for AC1 and AC2: further churn on them goes to the user.
+- 2026-10-29: question set (implement stop, criteria churn): keep a bad-named report from the other report checks by a name filter, by limits named in AC1, or stop — name filter.
+- 2026-10-29: substantive amendment: AC1 drops "in a UTF-8 locale" and its last sentence about main (the red evidence stays in the T2 lines above); AC2 reads "For the AC1 call"; Scope In names `check_report_names()` listing `analyses/` with no pattern and `utf8_reports()` in the four checks; Surface tier says main skips such a report. The deliverable the user sees is unchanged. Code: `utf8_reports()` restored, the test's locale skip removed, help and DESIGN.md say the four checks leave such a report out, and the C-locale candidate row added earlier this session deleted, since the filter covers that case.
 
 ## Decisions
 

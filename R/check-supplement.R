@@ -35,10 +35,9 @@
 #'   `docs/`. The row says to rename the report, change its item in
 #'   `_quarto.yml`, delete its folder in `_freeze/analyses/` if there is
 #'   one, render the whole site, and commit the old and new paths with
-#'   `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. In a UTF-8
-#'   locale, the `"no-stored-output"`, `"stale-output"`, `"stale-script"`,
-#'   `"renv-mismatch"`, and `"renv-missing"` checks do not see such a
-#'   report, because R's `list.files()` does not match its name.
+#'   `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. The
+#'   `"no-stored-output"`, `"stale-output"`, `"stale-script"`,
+#'   `"renv-mismatch"`, and `"renv-missing"` checks leave such a report out.
 #' * `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
 #'   a folder inside it, with code and no stored output in `_freeze/`. A
 #'   full render then runs its code, which needs the data. A report has
@@ -908,13 +907,20 @@ analysis_reports <- function(path) {
   reports[!dir.exists(reports)]
 }
 
+# The reports of analysis_reports() whose names are valid UTF-8. sub()
+# stops on a name that is not, so the checks that cut a report's name read
+# only these. In a UTF-8 locale R 4.6.1's list.files(pattern =) already
+# leaves such a name out, but it can list it in other locales or versions.
+utf8_reports <- function(path) {
+  reports <- analysis_reports(path)
+  reports[validUTF8(basename(reports))]
+}
+
 # A row for each `.qmd` file directly in analyses/ whose name is not valid
-# UTF-8, which only a file system such as one on Linux can hold. In a UTF-8
-# locale, list.files(pattern =) never matches such a name, so
-# analysis_reports() and the checks that read it skip the report; this
-# check lists the folder with no pattern and matches with useBytes. On
-# Linux, Quarto 1.10.19 rendered a site with such a report and left the
-# report out of docs/ with no error.
+# UTF-8, which only a file system such as one on Linux can hold. The folder
+# is listed with no pattern, which list.files() can fail to match on such a
+# name, and matched with useBytes. On Linux, Quarto 1.10.19 rendered a site
+# with such a report and left the report out of docs/ with no error.
 check_report_names <- function(path) {
   dir <- file.path(path, "analyses")
   names <- list.files(dir)
@@ -938,7 +944,7 @@ rerender_steps <- paste("Render the report by name, render the whole site, then 
                         "does both renders.")
 
 check_stored_output <- function(path) {
-  reports <- analysis_reports(path)
+  reports <- utf8_reports(path)
   missing <- vapply(reports, function(report) {
     lines <- read_report_lines(report)
     has_code <- any(grepl(chunk_start, lines, perl = TRUE, useBytes = TRUE)) ||
@@ -963,7 +969,7 @@ check_stored_output <- function(path) {
 # hash covers the report file alone, not the files it includes or the
 # project's YAML files.
 check_stale_output <- function(path) {
-  reports <- analysis_reports(path)
+  reports <- utf8_reports(path)
   problem <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
     dir <- file.path("_freeze", "analyses", name, "execute-results")
@@ -1019,7 +1025,7 @@ check_stale_script <- function(path) {
   if (is.null(current)) {
     return(problem_rows())
   }
-  reports <- analysis_reports(path)
+  reports <- utf8_reports(path)
   problem <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
     dir <- file.path("_freeze", "analyses", name, "execute-results")
@@ -1133,7 +1139,7 @@ check_renv_lock <- function(path) {
   }
   lock$file <- shown
   lock$active <- active
-  reports <- analysis_reports(path)
+  reports <- utf8_reports(path)
   problems <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
     dir <- file.path("_freeze", "analyses", name, "execute-results")

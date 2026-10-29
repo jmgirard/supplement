@@ -755,11 +755,6 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
 test_that("a report name that is not valid UTF-8 gives a report-name row and no stop", {
   # macOS and Windows refuse such a name, so this runs on Linux.
   skip_on_os(c("mac", "windows"))
-  # Outside a UTF-8 locale, list.files(pattern =) can match such a name.
-  if (!l10n_info()[["UTF-8"]]) {
-    if (Sys.getenv("CI") == "true") fail("the locale is not UTF-8")
-    skip("the locale is not UTF-8")
-  }
   site <- new_site()
   bad <- c(rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9))), rawToChar(as.raw(c(0xff, 0x78, 0xc3))))
   for (name in c(bad, "café")) {
