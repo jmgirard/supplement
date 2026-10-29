@@ -752,6 +752,43 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
   expect_identical(rows$file, "_freeze/analyses/deleted")
 })
 
+test_that("a report name that is not valid UTF-8 gives a report-name row and no other row", {
+  # macOS on APFS refuses such a name, and Windows stores names as UTF-16,
+  # so this runs on Linux.
+  skip_on_os(c("mac", "windows"))
+  site <- new_site()
+  bad <- c(rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9))), rawToChar(as.raw(c(0xff, 0x78, 0xc3))))
+  for (name in c(bad, "café")) {
+    writeBin(charToRaw(stale_lf), file.path(site, "analyses", paste0(name, ".qmd")))
+    stored_file(site, name, "html.json", hash_json(md5_of("other text")))
+  }
+  writeLines('{"R": {"Version": "4.6.1"}, "Packages": {}}', file.path(site, "renv.lock"))
+  expect_no_error(expect_no_warning(result <- suppressMessages(check_supplement(site, renv_lock = TRUE))))
+  for (file in c("analyses/caf<e9>.qmd", "analyses/<ff>x<c3>.qmd")) {
+    expect_identical(result$check[result$file == file], "report-name", info = file)
+  }
+  expect_identical(
+    unique(result$problem[result$check == "report-name"]),
+    paste("The name of the report is not valid UTF-8 text. On Linux, Quarto 1.10.19 rendered a site",
+          "with such a report with no error and left the report out of the site. Rename the report",
+          "with a name in UTF-8 text, change its item in _quarto.yml, delete its folder in",
+          "_freeze/analyses/ if there is one, and render the whole site. Then commit the old and new",
+          "paths with _quarto.yml, _freeze/, docs/, and figures/.")
+  )
+  good <- result$check[result$file == "analyses/café.qmd"]
+  expect_true("stale-output" %in% good)
+  expect_false("report-name" %in% good)
+  # In the C locale, list.files(pattern =) lists such a name. cli warns
+  # there on the UTF-8 name of café.qmd's row, so that report goes first.
+  unlink(file.path(site, c("analyses/café.qmd", "_freeze/analyses/café")), recursive = TRUE)
+  withr::with_locale(c(LC_CTYPE = "C"), {
+    expect_no_error(result <- suppressMessages(check_supplement(site, renv_lock = TRUE)))
+  })
+  for (file in c("analyses/caf<e9>.qmd", "analyses/<ff>x<c3>.qmd")) {
+    expect_identical(result$check[result$file == file], "report-name", info = file)
+  }
+})
+
 missing_script_text <- function(paths) {
   paste0("The site has no file _scripts/report.R, which these reports name, so a render of them can fail: ",
          paths, ". Copy the template's file from ",

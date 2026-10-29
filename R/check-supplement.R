@@ -26,6 +26,18 @@
 #'   template's rule for `.rds` files does. The problem text says to change
 #'   the rule for a file that the site must publish, and to remove the
 #'   source of a private file and render again.
+#' * `"report-name"`: a `.qmd` report directly in `analyses/` whose name is
+#'   not valid UTF-8 text, such as a name with a Latin-1 `é`. Only a file
+#'   system that can hold such a name, such as one on Linux, gives this
+#'   row; macOS on an APFS disk refuses such a name. The row shows each
+#'   byte that is not valid UTF-8 as `<xx>`. On Linux, Quarto 1.10.19
+#'   rendered a new site that held such a report with no error and left the
+#'   report out of `docs/`. The row says to rename the report, change its item in
+#'   `_quarto.yml`, delete its folder in `_freeze/analyses/` if there is
+#'   one, render the whole site, and commit the old and new paths with
+#'   `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. The
+#'   `"no-stored-output"`, `"stale-output"`, `"stale-script"`,
+#'   `"renv-mismatch"`, and `"renv-missing"` checks leave such a report out.
 #' * `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
 #'   a folder inside it, with code and no stored output in `_freeze/`. A
 #'   full render then runs its code, which needs the data. A report has
@@ -542,6 +554,7 @@ check_supplement <- function(path = ".", web_links = FALSE, renv_lock = FALSE) {
   rows <- list(
     if (!is.null(git$files)) check_git_files(path, git$files),
     if (!is.null(git$files)) check_ignored_output(path, git$ignored),
+    check_report_names(path),
     check_stored_output(path),
     check_stale_output(path),
     check_stale_script(path),
@@ -894,13 +907,47 @@ analysis_reports <- function(path) {
   reports[!dir.exists(reports)]
 }
 
+# The reports of analysis_reports() whose names are valid UTF-8. In a UTF-8
+# locale sub() stops on a name that is not, so the checks that cut a
+# report's name read only these. On Linux with R 4.6.1 in a UTF-8 locale,
+# a CI run of these checks without this filter gave such a name no row and
+# no error, so analysis_reports() did not list it there; another R version
+# or a locale such as C can list it.
+utf8_reports <- function(path) {
+  reports <- analysis_reports(path)
+  reports[validUTF8(basename(reports))]
+}
+
+# A row for each `.qmd` file directly in analyses/ whose name is not valid
+# UTF-8, which a file system such as one on Linux can hold. The folder is
+# listed with no pattern, since list.files(pattern =) can leave such a name
+# out, and matched with useBytes. On Linux, Quarto 1.10.19 rendered a new
+# site with such a report and left the report out of docs/ with no error.
+check_report_names <- function(path) {
+  dir <- file.path(path, "analyses")
+  # Without all.files, list.files() skips names that start with `.`.
+  names <- list.files(dir)
+  bad <- names[grepl("\\.qmd$", names, useBytes = TRUE) & !validUTF8(names)]
+  bad <- bad[!dir.exists(file.path(dir, bad))]
+  files <- show_text(sort_bytes(file.path("analyses", bad)))
+  problem_rows(
+    "report-name", files,
+    rep_len(paste("The name of the report is not valid UTF-8 text. On Linux, Quarto 1.10.19 rendered a site",
+                  "with such a report with no error and left the report out of the site. Rename the report",
+                  "with a name in UTF-8 text, change its item in _quarto.yml, delete its folder in",
+                  "_freeze/analyses/ if there is one, and render the whole site. Then commit the old and new",
+                  "paths with _quarto.yml, _freeze/, docs/, and figures/."),
+            length(files))
+  )
+}
+
 # The steps that publish a changed report, as the publishing guide gives them.
 rerender_steps <- paste("Render the report by name, render the whole site, then commit the report with",
                         "_freeze/, docs/, and figures/. In R, render_supplement() with the report's name",
                         "does both renders.")
 
 check_stored_output <- function(path) {
-  reports <- analysis_reports(path)
+  reports <- utf8_reports(path)
   missing <- vapply(reports, function(report) {
     lines <- read_report_lines(report)
     has_code <- any(grepl(chunk_start, lines, perl = TRUE, useBytes = TRUE)) ||
@@ -925,7 +972,7 @@ check_stored_output <- function(path) {
 # hash covers the report file alone, not the files it includes or the
 # project's YAML files.
 check_stale_output <- function(path) {
-  reports <- analysis_reports(path)
+  reports <- utf8_reports(path)
   problem <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
     dir <- file.path("_freeze", "analyses", name, "execute-results")
@@ -981,7 +1028,7 @@ check_stale_script <- function(path) {
   if (is.null(current)) {
     return(problem_rows())
   }
-  reports <- analysis_reports(path)
+  reports <- utf8_reports(path)
   problem <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
     dir <- file.path("_freeze", "analyses", name, "execute-results")
@@ -1095,7 +1142,7 @@ check_renv_lock <- function(path) {
   }
   lock$file <- shown
   lock$active <- active
-  reports <- analysis_reports(path)
+  reports <- utf8_reports(path)
   problems <- vapply(reports, function(report) {
     name <- sub("\\.qmd$", "", basename(report))
     dir <- file.path("_freeze", "analyses", name, "execute-results")
