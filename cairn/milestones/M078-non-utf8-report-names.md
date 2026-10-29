@@ -83,3 +83,26 @@
 - AC2: the same run and test: for each of `analyses/caf<e9>.qmd` and `analyses/<ff>x<c3>.qmd`, `expect_identical(result$check[result$file == file], "report-name")` passed (one row, that kind); for `analyses/café.qmd`, `"stale-output"` present and `"report-name"` absent passed. On main (run 40935940661 at 7def08d) the same assertions failed with no row for either name. Met.
 - AC3: row text in `check_report_names()` (`R/check-supplement.R:935-938`), asserted verbatim by the AC1 test, which passed on ubuntu: it says the name is not valid UTF-8; says to rename the report with a name in UTF-8 text, change its item in `_quarto.yml`, delete its folder in `_freeze/analyses/` if there is one, render the whole site, and commit the old and new paths with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. T1's render (run 40934133441) exited 0 with no page for the report in `docs/analyses/`, AC3's second outcome, and the text says Quarto 1.10.19 "left the report out of the site". Met.
 - AC4: `man/check_supplement.Rd:59-63` lists `"report-name"` and says "Only a file system that can hold such a name, such as one on Linux, gives this row"; NEWS.md lines 3-8 and DESIGN.md line 244 (the report-name check sentence in the checks paragraph of `R/check-supplement.R`) describe the change. Met.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: `utf8_reports()` is not exercised by any test, since R 4.6.1 in a UTF-8 locale never lists such names — fix now: the test also runs the check under `withr::with_locale(c(LC_CTYPE = "C"))` and asserts `"report-name"` alone for both names; planted run with the filter removed pending.
+- diff-bug #2: `check_leftover_output()` puts raw folder bytes in `file`, and cli may stop printing them after a rename that skips the delete step — follow-up: new row "Print leftover folders with odd bytes" (unmodified line, from M042).
+- diff-bug #3: the `_quarto.yml` step may name an item that cannot exist — reject, planned change: AC3 requires the step, and it is harmless when no item exists.
+- diff-bug #4: `.ipynb`, `.Rmd`, and `.md` reports are not covered — reject, planned change: every report check of the package reads `.qmd` reports only (`analysis_reports()`), and Scope In names `.qmd`.
+- diff-bug #5: DESIGN.md keeps the `platform.c` cause as fact and "renders" in present tense, and omits that `sub()` stops only in a UTF-8 locale — fix now.
+- diff-bug #6: `!grepl("^\\.", …)` is dead, since `list.files()` skips dot names by default — fix now: removed, with a comment.
+- diff-bug #7: on Windows a name with a lone UTF-16 surrogate might read as invalid UTF-8 and get a row that speaks of Linux — reject, edge: a surrogate file name is outside the documented and common use of a report folder, and the row is still right that the name is not valid UTF-8.
+- diff-bug #8: row text line 937 and test line 776 over 140 characters — fix now: rewrapped.
+- diff-bug #9: test title says "no stop", from the false premise — fix now: retitled "… and no other row".
+- diff-bug #10: `"report-name"` stops `release_supplement()` as every row does, and the release test's list is a sample — no finding; noted.
+- diff-bug (c): the second bad name runs the same code path as the first — reject, planned change: AC1 and AC2 name both names (criteria audit, form axis).
+- blame-history #1: same as diff-bug #2 — follow-up, the same row.
+- blame-history #2: M042 kept such names in the match by bytes, M078 drops them from four checks — reject, planned change (plan gate and the user's name-filter choice); the always-on row stops the release.
+- blame-history #3: same as diff-bug #1 — fix now, as there.
+- blame-history #4: the row's `file` is escaped (`<e9>`) where some rows keep raw names — reject, false: `show_text()` is the file's convention for such names (`check_git_files()`, `check_ignored_output()`), and raw bytes stop cli (diff-bug #2).
+- prior-review #1: the help list of checks that leave such a report out omits `check_missing_script()` — reject, false: that check is unchanged on purpose and shows such a name through `show_text()`; the list names the checks that leave it out.
+- prior-review #2: the APFS and Quarto 1.10.19 claims are unverified — reject, false: the claim audit saw Errno 92 on APFS, and T1's run shows the Quarto outcome.
+- prior-review #3: long lines — fix now, as diff-bug #8.
+- ripple #1: `inst/template/GUIDE.md` "It finds:" list omits the new row — fix now: a bullet added.
+- ripple #2: the absorbed candidate row still reads "was not checked" — reject, planned change: hygiene graduates the row.
+- ripple #3: `test-release-supplement.R:200` list omits `"report-name"` — reject, false: the list is a sample that already omits four kinds.
+- ripple #4: the help sentence omits `check_missing_script()` — reject, false, as prior-review #1.
