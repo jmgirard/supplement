@@ -2067,17 +2067,37 @@ tag_links <- function(html) {
   text[!grepl("^[A-Za-z]+$", text, useBytes = TRUE)] <- ""
   names[named] <- ascii_lower(text)
   names[!names %in% c("script", "style", "textarea", "title")] <- NA_character_
-  # Every other head ends where its match or its scanned tag ends, and the
-  # walk goes on at the first head after that end. A run of heads that each
-  # lead to the next one is walked whole in one step.
-  special <- kinds == 1L | (kinds >= 3L & !scanned) | !is.na(names)
+  # Where the walk goes on after each head: after its match or its scanned
+  # tag, after a comment, or after the text of an element. Script text that
+  # holds a `<!--` before its first `</script` needs the state walk, and a
+  # tag that the scan missed needs its own match, so those heads (NA) are
+  # handled one at a time. A run of heads that each lead to the next one is
+  # walked whole in one step.
+  marks <- page_marks(html)
   after <- ifelse(kinds == 2L, ends, tag_ends)
+  comment <- which(kinds == 1L)
+  after[comment] <- ifelse(ends[comment] - starts[comment] > 4, ends[comment],
+                           comment_end(marks, starts[comment] + 4))
+  for (name in c("style", "textarea", "title")) {
+    element <- which(names == name & scanned)
+    if (length(element) > 0L) {
+      after[element] <- text_end(marks, name, tag_ends[element])
+    }
+  }
+  script <- which(names == "script" & scanned)
+  if (length(script) > 0L) {
+    script_close <- next_mark(marks, "end script", tag_ends[script])
+    plain <- next_mark(marks, "<!--", tag_ends[script]) >= script_close
+    after[script] <- NA_real_
+    after[script[plain]] <- after_end_tag(marks, script_close[plain])
+  }
+  after[!is.na(names) & !scanned] <- NA_real_
+  special <- is.na(after)
   after[special] <- 0
   following <- findInterval(after - 1, starts, checkSorted = FALSE, checkNA = FALSE) + 1L
   steps <- !special & following == seq_along(starts) + 1L
   stops <- which(!steps)
   run_end <- c(stops, length(starts) + 1L)[findInterval(seq_along(starts) - 1L, stops) + 1L]
-  marks <- page_marks(html)
   walked <- logical(length(starts))
   i <- 1L
   while (i <= length(starts)) {
@@ -2091,26 +2111,19 @@ tag_links <- function(html) {
       i <- following[i]
       next
     }
-    start <- starts[i]
-    end <- ends[i]
-    if (kinds[i] == 1L) {
-      # `<!-->` and `<!--->` are whole comments.
-      at <- if (end - start > 4L) end else comment_end(marks, start + 4L)
-    } else {
+    if (is.na(tag_ends[i])) {
+      # A stray quote can put the scan of whole tags out of step until the
+      # next quote of its kind, so the next tags are matched together.
+      batch <- seq.int(i, min(length(starts), i + 511L))
+      batch <- batch[is.na(tag_ends[batch]) & kinds[batch] >= 3L]
+      tag_ends[batch] <- tag_ends_near(html, ends[batch], size)
       if (is.na(tag_ends[i])) {
-        # A stray quote can put the scan of whole tags out of step until the
-        # next quote of its kind, so the next tags are matched together.
-        batch <- seq.int(i, min(length(starts), i + 511L))
-        batch <- batch[is.na(tag_ends[batch]) & kinds[batch] >= 3L]
-        tag_ends[batch] <- tag_ends_near(html, ends[batch], size)
-        if (is.na(tag_ends[i])) {
-          tag_ends[i] <- tag_end(html, end, size)
-        }
+        tag_ends[i] <- tag_end(html, ends[i], size)
       }
-      at <- tag_ends[i]
-      if (!is.na(names[i])) {
-        at <- if (names[i] == "script") script_end(marks, at) else text_end(marks, names[i], at)
-      }
+    }
+    at <- tag_ends[i]
+    if (!is.na(names[i])) {
+      at <- if (names[i] == "script") script_end(marks, at) else text_end(marks, names[i], at)
     }
     i <- findInterval(at - 1, starts, checkSorted = FALSE, checkNA = FALSE) + 1L
   }
@@ -2165,9 +2178,13 @@ mark_at <- function(marks, key) {
       pattern <- key
     } else {
       if (is.null(marks$lower)) {
-        lower <- marks$html
-        Encoding(lower) <- "UTF-8"
-        lower <- ascii_lower(lower)
+        # Bytes 65 to 90 are `A` to `Z`, and no byte of a multibyte UTF-8
+        # character is below 128. chartr() on the text took 1 s on a 1 MB
+        # page with non-ASCII text (macOS, R 4.6, 2026-10-29).
+        bytes <- charToRaw(marks$html)
+        upper <- bytes >= as.raw(65L) & bytes <= as.raw(90L)
+        bytes[upper] <- as.raw(as.integer(bytes[upper]) + 32L)
+        lower <- rawToChar(bytes)
         Encoding(lower) <- "bytes"
         marks$lower <- lower
       }
@@ -2180,28 +2197,26 @@ mark_at <- function(marks, key) {
   marks[[key]]
 }
 
-# The first position of `key` at `from` or later, or Inf when none.
+# The first position of `key` at each `from` or later, or Inf when none.
 next_mark <- function(marks, key, from) {
   at <- mark_at(marks, key)
-  found <- at[findInterval(from - 1L, at, checkSorted = FALSE, checkNA = FALSE) + 1L]
-  if (is.na(found)) Inf else found
+  found <- at[findInterval(from - 1, at, checkSorted = FALSE, checkNA = FALSE) + 1L]
+  found[is.na(found)] <- Inf
+  found
 }
 
-# The position after an end tag that starts at `from`: after its first
-# `>`, or after the page.
+# The position after each end tag that starts at `from`: after its first
+# `>`, or after the page. An end tag at Inf is none.
 after_end_tag <- function(marks, from) {
-  if (is.infinite(from)) {
-    return(marks$size + 1L)
-  }
   gt <- next_mark(marks, ">", from)
-  if (is.infinite(gt)) marks$size + 1L else gt + 1L
+  ifelse(is.infinite(gt), marks$size + 1, gt + 1)
 }
 
-# The position after a comment whose text starts at `from`: after its first
-# `-->` or `--!>`, or after the page.
+# The position after each comment whose text starts at `from`: after its
+# first `-->` or `--!>`, or after the page.
 comment_end <- function(marks, from) {
-  end <- min(next_mark(marks, "-->", from) + 3, next_mark(marks, "--!>", from) + 4)
-  if (is.infinite(end)) marks$size + 1L else as.integer(end)
+  end <- pmin(next_mark(marks, "-->", from) + 3, next_mark(marks, "--!>", from) + 4)
+  ifelse(is.infinite(end), marks$size + 1, end)
 }
 
 # The position after a style, textarea, or title element whose text starts
