@@ -97,6 +97,7 @@
 - 2026-10-28: claim audit (T7 lines): 21 claims read, 3 corrected — R/check-supplement.R (the escaped-script limit sentence in the help and the comment now name millions of `</` or separate `-` runs, and the `<svg>` base case is narrowed to outside `<foreignObject>`), cairn/DESIGN.md, man/check_supplement.Rd; the `html_script_body` comment drops its unmeasured "about half" figure. Re-read pending.
 - 2026-10-28: claim audit re-read: the limit sentences and the `html_script_body` comment match (its reason rests on the T7 lookahead comparison, where every form with a second check per `<` reached the limit at 4.4M `<` and the one-check forms read 4.8M); the `<svg>` base case also excludes `<desc>`, fixed with no further pass, and the help paragraph is rewrapped.
 - 2026-10-28: T7 done: `devtools::test()` on efe3c10 gives 526 tests, 0 failed, 0 errors, 12 skipped; `devtools::check()` from the same run gives 0 errors, 0 warnings, 1 NOTE (the session's git-ignored `.claude/` lock file). Later commits change comments and help text only. Status review.
+- 2026-10-29: step-7 approval: m075-base-tags-odd-markup approved for merge
 
 ## Decisions
 
