@@ -1267,6 +1267,21 @@ test_that("markup in element text that runs past the end tag does not hide later
   expect_identical(as.character(tag_links(pages[4])), "x4.csv")
 })
 
+test_that("pages with many comments, elements, and script state changes are read in time", {
+  skip_on_cran()
+  blocks <- c("<!-- c -->", "<script>s</script>", "<style>s</style>", "<style><?x</style>")
+  many <- new_site()
+  write_page(many, "index.html", sprintf('%s<a href="gone-%d.csv">x</a>', rep(blocks, 20000), seq_len(80000)))
+  time <- system.time(rows <- rows_of(check_quiet(many), "broken-link"))[["elapsed"]]
+  expect_setequal(rows$problem, sprintf("The page links to a file that is not in the site: `gone-%d.csv`", seq_len(80000)))
+  expect_lt(time, 10)
+  states <- new_site()
+  write_page(states, "index.html", c(sprintf("<script>%s</script>", strrep("<!---->", 200000)), '<a href="gone.csv">x</a>'))
+  time <- system.time(pairs <- broken_pairs(states))[["elapsed"]]
+  expect_identical(pairs, "docs/index.html `gone.csv`")
+  expect_lt(time, 10)
+})
+
 test_that("a tag with millions of attributes gives its link row or the PCRE-limit row", {
   skip_on_cran()
   site <- new_site()

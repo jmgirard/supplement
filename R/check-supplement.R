@@ -334,12 +334,10 @@
 #'   `<a href>`, has an empty value and is not checked. A start tag that the
 #'   end of the page cuts off is not read, as a browser drops it. A page
 #'   whose markup goes past the limits of the PCRE pattern engine gives one
-#'   row that says so, in place of its link rows. Such a page holds
-#'   millions of `-` in one comment, millions of `<` in the text of one
-#'   script, style, textarea, or title element (about 5 million did, in a
-#'   page of 20 MB), or millions of attributes in one tag. Script text with
-#'   millions of `</` or `<!`, or, after `<!--`, millions of `<s` or of
-#'   separate runs of `-`, can reach the limits sooner.
+#'   row that says so, in place of its link rows. Such a page holds one tag
+#'   with millions of attributes (3 million did, 1 million did not). No
+#'   PCRE match spans a comment or the text of a script, style, textarea,
+#'   or title element, so a large one does not reach the limits.
 #'   Each value is handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
@@ -1787,8 +1785,8 @@ utf8_lower <- function(x) {
 # The href, src, and xlink:href values on a page that point to a place
 # inside the site, each once, or NULL when the page cannot be read, such
 # as a link whose target is missing. It is FALSE after a warning from
-# tag_links(), such as a PCRE match limit, which makes gsub() return its
-# input unchanged. The attribute `targets` holds the path of each link
+# tag_links(), such as a PCRE match limit on a tag with millions of
+# attributes, which makes regexpr() fail. The attribute `targets` holds the path of each link
 # relative to the page's folder, after a local base (base_kind()). Under
 # such a base a link of only a `#` or `?` part points to the base address,
 # so it is kept. A base that points to a place that this check does not
@@ -2136,16 +2134,28 @@ page_marks <- function(html) {
 # each one, and a `-->` in a longer run of `-` is found at its end. The
 # keys are matched with PCRE, where none of their characters is special:
 # gregexpr(fixed = TRUE) took 15 s for the 360,000 `>` of a 6 MB page
-# where PCRE took 0.01 s (macOS, R 4.6, 2026-10-29).
+# where PCRE took 0.01 s. A name is matched in a copy of the page with its
+# ASCII letters in lower case, which keeps each byte's position: a pattern
+# such as `</[Ss][Tt][Yy][Ll][Ee]` took 0.52 s for 20,000 end tags where
+# `</style` took 0.003 s (macOS, R 4.6, 2026-10-29).
 mark_at <- function(marks, key) {
   if (is.null(marks[[key]])) {
     parts <- strsplit(key, " ", fixed = TRUE)[[1]]
-    pattern <- if (length(parts) == 1L) {
-      key
+    if (length(parts) == 1L) {
+      text <- marks$html
+      pattern <- key
     } else {
-      paste0(if (parts[1] == "end") "</" else "<", ascii_any_case(parts[2]), "[\t\n\f\r />]")
+      if (is.null(marks$lower)) {
+        lower <- marks$html
+        Encoding(lower) <- "UTF-8"
+        lower <- ascii_lower(lower)
+        Encoding(lower) <- "bytes"
+        marks$lower <- lower
+      }
+      text <- marks$lower
+      pattern <- paste0(if (parts[1] == "end") "</" else "<", parts[2], "[\t\n\f\r />]")
     }
-    at <- gregexpr(pattern, marks$html, perl = TRUE, useBytes = TRUE)[[1]]
+    at <- gregexpr(pattern, text, perl = TRUE, useBytes = TRUE)[[1]]
     marks[[key]] <- if (at[1] == -1L) numeric() else as.numeric(at)
   }
   marks[[key]]
