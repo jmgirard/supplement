@@ -29,6 +29,18 @@ plain_site <- function(names = character(), env = parent.frame()) {
 
 args_of <- function(calls) lapply(calls, `[`, -1L)
 
+# The 8.3 short form of the folder `dir` on Windows, with `/`. It skips
+# where the volume keeps no short names, but fails in CI, since a skip there
+# would pass unseen.
+short_path <- function(dir) {
+  short <- gsub("\\", "/", utils::shortPathName(dir), fixed = TRUE)
+  if (!grepl("~", short, fixed = TRUE)) {
+    if (identical(Sys.getenv("CI"), "true")) stop("No 8.3 short name for ", dir, " in CI.")
+    skip("the volume keeps no 8.3 short names")
+  }
+  short
+}
+
 test_that("render_supplement() with no reports runs one full render", {
   calls <- local_runner()
   site <- plain_site()
@@ -227,6 +239,34 @@ test_that("render_supplement() runs each render in the site folder and gives bac
   expect_identical(getwd(), before)
 })
 
+test_that("render_supplement() runs Quarto from the long path of a short site path on Windows", {
+  skip_on_os(c("mac", "linux"))
+  site <- normalizePath(plain_site("a"), winslash = "/")
+  short <- short_path(site)
+  seen <- character()
+  status <- 0L
+  local_runner(function(args) {
+    seen <<- c(seen, getwd())
+    status
+  })
+  before <- getwd()
+  suppressMessages(render_supplement("a", path = short))
+  expect_identical(seen, c(site, site))
+  expect_false(any(grepl("~", seen, fixed = TRUE)))
+  expect_identical(getwd(), before)
+
+  seen <- character()
+  withr::with_dir(short, suppressMessages(render_supplement()))
+  expect_identical(seen, site)
+  expect_identical(getwd(), before)
+
+  seen <- character()
+  status <- 1L
+  expect_error(render_supplement(path = short), class = "supplement_error_render")
+  expect_identical(seen, site)
+  expect_identical(getwd(), before)
+})
+
 # Render tests with the real Quarto. render_quiet() is in helper-template.R.
 
 test_that("render_supplement() renders a new site", {
@@ -234,6 +274,16 @@ test_that("render_supplement() renders a new site", {
   site <- long_dir(new_site())
   expect_identical(render_quiet(path = site), "quarto render")
   expect_true(file.exists(file.path(site, "docs", "index.html")))
+})
+
+test_that("render_supplement() publishes knitr figures when the site path holds a short name", {
+  skip_if_no_quarto()
+  skip_on_os(c("mac", "linux"))
+  site <- long_dir(new_site())
+  render_quiet(path = short_path(site))
+  expect_true(file.exists(file.path(site, "docs", "analyses", "example_files", "figure-html", "bootstrap-1.png")))
+  result <- suppressMessages(check_supplement(site))
+  expect_identical(result$problem[result$check == "broken-link"], character())
 })
 
 test_that("a named report runs its code again, which a full render alone does not", {

@@ -338,6 +338,12 @@ the whole site, as `quarto render` does.
 saves a figure under a new name in `figures/`, the function renders the
 whole site once more. It runs no git command, so commit as above.
 
+On Windows, run `quarto render` in a terminal opened in the folder's long
+path. A short path holds a part with `~`, such as `C:\Users\JANEDO~1`.
+Quarto run from it leaves the figures that knitr saves from code chunks out of
+`docs/`, and `check_supplement()` reports them as broken links.
+`render_supplement()` runs Quarto from the long path itself.
+
 ## Rendering on the machine with the private data
 
 If a report needs private data or saved model fits, render it on the
