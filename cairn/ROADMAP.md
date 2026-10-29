@@ -1,20 +1,18 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-29 (M076 review: archived; pruned the M073 row; narrowed "Read huge script bodies past PCRE limits"; two low rows added during M076; three lessons captured, three evicted by rank, four marked used; LESSONS holds 25 lessons; validate green)_
+_Last hygiene check: 2026-10-29 (M077 review: archived; pruned the M074 row; graduated "Handle short folder names on Windows"; one low row added; one lesson captured, one evicted by rank, three marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M077 | Render from short folder names on Windows | review | — | normal | milestones/M077-windows-short-names.md |
+| M077 | Render from short folder names on Windows | done | — | normal | milestones/archive/M077-windows-short-names.md |
 | M076 | Read large comments and element text in pages | done | — | normal | milestones/archive/M076-read-large-page-text.md |
 | M075 | Read base tags and odd markup in pages | done | — | normal | milestones/archive/M075-base-tags-odd-markup.md |
-| M074 | Tag the release on the branch that holds it | done | — | normal | milestones/archive/M074-tag-release-branch.md |
 
 ## Candidates
 
-- Handle short folder names on Windows: from the M018 review. Quarto 1.10 run on Windows from a folder whose path holds an 8.3 short name (such as `RUNNER~1` in a temporary folder) does not find the figures that knitr writes, so `docs/` lacks `example_files/` and the page links a missing figure; `check_supplement()` reports it as a broken link. The tests avoid it by running Quarto from `normalizePath()` of the folder (`long_dir()`). The R help examples use `tempdir()`, which can hold such a name. A fix could be a note in the README or a hint in the broken-link row. — added 2026-10-19 — started M077
 - Measure the cost of large data files: from the M018 review. Quarto copies each file the data table links into `docs/`, the size fixtures included (seen on macOS, where the 2 GiB copy stays sparse at 4 KB); the disk cost of the 1 GB, 2 GiB, and 4 GiB fixtures on Linux and Windows was not measured. On Windows the data table counts the bytes of each file of 2 GiB or more on every render, and the time for a 4 GiB file was not measured. — added 2026-10-19
 - Add a test coverage report to CI: coverage report: add the usethis test-coverage workflow, which runs `covr` and uploads to Codecov, beside the check workflow. It needs the repo linked in a Codecov account, and coverage never gates a merge. From the M018 plan. — added 2026-10-19
 - Settle the env argument of run_in: from the M020 review. No caller passes `env` to `run_in()` in `helper-template.R` since M018 moved the no-R test to `withr::with_envvar()`, and on Windows `system2()` passes `env` only to commands such as R. Remove the argument, or make it set variables through withr. — added 2026-10-19
