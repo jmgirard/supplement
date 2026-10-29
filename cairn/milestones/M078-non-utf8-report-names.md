@@ -71,6 +71,7 @@
 - 2026-10-29: re-audit: AC2 (full) — the same R-version finding as AC1. Second re-audit line for AC1 and AC2: further churn on them goes to the user.
 - 2026-10-29: question set (implement stop, criteria churn): keep a bad-named report from the other report checks by a name filter, by limits named in AC1, or stop — name filter.
 - 2026-10-29: substantive amendment: AC1 drops "in a UTF-8 locale" and its last sentence about main (the red evidence stays in the T2 lines above); AC2 reads "For the AC1 call"; Scope In names `check_report_names()` listing `analyses/` with no pattern and `utf8_reports()` in the four checks; Surface tier says main skips such a report. The deliverable the user sees is unchanged. Code: `utf8_reports()` restored, the test's locale skip removed, help and DESIGN.md say the four checks leave such a report out, and the C-locale candidate row added earlier this session deleted, since the filter covers that case.
+- 2026-10-29: claim audit: 27 claims read, 5 corrected — R/check-supplement.R, NEWS.md, tests/testthat/test-check-supplement.R. `sub()` stops only in a UTF-8 locale; the R 4.6.1 listing claim now cites the CI run, not `platform.c`; NEWS limits "no row before" to a UTF-8 locale; NEWS, help, and row text name Quarto 1.10.19 in past tense for the one new-site run; "macOS and Windows refuse" became "macOS on APFS refuses". The re-read found all five hold; the CI locale is assumed UTF-8, not shown in the log. Two long lines rewrapped.
 
 ## Decisions
 
