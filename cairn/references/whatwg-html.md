@@ -19,5 +19,6 @@ Extraction: verified 2026-10-28 against the source — observed 2026-10-28.
 
 ## Traces to
 
-- `R/check-supplement.R`: `html_skipped`, `html_raw_text()`, and `tag_links()` (comment, end tag, and script states), and the base handling in `page_links()`.
+- `R/check-supplement.R`: `html_heads`, `tag_links()`, `comment_end()`, `text_end()`, and `script_end()` read comment, end tag, and script states. Until M076, `html_skipped` and `html_raw_text()` read them.
+- `R/check-supplement.R`: the base handling in `page_links()`.
 - `tests/testthat/test-check-supplement.R`: the M075 tests for base tags, comment ends, end tags, and script text.
