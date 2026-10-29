@@ -29,10 +29,10 @@
 #' * `"report-name"`: a `.qmd` report directly in `analyses/` whose name is
 #'   not valid UTF-8 text, such as a name with a Latin-1 `é`. Only a file
 #'   system that can hold such a name, such as one on Linux, gives this
-#'   row; macOS and Windows refuse the name. The row shows each byte that
-#'   is not valid UTF-8 as `<xx>`. On Linux, Quarto 1.10.19 renders a site
-#'   that holds such a report with no error and leaves the report out of
-#'   `docs/`. The row says to rename the report, change its item in
+#'   row; macOS on an APFS disk refuses such a name. The row shows each
+#'   byte that is not valid UTF-8 as `<xx>`. On Linux, Quarto 1.10.19
+#'   rendered a new site that held such a report with no error and left the
+#'   report out of `docs/`. The row says to rename the report, change its item in
 #'   `_quarto.yml`, delete its folder in `_freeze/analyses/` if there is
 #'   one, render the whole site, and commit the old and new paths with
 #'   `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. The
@@ -907,20 +907,22 @@ analysis_reports <- function(path) {
   reports[!dir.exists(reports)]
 }
 
-# The reports of analysis_reports() whose names are valid UTF-8. sub()
-# stops on a name that is not, so the checks that cut a report's name read
-# only these. In a UTF-8 locale R 4.6.1's list.files(pattern =) already
-# leaves such a name out, but it can list it in other locales or versions.
+# The reports of analysis_reports() whose names are valid UTF-8. In a UTF-8
+# locale sub() stops on a name that is not, so the checks that cut a
+# report's name read only these. On Linux with R 4.6.1 in a UTF-8 locale,
+# a CI run of these checks without this filter gave such a name no row and
+# no error, so analysis_reports() did not list it there; another R version
+# or a locale such as C can list it.
 utf8_reports <- function(path) {
   reports <- analysis_reports(path)
   reports[validUTF8(basename(reports))]
 }
 
 # A row for each `.qmd` file directly in analyses/ whose name is not valid
-# UTF-8, which only a file system such as one on Linux can hold. The folder
-# is listed with no pattern, which list.files() can fail to match on such a
-# name, and matched with useBytes. On Linux, Quarto 1.10.19 rendered a site
-# with such a report and left the report out of docs/ with no error.
+# UTF-8, which a file system such as one on Linux can hold. The folder is
+# listed with no pattern, since list.files(pattern =) can leave such a name
+# out, and matched with useBytes. On Linux, Quarto 1.10.19 rendered a new
+# site with such a report and left the report out of docs/ with no error.
 check_report_names <- function(path) {
   dir <- file.path(path, "analyses")
   names <- list.files(dir)
@@ -930,8 +932,8 @@ check_report_names <- function(path) {
   files <- show_text(sort_bytes(file.path("analyses", bad)))
   problem_rows(
     "report-name", files,
-    rep_len(paste("The name of the report is not valid UTF-8 text, and Quarto leaves such a report out of the",
-                  "site with no error. Rename the report with a name in UTF-8 text, change its item in",
+    rep_len(paste("The name of the report is not valid UTF-8 text. On Linux, Quarto 1.10.19 rendered a site",
+                  "with such a report with no error and left the report out of the site. Rename the report with a name in UTF-8 text, change its item in",
                   "_quarto.yml, delete its folder in _freeze/analyses/ if there is one, and render the whole",
                   "site. Then commit the old and new paths with _quarto.yml, _freeze/, docs/, and figures/."),
             length(files))

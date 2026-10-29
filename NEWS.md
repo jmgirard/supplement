@@ -2,9 +2,10 @@
 
 * `check_supplement()` now gives a `"report-name"` row for a report in
   `analyses/` whose name is not valid UTF-8 text, which a file system on
-  Linux can hold. The row says to rename the report. Before, the check
-  gave such a report no row. On Linux, Quarto renders a site with such a
-  report with no error and leaves the report out of `docs/`.
+  Linux can hold. The row says to rename the report. Before, in a UTF-8
+  locale, the check gave such a report no row. On Linux, Quarto 1.10.19
+  rendered a site with such a report with no error and left the report
+  out of `docs/`.
 
 * On Windows, `render_supplement()` now publishes the figures that knitr
   saves from code chunks for a site folder whose path holds an 8.3 short

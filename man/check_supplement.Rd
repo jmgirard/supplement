@@ -59,10 +59,10 @@ source of a private file and render again.
 \item \code{"report-name"}: a \code{.qmd} report directly in \verb{analyses/} whose name is
 not valid UTF-8 text, such as a name with a Latin-1 \code{é}. Only a file
 system that can hold such a name, such as one on Linux, gives this
-row; macOS and Windows refuse the name. The row shows each byte that
-is not valid UTF-8 as \verb{<xx>}. On Linux, Quarto 1.10.19 renders a site
-that holds such a report with no error and leaves the report out of
-\verb{docs/}. The row says to rename the report, change its item in
+row; macOS on an APFS disk refuses such a name. The row shows each
+byte that is not valid UTF-8 as \verb{<xx>}. On Linux, Quarto 1.10.19
+rendered a new site that held such a report with no error and left the
+report out of \verb{docs/}. The row says to rename the report, change its item in
 \verb{_quarto.yml}, delete its folder in \verb{_freeze/analyses/} if there is
 one, render the whole site, and commit the old and new paths with
 \verb{_quarto.yml}, \verb{_freeze/}, \verb{docs/}, and \verb{figures/}. The

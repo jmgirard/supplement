@@ -243,8 +243,7 @@ then other letters with `tolower()`, and lowers only the ASCII capital
 letters of a name that is not valid UTF-8.
 Its report-name check (`check_report_names()`, M078) lists `analyses/`
 with no pattern and gives one row for each `.qmd` file there whose name
-fails `validUTF8()`, which only a file system such as one on Linux can
-hold. The stored-output, stale-output, stale-script, and renv checks read
+fails `validUTF8()`, which a file system such as one on Linux can hold. The stored-output, stale-output, stale-script, and renv checks read
 `utf8_reports()`, which leaves such reports out, because `sub()` stops on
 their names. In a UTF-8 locale `analysis_reports()` already never lists
 such a name, because `list.files(pattern =)` matches with `tre_regexec()`

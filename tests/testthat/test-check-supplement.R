@@ -753,7 +753,8 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
 })
 
 test_that("a report name that is not valid UTF-8 gives a report-name row and no stop", {
-  # macOS and Windows refuse such a name, so this runs on Linux.
+  # macOS on APFS refuses such a name, and Windows stores names as UTF-16,
+  # so this runs on Linux.
   skip_on_os(c("mac", "windows"))
   site <- new_site()
   bad <- c(rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9))), rawToChar(as.raw(c(0xff, 0x78, 0xc3))))
@@ -768,8 +769,8 @@ test_that("a report name that is not valid UTF-8 gives a report-name row and no 
   }
   expect_identical(
     unique(result$problem[result$check == "report-name"]),
-    paste("The name of the report is not valid UTF-8 text, and Quarto leaves such a report out of the",
-          "site with no error. Rename the report with a name in UTF-8 text, change its item in",
+    paste("The name of the report is not valid UTF-8 text. On Linux, Quarto 1.10.19 rendered a site",
+          "with such a report with no error and left the report out of the site. Rename the report with a name in UTF-8 text, change its item in",
           "_quarto.yml, delete its folder in _freeze/analyses/ if there is one, and render the whole",
           "site. Then commit the old and new paths with _quarto.yml, _freeze/, docs/, and figures/.")
   )
