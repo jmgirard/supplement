@@ -1268,6 +1268,21 @@ test_that("markup in element text that runs past the end tag does not hide later
   expect_identical(as.character(tag_links(pages[4])), "x4.csv")
 })
 
+test_that("tags that the scan of whole tags misses are read to their end", {
+  # The `<b x="` quote runs past `</style>` in the scan of whole tags, so
+  # the tag after it is matched without that scan, in the first two pages
+  # with a value longer than the first window and holding `>`.
+  pages <- c(
+    paste0('<style><b x="</style><a title="', strrep("y > ", 300), '" href="w1.csv"><a href="w2.csv">'),
+    paste0('<style><b x="</style><a title=\'', strrep('z "> ', 600), '\' href=\'w3.csv\'><a href="w4.csv">'),
+    paste0('<style><b x="</style><a title=it\'s href="w5.csv">', strrep("text ", 2000), '<a href="w6.csv">')
+  )
+  for (page in pages) {
+    expect_identical(tag_links(page), old_tag_links(page))
+  }
+  expect_identical(as.character(tag_links(pages[1])), c("w1.csv", "w2.csv"))
+})
+
 test_that("pages with many comments, elements, and script state changes are read in time", {
   skip_on_cran()
   # The `<b x="` quote runs past `</style>` in the scan of whole tags, so
