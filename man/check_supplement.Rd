@@ -364,12 +364,11 @@ runs to the next space or \code{>}. An attribute with no \code{=}, such as
 \verb{<a href>}, has an empty value and is not checked. A start tag that the
 end of the page cuts off is not read, as a browser drops it. A page
 whose markup goes past the limits of the PCRE pattern engine gives one
-row that says so, in place of its link rows. Such a page holds
-millions of \code{-} in one comment, millions of \code{<} in the text of one
-script, style, textarea, or title element (about 5 million did, in a
-page of 20 MB), or millions of attributes in one tag. Script text with
-millions of \verb{</} or \verb{<!}, or, after \verb{<!--}, millions of \verb{<s} or of
-separate runs of \code{-}, can reach the limits sooner.
+row that says so, in place of its link rows. Such a page holds one tag
+with millions of attributes (3 million did and 1 million did not, with
+PCRE2 10.47 in R 4.6.1 on macOS). The size of a comment, or of the
+text of a script, style, textarea, or title element, does not count
+toward the limits, so a large one does not reach them.
 Each value is handled in this order:
 character references are decoded; spaces, tabs, line breaks, and form
 feeds at its ends are removed and tabs and line breaks inside it are

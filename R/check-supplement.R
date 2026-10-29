@@ -334,12 +334,11 @@
 #'   `<a href>`, has an empty value and is not checked. A start tag that the
 #'   end of the page cuts off is not read, as a browser drops it. A page
 #'   whose markup goes past the limits of the PCRE pattern engine gives one
-#'   row that says so, in place of its link rows. Such a page holds
-#'   millions of `-` in one comment, millions of `<` in the text of one
-#'   script, style, textarea, or title element (about 5 million did, in a
-#'   page of 20 MB), or millions of attributes in one tag. Script text with
-#'   millions of `</` or `<!`, or, after `<!--`, millions of `<s` or of
-#'   separate runs of `-`, can reach the limits sooner.
+#'   row that says so, in place of its link rows. Such a page holds one tag
+#'   with millions of attributes (3 million did and 1 million did not, with
+#'   PCRE2 10.47 in R 4.6.1 on macOS). The size of a comment, or of the
+#'   text of a script, style, textarea, or title element, does not count
+#'   toward the limits, so a large one does not reach them.
 #'   Each value is handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
@@ -1787,9 +1786,9 @@ utf8_lower <- function(x) {
 # The href, src, and xlink:href values on a page that point to a place
 # inside the site, each once, or NULL when the page cannot be read, such
 # as a link whose target is missing. It is FALSE after a warning from
-# tag_links(), such as a PCRE match limit, which makes gsub() return its
-# input unchanged. The attribute `targets` holds the path of each link
-# relative to the page's folder, after a local base (base_kind()). Under
+# tag_links(), such as a PCRE match limit on a tag with millions of
+# attributes, which makes regexpr() or gregexpr() fail. The attribute
+# `targets` holds the path of each link relative to the page's folder, after a local base (base_kind()). Under
 # such a base a link of only a `#` or `?` part points to the base address,
 # so it is kept. A base that points to a place that this check does not
 # read leaves no link.
@@ -1963,19 +1962,17 @@ url_status <- function(url) {
   )
 }
 
-# Parts of the patterns that read start tags, after the HTML standard's
+# Parts of the patterns that read tags, after the HTML standard's
 # tokenizer: an attribute name runs to a space, `/`, `>`, or `=`, and an
 # unquoted value runs to a space or `>`.
-# Every repeat in the html_* parts and in the `skipped` pattern of
-# tag_links() is possessive (`*+`, `++`), so PCRE never backtracks into it
-# and the time stays linear. PCRE's match limit counts the steps of one
-# match, so a comment that holds millions of `-`, a script, style,
-# textarea, or title body that holds millions of `<`, or one tag with
-# millions of attributes can still reach it (about 5 million `<` in one
-# script body did). Script text with millions of `</` or `<!`, or, after
-# `<!--`, millions of `<s` or of separate runs of `-`, can reach it sooner
-# (html_script_body).
-# page_links() then returns FALSE.
+# Every repeat in the html_* parts is possessive (`*+`, `++`), so PCRE
+# never backtracks into it and the time stays linear. PCRE's match limit
+# counts the steps of one match, so one tag with millions of attributes
+# can still reach it (3 million did and 1 million did not, PCRE2 10.47,
+# R 4.6.1, macOS, 2026-10-29). page_links() then returns FALSE.
+# tag_links() walks comments and element text in R. The one scan that
+# repeats a group over them, the scan of whole tags, is caught when it
+# reaches the limit.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
   "[^\t\n\f\r />][^\t\n\f\r />=]*+",
@@ -1986,81 +1983,26 @@ html_attr <- paste0(
 # A tag can also run to the end of the page, so a `<` that no `>` follows
 # is matched once, not again from each later `<`; tag_links() drops it.
 html_tag_rest <- paste0("(?:[\t\n\f\r /]++|", html_attr, ")*+(?:>|\\z)")
-html_start_tag <- paste0("<[A-Za-z][^\t\n\f\r />]*+", html_tag_rest)
 
-# A pattern that matches `word` in any ASCII letter case, such as
-# `[Tt][Ii][Tt][Ll][Ee]`. PCRE's `(?i)` on bytes, and toupper() and
-# tolower(), follow the locale, where `i` and `I` need not pair (Turkish).
-ascii_any_case <- function(word) {
-  chars <- strsplit(word, "", fixed = TRUE)[[1]]
-  upper <- chartr("abcdefghijklmnopqrstuvwxyz", "ABCDEFGHIJKLMNOPQRSTUVWXYZ", chars)
-  paste0("[", upper, chars, "]", collapse = "")
-}
+# The heads of the markup on a page, which tag_links() walks: a comment
+# start, with its end when it is `<!-->` or `<!--->`; `<!` and `<?` markup,
+# and `</` with a character that is not an ASCII letter, each to its first
+# `>`; and the `<` or `</` and the name of a tag, with no attributes. No
+# head holds a `>` but as its last character, so none runs past the `>`
+# that ends a comment, an element, or a tag, and the heads after such an
+# end are those that a scan from there would find.
+html_markup_heads <- "<[!?][^>]*+(?:>|\\z)|</(?![A-Za-z])[^>]*+(?:>|\\z)|</?[A-Za-z][^\t\n\f\r />]*+"
+html_heads <- paste0("<!--(?:-?+>)?+|", html_markup_heads)
 
+# The heads again, but with each tag's attributes and `>`, for the tag ends
+# that tag_links() looks up. The comment start is matched alone, so the
+# scan goes on inside comments and element text.
+html_tag_scan <- paste0("<!--|", html_markup_heads, html_tag_rest)
+
+# ASCII letters in lower case, whatever the locale: tolower(), and PCRE's
+# `(?i)` on bytes, follow the locale, where `i` and `I` need not pair
+# (Turkish).
 ascii_lower <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", x)
-
-# The text of a script, by the script data states (whatwg-html, 13.2.5.4
-# and 13.2.5.15 to 13.2.5.31). In plain text, `<!--` starts escaped text.
-# Escaped text returns to plain text at its first `-->`, whose dashes can
-# be those of the `<!--`, and `</script` there ends the script. In escaped
-# text, `<script` starts double escaped text, which returns to escaped text
-# at `</script` and to plain text at `-->`. Each `script` is in any ASCII
-# letter case and followed by a space, tab, line break, form feed, `/`, or
-# `>`, and a `<script` or `</script` that starts or ends double escaped
-# text takes that character with it.
-# Each part is an unrolled loop: a run of other characters, then one `<`
-# or one whole run of `-` per pass. The escaped and double escaped parts
-# stop before a run of two or more `-` that a `>` follows, the `-->` that
-# ends them. Only ordinary `<` loop in the inner part, with one class
-# lookahead, since each further check per `<` brings PCRE's match limit
-# closer.
-html_script_body <- local({
-  name <- ascii_any_case("script")
-  start <- paste0("<", name, "[\t\n\f\r />]")
-  end <- paste0("</", name, "[\t\n\f\r />]")
-  no_end <- paste0("</(?!", name, "[\t\n\f\r />])")
-  plain_run <- "[^<]*+(?:<(?![/!])[^<]*+)*+"
-  plain <- paste0(plain_run, "(?:(?:", no_end, "|<!(?!--))", plain_run, ")*+")
-  dashes <- "-++(?!>)|->"
-  double_run <- "[^<-]*+(?:<(?!/)[^<-]*+)*+"
-  double_text <- paste0(double_run, "(?:(?:", dashes, "|", no_end, ")", double_run, ")*+")
-  escaped_run <- "[^<-]*+(?:<(?![/Ss])[^<-]*+)*+"
-  escaped <- paste0(
-    "<!", escaped_run,
-    "(?:(?:", dashes, "|", no_end, "|<(?=[Ss])(?!", name, "[\t\n\f\r />])|", start, double_text, end, ")",
-    escaped_run, ")*+",
-    "(?:--++>|", start, double_text, "(?:--++>)?+)?+"
-  )
-  paste0(plain, "(?:", escaped, plain, ")*+")
-})
-
-# One script, style, textarea, or title element: its start tag (kept, in a
-# capture group), then its text up to its end tag or the end of the page.
-html_raw_text <- function(name) {
-  body <- if (name == "script") html_script_body
-  name <- ascii_any_case(name)
-  end <- paste0("/", name, "(?=[\t\n\f\r />])")
-  paste0(
-    "(<", name, "(?=[\t\n\f\r />])", html_tag_rest, ")",
-    if (is.null(body)) paste0("[^<]*+(?:<(?!", end, ")[^<]*+)*+") else body,
-    "(?:<", end, "[^>]*+(?:>|\\z))?+"
-  )
-}
-
-# Comments, `<!...>` and `<?...>` markup, the four raw-text elements (groups
-# 1 to 4 keep their start tags), end tags, `</` and a character that is
-# not an ASCII letter, and other start tags (group 5). A comment ends at
-# `>` right after `<!--` or `<!---`, else at its first `-->` or `--!>`
-# after `<!--`. `</` and a character that is not an ASCII letter or `>` is
-# a bogus comment that runs to the next `>`. `</>` is removed too, as a
-# browser drops it. An end tag is read through its attributes, as a start
-# tag is (whatwg-html, 13.2.5.7 and 13.2.5.43 to 13.2.5.52).
-html_skipped <- paste0(
-  "<!--(?:-?+>|[^-]*+(?:-(?!-!?+>)[^-]*+)*+(?:--!?+>|\\z))|<[!?][^>]*+(?:>|\\z)|",
-  paste(vapply(c("script", "style", "textarea", "title"), html_raw_text, character(1)), collapse = "|"),
-  "|</(?![A-Za-z])[^>]*+(?:>|\\z)|</[A-Za-z][^\t\n\f\r />]*+", html_tag_rest,
-  "|(", html_start_tag, ")"
-)
 
 # The raw values of the href, src, and xlink:href attributes in the start
 # tags of `html`, other than <base> tags. The attribute `base` holds the
@@ -2071,21 +2013,122 @@ html_skipped <- paste0(
 # A start tag that the end of the page cuts off is not read, as a browser
 # drops it. A quote that never closes is read as the start of an unquoted
 # value instead, so that tag ends at the next `>` and is read.
+# One scan finds the heads (html_heads), and an R loop walks them from the
+# start of the page: each comment and each element's text is passed over
+# to its end (comment_end(), text_end(), script_end()), and each tag to the
+# end of its attributes. The rules follow whatwg-html, 13.2.5.
 tag_links <- function(html) {
-  # The page is matched as bytes. Without useBytes, R turns the byte
-  # offset of each match into a character offset when the text holds a
-  # non-ASCII character, at a cost that grows with the offset, so a page
-  # with many tags took time that grew with the square of their count.
-  # Bytes are safe here because read_page_text() returns valid UTF-8 and
-  # every delimiter in these patterns is ASCII. The results are marked
-  # UTF-8 again, since strings marked "bytes" make file.path() and
-  # sprintf() stop.
-  # Each kept start tag, and each removed part, is followed by a space, so
-  # a `<` in the text before a removed comment cannot join the text after
-  # it into a new tag.
-  html <- gsub(html_skipped, "\\1\\2\\3\\4\\5 ", html, perl = TRUE, useBytes = TRUE)
-  Encoding(html) <- "UTF-8"
-  tags <- regmatches(html, gregexpr(html_start_tag, html, perl = TRUE, useBytes = TRUE))[[1]]
+  # The page is read as bytes. Without that, R turns the byte offset of
+  # each match into a character offset when the text holds a non-ASCII
+  # character, at a cost that grows with the offset, so a page with many
+  # tags took time that grew with the square of their count, and substr()
+  # counts characters from the start. Bytes are safe here because
+  # read_page_text() returns valid UTF-8 and every delimiter in these
+  # patterns is ASCII. The tags are marked UTF-8 again, since strings
+  # marked "bytes" make file.path() and sprintf() stop.
+  Encoding(html) <- "bytes"
+  size <- nchar(html, type = "bytes")
+  heads <- gregexpr(html_heads, html, perl = TRUE, useBytes = TRUE)[[1]]
+  # Positions are kept as doubles: findInterval() turns an integer vector
+  # into one on each call, which took 3 of the 3.4 s that the walk of a
+  # page of 60,000 heads took (macOS, R 4.6, 2026-10-29).
+  starts <- if (heads[1] == -1L) numeric() else as.numeric(heads)
+  ends <- starts + attr(heads, "match.length")[seq_along(starts)]
+  # The kind of each head from its second to fourth bytes: 1 a comment
+  # start, 2 other markup that ends at its own `>`, 3 an end tag, 4 a start
+  # tag. Indexing past the page gives byte 0.
+  bytes <- charToRaw(html)
+  byte <- function(offset) as.integer(bytes[starts + offset])
+  letter <- function(b) (b >= 65L & b <= 90L) | (b >= 97L & b <= 122L)
+  second <- byte(1L)
+  third <- byte(2L)
+  kinds <- ifelse(letter(second), 4L, ifelse(second == 47L & letter(third), 3L,
+                  ifelse(second == 33L & third == 45L & byte(3L) == 45L, 1L, 2L)))
+  # The end of each tag, from one scan of whole tags. A tag that the walk
+  # reaches at the start of a scanned tag ends where that one does, since
+  # the same pattern matched from the same place. Other tags, and every tag
+  # when this scan reaches PCRE's match limit (a tag in a comment or in
+  # element text with millions of attributes), are matched one at a time.
+  tag_scan <- tryCatch(gregexpr(html_tag_scan, html, perl = TRUE, useBytes = TRUE)[[1]],
+                       warning = function(w) -1L)
+  scan_starts <- if (tag_scan[1] == -1L) numeric() else as.numeric(tag_scan)
+  scan_ends <- scan_starts + attr(tag_scan, "match.length")[seq_along(scan_starts)]
+  found <- findInterval(starts - 1, scan_starts, checkSorted = FALSE, checkNA = FALSE) + 1L
+  scanned <- kinds >= 3L & found <= length(scan_starts)
+  scanned[scanned] <- scan_starts[found[scanned]] == starts[scanned]
+  tag_ends <- rep(NA_real_, length(starts))
+  tag_ends[scanned] <- scan_ends[found[scanned]]
+  # The start tags of script, style, textarea, and title, whose text starts
+  # after the tag. The name must end at a space, `/`, or `>`, not at the end
+  # of the page.
+  names <- rep(NA_character_, length(starts))
+  named <- which(kinds == 4L & ends <= size & (ends - starts - 1) %in% c(5, 6, 8))
+  text <- if (length(named) > 0L) substring(html, starts[named] + 1, ends[named] - 1) else character()
+  text[!grepl("^[A-Za-z]+$", text, useBytes = TRUE)] <- ""
+  names[named] <- ascii_lower(text)
+  names[!names %in% c("script", "style", "textarea", "title")] <- NA_character_
+  # Where the walk goes on after each head: after its match or its scanned
+  # tag, after a comment, or after the text of an element. Script text that
+  # holds a `<!--` before its first `</script` needs the state walk, and a
+  # tag that the scan missed needs its own match, so those heads (NA) are
+  # handled one at a time. A run of heads that each lead to the next one is
+  # walked whole in one step.
+  marks <- page_marks(html)
+  after <- ifelse(kinds == 2L, ends, tag_ends)
+  comment <- which(kinds == 1L)
+  after[comment] <- ifelse(ends[comment] - starts[comment] > 4, ends[comment],
+                           comment_end(marks, starts[comment] + 4))
+  for (name in c("style", "textarea", "title")) {
+    element <- which(names == name & scanned)
+    if (length(element) > 0L) {
+      after[element] <- text_end(marks, name, tag_ends[element])
+    }
+  }
+  script <- which(names == "script" & scanned)
+  if (length(script) > 0L) {
+    script_close <- next_mark(marks, "end script", tag_ends[script])
+    plain <- next_mark(marks, "<!--", tag_ends[script]) >= script_close
+    after[script] <- NA_real_
+    after[script[plain]] <- after_end_tag(marks, script_close[plain])
+  }
+  after[!is.na(names) & !scanned] <- NA_real_
+  special <- is.na(after)
+  after[special] <- 0
+  following <- findInterval(after - 1, starts, checkSorted = FALSE, checkNA = FALSE) + 1L
+  steps <- !special & following == seq_along(starts) + 1L
+  stops <- which(!steps)
+  run_end <- c(stops, length(starts) + 1L)[findInterval(seq_along(starts) - 1L, stops) + 1L]
+  walked <- logical(length(starts))
+  i <- 1L
+  while (i <= length(starts)) {
+    if (steps[i]) {
+      walked[i:(run_end[i] - 1L)] <- TRUE
+      i <- run_end[i]
+      next
+    }
+    walked[i] <- TRUE
+    if (!special[i]) {
+      i <- following[i]
+      next
+    }
+    if (is.na(tag_ends[i])) {
+      # A stray quote can put the scan of whole tags out of step until the
+      # next quote of its kind, so the next tags are matched together.
+      batch <- seq.int(i, min(length(starts), i + 511L))
+      batch <- batch[is.na(tag_ends[batch]) & kinds[batch] >= 3L]
+      tag_ends[batch] <- tag_ends_near(html, ends[batch], size)
+      if (is.na(tag_ends[i])) {
+        tag_ends[i] <- tag_end(html, ends[i], size)
+      }
+    }
+    at <- tag_ends[i]
+    if (!is.na(names[i])) {
+      at <- if (names[i] == "script") script_end(marks, at) else text_end(marks, names[i], at)
+    }
+    i <- findInterval(at - 1, starts, checkSorted = FALSE, checkNA = FALSE) + 1L
+  }
+  kept <- which(walked & kinds == 4L)
+  tags <- if (length(kept) > 0L) substring(html, starts[kept], tag_ends[kept] - 1) else character()
   Encoding(tags) <- "UTF-8"
   # No unquoted value or name holds `>`, so a tag that ends with `>`
   # closed before the end of the page. Tags with no href or src are not
@@ -2104,6 +2147,185 @@ tag_links <- function(html) {
   # An attribute with no `=`, such as `<a href>`, has an empty value.
   links <- links[grepl("=", links, fixed = TRUE)]
   structure(attr_value(links), base = if (length(base) > 0) attr_value(base[1]))
+}
+
+# The places on a page, read as bytes, where comments and element text
+# can end, or where script text changes state. mark_at() finds each kind
+# once, on its first use.
+page_marks <- function(html) {
+  marks <- new.env(parent = emptyenv())
+  marks$html <- html
+  marks$size <- nchar(html, type = "bytes")
+  marks
+}
+
+# The positions of `key` on the page: each `>`, `-->`, `--!>`, or `<!--`,
+# or each `<name` or `</name` (`key` "start name" or "end name") in any
+# ASCII letter case and followed by a space, tab, line break, form feed,
+# `/`, or `>`. A `-->` or `--!>` cannot overlap another, so a scan finds
+# each one, and a `-->` in a longer run of `-` is found at its end. The
+# keys are matched with PCRE, where none of their characters is special:
+# gregexpr(fixed = TRUE) took 15 s for the 360,000 `>` of a 6 MB page
+# where PCRE took 0.01 s. A name is matched in a copy of the page with its
+# ASCII letters in lower case, which keeps each byte's position: a pattern
+# such as `</[Ss][Tt][Yy][Ll][Ee]` took 0.52 s for 20,000 end tags where
+# `</style` took 0.003 s (macOS, R 4.6, 2026-10-29).
+mark_at <- function(marks, key) {
+  if (is.null(marks[[key]])) {
+    parts <- strsplit(key, " ", fixed = TRUE)[[1]]
+    if (length(parts) == 1L) {
+      text <- marks$html
+      pattern <- key
+    } else {
+      if (is.null(marks$lower)) {
+        # Bytes 65 to 90 are `A` to `Z`, and no byte of a multibyte UTF-8
+        # character is below 128. chartr() on the text took 1 s on a 1 MB
+        # page with non-ASCII text (macOS, R 4.6, 2026-10-29).
+        bytes <- charToRaw(marks$html)
+        upper <- bytes >= as.raw(65L) & bytes <= as.raw(90L)
+        bytes[upper] <- as.raw(as.integer(bytes[upper]) + 32L)
+        lower <- rawToChar(bytes)
+        Encoding(lower) <- "bytes"
+        marks$lower <- lower
+      }
+      text <- marks$lower
+      pattern <- paste0(if (parts[1] == "end") "</" else "<", parts[2], "[\t\n\f\r />]")
+    }
+    at <- gregexpr(pattern, text, perl = TRUE, useBytes = TRUE)[[1]]
+    marks[[key]] <- if (at[1] == -1L) numeric() else as.numeric(at)
+  }
+  marks[[key]]
+}
+
+# The first position of `key` at each `from` or later, or Inf when none.
+next_mark <- function(marks, key, from) {
+  at <- mark_at(marks, key)
+  found <- at[findInterval(from - 1, at, checkSorted = FALSE, checkNA = FALSE) + 1L]
+  found[is.na(found)] <- Inf
+  found
+}
+
+# The position after each end tag that starts at `from`: after its first
+# `>`, or after the page. An end tag at Inf is none.
+after_end_tag <- function(marks, from) {
+  gt <- next_mark(marks, ">", from)
+  ifelse(is.infinite(gt), marks$size + 1, gt + 1)
+}
+
+# The position after each comment whose text starts at `from`: after its
+# first `-->` or `--!>`, or after the page.
+comment_end <- function(marks, from) {
+  end <- pmin(next_mark(marks, "-->", from) + 3, next_mark(marks, "--!>", from) + 4)
+  ifelse(is.infinite(end), marks$size + 1, end)
+}
+
+# The position after a style, textarea, or title element whose text starts
+# at `from`: after its first `</name` end tag, or after the page.
+text_end <- function(marks, name, from) {
+  after_end_tag(marks, next_mark(marks, paste("end", name), from))
+}
+
+# The position after a script whose text starts at `from`, by the script
+# data states (whatwg-html, 13.2.5.4 and 13.2.5.15 to 13.2.5.31). In plain
+# text, `<!--` starts escaped text. Escaped text returns to plain text at
+# its first `-->`, whose dashes can be those of the `<!--`, and `</script`
+# there ends the script. In escaped text, `<script` starts double escaped
+# text, which returns to escaped text at `</script` and to plain text at
+# `-->`. A `<script` or `</script` that starts or ends double escaped text
+# takes the character after it with it.
+script_end <- function(marks, from) {
+  state <- "plain"
+  at <- from
+  dashes_from <- from
+  repeat {
+    end <- next_mark(marks, "end script", at)
+    if (state == "plain") {
+      open <- next_mark(marks, "<!--", at)
+      if (open >= end) {
+        return(after_end_tag(marks, end))
+      }
+      state <- "escaped"
+      dashes_from <- open + 2L
+      at <- open + 4L
+    } else if (state == "escaped") {
+      dashes <- next_mark(marks, "-->", dashes_from)
+      start <- next_mark(marks, "start script", at)
+      if (end < dashes && end < start) {
+        return(after_end_tag(marks, end))
+      }
+      if (is.infinite(dashes) && is.infinite(start)) {
+        return(marks$size + 1L)
+      }
+      if (dashes < start) {
+        state <- "plain"
+        at <- dashes + 3L
+      } else {
+        state <- "double"
+        at <- start + 8L
+      }
+    } else {
+      dashes <- next_mark(marks, "-->", at)
+      if (is.infinite(dashes) && is.infinite(end)) {
+        return(marks$size + 1L)
+      }
+      if (dashes < end) {
+        state <- "plain"
+        at <- dashes + 3L
+      } else {
+        state <- "escaped"
+        at <- end + 9L
+        dashes_from <- at
+      }
+    }
+  }
+}
+
+# The position after the attributes and `>` of a tag whose name ends at
+# `from`, or after the page. The attributes are matched in a window that
+# grows until the match ends inside it with no quote that could close past
+# it, so the result is that of a match over the rest of the page.
+tag_end <- function(html, from, size) {
+  width <- 256
+  repeat {
+    to <- min(size, from + width - 1)
+    window <- substr(html, from, to)
+    used <- attr(regexpr(html_tag_rest_start, window, perl = TRUE, useBytes = TRUE), "match.length")
+    if (to >= size || (used < to - from + 1 && !open_quote(window, used))) {
+      return(from + used)
+    }
+    width <- width * 8
+  }
+}
+
+html_tag_rest_start <- paste0("^", html_tag_rest)
+
+# tag_end() for the tags whose names end at `from`, each matched in the
+# first window of 256 bytes only, or NA for a tag whose end that window
+# cannot settle, which tag_end() then matches alone when the walk reaches
+# it. A warning gives NA for all, since a tag the walk never reaches must
+# not give the page's row.
+tag_ends_near <- function(html, from, size) {
+  to <- pmin(size, from + 255)
+  windows <- substring(html, from, to)
+  used <- tryCatch(attr(regexpr(html_tag_rest_start, windows, perl = TRUE, useBytes = TRUE), "match.length"),
+                   warning = function(w) rep(-1L, length(from)))
+  settled <- used >= 0 & (to >= size | used < to - from + 1)
+  check <- which(settled & to < size)
+  settled[check] <- !open_quote(windows[check], used[check])
+  ifelse(settled, from + used, NA_real_)
+}
+
+# Whether a quoted value that the window cuts off could start in the first
+# `used` bytes of `window`: the last `"` or `'` in the window falls there,
+# right after an `=` and any spaces. A quote elsewhere, such as in a name
+# or an unquoted value, starts no value.
+open_quote <- function(window, used) {
+  opens <- function(quote) {
+    last <- regexpr(paste0(quote, "[^", quote, "]*+\\z"), window, perl = TRUE, useBytes = TRUE)
+    last > 0L & last <= used &
+      grepl("=[\t\n\f\r ]*+\\z", substr(window, 1L, last - 1L), perl = TRUE, useBytes = TRUE)
+  }
+  opens('"') | opens("'")
 }
 
 # The raw value of each attribute, such as `href="x"` or `href=x`, or ""
