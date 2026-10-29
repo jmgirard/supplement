@@ -42,9 +42,9 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 ## Tasks
 
 - [x] T1: Write the AC1 test near `tests/testthat/test-check-supplement.R:739`, the test "a name that is not valid UTF-8 matches with ASCII letter case ignored". Write the AC2 test after the no-report test in `tests/testthat/test-render-supplement.R` (line 186 to 210). Make the bad names with `file.create()` or `dir.create()`. Skip on macOS and Windows. If a name cannot be made on Linux, fail and do not skip. Commit the tests alone. Ask before the push, since the question set did not cover a push before review. Then push, so ubuntu-latest runs the tests on the current code. In its `tests/testthat.Rout`, AC1 is to fail on cli's error that the text is not valid UTF-8. If AC1 passes there, or fails for another reason, such as no `caf<e9>` row, that is the goal-wrong stop. Record both results in the work log.
-- [ ] T2: In `check_leftover_output()`, pass each row's `file` through `show_text()`. Push and read ubuntu-latest's `tests/testthat.Rout` to see the AC1 test pass, not skip.
+- [x] T2: In `check_leftover_output()`, pass each row's `file` through `show_text()`. Push and read ubuntu-latest's `tests/testthat.Rout` to see the AC1 test pass, not skip.
 - [x] T3: If the AC2 test failed in T1, replace `tolower()` with `fold_case()` on both sides of `R/render-supplement.R:110` and push to see it pass on ubuntu-latest. If it passed, change no code and write a work-log line that the row's premise did not hold.
-- [ ] T4: Update the `"leftover-output"` entry of the roxygen block of `check_supplement()` and NEWS.md as AC3 says. Run `devtools::document()`.
+- [x] T4: Update the `"leftover-output"` entry of the roxygen block of `check_supplement()` and NEWS.md as AC3 says. Run `devtools::document()`.
 - [ ] T5: Run the `verify` slot on the committed branch head: `devtools::document()`, `devtools::test()`, `devtools::check()` (the macOS evidence). Wait for the R-CMD-check workflow on the branch head, the evidence for Windows and Linux.
 
 ## Work log
@@ -66,6 +66,7 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 - 2026-10-29: T3 done: the render test passed on current code, so no code change; the row's premise ("`tolower()` ... stops ... on a name that is not valid UTF-8") did not hold on ubuntu-latest with the R release, since in `C.UTF-8` `report_file_names()` does not list the name and in `C` `tolower()` does not stop. The test stays, as AC2 names it.
 - 2026-10-29: T4: help page "leftover-output" entry and NEWS.md updated; `devtools::document()` rewrote man/check_supplement.Rd. Pushed 1c9dd82; R-CMD-check run 40951717214.
 - 2026-10-29: claim audit: 8 claims read, 1 corrected — NEWS.md ("as the other rows do" → "as the `"report-name"` row does", since the broken-link and web-link rows do not use `show_text()`; re-read once, holds). Render test name's claim answered from the ubuntu run and the M078 lesson.
+- 2026-10-29: T2 done: run 40951717214 on 1c9dd82 passed on all three systems; ubuntu-latest `testthat.Rout` FAIL 0, WARN 0, SKIP 14, PASS 6297, and neither new test is in the skip list. Local `devtools::check()` on 1c9dd82: 0 errors, 0 warnings, 0 notes.
 
 ## Decisions
 
