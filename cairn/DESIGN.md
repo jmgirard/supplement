@@ -241,6 +241,12 @@ them with letter case folded by `fold_case()`. That lowers ASCII letters
 with `chartr()` first, since `tolower()` follows the locale (Turkish `I`),
 then other letters with `tolower()`, and lowers only the ASCII capital
 letters of a name that is not valid UTF-8.
+Its report-name check (`check_report_names()`, M078) gives one row for
+each report from `analysis_reports()` whose name fails `validUTF8()`,
+which only a file system such as one on Linux can hold. The stored-output,
+stale-output, stale-script, and renv checks read `utf8_reports()`, which
+leaves such reports out, because `sub()` stops on their names. On Linux,
+Quarto 1.10.19 renders such a site with no error and no page for the report.
 Its missing-script check (`check_missing_script()`, M059) gives one row when
 `_scripts/report.R` is missing, a folder, or a link whose chain
 `link_ends_on_file()` resolves with `fs::path_real()` to no file (a file

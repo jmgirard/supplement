@@ -62,6 +62,7 @@
 - 2026-10-29: question set (implement stop): push the branch before review, after each task, so ubuntu-latest runs the probe and the test — yes.
 - 2026-10-29: T1 done: ubuntu-latest, run 40934133441 at 2ef4599: `quarto render` of a new site with `analyses/caf<e9>.qmd` exited 0, its listing step read 2 files (`analyses/example.qmd`, `index.qmd`), and `docs/analyses/` held only `example.html` and `example_files`, so Quarto leaves such a report out of the site with no error. AC3 takes its second outcome. Probe deleted.
 - 2026-10-29: T2 first run errored on `write_lock` not found (defined later in the file), not on `sub()`; the test now writes `renv.lock` itself.
+- 2026-10-29: T3 and T4 drafted (local commit, not pushed while run 40935940661 judges the test-only head 7def08d): `utf8_reports()` and `check_report_names()` in `R/check-supplement.R`, the four checks read `utf8_reports()`, the row runs before `"no-stored-output"`; help item, NEWS, DESIGN; the test also asserts the row text. Implementation choice: filter in a new helper, so `analysis_reports()` and `add_report()` keep their behavior.
 
 ## Decisions
 

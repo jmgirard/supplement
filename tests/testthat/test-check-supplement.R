@@ -766,6 +766,13 @@ test_that("a report name that is not valid UTF-8 gives a report-name row and no 
   for (file in c("analyses/caf<e9>.qmd", "analyses/<ff>x<c3>.qmd")) {
     expect_identical(result$check[result$file == file], "report-name", info = file)
   }
+  expect_identical(
+    unique(result$problem[result$check == "report-name"]),
+    paste("The name of the report is not valid UTF-8 text, and Quarto leaves such a report out of the",
+          "site with no error. Rename the report with a name in UTF-8 text, change its item in",
+          "_quarto.yml, delete its folder in _freeze/analyses/ if there is one, and render the whole",
+          "site. Then commit the old and new paths with _quarto.yml, _freeze/, docs/, and figures/.")
+  )
   good <- result$check[result$file == "analyses/café.qmd"]
   expect_true("stale-output" %in% good)
   expect_false("report-name" %in% good)

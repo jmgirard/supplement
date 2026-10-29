@@ -56,6 +56,18 @@ row, also when a rule matches it. The copy of a data file in
 template's rule for \code{.rds} files does. The problem text says to change
 the rule for a file that the site must publish, and to remove the
 source of a private file and render again.
+\item \code{"report-name"}: a \code{.qmd} report directly in \verb{analyses/} whose name is
+not valid UTF-8 text, such as a name with a Latin-1 \code{é}. Only a file
+system that can hold such a name, such as one on Linux, gives this
+row; macOS and Windows refuse the name. The row shows each byte that
+is not valid UTF-8 as \verb{<xx>}. On Linux, Quarto 1.10.19 renders a site
+that holds such a report with no error and leaves the report out of
+\verb{docs/}. The row says to rename the report, change its item in
+\verb{_quarto.yml}, delete its folder in \verb{_freeze/analyses/} if there is
+one, render the whole site, and commit the old and new paths with
+\verb{_quarto.yml}, \verb{_freeze/}, \verb{docs/}, and \verb{figures/}. The
+\code{"no-stored-output"}, \code{"stale-output"}, \code{"stale-script"},
+\code{"renv-mismatch"}, and \code{"renv-missing"} checks leave such a report out.
 \item \code{"no-stored-output"}: a \code{.qmd} report directly in \verb{analyses/}, not in
 a folder inside it, with code and no stored output in \verb{_freeze/}. A
 full render then runs its code, which needs the data. A report has

@@ -1,5 +1,12 @@
 # supplement 0.0.0.9000
 
+* `check_supplement()` no longer stops with "input string 1 is invalid"
+  when a report in `analyses/` has a name that is not valid UTF-8 text,
+  which a file system on Linux can hold. Such a report now gets a
+  `"report-name"` row that says to rename it. On Linux, Quarto renders a
+  site that holds such a report with no error and leaves the report out
+  of `docs/`.
+
 * On Windows, `render_supplement()` now publishes the figures that knitr
   saves from code chunks for a site folder whose path holds an 8.3 short
   name, such as `JANEDO~1`. Quarto run from such a path left them out of
