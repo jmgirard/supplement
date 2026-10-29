@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — `check_supplement()` gives fewer rows that stop `release_supplement()`
-- **Branch/PR:** m076-read-large-page-text
+- **Branch/PR:** m076-read-large-page-text, https://github.com/jmgirard/supplement/pull/77
 
 ## Goal
 
