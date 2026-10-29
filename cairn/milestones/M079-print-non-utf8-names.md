@@ -64,6 +64,8 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 - 2026-10-29: T1 done: on ubuntu-latest (run 40950122191, ada368c, current code) the leftover test failed in `C.UTF-8` at `expect_no_error()` with "input string 1 is invalid UTF-8", raised from `cli::cli_bullets()` in `report_problems()` (`R/check-supplement.R:603`), after the warning "unable to translate '_freeze/analyses/caf<e9>' to a wide string"; the render test passed in both locales (not in the skip list); FAIL 2 (both from the leftover test).
 - 2026-10-29: T2: `check_leftover_output()` passes each row's `file` through `show_text()`.
 - 2026-10-29: T3 done: the render test passed on current code, so no code change; the row's premise ("`tolower()` ... stops ... on a name that is not valid UTF-8") did not hold on ubuntu-latest with the R release, since in `C.UTF-8` `report_file_names()` does not list the name and in `C` `tolower()` does not stop. The test stays, as AC2 names it.
+- 2026-10-29: T4: help page "leftover-output" entry and NEWS.md updated; `devtools::document()` rewrote man/check_supplement.Rd. Pushed 1c9dd82; R-CMD-check run 40951717214.
+- 2026-10-29: claim audit: 8 claims read, 1 corrected — NEWS.md ("as the other rows do" → "as the `"report-name"` row does", since the broken-link and web-link rows do not use `show_text()`; re-read once, holds). Render test name's claim answered from the ubuntu run and the M078 lesson.
 
 ## Decisions
 
