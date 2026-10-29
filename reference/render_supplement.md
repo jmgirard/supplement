@@ -50,6 +50,11 @@ The function runs these commands in the site folder, in this order:
     When files are still missing after this render, the function prints
     their names and renders no more.
 
+On Windows, when the path of the site folder holds a `~`, as an 8.3
+short name such as `JANEDO~1` does, the function runs these commands
+from the folder's long path. Quarto run from a short path leaves the
+figures that knitr saves from code chunks out of `docs/`.
+
 Quarto prints its output in the console as each command runs. The
 function runs no git command. After it renders, commit the changed
 reports with `_freeze/`, `docs/`, and `figures/`, and push.

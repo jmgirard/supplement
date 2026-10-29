@@ -97,7 +97,11 @@ full render reaches <code>docs/</code> only with the next render. Files are
 compared by their path under each folder, hidden files included. When
 files are still missing after this render, the function prints their
 names and renders no more.</p></li>
-</ol><p>Quarto prints its output in the console as each command runs. The
+</ol><p>On Windows, when the path of the site folder holds a <code>~</code>, as an 8.3
+short name such as <code>JANEDO~1</code> does, the function runs these commands
+from the folder's long path. Quarto run from a short path leaves the
+figures that knitr saves from code chunks out of <code>docs/</code>.</p>
+<p>Quarto prints its output in the console as each command runs. The
 function runs no git command. After it renders, commit the changed
 reports with <code>_freeze/</code>, <code>docs/</code>, and <code>figures/</code>, and push.</p>
     </div>
