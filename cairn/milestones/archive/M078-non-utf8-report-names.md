@@ -1,0 +1,11 @@
+# M078: Read report names that are not UTF-8
+
+**Status:** done (2026-10-29, PR #79 https://github.com/jmgirard/supplement/pull/79)
+
+**Goal:** `check_supplement()` tells the author to rename a report in `analyses/` whose name is not valid UTF-8, where it now stops with an error.
+
+**Outcome:** `check_report_names()` in `R/check-supplement.R` lists `analyses/` with no pattern and gives a `"report-name"` row for each `.qmd` file whose name fails `validUTF8()`, its `file` shown through `show_text()` (`<xx>` per bad byte). The row says the name is not valid UTF-8, that Quarto 1.10.19 on Linux rendered such a site with no error and left the report out, and gives the rename steps (`_quarto.yml` item, delete the `_freeze/analyses/` folder, render, commit). `utf8_reports()` drops such reports from the stored-output, stale-output, stale-script, and renv checks, which cut names with `sub()`. The Goal's premise was false: on Linux with R 4.6.1 in a UTF-8 locale, `list.files(pattern =)` never lists such a name, so main gave the report no row and no error. In the C locale it lists the name, and without the filter cli stopped on the raw bytes. A Linux-only test in `test-check-supplement.R` covers both locales. The help page, NEWS.md, the template's GUIDE.md check list, and DESIGN.md describe the row.
+
+**Decisions:** none promoted. At the implement stop the user chose the name filter in the four checks over naming the R 4.6.1 and locale limits in AC1.
+
+**Review:** Criteria audit at plan (full): 10 findings, 9 taken. One substantive amendment (AC1, AC2, Scope In, Surface tier) after T2's red run on main showed no stop; two AC1/AC2 re-audits, the second ending at the user's choice. Claim audit 27 claims, 5 corrected. One four-lens pass, 22 findings: 8 fixed (1fe06a4, d843e21; the C-locale test proved red with the filter planted out), 1 to the new row "Print leftover folders with odd bytes", 11 rejected (1 edge: a Windows surrogate name), 1 noted. Local and CI R CMD check clean on three systems. Graduated "Read report names that are not UTF-8". New rows: "Render by name beside non-UTF-8 reports", "Print leftover folders with odd bytes". Lessons: one captured (M078), two marked used, the 2026-10-21 (M029) lesson evicted by rank.

@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-29 (M077 review: archived; pruned the M074 row; graduated "Handle short folder names on Windows"; one low row added; one lesson captured, one evicted by rank, three marked used; LESSONS holds 25 lessons; validate green)_
+_Last hygiene check: 2026-10-29 (M078 review: archived; pruned the M075 row; graduated "Read report names that are not UTF-8"; two rows added; one lesson captured, one evicted by rank, two marked used; LESSONS holds 25 lessons; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M078 | Read report names that are not UTF-8 | review | — | normal | milestones/M078-non-utf8-report-names.md |
+| M078 | Read report names that are not UTF-8 | done | — | normal | milestones/archive/M078-non-utf8-report-names.md |
 | M077 | Render from short folder names on Windows | done | — | normal | milestones/archive/M077-windows-short-names.md |
 | M076 | Read large comments and element text in pages | done | — | normal | milestones/archive/M076-read-large-page-text.md |
-| M075 | Read base tags and odd markup in pages | done | — | normal | milestones/archive/M075-base-tags-odd-markup.md |
 
 ## Candidates
 
@@ -26,7 +25,6 @@ _Last hygiene check: 2026-10-29 (M077 review: archived; pruned the M074 row; gra
 - Build the Dockerfile on older R images: from the M032 review. Only `rocker/r-ver:4.6.1` (Ubuntu noble) on arm64 was built from the `write_dockerfile()` recipe. The 4.0.x to 4.5.x images are older Ubuntu builds with an older `install_quarto.sh`, and 4.0.x is amd64 only; neither those images nor amd64 were built. R before 4.0.0 is refused, since those images have no `/rocker_scripts`. — added 2026-10-22
 - Report broken Quarto links on Windows: from the M037 review. On Windows a file link to a missing file reads as an existing file (LESSONS M018), so `check_tools()` gives a broken Quarto link in `QUARTO_PATH` or an editor folder the status `found` or `not on path` with "version unknown", not `missing`; the link test in `test-check-tools.R` skips on Windows. M045 made `is_link()` find such a link through `fs_link()`, which `check_tools()` does not call. — added 2026-10-22
 - Match folder names across Unicode forms: from the M042 review. `check_leftover_output()` in `R/check-supplement.R` compares the names in `analyses/` with the folders in `_freeze/analyses/` as stored, so a report name and its folder that differ only in composed or decomposed Unicode form give a `leftover-output` row that tells the author to delete live output; the help page states it. Base R has no normalizer, so a fix needs a package such as `utf8` or `stringi` (a dependency change). — added 2026-10-23
-- Read report names that are not UTF-8: from the M042 review. `analysis_reports()` lists `analyses/` with `list.files(pattern =)`, and `check_stored_output()` and `check_stale_output()` run `sub()` on each report name without `useBytes`, which stops with "input string is invalid" on a name that is not valid UTF-8 (possible on Linux); whether a `.qmd` name with such bytes stops `check_supplement()` was not checked. `check_leftover_output()` (M042) cuts names with `useBytes = TRUE`. — added 2026-10-23 — started M078
 - Print leftover folders with odd bytes: from the M078 review. `check_leftover_output()` puts each folder name of `_freeze/analyses/` in the `file` column as stored, and `report_problems()` prints that column with cli's `{.path}`, which stops on text that is not valid UTF-8 (LESSONS, M066). A folder whose name is not valid UTF-8, as after a `"report-name"` rename that skips the delete step, may then stop `check_supplement()`; other rows pass such names through `show_text()`. Not run. — added 2026-10-29
 - Measure Sass lock reruns on Windows: from the M052 review. Since M052, Windows test processes share Quarto's Sass cache, as macOS and Linux ones did, and `run_in()` and `run_split()` rerun a render once on "database is locked"; no Windows lock rate is on record (macOS: 1 of 18 parallel first renders, M033). See also "Log render retries after a cache lock". — added 2026-10-24
 - Trace the Windows crash in create tests: from the M060 review. The windows-latest job of CI run 40310323002, on main at 4fad253 (a commit that changed only `cairn/` files), failed when the R session of `test-create-supplement.R` exited with -1073741819 (an access violation), where the run on 918a2d6 passed. No cause was looked for; a rerun shows whether it comes again. See also "Measure Sass lock reruns on Windows". — added 2026-10-26
