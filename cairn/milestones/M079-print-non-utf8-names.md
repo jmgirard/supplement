@@ -1,0 +1,63 @@
+# M079: Print names that are not UTF-8 in messages
+
+- **Status:** planned
+- **Priority:** normal
+- **Depends on:** —
+- **Driving RR:** —
+- **Principles touched:** —
+- **Resolves:** —
+- **Surface tier:** user-facing — `check_supplement()` and `render_supplement()` print a row or message where they can now stop with an error
+- **Branch/PR:** —
+
+## Goal
+
+On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"` row of `check_supplement()` or the no-report message of `render_supplement()`.
+
+## Scope
+
+**In:**
+- `check_leftover_output()` (`R/check-supplement.R:1532`) passes the `file` value of each row through `show_text()`. A folder name in `_freeze/analyses/` that is not valid UTF-8 then shows each such byte as `<xx>`, in the returned data frame and in the printed row, as the other rows already do. Now `report_problems()` prints the raw name with cli's `{.path}`, which stops on such text (LESSONS, M066).
+- `render_supplement()`'s message for a name with no report (`R/render-supplement.R:110`). `check_reports()` lets only ASCII names through, so only the names that `report_file_names()` lists can hold such bytes. On Linux in a UTF-8 locale, `list.files(pattern =)` leaves such a name out (LESSONS, M078). A Linux-only test shows whether the message stops. If it does, `fold_case()` replaces `tolower()` in that line. If it does not, the code stays as it is.
+- Tests in `tests/testthat/test-check-supplement.R` and `tests/testthat/test-render-supplement.R`. The help page of `check_supplement()` and NEWS.md describe the change.
+
+**Out:**
+- Folder names that differ from a report name only in Unicode form: the candidate row "Match folder names across Unicode forms" holds them.
+- macOS and Windows: their file systems refuse such a name (LESSONS, M066), so the tests run on Linux only. No row follows.
+- R versions other than the release that CI runs: the render result rests on R 4.6's `list.files()` and `tolower()`. The candidate row "Keep tests within the Suggests floors" holds the lack of a CI job on R 4.1.0.
+
+## Acceptance criteria
+
+- [ ] AC1: The site is a new site whose `_freeze/analyses/` holds two folders with `execute-results/html.json`, one named `caf` then byte 0xE9 and one named `deleted`. Its `analyses/` holds no report of either name. On Linux, in a UTF-8 locale and in the C locale, `check_supplement(site)` returns without an error. Its result holds one `"leftover-output"` row whose `file` is `_freeze/analyses/caf<e9>` and one whose `file` is `_freeze/analyses/deleted`.
+- [ ] AC2: The site is a `plain_site()` (`tests/testthat/test-render-supplement.R:22`) whose `analyses/` holds `models.qmd` and a report named `caf`, byte 0xE9, `.qmd`. On Linux with the R release, in a UTF-8 locale and in the C locale, `render_supplement("Models", path = site)` stops with an error of class `supplement_error_no_report` and runs no Quarto command. The message names `analyses/Models.qmd` and `analyses/models.qmd`.
+- [ ] AC3: The help page of `check_supplement()` says, in its `"leftover-output"` entry, that the row's `file` shows each byte that is not valid UTF-8 in the folder's name as `<xx>`. NEWS.md describes the change to that row. If the code of `render_supplement()` changes, NEWS.md describes that change too.
+- [ ] AC4: The `verify` slot is clean: `devtools::document()` leaves no diff, `devtools::test()` has 0 failures, and R CMD check of the committed branch head gives 0 errors and 0 warnings on Windows, macOS, and Linux.
+
+## Coverage
+
+- AC1 → T1, T2
+- AC2 → T1, T3
+- AC3 → T4
+- AC4 → T5
+
+## Tasks
+
+- [ ] T1: Write the AC1 test near `tests/testthat/test-check-supplement.R:739`, the test "a name that is not valid UTF-8 matches with ASCII letter case ignored". Write the AC2 test after the no-report test in `tests/testthat/test-render-supplement.R` (line 186 to 210). Make the bad names with `file.create()` or `dir.create()`. Skip on macOS and Windows. If a name cannot be made on Linux, fail and do not skip. Commit the tests alone. Ask before the push, since the question set did not cover a push before review. Then push, so ubuntu-latest runs the tests on the current code. In its `tests/testthat.Rout`, AC1 is to fail on cli's error that the text is not valid UTF-8. If AC1 passes there, or fails for another reason, such as no `caf<e9>` row, that is the goal-wrong stop. Record both results in the work log.
+- [ ] T2: In `check_leftover_output()`, pass each row's `file` through `show_text()`. Push and read ubuntu-latest's `tests/testthat.Rout` to see the AC1 test pass, not skip.
+- [ ] T3: If the AC2 test failed in T1, replace `tolower()` with `fold_case()` on both sides of `R/render-supplement.R:110` and push to see it pass on ubuntu-latest. If it passed, change no code and write a work-log line that the row's premise did not hold.
+- [ ] T4: Update the `"leftover-output"` entry of the roxygen block of `check_supplement()` and NEWS.md as AC3 says. Run `devtools::document()`.
+- [ ] T5: Run the `verify` slot on the committed branch head: `devtools::document()`, `devtools::test()`, `devtools::check()` (the macOS evidence). Wait for the R-CMD-check workflow on the branch head, the evidence for Windows and Linux.
+
+## Work log
+
+- 2026-10-29: created by /milestone-plan.
+- 2026-10-29: tier check: not run — work named at the question set.
+- 2026-10-29: question set: what to work on — "Print leftover folders with odd bytes" and "Render by name beside non-UTF-8 reports"; the leftover row's `file` column — `show_text()` with `<xx>`, as the other rows. A branch push before review was not asked, so T1 asks before its push.
+- 2026-10-29: idea vet: gap — the render row's stated cause looks unreachable, since `check_reports()` admits only ASCII names, `list.files(pattern =)` leaves such a name out in a UTF-8 locale (M078), and `tolower()` works byte by byte in the C locale (seen on macOS); reading taken: a Linux test decides, and the code changes only if it fails on main. The other two vet questions found no concern.
+- 2026-10-29: lessons used: 2026-10-27 (M066), 2026-10-29 (M078), 2026-10-28 (M068).
+- 2026-10-29: collision check: absorbs the candidate rows "Print leftover folders with odd bytes" and "Render by name beside non-UTF-8 reports" in full; extends done M078 and M042 (the leftover-output check); no D-entry covers name encoding. Inbox sweep: 0 open issues, 0 open PRs.
+- 2026-10-29: plan gate chose a test-first check of the render message over replacing `tolower()` with `fold_case()` at once, because a change with no failing test on main is not a bug fix under "What gets a test"; falsified by a Linux run where the AC2 test fails on main.
+- 2026-10-29: criteria audit (full mode, Opus reader): 7 findings, 6 taken, 1 answered. T1 now stops on any other failure on main; AC1 adds the C locale; AC2 names `plain_site()` and the R release, with an Out item for older R; AC3 says "each byte that is not valid UTF-8 in the folder's name" and ties the NEWS line to a code change, not a task; AC4 and T5 name the committed branch head. Answered: the Goal named all messages, so it now names the two; git-listed names already show `<xx>` in their rows (test "a git file name that is not valid UTF-8 is still checked"), so no row follows. No IP or D-entry conflict; `show_text()` gives `caf<e9>` for the AC1 bytes (run by the reader).
+
+## Decisions
+
+## Review
