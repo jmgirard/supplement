@@ -6,3 +6,4 @@ One line per committed page in `cairn/references/`.
 - [pilot-port.md](pilot-port.md): paths changed and problems met in the move of pilot-ptsd-markers to the freeze layout.
 - [whatwg-html.md](whatwg-html.md): HTML Standard rules for comment ends, end tags, script text, and the base element that the link reader follows.
 - [deno-script-crash.md](deno-script-crash.md): the macOS crash of Quarto's Deno while it runs a project script, with the crash-report facts and a draft upstream issue.
+- [windows-test-crash.md](windows-test-crash.md): the access violation that ended two testthat worker processes on windows-latest CI, with the runs, versions, and what the logs show.

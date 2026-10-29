@@ -1,13 +1,13 @@
 # M080: Catch Windows test crashes and fix time bounds
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** high
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — CI steps and test helpers that no user of the package relies on
-- **Branch/PR:** —
+- **Branch/PR:** m080-windows-ci-crashes-and-timing
 
 ## Goal
 
@@ -39,7 +39,7 @@ Windows CI keeps a trace of each crash of a test process, and the timed tests pa
 
 ## Tasks
 
-- [ ] T1: Write `cairn/references/windows-test-crash.md` from the synthesis-note template, with `cairn/references/deno-script-crash.md` as a model. List the failed runs of R-CMD-check from 2026-10-19 to 2026-10-29, read every attempt of each one's windows-latest job (`gh api repos/jmgirard/supplement/actions/runs/<id>/attempts/<n>/jobs`, then the job log), and search each log for `-1073741819`. Record each hit (the plan search found run 40310323002 in `test-create-supplement.R` and run 40661210581 in `test-renv.R`, both attempt 1, on commits 4fad253 and 92a82bc that changed only `cairn/` files), the versions from the job's session info, and the count of job attempts read. Add the INDEX line.
+- [x] T1: Write `cairn/references/windows-test-crash.md` from the synthesis-note template, with `cairn/references/deno-script-crash.md` as a model. List the failed runs of R-CMD-check from 2026-10-19 to 2026-10-29, read every attempt of each one's windows-latest job (`gh api repos/jmgirard/supplement/actions/runs/<id>/attempts/<n>/jobs`, then the job log), and search each log for `-1073741819`. Record each hit (the plan search found run 40310323002 in `test-create-supplement.R` and run 40661210581 in `test-renv.R`, both attempt 1, on commits 4fad253 and 92a82bc that changed only `cairn/` files), the versions from the job's session info, and the count of job attempts read. Add the INDEX line.
 - [ ] T2: In `R-CMD-check.yaml`, add a Windows-only step before the check that sets the `LocalDumps` key under `HKLM\SOFTWARE\Microsoft\Windows\Windows Error Reporting` (no program subkey, so every program) with `DumpFolder` under `$RUNNER_TEMP` and `DumpType` 1. Add an `if: always()` Windows step after the check that reads each `.dmp`: program and process id from the `<program>.<pid>.dmp` name, then the exception code and the module that holds the fault address. Use `cdb.exe` if the runner image has it. Otherwise read the minidump's exception and module-list streams with a small stdlib Python script in `.github/scripts/`. Install no tool. Add an upload step, by version tag (D-027), that runs only when a `.dmp` exists.
 - [ ] T3: Add a test helper that, only when `CI` is `true` on Windows and the workflow sets a log-folder variable, uses `testthat::set_state_inspector()` to append `<file> <test name>` to `<folder>/<pid>.log` before each test. Read the test name from the calling `test_that()` frame through its `desc` argument, not testthat internals. The T2 step prints the last line of the log that matches each dump's process id, or that no log matches.
 - [ ] T4: Add a `workflow_dispatch` boolean input that plants a crash. The workflow compiles `.github/scripts/plant-crash.c` (one function that writes through a null pointer) with `R CMD SHLIB` and sets a variable naming the DLL. A test file that skips unless that variable is set loads the DLL and calls the function. Keep the input after the merge, off by default.
@@ -61,3 +61,4 @@ Windows CI keeps a trace of each crash of a test process, and the timed tests pa
 - 2026-10-30: question set: push the branch and start two manual CI runs before review — yes.
 - 2026-10-30: plan chose a factor-5 bound on Windows over skipping the time checks there (D-020 style) because a skip drops the guard against time that grows with the square of the input; falsified by a Windows run past the widened bound with no code change, or a slowdown factor above 5 on record.
 - 2026-10-30: plan chose reading dumps with `cdb.exe` or a stdlib script over installing a debugger in CI because no new tool enters the workflow; falsified by an image with no `cdb.exe` where the script cannot read the exception stream.
+- 2026-10-30: T1 done: the search read 57 windows-latest job attempts of the 52 R-CMD-check runs from 2026-10-19 to 2026-10-29 that failed or ran more than once, and found the two crashes the plan named; `cairn/references/windows-test-crash.md` and its INDEX line written.
