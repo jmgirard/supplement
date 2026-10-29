@@ -67,6 +67,8 @@
 - 2026-10-29: T3 reworked for that cause: `check_report_names()` lists `analyses/` with no pattern and matches `.qmd` and a leading `.` with `useBytes = TRUE`; `utf8_reports()` removed and the four checks read `analysis_reports()` as on main, since in a UTF-8 locale they never see such a name. Help item, DESIGN.md, and NEWS.md now state the skipped-report cause, not a stop. Amended AC1 is with a fresh reader before it is written.
 - 2026-10-29: re-audit: AC1 (full) — 2 findings: the "on main" sentence records T2's red run, not the deliverable, so it moves to the work log; the locale axis is not held by the code, so a locale that is not UTF-8 goes Out (new [low] row "Check odd report names in a C locale") and the test skips there except under CI, where it fails.
 - 2026-10-29: re-audit: AC2 (full) — 1 finding: "For the AC1 site" becomes "For the AC1 call", so the locale applies. Also noted: Goal, Surface tier, and Scope In still describe a stop; Scope In and Surface tier are amended with AC1, and the Goal stays as created (its deliverable, the rename row, holds; its clause "where it now stops with an error" is false, as recorded above).
+- 2026-10-29: re-audit: AC1 (full) — 2 findings on the fixed wording: AC1 and AC2 hold only because R 4.6.1's `list.files(pattern =)` skips such names, and CI runs one R version against the R 4.1.0 floor (D-031), so on another R the `sub()` stop or extra rows could come back; restoring the `validUTF8()` filter in the four checks makes both hold whatever `list.files()` lists. Main also passes AC1, so only AC2 tells them apart.
+- 2026-10-29: re-audit: AC2 (full) — the same R-version finding as AC1. Second re-audit line for AC1 and AC2: further churn on them goes to the user.
 
 ## Decisions
 
