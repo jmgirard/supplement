@@ -761,7 +761,7 @@ test_that("a report name that is not valid UTF-8 gives a report-name row and no 
     writeBin(charToRaw(stale_lf), file.path(site, "analyses", paste0(name, ".qmd")))
     stored_file(site, name, "html.json", hash_json(md5_of("other text")))
   }
-  write_lock(site)
+  writeLines('{"R": {"Version": "4.6.1"}, "Packages": {}}', file.path(site, "renv.lock"))
   expect_no_error(expect_no_warning(result <- suppressMessages(check_supplement(site, renv_lock = TRUE))))
   for (file in c("analyses/caf<e9>.qmd", "analyses/<ff>x<c3>.qmd")) {
     expect_identical(result$check[result$file == file], "report-name", info = file)

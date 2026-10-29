@@ -40,7 +40,7 @@
 
 ## Tasks
 
-- [ ] T1: Observe Quarto 1.10.19 on Linux: on the branch, a probe test that renders a new site whose `analyses/` holds a report named `caf`, 0xE9, `.qmd` with `run_in()`, and prints Quarto's exit status and output. Push the branch (ask first: the question set did not cover a push before review), read ubuntu-latest's `tests/testthat.Rout`, write one work-log line with the outcome, then delete the probe.
+- [x] T1: Observe Quarto 1.10.19 on Linux: on the branch, a probe test that renders a new site whose `analyses/` holds a report named `caf`, 0xE9, `.qmd` with `run_in()`, and prints Quarto's exit status and output. Push the branch (ask first: the question set did not cover a push before review), read ubuntu-latest's `tests/testthat.Rout`, write one work-log line with the outcome, then delete the probe.
 - [ ] T2: Write the AC1 and AC2 test near "a name that is not valid UTF-8 matches with ASCII letter case ignored" (`tests/testthat/test-check-supplement.R:739`). Make the bad names with `file.create()`; skip on macOS and Windows, and on Linux fail rather than skip when a file cannot be made. Assert rows by `file`, since the template's report adds its own rows. Commit the test alone and push, so ubuntu-latest runs it on the current code: red on the error from `sub()`. Record the run in the work log.
 - [ ] T3: Add the `"report-name"` check and leave such a report out of the four checks, as Scope In says, with the row text that AC3 picks from T1's outcome. Push; read ubuntu-latest's `tests/testthat.Rout` to see the AC1 and AC2 test pass, not skip.
 - [ ] T4: Update the roxygen block of `check_supplement()`, NEWS.md, and DESIGN.md (the check paragraph near line 236); run `devtools::document()`.
@@ -60,6 +60,8 @@
 - 2026-10-29: implement started on branch m078-non-utf8-report-names, cut from main at 39fd866.
 - 2026-10-29: T1 probe (`tests/testthat/test-probe-m078.R`, fails on purpose to print Quarto's status, output, and `docs/analyses/`) and the T2 test (`test-check-supplement.R:754`) written; both skip on macOS. Committed together so one push runs both on ubuntu-latest.
 - 2026-10-29: question set (implement stop): push the branch before review, after each task, so ubuntu-latest runs the probe and the test — yes.
+- 2026-10-29: T1 done: ubuntu-latest, run 40934133441 at 2ef4599: `quarto render` of a new site with `analyses/caf<e9>.qmd` exited 0, its listing step read 2 files (`analyses/example.qmd`, `index.qmd`), and `docs/analyses/` held only `example.html` and `example_files`, so Quarto leaves such a report out of the site with no error. AC3 takes its second outcome. Probe deleted.
+- 2026-10-29: T2 first run errored on `write_lock` not found (defined later in the file), not on `sub()`; the test now writes `renv.lock` itself.
 
 ## Decisions
 
