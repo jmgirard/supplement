@@ -75,6 +75,8 @@
 - 2026-10-29: T5 drafted (help text, page_links comment, NEWS entry, DESIGN.md link check text and "Link reader limits"); the AC2 test still has the written 80,000-row form and fails on time, pending the amendment. Checkpoint.
 - 2026-10-29: T4 done: the test "pages with many comments, elements, and script state changes are read in time" follows the amended AC2 and passes (9.8 s with site setup). macOS times: AC2 page `check_supplement()` 4.06 s, with 20,000 `tag_end()` calls from the `<b x="` kind; 200,000 `<!---->` page 2.41 s; `tag_links()` on AC1 shapes 0.92 s (7M `<` script), 0.28 s (7M `-` comment), 1.33 s (7M `</a`), 0.48 s (7M `<!x`), 0.64 s (7M `<sx`), 0.29 s (7M `-x`), 0.17 s and 0.22 s (3M words in a comment and in a script).
 - 2026-10-29: T5 done: AC5 grep (`grep -rnE "million|PCRE|limit" R/ man/ README.md inst/ NEWS.md`) hits name only the tag-with-attributes case, other features, and the NEWS entry's past-tense list of the forms that no longer give the row; `devtools::document()` rewrote `man/check_supplement.Rd`.
+- 2026-10-29: T6 full suite: `devtools::document()` no diff; `devtools::test()` 6,274 passed, 0 failed, 12 skipped, 0 errors (macOS, before the claim-audit wording fixes, which touch comments and help text only).
+- 2026-10-29: claim audit: 69 claims read, 5 corrected — R/check-supplement.R (help sentence on comment and element size, the html_* header comment, the `page_marks()` comment, the "3 million" figure now with PCRE2 10.47, R 4.6.1, macOS), man/check_supplement.Rd, tests/testthat/test-check-supplement.R (`random_page()` comment: 4 to 40 pieces; `cend:` forms need not close). The re-read found the header comment's two clauses contradicting each other, and its wording was taken.
 
 ## Decisions
 

@@ -1158,11 +1158,12 @@ test_that("comments and element text past one PCRE match are read", {
   )
 })
 
-# A random page of 20 to 200 pieces of markup, as a list of its `text` and
-# the `forms` it holds: "double" for double escaped script text, "cend:"
-# and the form that ends a comment, "straddle:" and an element whose text
-# holds markup that runs past its end tag, and "end:" and what the page
-# ends inside.
+# A random page of 4 to 40 pieces of markup, and at times one more that the
+# page ends inside, as a list of its `text` and the `forms` it holds:
+# "double" for double escaped script text, "cend:" and the form written to
+# close a comment, which need not close it, "straddle:" and an element
+# whose text holds markup that runs past its end tag, and "end:" and what
+# the page ends inside.
 random_page <- function() {
   case <- function(word) {
     chars <- strsplit(word, "", fixed = TRUE)[[1]]

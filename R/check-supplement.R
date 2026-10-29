@@ -335,9 +335,10 @@
 #'   end of the page cuts off is not read, as a browser drops it. A page
 #'   whose markup goes past the limits of the PCRE pattern engine gives one
 #'   row that says so, in place of its link rows. Such a page holds one tag
-#'   with millions of attributes (3 million did, 1 million did not). No
-#'   PCRE match spans a comment or the text of a script, style, textarea,
-#'   or title element, so a large one does not reach the limits.
+#'   with millions of attributes (3 million did and 1 million did not, with
+#'   PCRE2 10.47 in R 4.6.1 on macOS). The size of a comment, or of the
+#'   text of a script, style, textarea, or title element, does not count
+#'   toward the limits, so a large one does not reach them.
 #'   Each value is handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
@@ -1967,9 +1968,11 @@ url_status <- function(url) {
 # Every repeat in the html_* parts is possessive (`*+`, `++`), so PCRE
 # never backtracks into it and the time stays linear. PCRE's match limit
 # counts the steps of one match, so one tag with millions of attributes
-# can still reach it (3 million did, 1 million did not). page_links() then
-# returns FALSE. No match spans a comment or the text of an element, which
-# tag_links() walks in R.
+# can still reach it (3 million did and 1 million did not, PCRE2 10.47,
+# R 4.6.1, macOS, 2026-10-29). page_links() then returns FALSE.
+# tag_links() walks comments and element text in R. The one scan that
+# repeats a group over them, the scan of whole tags, is caught when it
+# reaches the limit.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
   "[^\t\n\f\r />][^\t\n\f\r />=]*+",
@@ -2119,7 +2122,8 @@ tag_links <- function(html) {
 }
 
 # The places on a page, read as bytes, where comments and element text
-# can end. mark_at() finds each kind once, on its first use.
+# can end, or where script text changes state. mark_at() finds each kind
+# once, on its first use.
 page_marks <- function(html) {
   marks <- new.env(parent = emptyenv())
   marks$html <- html
