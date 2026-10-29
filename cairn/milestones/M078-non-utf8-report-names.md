@@ -28,7 +28,7 @@
 - [x] AC2: For the AC1 call, the rows whose `file` is `analyses/caf<e9>.qmd` or `analyses/<ff>x<c3>.qmd` are one row each, of kind `"report-name"`; `café.qmd` gets a `"stale-output"` row and no `"report-name"` row.
 - [x] AC3: The `"report-name"` row's text says that the report's name is not valid UTF-8 and tells the author to rename the report with a valid UTF-8 name, change its item in `_quarto.yml`, delete its folder in `_freeze/analyses/` if there is one, render the whole site, and commit the old and new paths with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. It also gives the outcome of a Quarto 1.10.19 render on Linux of a site that holds such a report: when the render stops with an error that the file name is not valid UTF-8, the text says that a render of the site stops on such a name; when the render ends with no page for the report in `docs/`, the text says that Quarto leaves the report out of the site. A render that publishes the report falsifies this plan and is the goal-wrong stop.
 - [x] AC4: The help page of `check_supplement()` lists the `"report-name"` row and states that only a file system that holds such a name, such as one on Linux, can give it; NEWS.md and DESIGN.md's paragraph on the checks of `R/check-supplement.R` describe the change.
-- [ ] AC5: The `verify` slot is clean: `devtools::document()` leaves no diff, `devtools::test()` has 0 failures, and R CMD check of the branch head gives 0 errors and 0 warnings on Windows, macOS, and Linux.
+- [x] AC5: The `verify` slot is clean: `devtools::document()` leaves no diff, `devtools::test()` has 0 failures, and R CMD check of the branch head gives 0 errors and 0 warnings on Windows, macOS, and Linux.
 
 ## Coverage
 
@@ -84,25 +84,29 @@
 - AC3: row text in `check_report_names()` (`R/check-supplement.R:935-938`), asserted verbatim by the AC1 test, which passed on ubuntu: it says the name is not valid UTF-8; says to rename the report with a name in UTF-8 text, change its item in `_quarto.yml`, delete its folder in `_freeze/analyses/` if there is one, render the whole site, and commit the old and new paths with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. T1's render (run 40934133441) exited 0 with no page for the report in `docs/analyses/`, AC3's second outcome, and the text says Quarto 1.10.19 "left the report out of the site". Met.
 - AC4: `man/check_supplement.Rd:59-63` lists `"report-name"` and says "Only a file system that can hold such a name, such as one on Linux, gives this row"; NEWS.md lines 3-8 and DESIGN.md line 244 (the report-name check sentence in the checks paragraph of `R/check-supplement.R`) describe the change. Met.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: `utf8_reports()` is not exercised by any test, since R 4.6.1 in a UTF-8 locale never lists such names — fix now: the test also runs the check under `withr::with_locale(c(LC_CTYPE = "C"))` and asserts `"report-name"` alone for both names. Planted run 40942482857 at 1fe06a4, with `utf8_reports()` returning every report: ubuntu-latest failed that assertion with "input string 1 is invalid UTF-8" (cli printing a raw name of another check's row), so the filter is what keeps the C-locale call from stopping. The same run warned "unable to translate 'analyses/caf<c3><a9>.qmd' to UTF-8" on the valid name's row in the C locale, so the C-locale part removes `café.qmd` first; the plant is reverted.
+- diff-bug #1: `utf8_reports()` is not exercised by any test, since R 4.6.1 in a UTF-8 locale never lists such names — fix now: the test also runs the check under `withr::with_locale(c(LC_CTYPE = "C"))` and asserts `"report-name"` alone for both names. Planted run 40942482857 at 1fe06a4, with `utf8_reports()` returning every report: ubuntu-latest failed that assertion with "input string 1 is invalid UTF-8" (cli printing a raw name of another check's row), so the filter is what keeps the C-locale call from stopping. The same run warned "unable to translate 'analyses/caf<c3><a9>.qmd' to UTF-8" on the valid name's row in the C locale, so the C-locale part removes `café.qmd` first; the plant is reverted, fixed d843e21.
 - diff-bug #2: `check_leftover_output()` puts raw folder bytes in `file`, and cli may stop printing them after a rename that skips the delete step — follow-up: new row "Print leftover folders with odd bytes" (unmodified line, from M042).
 - diff-bug #3: the `_quarto.yml` step may name an item that cannot exist — reject, planned change: AC3 requires the step, and it is harmless when no item exists.
 - diff-bug #4: `.ipynb`, `.Rmd`, and `.md` reports are not covered — reject, planned change: every report check of the package reads `.qmd` reports only (`analysis_reports()`), and Scope In names `.qmd`.
-- diff-bug #5: DESIGN.md keeps the `platform.c` cause as fact and "renders" in present tense, and omits that `sub()` stops only in a UTF-8 locale — fix now.
-- diff-bug #6: `!grepl("^\\.", …)` is dead, since `list.files()` skips dot names by default — fix now: removed, with a comment.
+- diff-bug #5: DESIGN.md keeps the `platform.c` cause as fact and "renders" in present tense, and omits that `sub()` stops only in a UTF-8 locale — fix now, fixed 1fe06a4.
+- diff-bug #6: `!grepl("^\\.", …)` is dead, since `list.files()` skips dot names by default — fix now: removed, with a comment, fixed 1fe06a4.
 - diff-bug #7: on Windows a name with a lone UTF-16 surrogate might read as invalid UTF-8 and get a row that speaks of Linux — reject, edge: a surrogate file name is outside the documented and common use of a report folder, and the row is still right that the name is not valid UTF-8.
-- diff-bug #8: row text line 937 and test line 776 over 140 characters — fix now: rewrapped.
-- diff-bug #9: test title says "no stop", from the false premise — fix now: retitled "… and no other row".
+- diff-bug #8: row text line 937 and test line 776 over 140 characters — fix now: rewrapped, fixed 1fe06a4.
+- diff-bug #9: test title says "no stop", from the false premise — fix now: retitled "… and no other row", fixed 1fe06a4.
 - diff-bug #10: `"report-name"` stops `release_supplement()` as every row does, and the release test's list is a sample — no finding; noted.
 - diff-bug (c): the second bad name runs the same code path as the first — reject, planned change: AC1 and AC2 name both names (criteria audit, form axis).
 - blame-history #1: same as diff-bug #2 — follow-up, the same row.
 - blame-history #2: M042 kept such names in the match by bytes, M078 drops them from four checks — reject, planned change (plan gate and the user's name-filter choice); the always-on row stops the release.
-- blame-history #3: same as diff-bug #1 — fix now, as there.
+- blame-history #3: same as diff-bug #1 — fix now, as there, fixed d843e21.
 - blame-history #4: the row's `file` is escaped (`<e9>`) where some rows keep raw names — reject, false: `show_text()` is the file's convention for such names (`check_git_files()`, `check_ignored_output()`), and raw bytes stop cli (diff-bug #2).
 - prior-review #1: the help list of checks that leave such a report out omits `check_missing_script()` — reject, false: that check is unchanged on purpose and shows such a name through `show_text()`; the list names the checks that leave it out.
 - prior-review #2: the APFS and Quarto 1.10.19 claims are unverified — reject, false: the claim audit saw Errno 92 on APFS, and T1's run shows the Quarto outcome.
-- prior-review #3: long lines — fix now, as diff-bug #8.
-- ripple #1: `inst/template/GUIDE.md` "It finds:" list omits the new row — fix now: a bullet added.
+- prior-review #3: long lines — fix now, as diff-bug #8, fixed 1fe06a4.
+- ripple #1: `inst/template/GUIDE.md` "It finds:" list omits the new row — fix now: a bullet added, fixed 1fe06a4.
 - ripple #2: the absorbed candidate row still reads "was not checked" — reject, planned change: hygiene graduates the row.
 - ripple #3: `test-release-supplement.R:200` list omits `"report-name"` — reject, false: the list is a sample that already omits four kinds.
 - ripple #4: the help sentence omits `check_missing_script()` — reject, false, as prior-review #1.
+- AC1, AC2 after the fixes: R-CMD-check run 40943784060 at d843e21 passed on windows-latest, macos-latest, and ubuntu-latest; ubuntu `testthat.Rout` FAIL 0, WARN 0, SKIP 14, PASS 6286, the test not among the skips, its UTF-8 and C-locale parts both green.
+- AC5: at d843e21 on macOS (R 4.6.1): `devtools::document()` left no diff; `devtools::test()` FAILED 0, ERRORS 0, SKIPPED 15, PASSED 6278; `devtools::check()` 0 errors, 0 warnings, 0 notes. R CMD check in run 40943784060 passed on Windows, macOS, and Linux. Met.
+- Consistency gate: `cairn_validate.py` all checks passed; no principle changed, so `cairn_impact` skipped; `devtools::document()` no diff; `pkgdown::check_pkgdown()` no problems; NEWS.md has the entry; README.Rmd untouched; no new top-level files; `devtools::check()` 0/0/0.
+- Snapshots: no changed `_snaps` file in `git diff --name-only main...HEAD`.
