@@ -60,6 +60,7 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 
 - 2026-10-29: implement started on m079-print-non-utf8-names; status in-progress.
 - 2026-10-29: T1 tests written: "a leftover folder whose name is not valid UTF-8 shows its bytes in the row" (test-check-supplement.R) and "a report name that is not valid UTF-8 does not stop the no-report message" (test-render-supplement.R), each in `C.UTF-8` and `C`; both skip on macOS, as planned; not yet run on Linux.
+- 2026-10-29: question set: push the branch before review — yes, for T1, T2, and T3, with no further ask (chip at the T1 stop). Pushed ada368c; R-CMD-check run 40950122191.
 
 ## Decisions
 
