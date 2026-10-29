@@ -1,13 +1,13 @@
 # M079: Print names that are not UTF-8 in messages
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — `check_supplement()` and `render_supplement()` print a row or message where they can now stop with an error
-- **Branch/PR:** —
+- **Branch/PR:** m079-print-non-utf8-names
 
 ## Goal
 
@@ -57,6 +57,9 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 - 2026-10-29: collision check: absorbs the candidate rows "Print leftover folders with odd bytes" and "Render by name beside non-UTF-8 reports" in full; extends done M078 and M042 (the leftover-output check); no D-entry covers name encoding. Inbox sweep: 0 open issues, 0 open PRs.
 - 2026-10-29: plan gate chose a test-first check of the render message over replacing `tolower()` with `fold_case()` at once, because a change with no failing test on main is not a bug fix under "What gets a test"; falsified by a Linux run where the AC2 test fails on main.
 - 2026-10-29: criteria audit (full mode, Opus reader): 7 findings, 6 taken, 1 answered. T1 now stops on any other failure on main; AC1 adds the C locale; AC2 names `plain_site()` and the R release, with an Out item for older R; AC3 says "each byte that is not valid UTF-8 in the folder's name" and ties the NEWS line to a code change, not a task; AC4 and T5 name the committed branch head. Answered: the Goal named all messages, so it now names the two; git-listed names already show `<xx>` in their rows (test "a git file name that is not valid UTF-8 is still checked"), so no row follows. No IP or D-entry conflict; `show_text()` gives `caf<e9>` for the AC1 bytes (run by the reader).
+
+- 2026-10-29: implement started on m079-print-non-utf8-names; status in-progress.
+- 2026-10-29: T1 tests written: "a leftover folder whose name is not valid UTF-8 shows its bytes in the row" (test-check-supplement.R) and "a report name that is not valid UTF-8 does not stop the no-report message" (test-render-supplement.R), each in `C.UTF-8` and `C`; both skip on macOS, as planned; not yet run on Linux.
 
 ## Decisions
 

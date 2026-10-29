@@ -752,6 +752,22 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
   expect_identical(rows$file, "_freeze/analyses/deleted")
 })
 
+test_that("a leftover folder whose name is not valid UTF-8 shows its bytes in the row", {
+  # macOS on APFS refuses such a name, and Windows stores names as UTF-16,
+  # so this runs on Linux.
+  skip_on_os(c("mac", "windows"))
+  site <- new_site()
+  for (name in c(rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9))), "deleted")) {
+    stored_file(site, name, "html.json", hash_json(md5_of(stale_lf)))
+  }
+  for (locale in c("C.UTF-8", "C")) {
+    withr::with_locale(c(LC_CTYPE = locale), {
+      expect_no_error(rows <- rows_of(check_quiet(site), "leftover-output"))
+    })
+    expect_identical(sort(rows$file), c("_freeze/analyses/caf<e9>", "_freeze/analyses/deleted"), info = locale)
+  }
+})
+
 test_that("a report name that is not valid UTF-8 gives a report-name row and no other row", {
   # macOS on APFS refuses such a name, and Windows stores names as UTF-16,
   # so this runs on Linux.

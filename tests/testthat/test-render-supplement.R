@@ -209,6 +209,23 @@ test_that("render_supplement() checks its arguments and the site in order, befor
   expect_length(calls(), 0L)
 })
 
+test_that("a report name that is not valid UTF-8 does not stop the no-report message", {
+  # macOS on APFS refuses such a name, and Windows stores names as UTF-16,
+  # so this runs on Linux.
+  skip_on_os(c("mac", "windows"))
+  site <- plain_site("models")
+  calls <- local_runner()
+  stopifnot(file.create(file.path(site, "analyses", rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9, 0x2e, 0x71, 0x6d, 0x64))))))
+  for (locale in c("C.UTF-8", "C")) {
+    withr::with_locale(c(LC_CTYPE = locale), {
+      err <- expect_error(render_supplement("Models", path = site), class = "supplement_error_no_report")
+    })
+    expect_match(conditionMessage(err), "analyses/Models.qmd", fixed = TRUE)
+    expect_match(conditionMessage(err), "analyses/models.qmd", fixed = TRUE)
+  }
+  expect_length(calls(), 0L)
+})
+
 test_that("a render that fails stops the function and runs no later command", {
   site <- plain_site(c("a", "b"))
   calls <- local_runner(function(args) if (identical(args, c("render", "analyses/a.qmd"))) 1L else 0L)
