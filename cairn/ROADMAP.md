@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-29 (M077 review: archived; pruned the M074 row; gra
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M078 | Read report names that are not UTF-8 | in-progress | — | normal | milestones/M078-non-utf8-report-names.md |
+| M078 | Read report names that are not UTF-8 | review | — | normal | milestones/M078-non-utf8-report-names.md |
 | M077 | Render from short folder names on Windows | done | — | normal | milestones/archive/M077-windows-short-names.md |
 | M076 | Read large comments and element text in pages | done | — | normal | milestones/archive/M076-read-large-page-text.md |
 | M075 | Read base tags and odd markup in pages | done | — | normal | milestones/archive/M075-base-tags-odd-markup.md |

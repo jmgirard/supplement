@@ -1,6 +1,6 @@
 # M078: Read report names that are not UTF-8
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -44,7 +44,7 @@
 - [x] T2: Write the AC1 and AC2 test near "a name that is not valid UTF-8 matches with ASCII letter case ignored" (`tests/testthat/test-check-supplement.R:739`). Make the bad names with `file.create()`; skip on macOS and Windows, and on Linux fail rather than skip when a file cannot be made. Assert rows by `file`, since the template's report adds its own rows. Commit the test alone and push, so ubuntu-latest runs it on the current code: red on the error from `sub()`. Record the run in the work log.
 - [x] T3: Add the `"report-name"` check and leave such a report out of the four checks, as Scope In says, with the row text that AC3 picks from T1's outcome. Push; read ubuntu-latest's `tests/testthat.Rout` to see the AC1 and AC2 test pass, not skip.
 - [x] T4: Update the roxygen block of `check_supplement()`, NEWS.md, and DESIGN.md (the check paragraph near line 236); run `devtools::document()`.
-- [ ] T5: Run the `verify` slot: `devtools::document()`, `devtools::test()`, `devtools::check()`; wait for the R-CMD-check workflow on the branch head, the evidence for Windows and Linux.
+- [x] T5: Run the `verify` slot: `devtools::document()`, `devtools::test()`, `devtools::check()`; wait for the R-CMD-check workflow on the branch head, the evidence for Windows and Linux.
 
 ## Work log
 
@@ -73,6 +73,7 @@
 - 2026-10-29: substantive amendment: AC1 drops "in a UTF-8 locale" and its last sentence about main (the red evidence stays in the T2 lines above); AC2 reads "For the AC1 call"; Scope In names `check_report_names()` listing `analyses/` with no pattern and `utf8_reports()` in the four checks; Surface tier says main skips such a report. The deliverable the user sees is unchanged. Code: `utf8_reports()` restored, the test's locale skip removed, help and DESIGN.md say the four checks leave such a report out, and the C-locale candidate row added earlier this session deleted, since the filter covers that case.
 - 2026-10-29: claim audit: 27 claims read, 5 corrected — R/check-supplement.R, NEWS.md, tests/testthat/test-check-supplement.R. `sub()` stops only in a UTF-8 locale; the R 4.6.1 listing claim now cites the CI run, not `platform.c`; NEWS limits "no row before" to a UTF-8 locale; NEWS, help, and row text name Quarto 1.10.19 in past tense for the one new-site run; "macOS and Windows refuse" became "macOS on APFS refuses". The re-read found all five hold; the CI locale is assumed UTF-8, not shown in the log. Two long lines rewrapped.
 - 2026-10-29: T3 green: run 40938829967 at 22461af passed on all three systems; ubuntu-latest `testthat.Rout` FAIL 0, SKIP 14, PASS 6283, and the new test is not among the skips. Local `devtools::check()` at db82020: 0 errors, 0 warnings, 0 notes; `devtools::document()` left no diff.
+- 2026-10-29: T5 done: run 40939750167 at db82020 (last code commit) passed on windows-latest, macos-latest, and ubuntu-latest. Status set to review; the tracking commits after db82020 stay unpushed until review.
 
 ## Decisions
 
