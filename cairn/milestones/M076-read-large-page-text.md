@@ -78,6 +78,7 @@
 - 2026-10-29: T6 full suite: `devtools::document()` no diff; `devtools::test()` 6,274 passed, 0 failed, 12 skipped, 0 errors (macOS, before the claim-audit wording fixes, which touch comments and help text only).
 - 2026-10-29: claim audit: 69 claims read, 5 corrected — R/check-supplement.R (help sentence on comment and element size, the html_* header comment, the `page_marks()` comment, the "3 million" figure now with PCRE2 10.47, R 4.6.1, macOS), man/check_supplement.Rd, tests/testthat/test-check-supplement.R (`random_page()` comment: 4 to 40 pieces; `cend:` forms need not close). The re-read found the header comment's two clauses contradicting each other, and its wording was taken.
 - 2026-10-29: T6 done: `devtools::document()` no diff; `devtools::check()` on e397f6e 0 errors, 0 warnings, 0 notes (macOS, R 4.6.1; its test run includes the `skip_on_cran()` tests, since devtools sets `NOT_CRAN`). Status review.
+- 2026-10-29: step-7 approval: m076-read-large-page-text approved for merge
 
 ## Decisions
 
