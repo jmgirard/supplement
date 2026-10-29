@@ -22,10 +22,10 @@
 #'    files are still missing after this render, the function prints their
 #'    names and renders no more.
 #'
-#' On Windows, when the path of the site folder holds an 8.3 short name, a
-#' part with `~` such as `RUNNER~1`, the function runs these commands from
-#' the folder's long path. Quarto run from such a short path does not find
-#' the figures that knitr draws, so they would not reach `docs/`.
+#' On Windows, when the path of the site folder holds a `~`, as an 8.3
+#' short name such as `RUNNER~1` does, the function runs these commands
+#' from the folder's long path. Quarto run from a short path leaves the
+#' figures that knitr saves from code chunks out of `docs/`.
 #'
 #' Quarto prints its output in the console as each command runs. The
 #' function runs no git command. After it renders, commit the changed
@@ -125,9 +125,9 @@ render_supplement <- function(reports = NULL, path = ".") {
   owd <- setwd(path)
   on.exit(setwd(owd), add = TRUE)
   # Quarto run from a Windows path with an 8.3 short name, such as
-  # RUNNER~1, does not find the figures that knitr writes, so they never
-  # reach docs/. The long path is used only then, since normalizePath()
-  # also resolves links and mapped drives.
+  # RUNNER~1, leaves the figures that knitr writes out of docs/. The long
+  # path is used only for a path with ~, since normalizePath() also
+  # resolves symbolic links and junctions.
   if (.Platform$OS.type == "windows" && grepl("~", getwd(), fixed = TRUE)) {
     setwd(normalizePath(".", winslash = "/", mustWork = TRUE))
   }

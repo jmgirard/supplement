@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-29 (M076 review: archived; pruned the M073 row; nar
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M077 | Render from short folder names on Windows | in-progress | — | normal | milestones/M077-windows-short-names.md |
+| M077 | Render from short folder names on Windows | review | — | normal | milestones/M077-windows-short-names.md |
 | M076 | Read large comments and element text in pages | done | — | normal | milestones/archive/M076-read-large-page-text.md |
 | M075 | Read base tags and odd markup in pages | done | — | normal | milestones/archive/M075-base-tags-odd-markup.md |
 | M074 | Tag the release on the branch that holds it | done | — | normal | milestones/archive/M074-tag-release-branch.md |
