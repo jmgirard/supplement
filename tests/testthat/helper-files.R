@@ -2,6 +2,15 @@
 
 read_bytes <- function(path) readBin(path, "raw", file.size(path))
 
+# The time bound for a test that times a call. windows-latest runs about 5
+# times slower than macOS here: one check_supplement() call took 10.91 s
+# there and 2.33 s on macOS (M076), and the test "pages with many comments,
+# elements, and script state changes are read in time" took 10.19 s there
+# in CI run 40953514637 (2026-10-29) and 4.06 s on macOS (M076 review).
+time_bound <- function(seconds) {
+  if (.Platform$OS.type == "windows") seconds * 5 else seconds
+}
+
 # The relative paths and bytes of every file and folder under `dir`, or
 # NULL when `dir` does not exist.
 folder_state <- function(dir) {

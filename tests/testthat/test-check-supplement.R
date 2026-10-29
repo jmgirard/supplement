@@ -1349,13 +1349,13 @@ test_that("pages with many comments, elements, and script state changes are read
   page <- write_page(many, "index.html", sprintf('%s<a href="%s">x</a>', rep(blocks, each = 20000), links))
   time <- system.time(rows <- rows_of(check_quiet(many), "broken-link"))[["elapsed"]]
   expect_setequal(rows$problem, sprintf("The page links to a file that is not in the site: `gone-%d.csv`", seq(1000, 80000, 1000)))
-  expect_lt(time, 10)
+  expect_lt(time, time_bound(10))
   expect_identical(tag_links(read_page_text(page)), structure(links, base = NULL))
   states <- new_site()
   write_page(states, "index.html", c(sprintf("<script>%s</script>", strrep("<!---->", 200000)), '<a href="gone.csv">x</a>'))
   time <- system.time(pairs <- broken_pairs(states))[["elapsed"]]
   expect_identical(pairs, "docs/index.html `gone.csv`")
-  expect_lt(time, 10)
+  expect_lt(time, time_bound(10))
 })
 
 test_that("a tag with millions of attributes gives its link row or the PCRE-limit row", {
@@ -1541,7 +1541,7 @@ test_that("large skipped text and unclosed markup give the stated rows", {
   ))
   # 20,000 such tags took 11 s with the earlier pattern, so 60,000 would
   # take about 100 s.
-  expect_lt(time, 10)
+  expect_lt(time, time_bound(10))
 })
 
 test_that("a long page with non-ASCII text is read in linear time", {
@@ -1555,7 +1555,7 @@ test_that("a long page with non-ASCII text is read in linear time", {
   time <- system.time(pairs <- broken_pairs(site))[["elapsed"]]
   expect_identical(pairs, "docs/index.html `gone-é.csv`")
   expect_true(validUTF8(pairs))
-  expect_lt(time, 10)
+  expect_lt(time, time_bound(10))
 })
 
 test_that("a page whose markup the reader cannot finish gives the PCRE-limit row", {
