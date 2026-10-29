@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      plant_crash:
+        description: Crash one Windows test process, to show that the crash dump steps work
+        type: boolean
+        default: false
 
 name: R-CMD-check
 
@@ -85,6 +90,23 @@ jobs:
         with:
           extra-packages: any::rcmdcheck, any::pkgload
           needs: check
+
+      # With the plant_crash input, test-plant-crash.R calls a function that
+      # writes through a null pointer, so a run shows what the crash dump
+      # steps print for a crash.
+      - name: Build the planted crash
+        if: runner.os == 'Windows' && inputs.plant_crash
+        shell: pwsh
+        run: |
+          $plant = Join-Path $env:RUNNER_TEMP 'plant'
+          New-Item -ItemType Directory -Force -Path $plant | Out-Null
+          Copy-Item .github/scripts/plant-crash.c $plant
+          Push-Location $plant
+          # In PowerShell a bare `R` is the alias of Invoke-History.
+          R.exe CMD SHLIB plant-crash.c
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Pop-Location
+          "SUPPLEMENT_PLANT_CRASH=$(Join-Path $plant 'plant-crash.dll')" >> $env:GITHUB_ENV
 
       - uses: r-lib/actions/check-r-package@v2
         with:
