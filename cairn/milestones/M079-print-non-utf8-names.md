@@ -1,6 +1,6 @@
 # M079: Print names that are not UTF-8 in messages
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -45,7 +45,7 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 - [x] T2: In `check_leftover_output()`, pass each row's `file` through `show_text()`. Push and read ubuntu-latest's `tests/testthat.Rout` to see the AC1 test pass, not skip.
 - [x] T3: If the AC2 test failed in T1, replace `tolower()` with `fold_case()` on both sides of `R/render-supplement.R:110` and push to see it pass on ubuntu-latest. If it passed, change no code and write a work-log line that the row's premise did not hold.
 - [x] T4: Update the `"leftover-output"` entry of the roxygen block of `check_supplement()` and NEWS.md as AC3 says. Run `devtools::document()`.
-- [ ] T5: Run the `verify` slot on the committed branch head: `devtools::document()`, `devtools::test()`, `devtools::check()` (the macOS evidence). Wait for the R-CMD-check workflow on the branch head, the evidence for Windows and Linux.
+- [x] T5: Run the `verify` slot on the committed branch head: `devtools::document()`, `devtools::test()`, `devtools::check()` (the macOS evidence). Wait for the R-CMD-check workflow on the branch head, the evidence for Windows and Linux.
 
 ## Work log
 
@@ -68,6 +68,7 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 - 2026-10-29: claim audit: 8 claims read, 1 corrected — NEWS.md ("as the other rows do" → "as the `"report-name"` row does", since the broken-link and web-link rows do not use `show_text()`; re-read once, holds). Render test name's claim answered from the ubuntu run and the M078 lesson.
 - 2026-10-29: T2 done: run 40951717214 on 1c9dd82 passed on all three systems; ubuntu-latest `testthat.Rout` FAIL 0, WARN 0, SKIP 14, PASS 6297, and neither new test is in the skip list. Local `devtools::check()` on 1c9dd82: 0 errors, 0 warnings, 0 notes.
 - 2026-10-29: T5: `devtools::document()` no diff and local `devtools::check()` 0/0/0 on e077d4f (macOS). Run 40953514637 on e077d4f: ubuntu and macOS passed; windows-latest failed one test, "pages with many comments, elements, and script state changes are read in time" (`test-check-supplement.R:1357`, 10.19 s against its 10 s bound, M076 code this branch does not touch; it passed on 1c9dd82). Reran the failed job. See the candidate row "Time the large-page tests on Windows".
+- 2026-10-29: T5 done: the windows-latest rerun of run 40953514637 on e077d4f passed, so all three systems are green on the last code commit; status review. Later commits change only `cairn/`.
 
 ## Decisions
 

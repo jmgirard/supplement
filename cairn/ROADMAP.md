@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-29 (M078 review: archived; pruned the M075 row; gra
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M079 | Print names that are not UTF-8 in messages | in-progress | — | normal | milestones/M079-print-non-utf8-names.md |
+| M079 | Print names that are not UTF-8 in messages | review | — | normal | milestones/M079-print-non-utf8-names.md |
 | M078 | Read report names that are not UTF-8 | done | — | normal | milestones/archive/M078-non-utf8-report-names.md |
 | M077 | Render from short folder names on Windows | done | — | normal | milestones/archive/M077-windows-short-names.md |
 | M076 | Read large comments and element text in pages | done | — | normal | milestones/archive/M076-read-large-page-text.md |
