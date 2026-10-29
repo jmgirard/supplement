@@ -74,6 +74,7 @@
 - 2026-10-29: claim audit: 27 claims read, 5 corrected — R/check-supplement.R, NEWS.md, tests/testthat/test-check-supplement.R. `sub()` stops only in a UTF-8 locale; the R 4.6.1 listing claim now cites the CI run, not `platform.c`; NEWS limits "no row before" to a UTF-8 locale; NEWS, help, and row text name Quarto 1.10.19 in past tense for the one new-site run; "macOS and Windows refuse" became "macOS on APFS refuses". The re-read found all five hold; the CI locale is assumed UTF-8, not shown in the log. Two long lines rewrapped.
 - 2026-10-29: T3 green: run 40938829967 at 22461af passed on all three systems; ubuntu-latest `testthat.Rout` FAIL 0, SKIP 14, PASS 6283, and the new test is not among the skips. Local `devtools::check()` at db82020: 0 errors, 0 warnings, 0 notes; `devtools::document()` left no diff.
 - 2026-10-29: T5 done: run 40939750167 at db82020 (last code commit) passed on windows-latest, macos-latest, and ubuntu-latest. Status set to review; the tracking commits after db82020 stay unpushed until review.
+- 2026-10-29: step-7 approval: m078-non-utf8-report-names approved for merge
 
 ## Decisions
 
