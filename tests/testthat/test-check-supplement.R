@@ -752,7 +752,7 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
   expect_identical(rows$file, "_freeze/analyses/deleted")
 })
 
-test_that("a report name that is not valid UTF-8 gives a report-name row and no stop", {
+test_that("a report name that is not valid UTF-8 gives a report-name row and no other row", {
   # macOS on APFS refuses such a name, and Windows stores names as UTF-16,
   # so this runs on Linux.
   skip_on_os(c("mac", "windows"))
@@ -771,12 +771,20 @@ test_that("a report name that is not valid UTF-8 gives a report-name row and no 
     unique(result$problem[result$check == "report-name"]),
     paste("The name of the report is not valid UTF-8 text. On Linux, Quarto 1.10.19 rendered a site",
           "with such a report with no error and left the report out of the site. Rename the report",
-          "with a name in UTF-8 text, change its item in _quarto.yml, delete its folder in _freeze/analyses/ if there is one, and render the whole",
-          "site. Then commit the old and new paths with _quarto.yml, _freeze/, docs/, and figures/.")
+          "with a name in UTF-8 text, change its item in _quarto.yml, delete its folder in",
+          "_freeze/analyses/ if there is one, and render the whole site. Then commit the old and new",
+          "paths with _quarto.yml, _freeze/, docs/, and figures/.")
   )
   good <- result$check[result$file == "analyses/café.qmd"]
   expect_true("stale-output" %in% good)
   expect_false("report-name" %in% good)
+  # In the C locale, list.files(pattern =) lists such a name.
+  withr::with_locale(c(LC_CTYPE = "C"), {
+    expect_no_error(result <- suppressMessages(check_supplement(site, renv_lock = TRUE)))
+  })
+  for (file in c("analyses/caf<e9>.qmd", "analyses/<ff>x<c3>.qmd")) {
+    expect_identical(result$check[result$file == file], "report-name", info = file)
+  }
 })
 
 missing_script_text <- function(paths) {

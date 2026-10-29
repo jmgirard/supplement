@@ -915,7 +915,7 @@ analysis_reports <- function(path) {
 # or a locale such as C can list it.
 utf8_reports <- function(path) {
   reports <- analysis_reports(path)
-  reports[validUTF8(basename(reports))]
+  reports  # PLANTED: filter removed to see the C-locale assertion fail
 }
 
 # A row for each `.qmd` file directly in analyses/ whose name is not valid
@@ -925,17 +925,18 @@ utf8_reports <- function(path) {
 # site with such a report and left the report out of docs/ with no error.
 check_report_names <- function(path) {
   dir <- file.path(path, "analyses")
+  # Without all.files, list.files() skips names that start with `.`.
   names <- list.files(dir)
-  bad <- names[grepl("\\.qmd$", names, useBytes = TRUE) & !grepl("^\\.", names, useBytes = TRUE) &
-                 !validUTF8(names)]
+  bad <- names[grepl("\\.qmd$", names, useBytes = TRUE) & !validUTF8(names)]
   bad <- bad[!dir.exists(file.path(dir, bad))]
   files <- show_text(sort_bytes(file.path("analyses", bad)))
   problem_rows(
     "report-name", files,
     rep_len(paste("The name of the report is not valid UTF-8 text. On Linux, Quarto 1.10.19 rendered a site",
                   "with such a report with no error and left the report out of the site. Rename the report",
-                  "with a name in UTF-8 text, change its item in _quarto.yml, delete its folder in _freeze/analyses/ if there is one, and render the whole",
-                  "site. Then commit the old and new paths with _quarto.yml, _freeze/, docs/, and figures/."),
+                  "with a name in UTF-8 text, change its item in _quarto.yml, delete its folder in",
+                  "_freeze/analyses/ if there is one, and render the whole site. Then commit the old and new",
+                  "paths with _quarto.yml, _freeze/, docs/, and figures/."),
             length(files))
   )
 }

@@ -218,6 +218,8 @@ fails. This needs a network, and a release does not run it. It finds:
   does not ignore
 - files in `figures/`, `docs/`, and `_freeze/` that git ignores, which a
   release leaves out
+- reports directly in `analyses/` whose names are not valid UTF-8 text,
+  which Quarto leaves out of the site
 - reports directly in `analyses/` with code and no stored output in
   `_freeze/`
 - reports directly in `analyses/` whose stored output in `_freeze/` came
