@@ -306,7 +306,8 @@
 #'   link or junction that resolves to `docs/` or a place in it gives no row
 #'   of its own. Links
 #'   that start with `/`, `#`, or a scheme such as
-#'   `https:` are not checked here. Only the `"web-link"` check, with
+#'   `https:` are not checked here, except a `#` link under a local base
+#'   (below). Only the `"web-link"` check, with
 #'   `web_links = TRUE`, requests web addresses. GitHub
 #'   Pages matches letter case, so a link whose case differs from the file
 #'   name counts as broken, also on a disk that ignores case. A link that
@@ -314,9 +315,19 @@
 #'   as `e` plus an accent) is not caught.
 #'
 #'   Links are read from start tags only, as a browser reads them. Comments,
-#'   `<!...>` and `<?...>` markup, and the text of `<script>`, `<style>`,
-#'   `<textarea>`, and `<title>` elements are skipped, and so is page text
-#'   such as `<code>` text. Attribute names match in any letter case, and
+#'   `<!...>` and `<?...>` markup, end tags, and the text of `<script>`,
+#'   `<style>`, `<textarea>`, and `<title>` elements are skipped, and so is
+#'   page text such as `<code>` text. These parts end as the HTML Standard
+#'   says, except as listed below. A comment ends at the `>` of `<!-->` or
+#'   `<!--->`, and otherwise at its first `-->` or `--!>`. `</` followed by
+#'   a character that is not an ASCII letter or `>` starts a bogus comment,
+#'   which ends at the next `>`. An end tag is read through its attributes,
+#'   so a `>` in a quoted value does not end it. In the text of a script,
+#'   `<!--` starts escaped text, which ends at the next `-->`, whose dashes
+#'   can be those of the `<!--`. In escaped text, `<script` followed by a
+#'   space, tab, line break, form feed, `/`, or `>` makes the next
+#'   `</script>` part of the text, unless a `-->` comes first. Any other
+#'   `</script>` ends the script. Attribute names match in any letter case, and
 #'   only whole names count, so `data-href` and `data-src` are not read. A
 #'   value can be in double quotes, in single quotes, or unquoted, where it
 #'   runs to the next space or `>`. An attribute with no `=`, such as
@@ -326,17 +337,34 @@
 #'   row that says so, in place of its link rows. Such a page holds
 #'   millions of `-` in one comment, millions of `<` in the text of one
 #'   script, style, textarea, or title element (about 5 million did, in a
-#'   page of 20 MB), or millions of attributes in one tag. Each value is
-#'   handled in this order:
+#'   page of 20 MB), or millions of attributes in one tag. Script text with
+#'   millions of `</` or `<!`, or, after `<!--`, millions of `<s` or of
+#'   separate runs of `-`, can reach the limits sooner.
+#'   Each value is handled in this order:
 #'   character references are decoded; spaces, tabs, line breaks, and form
 #'   feeds at its ends are removed and tabs and line breaks inside it are
-#'   dropped; links with a scheme, `/`, or `#` at the start are skipped;
-#'   then `%` escapes are decoded. The decoded references are `&amp;`,
+#'   dropped; links with a scheme, `/`, or `#` at the start are skipped,
+#'   except a `#` link under a local base (below); then `%` escapes are
+#'   decoded. The decoded references are `&amp;`,
 #'   `&lt;`, `&gt;`, `&quot;`, and `&apos;` (in lower case, with the `;`),
 #'   and number references such as `&#38;` or `&#x26;` with the `;` that
 #'   name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
 #'   159. A row shows the link after the references are decoded, the ends
 #'   removed, and the tabs and line breaks inside it dropped.
+#'
+#'   A `<base>` tag changes where the links of its page lead. Only the
+#'   first `<base>` tag with an `href` counts, and its `href` is not a link
+#'   itself. Its value is read as a link value is. If the value is empty,
+#'   starts with `#` or `?`, or starts with `data:` or `javascript:` in any
+#'   letter case, links resolve against the page's own folder, as with no
+#'   base. If the value
+#'   has another scheme, such as `https:`, or starts with `/`, the page's
+#'   relative links are not checked. Any other value is a local base.
+#'   Relative links then resolve against the folder of the base address,
+#'   with its `?` and `#` parts removed. A base whose last part is `.` or
+#'   `..` names a folder. A link of only a `#` or `?` part resolves to the
+#'   base address itself. A row shows the link before it is resolved
+#'   against the base.
 #'
 #'   These are the main cases where the check reads a page differently
 #'   from a browser. Every other reference (such as `&eacute;`, `&AMP;`, or
@@ -345,11 +373,19 @@
 #'   text of `<noscript>`, `<xmp>`, `<iframe>`, `<noembed>`, `<noframes>`,
 #'   and `<plaintext>` elements is read as markup, and so is the text of a
 #'   `<![CDATA[...]]>` section after its first `>`. The four skipped
-#'   elements are also skipped inside `<svg>` and `<math>`. A comment ends
-#'   only at the first `-->`, so `<!-->` and `<!--->` also run to the next
-#'   `-->`, and `--!>` does not end it. A script ends at its first `</script>`, also when its text holds
-#'   `<!--` and `<script>`, where a browser reads on to a later
-#'   `</script>`. A `"` or `'` with no closing quote starts an unquoted
+#'   elements are also skipped inside `<svg>` and `<math>`. The end tags of
+#'   those four elements end at their first `>`, also inside a quoted
+#'   value. A `<base>` tag inside `<template>`, or inside `<svg>` but not in
+#'   its `<foreignObject>` or `<desc>`, counts as a base, though a browser
+#'   does not use it. A base with a scheme whose address a browser cannot
+#'   read, such as `http://`, leaves the page's relative links unchecked,
+#'   while a browser resolves them against the page's own folder. A `\` in
+#'   a base is not read as `/`, while a browser reads it so. An empty link,
+#'   such as `href=""`, is not checked, also under a local base, while a
+#'   browser resolves it to the base address. Under a base with another
+#'   scheme or a leading `/`, a browser can follow the page's relative links
+#'   to a place that the check does not read, and the check does not check
+#'   them. A `"` or `'` with no closing quote starts an unquoted
 #'   value, so the next `>` ends that tag and it is read, where a browser
 #'   reads on to the end of the page and drops the tag. A byte that is not
 #'   valid UTF-8 is read as text such as `<e9>`; outside a quoted value,
@@ -1660,8 +1696,9 @@ check_links <- function(path) {
       ))
     }
     # With no link in docs/, no part of a path can resolve outside it, so
-    # link_ok() skips that test.
-    broken <- links[!vapply(links, link_ok, logical(1), docs = docs, page = page,
+    # link_ok() skips that test. Each link is tested at its target, the
+    # path that a base on the page makes of it.
+    broken <- links[!vapply(attr(links, "targets"), link_ok, logical(1), docs = docs, page = page,
                             root = if (length(entries$links) > 0) root)]
     problem_rows(
       "broken-link", rep_len(file.path("docs", page), length(broken)),
@@ -1751,18 +1788,65 @@ utf8_lower <- function(x) {
 # inside the site, each once, or NULL when the page cannot be read, such
 # as a link whose target is missing. It is FALSE after a warning from
 # tag_links(), such as a PCRE match limit, which makes gsub() return its
-# input unchanged.
+# input unchanged. The attribute `targets` holds the path of each link
+# relative to the page's folder, after a local base (base_kind()). Under
+# such a base a link of only a `#` or `?` part points to the base address,
+# so it is kept. A base that points to a place that this check does not
+# read leaves no link.
 page_links <- function(file) {
   values <- page_values(file)
   if (!is.character(values)) {
     return(values)
   }
-  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/|#)", values)
-  unique(values[!skip])
+  base <- attr(values, "base")
+  kind <- base_kind(base)
+  if (kind == "away") {
+    return(structure(character(), targets = character()))
+  }
+  skip <- !nzchar(values) | grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/)", values)
+  if (kind == "page") {
+    skip <- skip | startsWith(values, "#")
+  }
+  links <- unique(values[!skip])
+  if (kind == "page") {
+    return(structure(links, targets = links))
+  }
+  address <- base_address(base)
+  part_only <- grepl("^[#?]", links)
+  targets <- paste0(ifelse(part_only, address, sub("[^/]*$", "", address)), links)
+  structure(links, targets = targets)
+}
+
+# How the links of a page resolve under `base`, the value of the page's
+# first <base> href, or NULL (whatwg-html, 4.2.3). "page": against the
+# page's own folder, as with no base. This holds for an empty value, one
+# that starts with `#` or `?`, and a data: or javascript: base. "away": to
+# a place that this check does not read, for another scheme or a value
+# that starts with `/`. "local": against the base, a path relative to the
+# page.
+base_kind <- function(base) {
+  if (is.null(base) || !nzchar(base) || grepl("^[#?]", base) ||
+      grepl("^(data|javascript):", ascii_lower(base))) {
+    return("page")
+  }
+  if (grepl("^([A-Za-z][A-Za-z0-9+.-]*:|/)", base)) {
+    return("away")
+  }
+  "local"
+}
+
+# The address that a local base names, with its `?` and `#` parts
+# removed. A last part of `.` or `..`, also when written with `%2e`,
+# names a folder, so it gets a `/`.
+base_address <- function(base) {
+  address <- sub("[?#].*$", "", base)
+  last <- percent_decode(sub("^.*/", "", address))
+  if (!is.na(last) && last %in% c(".", "..")) paste0(address, "/") else address
 }
 
 # Every href, src, and xlink:href value on a page, decoded and trimmed, each
-# once, or NULL or FALSE as for page_links().
+# once, or NULL or FALSE as for page_links(). The attribute `base` holds
+# the value of the first <base> href, read the same way, or NULL.
 page_values <- function(file) {
   html <- read_page_text(file)
   if (is.null(html)) {
@@ -1772,14 +1856,19 @@ page_values <- function(file) {
   if (isFALSE(links)) {
     return(FALSE)
   }
-  values <- decode_refs(unique(links))
-  # A browser trims spaces and control characters from the ends of a
-  # link; here only spaces, tabs, line breaks, and form feeds are trimmed.
-  # Tabs and line breaks inside a link are dropped, as the URL standard's
-  # parser does.
+  base <- attr(links, "base")
+  structure(unique(link_text(unique(links))), base = if (!is.null(base)) link_text(base))
+}
+
+# Link values with their character references decoded and their ends
+# trimmed. A browser trims spaces and control characters from the ends of
+# a link; here only spaces, tabs, line breaks, and form feeds are trimmed.
+# Tabs and line breaks inside a link are dropped, as the URL standard's
+# parser does.
+link_text <- function(values) {
+  values <- decode_refs(values)
   values <- gsub("^[\t\n\f\r ]+|[\t\n\f\r ]+$", "", values, perl = TRUE)
-  values <- gsub("[\t\n\r]", "", values)
-  unique(values)
+  gsub("[\t\n\r]", "", values)
 }
 
 # Web links -------------------------------------------------------------------
@@ -1883,7 +1972,10 @@ url_status <- function(url) {
 # match, so a comment that holds millions of `-`, a script, style,
 # textarea, or title body that holds millions of `<`, or one tag with
 # millions of attributes can still reach it (about 5 million `<` in one
-# script body did); page_links() then returns FALSE.
+# script body did). Script text with millions of `</` or `<!`, or, after
+# `<!--`, millions of `<s` or of separate runs of `-`, can reach it sooner
+# (html_script_body).
+# page_links() then returns FALSE.
 html_space <- "[\t\n\f\r ]"
 html_attr <- paste0(
   "[^\t\n\f\r />][^\t\n\f\r />=]*+",
@@ -1907,30 +1999,75 @@ ascii_any_case <- function(word) {
 
 ascii_lower <- function(x) chartr("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz", x)
 
+# The text of a script, by the script data states (whatwg-html, 13.2.5.4
+# and 13.2.5.15 to 13.2.5.31). In plain text, `<!--` starts escaped text.
+# Escaped text returns to plain text at its first `-->`, whose dashes can
+# be those of the `<!--`, and `</script` there ends the script. In escaped
+# text, `<script` starts double escaped text, which returns to escaped text
+# at `</script` and to plain text at `-->`. Each `script` is in any ASCII
+# letter case and followed by a space, tab, line break, form feed, `/`, or
+# `>`, and a `<script` or `</script` that starts or ends double escaped
+# text takes that character with it.
+# Each part is an unrolled loop: a run of other characters, then one `<`
+# or one whole run of `-` per pass. The escaped and double escaped parts
+# stop before a run of two or more `-` that a `>` follows, the `-->` that
+# ends them. Only ordinary `<` loop in the inner part, with one class
+# lookahead, since each further check per `<` brings PCRE's match limit
+# closer.
+html_script_body <- local({
+  name <- ascii_any_case("script")
+  start <- paste0("<", name, "[\t\n\f\r />]")
+  end <- paste0("</", name, "[\t\n\f\r />]")
+  no_end <- paste0("</(?!", name, "[\t\n\f\r />])")
+  plain_run <- "[^<]*+(?:<(?![/!])[^<]*+)*+"
+  plain <- paste0(plain_run, "(?:(?:", no_end, "|<!(?!--))", plain_run, ")*+")
+  dashes <- "-++(?!>)|->"
+  double_run <- "[^<-]*+(?:<(?!/)[^<-]*+)*+"
+  double_text <- paste0(double_run, "(?:(?:", dashes, "|", no_end, ")", double_run, ")*+")
+  escaped_run <- "[^<-]*+(?:<(?![/Ss])[^<-]*+)*+"
+  escaped <- paste0(
+    "<!", escaped_run,
+    "(?:(?:", dashes, "|", no_end, "|<(?=[Ss])(?!", name, "[\t\n\f\r />])|", start, double_text, end, ")",
+    escaped_run, ")*+",
+    "(?:--++>|", start, double_text, "(?:--++>)?+)?+"
+  )
+  paste0(plain, "(?:", escaped, plain, ")*+")
+})
+
 # One script, style, textarea, or title element: its start tag (kept, in a
 # capture group), then its text up to its end tag or the end of the page.
 html_raw_text <- function(name) {
+  body <- if (name == "script") html_script_body
   name <- ascii_any_case(name)
   end <- paste0("/", name, "(?=[\t\n\f\r />])")
   paste0(
     "(<", name, "(?=[\t\n\f\r />])", html_tag_rest, ")",
-    "[^<]*+(?:<(?!", end, ")[^<]*+)*+",
+    if (is.null(body)) paste0("[^<]*+(?:<(?!", end, ")[^<]*+)*+") else body,
     "(?:<", end, "[^>]*+(?:>|\\z))?+"
   )
 }
 
 # Comments, `<!...>` and `<?...>` markup, the four raw-text elements (groups
-# 1 to 4 keep their start tags), and other start tags (group 5).
+# 1 to 4 keep their start tags), end tags, `</` and a character that is
+# not an ASCII letter, and other start tags (group 5). A comment ends at
+# `>` right after `<!--` or `<!---`, else at its first `-->` or `--!>`
+# after `<!--`. `</` and a character that is not an ASCII letter or `>` is
+# a bogus comment that runs to the next `>`. `</>` is removed too, as a
+# browser drops it. An end tag is read through its attributes, as a start
+# tag is (whatwg-html, 13.2.5.7 and 13.2.5.43 to 13.2.5.52).
 html_skipped <- paste0(
-  "<!--[^-]*+(?:-(?!->)[^-]*+)*+(?:-->|\\z)|<[!?][^>]*+(?:>|\\z)|",
+  "<!--(?:-?+>|[^-]*+(?:-(?!-!?+>)[^-]*+)*+(?:--!?+>|\\z))|<[!?][^>]*+(?:>|\\z)|",
   paste(vapply(c("script", "style", "textarea", "title"), html_raw_text, character(1)), collapse = "|"),
+  "|</(?![A-Za-z])[^>]*+(?:>|\\z)|</[A-Za-z][^\t\n\f\r />]*+", html_tag_rest,
   "|(", html_start_tag, ")"
 )
 
 # The raw values of the href, src, and xlink:href attributes in the start
-# tags of `html`. Comments, `<!...>` and `<?...>` markup, and the text of
-# script, style, textarea, and title elements are not read, as a browser
-# reads no tags there. Each start tag is kept, so `<script src>` is read.
+# tags of `html`, other than <base> tags. The attribute `base` holds the
+# raw href of the first <base> tag that has one, or NULL. Comments, `<!...>`
+# and `<?...>` markup, end tags, and the text of script, style, textarea,
+# and title elements are not read, as a browser reads no tags there. Each
+# start tag of those four elements is kept, so `<script src>` is read.
 # A start tag that the end of the page cuts off is not read, as a browser
 # drops it. A quote that never closes is read as the start of an unquoted
 # value instead, so that tag ends at the next `>` and is read.
@@ -1955,12 +2092,25 @@ tag_links <- function(html) {
   # parsed further.
   tags <- tags[endsWith(tags, ">") & grepl("[Hh][Rr][Ee][Ff]|[Ss][Rr][Cc]", tags)]
   rests <- sub("^<[^\t\n\f\r />]*", "", tags)
-  attrs <- unlist(regmatches(rests, gregexpr(html_attr, rests, perl = TRUE)))
+  per_tag <- regmatches(rests, gregexpr(html_attr, rests, perl = TRUE))
+  attrs <- unlist(per_tag)
   attr_names <- ascii_lower(sub("(?s)^([^=\t\n\f\r ]*).*", "\\1", attrs, perl = TRUE))
-  links <- attrs[attr_names %in% c("href", "src", "xlink:href")]
+  # A <base> href is not a link. The first href of the first <base> tag
+  # that has one sets the address that the other links resolve against.
+  tag_names <- ascii_lower(sub("(?s)^<([^\t\n\f\r />]*).*", "\\1", tags, perl = TRUE))
+  in_base <- (tag_names == "base")[rep(seq_along(per_tag), lengths(per_tag))]
+  base <- attrs[in_base & attr_names == "href"]
+  links <- attrs[!in_base & attr_names %in% c("href", "src", "xlink:href")]
   # An attribute with no `=`, such as `<a href>`, has an empty value.
   links <- links[grepl("=", links, fixed = TRUE)]
-  values <- sub(paste0("(?s)^[^=]*=", html_space, "*"), "", links, perl = TRUE)
+  structure(attr_value(links), base = if (length(base) > 0) attr_value(base[1]))
+}
+
+# The raw value of each attribute, such as `href="x"` or `href=x`, or ""
+# for one with no `=`.
+attr_value <- function(attrs) {
+  values <- sub(paste0("(?s)^[^=]*=", html_space, "*"), "", attrs, perl = TRUE)
+  values[!grepl("=", attrs, fixed = TRUE)] <- ""
   sub("(?s)^([\"'])(.*)\\1$", "\\2", values, perl = TRUE)
 }
 
