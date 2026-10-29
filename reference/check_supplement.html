@@ -385,16 +385,27 @@ a folder, the folder's <code>index.html</code> is part of that path. A symbolic
 link or junction that resolves to <code>docs/</code> or a place in it gives no row
 of its own. Links
 that start with <code>/</code>, <code>#</code>, or a scheme such as
-<code>https:</code> are not checked here. Only the <code>"web-link"</code> check, with
+<code>https:</code> are not checked here, except a <code>#</code> link under a local base
+(below). Only the <code>"web-link"</code> check, with
 <code>web_links = TRUE</code>, requests web addresses. GitHub
 Pages matches letter case, so a link whose case differs from the file
 name counts as broken, also on a disk that ignores case. A link that
 also differs from the name in Unicode form (for example <code>é</code> written
 as <code>e</code> plus an accent) is not caught.</p>
 <p>Links are read from start tags only, as a browser reads them. Comments,
-<code>&lt;!...&gt;</code> and <code>&lt;?...&gt;</code> markup, and the text of <code>&lt;script&gt;</code>, <code>&lt;style&gt;</code>,
-<code>&lt;textarea&gt;</code>, and <code>&lt;title&gt;</code> elements are skipped, and so is page text
-such as <code>&lt;code&gt;</code> text. Attribute names match in any letter case, and
+<code>&lt;!...&gt;</code> and <code>&lt;?...&gt;</code> markup, end tags, and the text of <code>&lt;script&gt;</code>,
+<code>&lt;style&gt;</code>, <code>&lt;textarea&gt;</code>, and <code>&lt;title&gt;</code> elements are skipped, and so is
+page text such as <code>&lt;code&gt;</code> text. These parts end as the HTML Standard
+says, except as listed below. A comment ends at the <code>&gt;</code> of <code>&lt;!--&gt;</code> or
+<code>&lt;!---&gt;</code>, and otherwise at its first <code>--&gt;</code> or <code>--!&gt;</code>. <code>&lt;/</code> followed by
+a character that is not an ASCII letter or <code>&gt;</code> starts a bogus comment,
+which ends at the next <code>&gt;</code>. An end tag is read through its attributes,
+so a <code>&gt;</code> in a quoted value does not end it. In the text of a script,
+<code>&lt;!--</code> starts escaped text, which ends at the next <code>--&gt;</code>, whose dashes
+can be those of the <code>&lt;!--</code>. In escaped text, <code>&lt;script</code> followed by a
+space, tab, line break, form feed, <code>/</code>, or <code>&gt;</code> makes the next
+<code>&lt;/script&gt;</code> part of the text, unless a <code>--&gt;</code> comes first. Any other
+<code>&lt;/script&gt;</code> ends the script. Attribute names match in any letter case, and
 only whole names count, so <code>data-href</code> and <code>data-src</code> are not read. A
 value can be in double quotes, in single quotes, or unquoted, where it
 runs to the next space or <code>&gt;</code>. An attribute with no <code>=</code>, such as
@@ -404,17 +415,33 @@ whose markup goes past the limits of the PCRE pattern engine gives one
 row that says so, in place of its link rows. Such a page holds
 millions of <code>-</code> in one comment, millions of <code>&lt;</code> in the text of one
 script, style, textarea, or title element (about 5 million did, in a
-page of 20 MB), or millions of attributes in one tag. Each value is
-handled in this order:
+page of 20 MB), or millions of attributes in one tag. Script text with
+millions of <code>&lt;/</code> or <code>&lt;!</code>, or, after <code>&lt;!--</code>, millions of <code>&lt;s</code> or of
+separate runs of <code>-</code>, can reach the limits sooner.
+Each value is handled in this order:
 character references are decoded; spaces, tabs, line breaks, and form
 feeds at its ends are removed and tabs and line breaks inside it are
-dropped; links with a scheme, <code>/</code>, or <code>#</code> at the start are skipped;
-then <code>%</code> escapes are decoded. The decoded references are <code>&amp;amp;</code>,
+dropped; links with a scheme, <code>/</code>, or <code>#</code> at the start are skipped,
+except a <code>#</code> link under a local base (below); then <code>%</code> escapes are
+decoded. The decoded references are <code>&amp;amp;</code>,
 <code>&amp;lt;</code>, <code>&amp;gt;</code>, <code>&amp;quot;</code>, and <code>&amp;apos;</code> (in lower case, with the <code>;</code>),
 and number references such as <code>&amp;#38;</code> or <code>&amp;#x26;</code> with the <code>;</code> that
 name a code point from 1 to 0x10FFFF, other than a surrogate or 128 to
 159. A row shows the link after the references are decoded, the ends
 removed, and the tabs and line breaks inside it dropped.</p>
+<p>A <code>&lt;base&gt;</code> tag changes where the links of its page lead. Only the
+first <code>&lt;base&gt;</code> tag with an <code>href</code> counts, and its <code>href</code> is not a link
+itself. Its value is read as a link value is. If the value is empty,
+starts with <code>#</code> or <code>?</code>, or starts with <code>data:</code> or <code>javascript:</code> in any
+letter case, links resolve against the page's own folder, as with no
+base. If the value
+has another scheme, such as <code>https:</code>, or starts with <code>/</code>, the page's
+relative links are not checked. Any other value is a local base.
+Relative links then resolve against the folder of the base address,
+with its <code>?</code> and <code>#</code> parts removed. A base whose last part is <code>.</code> or
+<code>..</code> names a folder. A link of only a <code>#</code> or <code>?</code> part resolves to the
+base address itself. A row shows the link before it is resolved
+against the base.</p>
 <p>These are the main cases where the check reads a page differently
 from a browser. Every other reference (such as <code>&amp;eacute;</code>, <code>&amp;AMP;</code>, or
 <code>&amp;#38</code> with no <code>;</code>) stays as written. Other control characters at the
@@ -422,11 +449,19 @@ ends of a link, such as <code>&amp;#1;</code>, stay, while a browser removes the
 text of <code>&lt;noscript&gt;</code>, <code>&lt;xmp&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;noembed&gt;</code>, <code>&lt;noframes&gt;</code>,
 and <code>&lt;plaintext&gt;</code> elements is read as markup, and so is the text of a
 <code>&lt;![CDATA[...]]&gt;</code> section after its first <code>&gt;</code>. The four skipped
-elements are also skipped inside <code>&lt;svg&gt;</code> and <code>&lt;math&gt;</code>. A comment ends
-only at the first <code>--&gt;</code>, so <code>&lt;!--&gt;</code> and <code>&lt;!---&gt;</code> also run to the next
-<code>--&gt;</code>, and <code>--!&gt;</code> does not end it. A script ends at its first <code>&lt;/script&gt;</code>, also when its text holds
-<code>&lt;!--</code> and <code>&lt;script&gt;</code>, where a browser reads on to a later
-<code>&lt;/script&gt;</code>. A <code>"</code> or <code>'</code> with no closing quote starts an unquoted
+elements are also skipped inside <code>&lt;svg&gt;</code> and <code>&lt;math&gt;</code>. The end tags of
+those four elements end at their first <code>&gt;</code>, also inside a quoted
+value. A <code>&lt;base&gt;</code> tag inside <code>&lt;template&gt;</code>, or inside <code>&lt;svg&gt;</code> but not in
+its <code>&lt;foreignObject&gt;</code> or <code>&lt;desc&gt;</code>, counts as a base, though a browser
+does not use it. A base with a scheme whose address a browser cannot
+read, such as <code>http://</code>, leaves the page's relative links unchecked,
+while a browser resolves them against the page's own folder. A <code>\</code> in
+a base is not read as <code>/</code>, while a browser reads it so. An empty link,
+such as <code>href=""</code>, is not checked, also under a local base, while a
+browser resolves it to the base address. Under a base with another
+scheme or a leading <code>/</code>, a browser can follow the page's relative links
+to a place that the check does not read, and the check does not check
+them. A <code>"</code> or <code>'</code> with no closing quote starts an unquoted
 value, so the next <code>&gt;</code> ends that tag and it is read, where a browser
 reads on to the end of the page and drops the tag. A byte that is not
 valid UTF-8 is read as text such as <code>&lt;e9&gt;</code>; outside a quoted value,
@@ -541,18 +576,18 @@ text value, or <code>zenodo</code> is not a map.</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"check-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpoWSsrp/check-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/Rtmp9Zgcef/check-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpoWSsrp/check-example</span>, or</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/Rtmp9Zgcef/check-example</span>, or</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   `render_supplement()` in R with that folder as `path`, once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="co"># A new site has not been rendered, its example report has no stored</span></span></span>
 <span class="r-in"><span><span class="co"># output yet, and it still holds the template's placeholder values.</span></span></span>
 <span class="r-in"><span><span class="va">problems</span> <span class="op">&lt;-</span> <span class="fu">check_supplement</span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Skipped the <span style="color: #0000BB;">"large-file"</span>, <span style="color: #0000BB;">"saved-object"</span>, and <span style="color: #0000BB;">"ignored-output"</span> checks: `git rev-parse` failed, or the folder is not in a git work tree.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpoWSsrp/check-example</span>:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/Rtmp9Zgcef/check-example</span>:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> <span style="font-weight: bold;">no-stored-output</span> <span style="color: #0000BB;">analyses/example.qmd</span>: The report has code and no stored</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   output in _freeze/. Render the report by name, render the whole site, then</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit the report with _freeze/, docs/, and figures/. In R,</span>

@@ -2,6 +2,20 @@
 
 ## supplement 0.0.0.9000
 
+- [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+  now resolves the links of a page that has a `<base>` tag against the
+  base’s `href`, and no longer reads that `href` as a link. The help
+  page lists the cases where this differs from a browser. Under such a
+  base, a link of only a `#` or `?` part points to the base address. If
+  no file is there, the link gives a row. A base can have a scheme other
+  than `data:` or `javascript:`, such as `https:`, or start with `/`.
+  Then the page’s relative links are not checked. Comments now also end
+  at `<!-->`, `<!--->`, and `--!>`. `</` followed by a character that is
+  not an ASCII letter or `>` starts a bogus comment. An end tag is read
+  to its closing `>`. Links inside either are not read. A script can
+  hold `<!--` and then `<script>`. If no `-->` comes before the next
+  `</script>`, the script now runs past it, as in a browser.
+
 - A site can now be published with the R console, a web browser, and the
   Git pane of RStudio or Positron, with no GitHub command-line tool.
   [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md)

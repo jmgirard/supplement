@@ -373,37 +373,63 @@ The checks, by the value in the `check` column:
   link to a folder, the folder's `index.html` is part of that path. A
   symbolic link or junction that resolves to `docs/` or a place in it
   gives no row of its own. Links that start with `/`, `#`, or a scheme
-  such as `https:` are not checked here. Only the `"web-link"` check,
-  with `web_links = TRUE`, requests web addresses. GitHub Pages matches
-  letter case, so a link whose case differs from the file name counts as
-  broken, also on a disk that ignores case. A link that also differs
-  from the name in Unicode form (for example `é` written as `e` plus an
-  accent) is not caught.
+  such as `https:` are not checked here, except a `#` link under a local
+  base (below). Only the `"web-link"` check, with `web_links = TRUE`,
+  requests web addresses. GitHub Pages matches letter case, so a link
+  whose case differs from the file name counts as broken, also on a disk
+  that ignores case. A link that also differs from the name in Unicode
+  form (for example `é` written as `e` plus an accent) is not caught.
 
   Links are read from start tags only, as a browser reads them.
-  Comments, `<!...>` and `<?...>` markup, and the text of `<script>`,
-  `<style>`, `<textarea>`, and `<title>` elements are skipped, and so is
-  page text such as `<code>` text. Attribute names match in any letter
-  case, and only whole names count, so `data-href` and `data-src` are
-  not read. A value can be in double quotes, in single quotes, or
-  unquoted, where it runs to the next space or `>`. An attribute with no
-  `=`, such as `<a href>`, has an empty value and is not checked. A
-  start tag that the end of the page cuts off is not read, as a browser
-  drops it. A page whose markup goes past the limits of the PCRE pattern
-  engine gives one row that says so, in place of its link rows. Such a
-  page holds millions of `-` in one comment, millions of `<` in the text
-  of one script, style, textarea, or title element (about 5 million did,
-  in a page of 20 MB), or millions of attributes in one tag. Each value
-  is handled in this order: character references are decoded; spaces,
-  tabs, line breaks, and form feeds at its ends are removed and tabs and
-  line breaks inside it are dropped; links with a scheme, `/`, or `#` at
-  the start are skipped; then `%` escapes are decoded. The decoded
-  references are `&amp;`, `&lt;`, `&gt;`, `&quot;`, and `&apos;` (in
-  lower case, with the `;`), and number references such as `&#38;` or
-  `&#x26;` with the `;` that name a code point from 1 to 0x10FFFF, other
-  than a surrogate or 128 to 159. A row shows the link after the
+  Comments, `<!...>` and `<?...>` markup, end tags, and the text of
+  `<script>`, `<style>`, `<textarea>`, and `<title>` elements are
+  skipped, and so is page text such as `<code>` text. These parts end as
+  the HTML Standard says, except as listed below. A comment ends at the
+  `>` of `<!-->` or `<!--->`, and otherwise at its first `-->` or
+  `--!>`. `</` followed by a character that is not an ASCII letter or
+  `>` starts a bogus comment, which ends at the next `>`. An end tag is
+  read through its attributes, so a `>` in a quoted value does not end
+  it. In the text of a script, `<!--` starts escaped text, which ends at
+  the next `-->`, whose dashes can be those of the `<!--`. In escaped
+  text, `<script` followed by a space, tab, line break, form feed, `/`,
+  or `>` makes the next `</script>` part of the text, unless a `-->`
+  comes first. Any other `</script>` ends the script. Attribute names
+  match in any letter case, and only whole names count, so `data-href`
+  and `data-src` are not read. A value can be in double quotes, in
+  single quotes, or unquoted, where it runs to the next space or `>`. An
+  attribute with no `=`, such as `<a href>`, has an empty value and is
+  not checked. A start tag that the end of the page cuts off is not
+  read, as a browser drops it. A page whose markup goes past the limits
+  of the PCRE pattern engine gives one row that says so, in place of its
+  link rows. Such a page holds millions of `-` in one comment, millions
+  of `<` in the text of one script, style, textarea, or title element
+  (about 5 million did, in a page of 20 MB), or millions of attributes
+  in one tag. Script text with millions of `</` or `<!`, or, after
+  `<!--`, millions of `<s` or of separate runs of `-`, can reach the
+  limits sooner. Each value is handled in this order: character
+  references are decoded; spaces, tabs, line breaks, and form feeds at
+  its ends are removed and tabs and line breaks inside it are dropped;
+  links with a scheme, `/`, or `#` at the start are skipped, except a
+  `#` link under a local base (below); then `%` escapes are decoded. The
+  decoded references are `&amp;`, `&lt;`, `&gt;`, `&quot;`, and `&apos;`
+  (in lower case, with the `;`), and number references such as `&#38;`
+  or `&#x26;` with the `;` that name a code point from 1 to 0x10FFFF,
+  other than a surrogate or 128 to 159. A row shows the link after the
   references are decoded, the ends removed, and the tabs and line breaks
   inside it dropped.
+
+  A `<base>` tag changes where the links of its page lead. Only the
+  first `<base>` tag with an `href` counts, and its `href` is not a link
+  itself. Its value is read as a link value is. If the value is empty,
+  starts with `#` or `?`, or starts with `data:` or `javascript:` in any
+  letter case, links resolve against the page's own folder, as with no
+  base. If the value has another scheme, such as `https:`, or starts
+  with `/`, the page's relative links are not checked. Any other value
+  is a local base. Relative links then resolve against the folder of the
+  base address, with its `?` and `#` parts removed. A base whose last
+  part is `.` or `..` names a folder. A link of only a `#` or `?` part
+  resolves to the base address itself. A row shows the link before it is
+  resolved against the base.
 
   These are the main cases where the check reads a page differently from
   a browser. Every other reference (such as `&eacute;`, `&AMP;`, or
@@ -412,17 +438,25 @@ The checks, by the value in the `check` column:
   The text of `<noscript>`, `<xmp>`, `<iframe>`, `<noembed>`,
   `<noframes>`, and `<plaintext>` elements is read as markup, and so is
   the text of a `<![CDATA[...]]>` section after its first `>`. The four
-  skipped elements are also skipped inside `<svg>` and `<math>`. A
-  comment ends only at the first `-->`, so `<!-->` and `<!--->` also run
-  to the next `-->`, and `--!>` does not end it. A script ends at its
-  first `</script>`, also when its text holds `<!--` and `<script>`,
-  where a browser reads on to a later `</script>`. A `"` or `'` with no
-  closing quote starts an unquoted value, so the next `>` ends that tag
-  and it is read, where a browser reads on to the end of the page and
-  drops the tag. A byte that is not valid UTF-8 is read as text such as
-  `<e9>`; outside a quoted value, its `>` ends the tag, so an unquoted
-  value keeps the `<e9` part and the later attributes of that tag are
-  not read. A second attribute of the same name is also read.
+  skipped elements are also skipped inside `<svg>` and `<math>`. The end
+  tags of those four elements end at their first `>`, also inside a
+  quoted value. A `<base>` tag inside `<template>`, or inside `<svg>`
+  but not in its `<foreignObject>` or `<desc>`, counts as a base, though
+  a browser does not use it. A base with a scheme whose address a
+  browser cannot read, such as `http://`, leaves the page's relative
+  links unchecked, while a browser resolves them against the page's own
+  folder. A `\` in a base is not read as `/`, while a browser reads it
+  so. An empty link, such as `href=""`, is not checked, also under a
+  local base, while a browser resolves it to the base address. Under a
+  base with another scheme or a leading `/`, a browser can follow the
+  page's relative links to a place that the check does not read, and the
+  check does not check them. A `"` or `'` with no closing quote starts
+  an unquoted value, so the next `>` ends that tag and it is read, where
+  a browser reads on to the end of the page and drops the tag. A byte
+  that is not valid UTF-8 is read as text such as `<e9>`; outside a
+  quoted value, its `>` ends the tag, so an unquoted value keeps the
+  `<e9` part and the later attributes of that tag are not read. A second
+  attribute of the same name is also read.
 
 - `"web-link"`: only with `web_links = TRUE`, a web address on a page in
   `docs/` that fails. The check reads the same pages and values as the
@@ -548,18 +582,18 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpoWSsrp/check-example.
+#> ✔ Made a supplement site in /tmp/Rtmp9Zgcef/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpoWSsrp/check-example, or
+#> ℹ Run `quarto render` in /tmp/Rtmp9Zgcef/check-example, or
 #>   `render_supplement()` in R with that folder as `path`, once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpoWSsrp/check-example:
+#> ✖ 11 problems found in /tmp/Rtmp9Zgcef/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. In R,
