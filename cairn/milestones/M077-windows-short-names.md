@@ -39,9 +39,9 @@ On Windows, `render_supplement()` publishes the figures that knitr writes when t
 ## Tasks
 
 - [x] T1: Write the AC1 test beside "render_supplement() renders a new site" (`tests/testthat/test-render-supplement.R:232`), with `skip_if_no_quarto()` and `skip_on_os(c("mac", "linux"))`. Where `shortPathName()` gives no path with `~` (8.3 names off), it skips, but it fails instead when `Sys.getenv("CI") == "true"`, since `.github/scripts/check-skips.R` lets such a skip pass. Commit the test alone and push the branch (granted at the question set), so windows-latest runs it on the current code: red, on the missing figure file, not on a render error. Record the run in the work log.
-- [ ] T2: Change `render_supplement()` as Scope In says. Write the AC2 test beside "render_supplement() runs each render in the site folder" (line 217), Windows only, with `local_runner()`. Push; read windows-latest's `tests/testthat.Rout` to see the AC1 and AC2 tests pass, not skip.
-- [ ] T3: Update the help text (`R/render-supplement.R`, the roxygen block), `inst/template/GUIDE.md` "How the site renders", DESIGN.md's `R/render-supplement.R` paragraph (line 103), and NEWS.md; run `devtools::document()`.
-- [ ] T4: Run the `verify` slot: `devtools::document()`, `devtools::test()`, `devtools::check()`; wait for the R-CMD-check workflow on the branch head.
+- [x] T2: Change `render_supplement()` as Scope In says. Write the AC2 test beside "render_supplement() runs each render in the site folder" (line 217), Windows only, with `local_runner()`. Push; read windows-latest's `tests/testthat.Rout` to see the AC1 and AC2 tests pass, not skip.
+- [x] T3: Update the help text (`R/render-supplement.R`, the roxygen block), `inst/template/GUIDE.md` "How the site renders", DESIGN.md's `R/render-supplement.R` paragraph (line 103), and NEWS.md; run `devtools::document()`.
+- [x] T4: Run the `verify` slot: `devtools::document()`, `devtools::test()`, `devtools::check()`; wait for the R-CMD-check workflow on the branch head.
 
 ## Work log
 
@@ -55,6 +55,8 @@ On Windows, `render_supplement()` publishes the figures that knitr writes when t
 - 2026-10-29: criteria audit (full mode, Opus reader): 5 findings, all taken. AC1 names R CMD check on windows-latest, not `devtools::test()`; the T1 test fails rather than skips under CI when no short path exists; AC2 compares with `identical()` to `normalizePath(site, winslash = "/")` and adds the `path = "."` call from a short working folder; AC3's help text names an 8.3 short name, not any `~`. No IP or D-entry conflict; AC4 unchanged.
 - 2026-10-29: T1 test pushed at abd466a (CI run 40921405582, red expected on windows-latest); the T2 fix and AC2 test and the T3 docs are written and committed locally as an unpushed checkpoint while that run finishes; T1 to T3 not yet ticked.
 - 2026-10-29: T1 done: run 40921405582 on abd466a failed on windows-latest with FAIL 2 (the new test's figure-file and `broken-link` expectations, test-render-supplement.R:256 and :258), after Quarto warned that `...\RUNNER~1\...\SITE-2~3\analyses\example_files\figure-html\bootstrap-1.png` was not found; no render error; macOS and Ubuntu passed.
+- 2026-10-29: T2 and T3 done: fix in `render_supplement()` (Windows and `~` only), AC2 mock test with `short_path()` helper, help text, GUIDE.md "How the site renders", DESIGN.md, NEWS.md; `devtools::document()` run.
+- 2026-10-29: T4 done: local `devtools::test()` 0 failures (14 skips, the 2 new tests skip on macOS); local `devtools::check()` 0/0/0; CI run 40923761225 on 1e95df7 green on all three systems, windows-latest FAIL 0 SKIP 45 PASS 5931 (was FAIL 2 SKIP 45 PASS 5922), no new test in its skip list.
 
 ## Decisions
 
