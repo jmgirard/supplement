@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-29 (M075 review: archived; pruned the M072 row; gra
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M076 | Read large comments and element text in pages | in-progress | — | normal | milestones/M076-read-large-page-text.md |
+| M076 | Read large comments and element text in pages | review | — | normal | milestones/M076-read-large-page-text.md |
 | M075 | Read base tags and odd markup in pages | done | — | normal | milestones/archive/M075-base-tags-odd-markup.md |
 | M074 | Tag the release on the branch that holds it | done | — | normal | milestones/archive/M074-tag-release-branch.md |
 | M073 | Publish a site from the R console and a browser | done | M072 | normal | milestones/archive/M073-publish-from-r.md |

@@ -1,6 +1,6 @@
 # M076: Read large comments and element text in pages
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -49,7 +49,7 @@
 - [x] T3: Replace the `gsub()` in `tag_links()` (line 2086): one `gregexpr()` over a heads pattern that reads no attributes (comment starts, `<!` and `<?` markup, bogus `</` comments, and the `<name` and `</name` of tags); an R walk that takes the next head at or after its position; comment ends from positions of `-->` and `--!>`; style, textarea, and title ends from positions of `</name` and a delimiter; script ends from a state walk over the positions of `<!--`, `-->`, `<script` and a delimiter, and `</script` and a delimiter (whatwg-html 13.2.5.15 to 13.2.5.31); a tag's end looked up in one scan of whole tags, or matched alone in a growing window for a head the walk reaches that the scan missed. Remove pattern parts no longer used. AC1, AC3, and the existing reader tests pass.
 - [x] T4: Write the AC2 test under `skip_on_cran()`. Time the AC1 pages and the AC2 pages on macOS and write the times in the work log.
 - [x] T5: Update the help text (`R/check-supplement.R:336-342`), the code comments at lines 1787-1795 and 1966-1978, NEWS.md, and DESIGN.md (the link check text near line 176 and the "Link reader limits" entry); run `devtools::document()`.
-- [ ] T6: Run the `verify` slot: `devtools::document()`, `devtools::test()`, `devtools::check()`.
+- [x] T6: Run the `verify` slot: `devtools::document()`, `devtools::test()`, `devtools::check()`.
 
 ## Work log
 
@@ -77,6 +77,7 @@
 - 2026-10-29: T5 done: AC5 grep (`grep -rnE "million|PCRE|limit" R/ man/ README.md inst/ NEWS.md`) hits name only the tag-with-attributes case, other features, and the NEWS entry's past-tense list of the forms that no longer give the row; `devtools::document()` rewrote `man/check_supplement.Rd`.
 - 2026-10-29: T6 full suite: `devtools::document()` no diff; `devtools::test()` 6,274 passed, 0 failed, 12 skipped, 0 errors (macOS, before the claim-audit wording fixes, which touch comments and help text only).
 - 2026-10-29: claim audit: 69 claims read, 5 corrected — R/check-supplement.R (help sentence on comment and element size, the html_* header comment, the `page_marks()` comment, the "3 million" figure now with PCRE2 10.47, R 4.6.1, macOS), man/check_supplement.Rd, tests/testthat/test-check-supplement.R (`random_page()` comment: 4 to 40 pieces; `cend:` forms need not close). The re-read found the header comment's two clauses contradicting each other, and its wording was taken.
+- 2026-10-29: T6 done: `devtools::document()` no diff; `devtools::check()` on e397f6e 0 errors, 0 warnings, 0 notes (macOS, R 4.6.1; its test run includes the `skip_on_cran()` tests, since devtools sets `NOT_CRAN`). Status review.
 
 ## Decisions
 
