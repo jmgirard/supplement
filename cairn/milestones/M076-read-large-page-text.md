@@ -117,3 +117,4 @@ Review pass 1, 2026-10-29, branch at 98a6374 (main 6dc4b1b is an ancestor; no sy
 - prior-review #6: the comment at `R/check-supplement.R:2057` names comment and element text — reject, false: it says such text makes the whole-tag scan warn, which is true and is not the page's row.
 - ripple #1: the candidate row "Read huge script bodies past PCRE limits" still names the old cases — reject, planned change: Scope Out has post-merge hygiene narrow it.
 - ripple #2: the source note's traces name removed functions — fix now, fixed 98a6374.
+- After the fix-now code (3855d40): `devtools::test()` 6,278 passed, 0 failed, 0 errors, 12 skipped; `devtools::check()` 0 errors, 0 warnings, 0 notes; `devtools::document()` no diff. AC1 to AC6 hold on this head. No snapshot files changed. Findings: 27 (14 fix now, 10 rejected, 3 follow-up to "Time the large-page tests on Windows").
