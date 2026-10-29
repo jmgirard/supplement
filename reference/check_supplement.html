@@ -412,12 +412,11 @@ runs to the next space or <code>&gt;</code>. An attribute with no <code>=</code>
 <code>&lt;a href&gt;</code>, has an empty value and is not checked. A start tag that the
 end of the page cuts off is not read, as a browser drops it. A page
 whose markup goes past the limits of the PCRE pattern engine gives one
-row that says so, in place of its link rows. Such a page holds
-millions of <code>-</code> in one comment, millions of <code>&lt;</code> in the text of one
-script, style, textarea, or title element (about 5 million did, in a
-page of 20 MB), or millions of attributes in one tag. Script text with
-millions of <code>&lt;/</code> or <code>&lt;!</code>, or, after <code>&lt;!--</code>, millions of <code>&lt;s</code> or of
-separate runs of <code>-</code>, can reach the limits sooner.
+row that says so, in place of its link rows. Such a page holds one tag
+with millions of attributes (3 million did and 1 million did not, with
+PCRE2 10.47 in R 4.6.1 on macOS). The size of a comment, or of the
+text of a script, style, textarea, or title element, does not count
+toward the limits, so a large one does not reach them.
 Each value is handled in this order:
 character references are decoded; spaces, tabs, line breaks, and form
 feeds at its ends are removed and tabs and line breaks inside it are
@@ -576,18 +575,18 @@ text value, or <code>zenodo</code> is not a map.</p></li>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">site</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>, <span class="st">"check-example"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="create_supplement.html">create_supplement</a></span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/RtmpCeDjpE/check-example</span>.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Made a supplement site in <span style="color: #0000BB;">/tmp/Rtmprzfxnf/check-example</span>.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Replace `OWNER/REPO` in <span style="color: #0000BB;">_quarto.yml</span>, and `OWNER` and `REPO` in the site</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   address in <span style="color: #0000BB;">_README.md</span>, with your GitHub repository.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Put the paper facts in <span style="color: #0000BB;">_supplement.yml</span>.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/RtmpCeDjpE/check-example</span>, or</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Run `quarto render` in <span style="color: #0000BB;">/tmp/Rtmprzfxnf/check-example</span>, or</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   `render_supplement()` in R with that folder as `path`, once before your first</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit.</span>
 <span class="r-in"><span><span class="co"># A new site has not been rendered, its example report has no stored</span></span></span>
 <span class="r-in"><span><span class="co"># output yet, and it still holds the template's placeholder values.</span></span></span>
 <span class="r-in"><span><span class="va">problems</span> <span class="op">&lt;-</span> <span class="fu">check_supplement</span><span class="op">(</span><span class="va">site</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Skipped the <span style="color: #0000BB;">"large-file"</span>, <span style="color: #0000BB;">"saved-object"</span>, and <span style="color: #0000BB;">"ignored-output"</span> checks: `git rev-parse` failed, or the folder is not in a git work tree.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/RtmpCeDjpE/check-example</span>:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> 11 problems found in <span style="color: #0000BB;">/tmp/Rtmprzfxnf/check-example</span>:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BB0000;">✖</span> <span style="font-weight: bold;">no-stored-output</span> <span style="color: #0000BB;">analyses/example.qmd</span>: The report has code and no stored</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   output in _freeze/. Render the report by name, render the whole site, then</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   commit the report with _freeze/, docs/, and figures/. In R,</span>

@@ -401,22 +401,21 @@ The checks, by the value in the `check` column:
   not checked. A start tag that the end of the page cuts off is not
   read, as a browser drops it. A page whose markup goes past the limits
   of the PCRE pattern engine gives one row that says so, in place of its
-  link rows. Such a page holds millions of `-` in one comment, millions
-  of `<` in the text of one script, style, textarea, or title element
-  (about 5 million did, in a page of 20 MB), or millions of attributes
-  in one tag. Script text with millions of `</` or `<!`, or, after
-  `<!--`, millions of `<s` or of separate runs of `-`, can reach the
-  limits sooner. Each value is handled in this order: character
-  references are decoded; spaces, tabs, line breaks, and form feeds at
-  its ends are removed and tabs and line breaks inside it are dropped;
-  links with a scheme, `/`, or `#` at the start are skipped, except a
-  `#` link under a local base (below); then `%` escapes are decoded. The
-  decoded references are `&amp;`, `&lt;`, `&gt;`, `&quot;`, and `&apos;`
-  (in lower case, with the `;`), and number references such as `&#38;`
-  or `&#x26;` with the `;` that name a code point from 1 to 0x10FFFF,
-  other than a surrogate or 128 to 159. A row shows the link after the
-  references are decoded, the ends removed, and the tabs and line breaks
-  inside it dropped.
+  link rows. Such a page holds one tag with millions of attributes (3
+  million did and 1 million did not, with PCRE2 10.47 in R 4.6.1 on
+  macOS). The size of a comment, or of the text of a script, style,
+  textarea, or title element, does not count toward the limits, so a
+  large one does not reach them. Each value is handled in this order:
+  character references are decoded; spaces, tabs, line breaks, and form
+  feeds at its ends are removed and tabs and line breaks inside it are
+  dropped; links with a scheme, `/`, or `#` at the start are skipped,
+  except a `#` link under a local base (below); then `%` escapes are
+  decoded. The decoded references are `&amp;`, `&lt;`, `&gt;`, `&quot;`,
+  and `&apos;` (in lower case, with the `;`), and number references such
+  as `&#38;` or `&#x26;` with the `;` that name a code point from 1 to
+  0x10FFFF, other than a surrogate or 128 to 159. A row shows the link
+  after the references are decoded, the ends removed, and the tabs and
+  line breaks inside it dropped.
 
   A `<base>` tag changes where the links of its page lead. Only the
   first `<base>` tag with an `href` counts, and its `href` is not a link
@@ -582,18 +581,18 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpCeDjpE/check-example.
+#> ✔ Made a supplement site in /tmp/Rtmprzfxnf/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpCeDjpE/check-example, or
+#> ℹ Run `quarto render` in /tmp/Rtmprzfxnf/check-example, or
 #>   `render_supplement()` in R with that folder as `path`, once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpCeDjpE/check-example:
+#> ✖ 11 problems found in /tmp/Rtmprzfxnf/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. In R,

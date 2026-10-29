@@ -3,6 +3,18 @@
 ## supplement 0.0.0.9000
 
 - [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+  now reads the links of a page with a large comment or large element
+  text, such as a large htmlwidget. Such a page gave a row saying that
+  its markup goes past the limits of the PCRE pattern engine, which
+  stopped
+  [`release_supplement()`](https://jmgirard.github.io/supplement/reference/release_supplement.md).
+  It held for script, style, textarea, or title text with millions of
+  `<`, and for a comment with millions of `-`. It also held for script
+  text with millions of `</` or `<!`, or, after `<!--`, millions of `<s`
+  or of separate `-`. One tag with millions of attributes can still give
+  that row.
+
+- [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
   now resolves the links of a page that has a `<base>` tag against the
   base’s `href`, and no longer reads that `href` as a link. The help
   page lists the cases where this differs from a browser. Under such a
