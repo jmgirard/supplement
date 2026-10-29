@@ -1158,6 +1158,115 @@ test_that("comments and element text past one PCRE match are read", {
   )
 })
 
+# A random page of 20 to 200 pieces of markup, as a list of its `text` and
+# the `forms` it holds: "double" for double escaped script text, "cend:"
+# and the form that ends a comment, "straddle:" and an element whose text
+# holds markup that runs past its end tag, and "end:" and what the page
+# ends inside.
+random_page <- function() {
+  case <- function(word) {
+    chars <- strsplit(word, "", fixed = TRUE)[[1]]
+    up <- runif(length(chars)) < 0.3
+    chars[up] <- toupper(chars[up])
+    paste(chars, collapse = "")
+  }
+  pick <- function(x) x[[sample.int(length(x), 1)]]
+  delims <- c("\t", "\n", "\f", "\r", " ", "/", ">")
+  names <- c("script", "style", "textarea", "title", "base", "a")
+  atoms <- c("<", "</", "<!", "<?", "!", "<!--", "<!-->", "<!--->", "-->", "--!>", names, delims,
+             "href", "src", "xlink:href", "=", '"', "'", "-", "a", "b", "é")
+  run <- function(extra = character()) {
+    paste(sample(c(atoms, extra), sample.int(8, 1), replace = TRUE), collapse = "")
+  }
+  attr <- function() {
+    quote <- pick(c('"', "'", ""))
+    paste0(pick(c(" ", "\n", "/")), case(pick(c("href", "src", "xlink:href", "id"))), pick(c("=", " = ", "")),
+           quote, pick(c("x.csv", "é.csv", "a b", "", "#top", "?q", "../z.csv", "<!--", "</style>")), quote)
+  }
+  start_tag <- function(name) {
+    paste0("<", case(name), pick(delims), paste(replicate(sample(0:2, 1), attr()), collapse = ""), ">")
+  }
+  end_tag <- function(name) paste0("</", case(name), pick(delims), if (runif(1) < 0.2) attr(), ">")
+  script_extra <- c("<!--", "-->", "<sx", "-", "--", paste0("<", case("script"), pick(delims)),
+                    paste0("</", case("script"), pick(delims)))
+  text <- character()
+  forms <- character()
+  size <- 0
+  target <- sample(20:200, 1)
+  while (size < target) {
+    kind <- sample.int(7, 1)
+    piece <- switch(kind,
+      run(),
+      start_tag(pick(c("a", "base", "img"))),
+      end_tag(pick(names)),
+      {
+        open <- pick(c("<!--", "<!-->", "<!--->"))
+        close <- pick(c("-->", "--!>", "--->", "-- >", ""))
+        forms <- c(forms, paste0("cend:", if (open == "<!--") close else open))
+        paste0(open, run(), close)
+      },
+      {
+        name <- pick(names[1:4])
+        paste0(start_tag(name), run(if (name == "script") script_extra), if (runif(1) < 0.8) end_tag(name))
+      },
+      {
+        forms <- c(forms, "double")
+        paste0(start_tag("script"), "<!--", run(script_extra), "<", case("script"), pick(delims), run(),
+               "</", case("script"), pick(delims), run(), "-->", run(), end_tag("script"))
+      },
+      {
+        name <- pick(names[1:4])
+        forms <- c(forms, paste0("straddle:", name))
+        paste0(start_tag(name), pick(c("<?x ", "<!x ", "</ ", "<a title='", '<a title="')), "</", case(name), ">",
+               ' <a href="s.csv">', pick(c("'", '"', ">", "")))
+      }
+    )
+    text <- c(text, piece)
+    size <- size + 5
+  }
+  if (runif(1) < 0.3) {
+    end <- pick(c("comment", "element", "tag"))
+    forms <- c(forms, paste0("end:", end))
+    text <- c(text, switch(end,
+      comment = paste0("<!--", run()),
+      element = paste0(start_tag(pick(names[1:4])), run(script_extra)),
+      tag = paste0('<a href="x.csv', run())
+    ))
+  }
+  list(text = paste(text, collapse = ""), forms = unique(forms))
+}
+
+test_that("tag_links() reads generated pages as the reader before the head walk did", {
+  skip_on_cran()
+  withr::local_seed(76)
+  pages <- replicate(10000, random_page(), simplify = FALSE)
+  forms <- table(unlist(lapply(pages, `[[`, "forms")))
+  wanted <- c("double", paste0("cend:", c("<!-->", "<!--->", "-->", "--!>")),
+              paste0("straddle:", c("script", "style", "textarea", "title")),
+              paste0("end:", c("comment", "element", "tag")))
+  expect_true(all(forms[wanted] >= 100), info = paste(names(forms), forms, collapse = ", "))
+  differ <- Filter(function(page) {
+    !identical(tag_links(page$text), old_tag_links(page$text))
+  }, pages)
+  expect_identical(length(differ), 0L, info = if (length(differ) > 0) differ[[1]]$text)
+})
+
+test_that("markup in element text that runs past the end tag does not hide later links", {
+  pages <- c(
+    '<script><?x</script><a href="x1.csv">',
+    '<style><!x </style><a href="x2.csv">',
+    "<textarea></ </textarea><a href='x3.csv'>",
+    '<title><a title="</title>"><a href="x4.csv">',
+    '<script><b"}</script><a href="x5.csv">',
+    '<!-- <?x --><a href="x6.csv">'
+  )
+  for (page in pages) {
+    expect_identical(tag_links(page), old_tag_links(page))
+  }
+  expect_identical(as.character(tag_links(pages[1])), "x1.csv")
+  expect_identical(as.character(tag_links(pages[4])), "x4.csv")
+})
+
 test_that("a tag with millions of attributes gives its link row or the PCRE-limit row", {
   skip_on_cran()
   site <- new_site()
