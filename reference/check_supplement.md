@@ -67,6 +67,20 @@ The checks, by the value in the `check` column:
   the rule for a file that the site must publish, and to remove the
   source of a private file and render again.
 
+- `"report-name"`: a `.qmd` report directly in `analyses/` whose name is
+  not valid UTF-8 text, such as a name with a Latin-1 `é`. Only a file
+  system that can hold such a name, such as one on Linux, gives this
+  row; macOS on an APFS disk refuses such a name. The row shows each
+  byte that is not valid UTF-8 as `<xx>`. On Linux, Quarto 1.10.19
+  rendered a new site that held such a report with no error and left the
+  report out of `docs/`. The row says to rename the report, change its
+  item in `_quarto.yml`, delete its folder in `_freeze/analyses/` if
+  there is one, render the whole site, and commit the old and new paths
+  with `_quarto.yml`, `_freeze/`, `docs/`, and `figures/`. The
+  `"no-stored-output"`, `"stale-output"`, `"stale-script"`,
+  `"renv-mismatch"`, and `"renv-missing"` checks leave such a report
+  out.
+
 - `"no-stored-output"`: a `.qmd` report directly in `analyses/`, not in
   a folder inside it, with code and no stored output in `_freeze/`. A
   full render then runs its code, which needs the data. A report has
@@ -581,18 +595,18 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/Rtmpo6OzjW/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpqdJCxL/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/Rtmpo6OzjW/check-example, or
+#> ℹ Run `quarto render` in /tmp/RtmpqdJCxL/check-example, or
 #>   `render_supplement()` in R with that folder as `path`, once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/Rtmpo6OzjW/check-example:
+#> ✖ 11 problems found in /tmp/RtmpqdJCxL/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. In R,

@@ -2,6 +2,13 @@
 
 ## supplement 0.0.0.9000
 
+- [`check_supplement()`](https://jmgirard.github.io/supplement/reference/check_supplement.md)
+  now gives a `"report-name"` row for a report in `analyses/` whose name
+  is not valid UTF-8 text, which a file system on Linux can hold. The
+  row says to rename the report. Before, in a UTF-8 locale, the check
+  gave such a report no row. On Linux, Quarto 1.10.19 rendered a site
+  with such a report with no error and left the report out of `docs/`.
+
 - On Windows,
   [`render_supplement()`](https://jmgirard.github.io/supplement/reference/render_supplement.md)
   now publishes the figures that knitr saves from code chunks for a site
