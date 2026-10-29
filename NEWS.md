@@ -1,5 +1,12 @@
 # supplement 0.0.0.9000
 
+* `render_supplement()` now publishes the figures that knitr draws on
+  Windows for a site folder whose path holds an 8.3 short name, such as
+  `RUNNER~1`. Quarto run from such a path left them out of `docs/`, and
+  `check_supplement()` reported broken links. The function now runs Quarto
+  from the folder's long path. The site guide tells authors who render in
+  a terminal on Windows to open it in the long path.
+
 * `check_supplement()` now reads the links of a page with a large comment
   or large element text, such as a large htmlwidget. Such a page gave a
   row saying that its markup goes past the limits of the PCRE pattern

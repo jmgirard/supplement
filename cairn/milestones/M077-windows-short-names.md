@@ -53,6 +53,7 @@ On Windows, `render_supplement()` publishes the figures that knitr writes when t
 - 2026-10-29: collision check: absorbs the candidate row "Handle short folder names on Windows" in full; extends done M018, whose test helper `long_dir()` works around the same Quarto behavior; D-035 stands (no new process call). Inbox sweep: 0 open issues, 0 open PRs.
 - 2026-10-29: plan gate chose changing the working folder in `render_supplement()` over a README note or a `broken-link` hint alone, because the package's own render can be fixed and the note reaches only readers of it; falsified by a windows-latest render from the long path that still leaves `example_files/` out of `docs/`.
 - 2026-10-29: criteria audit (full mode, Opus reader): 5 findings, all taken. AC1 names R CMD check on windows-latest, not `devtools::test()`; the T1 test fails rather than skips under CI when no short path exists; AC2 compares with `identical()` to `normalizePath(site, winslash = "/")` and adds the `path = "."` call from a short working folder; AC3's help text names an 8.3 short name, not any `~`. No IP or D-entry conflict; AC4 unchanged.
+- 2026-10-29: T1 test pushed at abd466a (CI run 40921405582, red expected on windows-latest); the T2 fix and AC2 test and the T3 docs are written and committed locally as an unpushed checkpoint while that run finishes; T1 to T3 not yet ticked.
 
 ## Decisions
 

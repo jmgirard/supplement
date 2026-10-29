@@ -239,6 +239,33 @@ test_that("render_supplement() runs each render in the site folder and gives bac
   expect_identical(getwd(), before)
 })
 
+test_that("render_supplement() runs Quarto from the long path of a short site path on Windows", {
+  skip_on_os(c("mac", "linux"))
+  site <- normalizePath(plain_site("a"), winslash = "/")
+  short <- short_path(site)
+  seen <- character()
+  status <- 0L
+  local_runner(function(args) {
+    seen <<- c(seen, getwd())
+    status
+  })
+  before <- getwd()
+  suppressMessages(render_supplement("a", path = short))
+  expect_identical(seen, c(site, site))
+  expect_identical(getwd(), before)
+
+  seen <- character()
+  withr::with_dir(short, suppressMessages(render_supplement()))
+  expect_identical(seen, site)
+  expect_identical(getwd(), before)
+
+  seen <- character()
+  status <- 1L
+  expect_error(render_supplement(path = short), class = "supplement_error_render")
+  expect_identical(seen, site)
+  expect_identical(getwd(), before)
+})
+
 # Render tests with the real Quarto. render_quiet() is in helper-template.R.
 
 test_that("render_supplement() renders a new site", {
