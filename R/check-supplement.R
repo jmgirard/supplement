@@ -915,7 +915,7 @@ analysis_reports <- function(path) {
 # or a locale such as C can list it.
 utf8_reports <- function(path) {
   reports <- analysis_reports(path)
-  reports  # PLANTED: filter removed to see the C-locale assertion fail
+  reports[validUTF8(basename(reports))]
 }
 
 # A row for each `.qmd` file directly in analyses/ whose name is not valid

@@ -778,7 +778,9 @@ test_that("a report name that is not valid UTF-8 gives a report-name row and no 
   good <- result$check[result$file == "analyses/café.qmd"]
   expect_true("stale-output" %in% good)
   expect_false("report-name" %in% good)
-  # In the C locale, list.files(pattern =) lists such a name.
+  # In the C locale, list.files(pattern =) lists such a name. cli warns
+  # there on the UTF-8 name of café.qmd's row, so that report goes first.
+  unlink(file.path(site, c("analyses/café.qmd", "_freeze/analyses/café")), recursive = TRUE)
   withr::with_locale(c(LC_CTYPE = "C"), {
     expect_no_error(result <- suppressMessages(check_supplement(site, renv_lock = TRUE)))
   })
