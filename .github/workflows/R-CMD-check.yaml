@@ -46,6 +46,29 @@ jobs:
           mkdir -p "$RUNNER_TEMP/tmp"
           echo "TMPDIR=$RUNNER_TEMP/tmp" >> "$GITHUB_ENV"
 
+      # A test process that crashes on Windows leaves only its exit code in
+      # the check output (cairn/references/windows-test-crash.md). Windows
+      # Error Reporting writes a dump of each program that crashes into
+      # this folder, and each test process logs the tests it starts into
+      # the second one (tests/testthat/helper-test-log.R).
+      - name: Keep crash dumps and a log of started tests
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dumps = Join-Path $env:RUNNER_TEMP 'crash-dumps'
+          $logs = Join-Path $env:RUNNER_TEMP 'test-starts'
+          New-Item -ItemType Directory -Force -Path $dumps, $logs | Out-Null
+          $wer = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting'
+          New-ItemProperty -Path $wer -Name Disabled -PropertyType DWord -Value 0 -Force | Out-Null
+          New-ItemProperty -Path $wer -Name DontShowUI -PropertyType DWord -Value 1 -Force | Out-Null
+          $key = "$wer\LocalDumps"
+          New-Item -Path $key -Force | Out-Null
+          New-ItemProperty -Path $key -Name DumpFolder -PropertyType ExpandString -Value $dumps -Force | Out-Null
+          New-ItemProperty -Path $key -Name DumpType -PropertyType DWord -Value 1 -Force | Out-Null
+          New-ItemProperty -Path $key -Name DumpCount -PropertyType DWord -Value 20 -Force | Out-Null
+          "CRASH_DUMPS=$dumps" >> $env:GITHUB_ENV
+          "SUPPLEMENT_TEST_LOG=$logs" >> $env:GITHUB_ENV
+
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: 1.10.19
@@ -68,6 +91,24 @@ jobs:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
           error-on: '"warning"'
+
+      - name: Read crash dumps
+        id: dumps
+        if: always() && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          python .github/scripts/read-dumps.py $env:CRASH_DUMPS $env:SUPPLEMENT_TEST_LOG
+          $found = @(Get-ChildItem -Path $env:CRASH_DUMPS -Filter *.dmp -ErrorAction SilentlyContinue).Count -gt 0
+          "found=$($found.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+
+      - name: Upload crash dumps
+        if: always() && steps.dumps.outputs.found == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: crash-dumps
+          path: |
+            ${{ env.CRASH_DUMPS }}
+            ${{ env.SUPPLEMENT_TEST_LOG }}
 
       # R CMD check prints the test output only when a test fails. This step
       # reads the output it keeps, prints each skip with its reason, and
