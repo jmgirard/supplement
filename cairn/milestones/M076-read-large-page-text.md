@@ -93,23 +93,23 @@ Review pass 1, 2026-10-29, branch at 98a6374 (main 6dc4b1b is an ancestor; no sy
 - AC6: `devtools::document()` rerun at review left no diff; the fresh `devtools::test()` had 0 failures; `devtools::check()` on e397f6e gave 0 errors, 0 warnings, 0 notes (T6; the commits since then change only `cairn/`). Rerun after any fix-now code below.
 - Gate: `cairn_validate.py` all checks passed; no principle changed (no `cairn_impact` run); `devtools::document()` no diff; no README.Rmd; `pkgdown::check_pkgdown()` no problems; NEWS.md has the entry; no new top-level files.
 - spawned: diff-bug, blame-history, prior-review, ripple
-- diff-bug #1: a stray quote in tag-like text in a comment or element puts the whole-tag scan out of step, so later tags go through `tag_end()` at about 120 µs each (11.8 s against main's 0.67 s on 100,000 tags) — fix now (smaller first window, stricter open-quote test).
-- diff-bug #2: the walk costs about 3 µs per head, so a 4.9 MB table page takes 3.8 s against main's 0.85 s (19.6 MB: 9.3 s against 3.3 s) — fix now (the walk jumps runs of plain heads).
+- diff-bug #1: a stray quote in tag-like text in a comment or element puts the whole-tag scan out of step, so later tags go through `tag_end()` at about 120 µs each (11.8 s against main's 0.67 s on 100,000 tags) — fix now (smaller first window, stricter open-quote test, batched tag ends), fixed 3855d40: that page now takes 2.06 s.
+- diff-bug #2: the walk costs about 3 µs per head, so a 4.9 MB table page takes 3.8 s against main's 0.85 s (19.6 MB: 9.3 s against 3.3 s) — fix now (the walk jumps runs of plain heads), fixed 3855d40: 4.9 MB 1.27 s against main's 0.86 s, 19.6 MB 4.21 s.
 - diff-bug #3: peak memory about 20 times the page on pages with millions of heads (450 MB for 21 MB of `</a` in script text) — reject, edge: millions of tag heads in one page lie outside documented and common use, and the effect is slow running or a memory error.
 - diff-bug #4: the 10 s bounds have about 2.5 times margin on macOS, and the tests run on windows-latest — follow-up, candidate row "Time the large-page tests on Windows".
-- diff-bug #5 and blame-history #4: `ascii_any_case()` has no callers left — fix now.
-- diff-bug #6: `html_heads` and `html_tag_scan` repeat the head alternatives in two strings, and the lookup is right only while they agree — fix now (built from shared parts).
-- diff-bug #7 and blame-history #8: `width * 8L` overflows integer past 1 GB and its warning gives a false PCRE-limit row — fix now (double width).
-- diff-bug #8: a quote with no later quote of its kind makes `tag_end()` grow its window to the page end — fix now (only a quote that opens a value after `=` counts).
-- diff-bug #9 and blame-history #7: the `page_links()` comment line was not rewrapped and names only regexpr() — fix now.
-- diff-bug c1: four of the six named straddle pages run one path and none reaches `tag_end()` — fix now (named pages that reach `tag_end()` with values past the first window, compared with the oracle); the pages themselves stay, since AC3 names them.
+- diff-bug #5 and blame-history #4: `ascii_any_case()` has no callers left — fix now, fixed 3855d40.
+- diff-bug #6: `html_heads` and `html_tag_scan` repeat the head alternatives in two strings, and the lookup is right only while they agree — fix now (built from shared parts), fixed 3855d40.
+- diff-bug #7 and blame-history #8: `width * 8L` overflows integer past 1 GB and its warning gives a false PCRE-limit row — fix now (double width), fixed 3855d40.
+- diff-bug #8: a quote with no later quote of its kind makes `tag_end()` grow its window to the page end — fix now (only a quote that opens a value after `=` counts), fixed 3855d40.
+- diff-bug #9 and blame-history #7: the `page_links()` comment line was not rewrapped and names only regexpr() — fix now, fixed 3855d40.
+- diff-bug c1: four of the six named straddle pages run one path and none reaches `tag_end()` — fix now (named pages that reach `tag_end()` with values past the first window, compared with the oracle); the pages themselves stay, since AC3 names them. Fixed 3855d40: test "tags that the scan of whole tags misses are read to their end" (three pages, two through `tag_end()` window growth, one through the batch).
 - diff-bug c2: `expect_no_error()` repeats what testthat does — reject, planned change: AC4 says "no error".
 - blame-history #1: one scan warning sends every tag to the per-tag match — reject, planned change: Scope Out leaves that time unbounded; the fix for diff-bug #1 cuts its cost.
 - blame-history #2: the new tests add time to the Windows job — follow-up, same row as diff-bug #4.
 - blame-history #3: the help says end tags are read through their attributes while the four elements' end tags end at the first `>` — reject, false: the help page states that exception (`R/check-supplement.R:375-377`).
-- blame-history #5: tag-dense pages run 1.6 times main's time — fix now with diff-bug #2.
+- blame-history #5: tag-dense pages run 1.6 times main's time — fix now with diff-bug #2, fixed 3855d40 (the 60,000-head non-ASCII page: 0.13 s, main 0.16 s).
 - blame-history #6: the measured attribute limit in the help names one setup — reject, planned change: the claim audit pinned the figure to its setup.
-- prior-review #1: the window path of `tag_end()` is never compared with the old reader — fix now with diff-bug c1.
+- prior-review #1: the window path of `tag_end()` is never compared with the old reader — fix now with diff-bug c1, fixed 3855d40.
 - prior-review #2: the help's size sentence is unbounded — reject, false: it states the mechanism (no repeat of a group runs over that text), which the claim audit checked against the code.
 - prior-review #3: per-tag fallback time is unbounded — reject, planned change (Scope Out).
 - prior-review #4: AC4 pins neither outcome — reject, planned change: AC4 allows either.
