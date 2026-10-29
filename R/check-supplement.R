@@ -263,7 +263,8 @@
 #'   in `_freeze/` are not read. A file or folder in `analyses/` of the
 #'   same name, such as `<name>.R`, hides a leftover folder. So does a
 #'   report whose name differs only in letter case, as after a report is
-#'   renamed only in letter case on Linux.
+#'   renamed only in letter case on Linux. The row's `file` shows each byte
+#'   that is not valid UTF-8 in the folder's name as `<xx>`.
 #' * `"missing-script"`: the site has no file `_scripts/report.R`, and a
 #'   `.qmd` report directly in `analyses/`, from the same list of reports,
 #'   names it. The template's example report and each report from
@@ -1539,7 +1540,7 @@ check_leftover_output <- function(path) {
   Encoding(stems) <- "unknown"
   leftover <- folders[!fold_case(folders) %in% fold_case(stems)]
   problem_rows(
-    "leftover-output", file.path("_freeze", "analyses", leftover),
+    "leftover-output", show_text(file.path("_freeze", "analyses", leftover)),
     rep_len(paste("No report in analyses/ has this stored output, as after a report is deleted or renamed.",
                   "Delete the folder, render the whole site, then commit _freeze/ and docs/.",
                   "If you deleted or renamed the report, also commit its old path and _quarto.yml,",

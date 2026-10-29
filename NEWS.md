@@ -1,5 +1,12 @@
 # supplement 0.0.0.9000
 
+* A folder in `_freeze/analyses/` that no report names can have a name
+  that is not valid UTF-8 text, which a file system on Linux can hold.
+  For such a folder, `check_supplement()` no longer stops with the error
+  "input string 1 is invalid UTF-8". The `"leftover-output"` row's
+  `file` now shows each byte of the name that is not valid UTF-8 as
+  `<xx>`, as the `"report-name"` row does.
+
 * `check_supplement()` now gives a `"report-name"` row for a report in
   `analyses/` whose name is not valid UTF-8 text, which a file system on
   Linux can hold. The row says to rename the report. Before, in a UTF-8

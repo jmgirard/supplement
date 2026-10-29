@@ -293,7 +293,8 @@ Folders inside subfolders of \verb{_freeze/analyses/} and folders directly
 in \verb{_freeze/} are not read. A file or folder in \verb{analyses/} of the
 same name, such as \verb{<name>.R}, hides a leftover folder. So does a
 report whose name differs only in letter case, as after a report is
-renamed only in letter case on Linux.
+renamed only in letter case on Linux. The row's \code{file} shows each byte
+that is not valid UTF-8 in the folder's name as \verb{<xx>}.
 \item \code{"missing-script"}: the site has no file \verb{_scripts/report.R}, and a
 \code{.qmd} report directly in \verb{analyses/}, from the same list of reports,
 names it. The template's example report and each report from
