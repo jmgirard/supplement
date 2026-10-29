@@ -752,6 +752,25 @@ test_that("a name that is not valid UTF-8 matches with ASCII letter case ignored
   expect_identical(rows$file, "_freeze/analyses/deleted")
 })
 
+test_that("a report name that is not valid UTF-8 gives a report-name row and no stop", {
+  # macOS and Windows refuse such a name, so this runs on Linux.
+  skip_on_os(c("mac", "windows"))
+  site <- new_site()
+  bad <- c(rawToChar(as.raw(c(0x63, 0x61, 0x66, 0xe9))), rawToChar(as.raw(c(0xff, 0x78, 0xc3))))
+  for (name in c(bad, "café")) {
+    writeBin(charToRaw(stale_lf), file.path(site, "analyses", paste0(name, ".qmd")))
+    stored_file(site, name, "html.json", hash_json(md5_of("other text")))
+  }
+  write_lock(site)
+  expect_no_error(expect_no_warning(result <- suppressMessages(check_supplement(site, renv_lock = TRUE))))
+  for (file in c("analyses/caf<e9>.qmd", "analyses/<ff>x<c3>.qmd")) {
+    expect_identical(result$check[result$file == file], "report-name", info = file)
+  }
+  good <- result$check[result$file == "analyses/café.qmd"]
+  expect_true("stale-output" %in% good)
+  expect_false("report-name" %in% good)
+})
+
 missing_script_text <- function(paths) {
   paste0("The site has no file _scripts/report.R, which these reports name, so a render of them can fail: ",
          paths, ". Copy the template's file from ",

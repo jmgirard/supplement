@@ -1,13 +1,13 @@
 # M078: Read report names that are not UTF-8
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — `check_supplement()` gives a row where it now stops with an error
-- **Branch/PR:** —
+- **Branch/PR:** m078-non-utf8-report-names
 
 ## Goal
 
@@ -56,6 +56,9 @@
 - 2026-10-29: collision check: absorbs the candidate row "Read report names that are not UTF-8" in full; extends done M042, whose leftover-output check already cuts names with `useBytes = TRUE`; no D-entry covers name encoding. New [low] row "Render by name beside non-UTF-8 reports" for the `tolower()` stop found in `render_supplement()`. Inbox sweep: 0 open issues, 0 open PRs.
 - 2026-10-29: plan gate chose a rename row with the report left out of the per-report checks over byte-safe name handling that runs those checks as for any report, because their render steps may fail in Quarto for such a name; falsified by a Linux run where Quarto 1.10.19 renders such a site and publishes the report.
 - 2026-10-29: criteria audit (full mode, Opus reader): 10 findings, 9 taken, 1 needed no change. AC1 states behavior on Linux in a UTF-8 locale, names a parseable `renv.lock` and `_scripts/report.R` so all four `sub()` sites run, and adds a second bad name (0xFF first, a cut 0xC3 before `.qmd`); AC2 asserts by file; `check_missing_script()` is no longer left out, since it has no `sub()` and shows such names now; AC3 names both Quarto outcomes now, not a later work-log line, and adds the `_freeze/` folder delete and `figures/`; AC5 states R CMD check results, CI as evidence; the unchecked claim that the row stops `release_supplement()` left Scope. Fixture reachability (stale-output row, no leftover-output row, no warning) confirmed with no change. No IP or D-entry conflict.
+
+- 2026-10-29: implement started on branch m078-non-utf8-report-names, cut from main at 39fd866.
+- 2026-10-29: T1 probe (`tests/testthat/test-probe-m078.R`, fails on purpose to print Quarto's status, output, and `docs/analyses/`) and the T2 test (`test-check-supplement.R:754`) written; both skip on macOS. Committed together so one push runs both on ubuntu-latest.
 
 ## Decisions
 
