@@ -82,12 +82,13 @@ On Linux, a name that is not valid UTF-8 no longer stops the `"leftover-output"`
 - Consistency gate: `cairn_validate.py` all checks passed; `document()` no diff; no README.Rmd; `pkgdown::check_pkgdown()` "No problems found"; NEWS entry present with no milestone number; no new top-level file; no principle changed, so no `cairn_impact` run.
 - spawned: diff-bug, blame-history, prior-review, ripple
 - diff-bug #1: `show_text()` marks every name as UTF-8, so a valid native name in a non-UTF-8 session (R 4.1 on Windows, a Latin-1 locale on Linux) now shows as `caf<e9>` where it printed as `café` — follow-up, new row "Show Latin-1 names in rows as text" (the same convention other rows already use, chosen at the question set).
-- diff-bug #2: if `C.UTF-8` is missing, `withr::with_locale()` only warns and the test runs in the session locale — fix now: each locale loop asserts `Sys.getlocale("LC_CTYPE")` equals the locale it set.
+- diff-bug #2: if `C.UTF-8` is missing, `withr::with_locale()` only warns and the test runs in the session locale — fix now: each locale loop asserts `Sys.getlocale("LC_CTYPE")` equals the locale it set, fixed 9a778fd.
 - diff-bug #3: the `C.UTF-8` half of the render test runs the same path as the existing case test — reject, planned change: AC2 names both locales.
 - diff-bug #4: the `C` half of the leftover test runs the same code path as the `C.UTF-8` half, and no run showed it failing on main — reject, planned change: AC1 names both locales, and cli's printing, which the test reaches, depends on the locale.
 - diff-bug #5: the NEWS claim that the check stopped was seen in `C.UTF-8` only — reject, false: the claim is not locale-bound, and LESSONS (M078) records that cli stops on the raw bytes in the C locale too; the new test passes in both.
 - diff-bug #6: leftover rows follow `list.files()` order, not `sort_bytes()`, and the test sorts before comparing — follow-up, new row "Sort leftover rows in byte order" (pre-existing since M042).
-- diff-bug #7: NEWS "each such byte" refers back to the name, not to its bad bytes — fix now: "each byte of the name that is not valid UTF-8".
+- diff-bug #7: NEWS "each such byte" refers back to the name, not to its bad bytes — fix now: "each byte of the name that is not valid UTF-8", fixed 9a778fd.
+- Fix-now verify: `devtools::test()` on the check and render files locally after 9a778fd, 0 failures (the Linux-only tests skip on macOS; their ubuntu run comes with the PR checks).
 - diff-bug #8: DESIGN.md's leftover-output paragraph does not say the row shows names through `show_text()` — reject, false: the paragraph describes matching and states nothing the diff changes.
 - diff-bug #9: Scope cites `R/check-supplement.R:1532` where the function now starts at 1533, and the AC boxes were unticked — reject, false: 1532 is the line on main that the plan read, and the boxes are ticked against evidence above.
 - blame-history #1: leftover rows in `list.files()` order — follow-up, same row as diff-bug #6.
