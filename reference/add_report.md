@@ -166,16 +166,16 @@ to make a site.
 ``` r
 site <- file.path(tempdir(), "report-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/Rtmp3Oeh11/report-example.
+#> ✔ Made a supplement site in /tmp/RtmpN1QgTe/report-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/Rtmp3Oeh11/report-example, or
+#> ℹ Run `quarto render` in /tmp/RtmpN1QgTe/report-example, or
 #>   `render_supplement()` in R with that folder as `path`, once before your first
 #>   commit.
 add_report("models", "Model Comparison", "Fits and compares the models.", path = site)
 #> ✔ Wrote analyses/models.qmd and added it to the Analyses menu in _quarto.yml.
-#> ℹ Run `quarto render analyses/models.qmd` in /tmp/Rtmp3Oeh11/report-example, or
+#> ℹ Run `quarto render analyses/models.qmd` in /tmp/RtmpN1QgTe/report-example, or
 #>   `render_supplement("models")` in R in that folder, to run the report.
 cat(readLines(file.path(site, "analyses", "models.qmd")), sep = "\n")
 #> ---
