@@ -4,7 +4,12 @@
    handler writes a minidump of the process to the folder that
    catcher_start() names, before any other handler runs, and then lets the
    exception go on. Windows Error Reporting wrote no dump for a planted
-   crash of a test process (M080), so the process writes its own. */
+   crash of a test process (M080), so the process writes its own.
+   Microsoft advises writing a dump from another process, since
+   MiniDumpWriteDump can deadlock in the crashing one, so the workflow sets
+   a job timeout. A stack overflow is not caught, since the handler would
+   run on the exhausted stack, and heap corruption is left out, since
+   writing a dump then is the likeliest deadlock. */
 #include <windows.h>
 #include <dbghelp.h>
 #include <stdio.h>
@@ -21,8 +26,7 @@ static int is_fatal(DWORD code)
         code == EXCEPTION_ILLEGAL_INSTRUCTION ||
         code == EXCEPTION_INT_DIVIDE_BY_ZERO ||
         code == EXCEPTION_PRIV_INSTRUCTION ||
-        code == EXCEPTION_IN_PAGE_ERROR ||
-        code == 0xC0000374; /* STATUS_HEAP_CORRUPTION */
+        code == EXCEPTION_IN_PAGE_ERROR;
 }
 
 static LONG CALLBACK on_exception(PEXCEPTION_POINTERS info)

@@ -88,3 +88,29 @@ Windows CI keeps a trace of each crash of a test process, and the timed tests pa
 - AC3 evidence: run 40978408346 lists artifact `crash-dumps` (29,969 bytes); run 40978411436, with no dump, lists no artifact.
 - AC4 evidence: `cairn/references/windows-test-crash.md` holds rows C1 (run 40310323002) and C2 (run 40661210581), each with attempt, job, date, commit, and test file; it names R 4.6.1, testthat 3.3.2, callr 3.8.0, and processx 3.9.0, and states 57 job attempts read; `INDEX.md` holds its line (`grep -c` 1). The T1 search found exactly these two hits.
 - AC5 evidence: `grep -n 'system.time(' tests/testthat/*.R` lists 4 lines (1350, 1356, 1535, 1555 of `test-check-supplement.R`); the `expect_lt()` after each reads `time_bound(10)`, and `time_bound()` in `helper-files.R` returns `seconds * 5` when `.Platform$OS.type == "windows"` and `seconds` otherwise.
+- Consistency gate (2026-10-30): `cairn_validate.py` all checks passed; no principle changed, so `cairn_impact` skipped; `devtools::document()` left no diff; no README.Rmd; `pkgdown::check_pkgdown()` "No problems found"; no NEWS.md entry, since no user-visible change (internal tier); no new top-level file; `devtools::check()` at 80bbd89: 0 errors, 0 warnings, 0 notes.
+- AC6 evidence, macOS part: `devtools::test()` at 80bbd89: 539 tests, 0 failed, 0 errors, 18 skipped, 1 warning, from "a name that is not valid UTF-8 matches with ASCII letter case ignored", which main gives too (T7 line); `test-check-supplement.R` after the review fixes: 0 failed, 0 errors. The CI part waits for the PR head at step 8.
+- spawned: diff-bug, blame-history, prior-review, ripple
+- diff-bug #1: `MiniDumpWriteDump` runs in the crashing process and can deadlock it, most likely on heap corruption, and the job had no timeout — fix now (job `timeout-minutes: 60`, heap corruption dropped from `is_fatal()`, both stated in `crash-catcher.c` and D-040)
+- diff-bug #2: the source-test step runs `test_local()` after the dump steps, so its process loads the catcher and a dump from it is never read — fix now (that step sets `SUPPLEMENT_CRASH_CATCHER: ''`)
+- diff-bug #3: a job that fails before the catcher step runs "Read crash dumps" with `CRASH_DUMPS` unset and adds a second red step — fix now (`env.CRASH_DUMPS != ''` in its `if:`)
+- diff-bug #4: upload-artifact v4+ refuses a second `crash-dumps` in one run, as after a rerun of a failed job — fix now (`overwrite: true`)
+- diff-bug #5: the dump counter rises before `CreateFileA`, so a failed open or a handled access violation uses a slot — reject (edge: needs a handled access violation or an unwritable `$RUNNER_TEMP` folder; the full Windows suite in run 40978411436 wrote no dump, and the effect is a missing dump)
+- diff-bug #6: the code lists of `crash-catcher.c` and `read-dumps.py` differ, and stack overflow is not caught or said — fix now (the script names exactly the catcher's codes, and the catcher's comment says stack overflow and heap corruption get no dump)
+- diff-bug #7: `snprintf` cuts a path past MAX_PATH and the `MiniDumpWriteDump` result is ignored — reject (edge: needs a dump folder path near 260 characters, outside the `$RUNNER_TEMP` use; the effect is a missing dump)
+- diff-bug #8: `cat()` in the inspector errors every test if the log folder cannot be written — reject (edge: the catcher step creates the folder before the check, so only a removed or read-only folder reaches it; the effect is an error)
+- diff-bug #9: only `test_that()` frames are logged, not `describe()`/`it()` — reject (planned change: T3 reads the `test_that()` frame, and the repo has no `describe()` block)
+- diff-bug #10: `CRASH_DUMPS` lacks the `SUPPLEMENT_` prefix — reject (style)
+- diff-bug #11: `helper-files.R` says "about 5 times slower", but its pairs give 4.7 and 2.5 — fix now (comment states each ratio)
+- diff-bug #12: the workflow comment reads as if the catcher logs tests — fix now (comment names the helper as the loader and the logger)
+- diff-bug #13: the reader's header comment omits the stack scan — fix now
+- diff-bug (c): `test-plant-crash.R` has no expectation and works as a CI fixture — reject (planned change: T4 asks for this file, and D-040 records that it skips in normal runs)
+- blame-history #1: D-040 omits `time_bound()` and its departure from D-020's Windows skip — fix now (D-040 Decision names both)
+- blame-history #2: every Windows job now depends on the catcher, as the failed runs at 3ed3402 showed — fix now (D-040 Consequences states it)
+- blame-history #3: the factor's stated basis does not match its numbers — fix now (same as diff-bug #11)
+- blame-history #4: three of the four bounds have no Windows timing — reject (false as a defect: the bound only grows on Windows, and those tests passed there at 10 s on main, as in run 40960887140 at 2bbf5ad)
+- blame-history #5: the upload is skipped silently if python is missing — reject (edge: python is on the runner image, run 40978408346; without it the step itself fails red)
+- blame-history #6: the fixed artifact name may conflict on a rerun — fix now (same as diff-bug #4)
+- prior-review #1: `test-plant-crash.R` always skips, against M053's "no skip in a test the diff changes" — reject (planned change: M053's criterion bound M053; T4 and D-040 keep the skip)
+- prior-review #2: the plant input stays in the workflow, where M047 and M057 removed their diagnostic steps — reject (planned change: T4 keeps the input, off by default)
+- ripple #1: the ROADMAP row "Time the large-page tests on Windows" still says the bound is 10 s — reject (planned change: post-merge hygiene removes that row, which this milestone absorbs)

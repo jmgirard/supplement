@@ -2,7 +2,8 @@
 # the folder that R-CMD-check.yaml names. This script prints, for each
 # dump, the program, its process id, the exception code, and the module
 # that holds the fault address, with the nearest exported function when the
-# module file is still on disk. With a log folder, it also prints the last
+# module file is still on disk, and the values on the crashed thread's stack
+# that point into a module. With a log folder, it also prints the last
 # test that the crashed process started, from <pid>.log there.
 #
 # Usage: python read-dumps.py <dump folder> [<log folder>]
@@ -19,14 +20,13 @@ MODULE_LIST_STREAM = 4
 EXCEPTION_STREAM = 6
 THREAD_LIST_STREAM = 3
 
+# The codes that is_fatal() in crash-catcher.c writes a dump for.
 EXCEPTION_NAMES = {
     0xC0000005: "access violation",
-    0xC00000FD: "stack overflow",
-    0xC0000409: "stack buffer overrun",
     0xC000001D: "illegal instruction",
     0xC0000094: "integer division by zero",
-    0x80000003: "breakpoint",
-    0xC0000374: "heap corruption",
+    0xC0000096: "privileged instruction",
+    0xC0000006: "in-page error",
 }
 
 

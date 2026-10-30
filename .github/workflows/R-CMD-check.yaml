@@ -20,6 +20,12 @@ jobs:
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
 
+    # A dump written from inside a crashing test process can hang it
+    # (.github/scripts/crash-catcher.c), so a job stops well before the
+    # 360-minute default. The Windows job took 10.7 and 11.1 minutes on
+    # 2026-10-28 (M068).
+    timeout-minutes: 60
+
     strategy:
       fail-fast: false
       matrix:
@@ -69,11 +75,11 @@ jobs:
           needs: check
 
       # A test process that crashes on Windows leaves only its exit code in
-      # the check output (cairn/references/windows-test-crash.md). Each test
-      # process loads this crash catcher, which writes a dump of the process
-      # into the first folder when a fatal exception reaches it, and logs
-      # the tests it starts into the second one
-      # (tests/testthat/helper-test-log.R).
+      # the check output (cairn/references/windows-test-crash.md). A test
+      # helper (tests/testthat/helper-test-log.R) loads this crash catcher in
+      # each test process, and the catcher writes a dump of the process into
+      # the first folder when a fatal exception reaches it. The helper also
+      # logs the tests each process starts into the second folder.
       - name: Build the crash catcher
         if: runner.os == 'Windows'
         shell: pwsh
@@ -117,7 +123,9 @@ jobs:
 
       - name: Read crash dumps
         id: dumps
-        if: always() && runner.os == 'Windows'
+        # The catcher step sets CRASH_DUMPS, so a job that failed before it
+        # has no dumps to read.
+        if: always() && runner.os == 'Windows' && env.CRASH_DUMPS != ''
         shell: pwsh
         run: |
           python .github/scripts/read-dumps.py $env:CRASH_DUMPS $env:SUPPLEMENT_TEST_LOG
@@ -149,6 +157,8 @@ jobs:
         shell: Rscript {0}
         env:
           TESTTHAT_PARALLEL: false
+          # The dump steps ran before this one, so no dump from here is read.
+          SUPPLEMENT_CRASH_CATCHER: ''
         run: |
           res <- as.data.frame(testthat::test_local(filter = "^source$", stop_on_failure = FALSE))
           print(res[c("file", "test", "nb", "failed", "skipped", "error")], right = FALSE)
