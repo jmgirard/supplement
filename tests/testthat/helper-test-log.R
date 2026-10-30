@@ -28,8 +28,9 @@ local({
   catcher <- Sys.getenv("SUPPLEMENT_CRASH_CATCHER")
   dumps <- Sys.getenv("CRASH_DUMPS")
   if (on_windows_ci && nzchar(catcher) && nzchar(dumps)) {
-    dyn.load(catcher)
-    .C("catcher_start", normalizePath(dumps))
+    # Helpers run in the package namespace, where .C() with a name looks
+    # only in the package's own DLL, so pass the symbol itself.
+    .C(getNativeSymbolInfo("catcher_start", dyn.load(catcher)), normalizePath(dumps))
   }
   dir <- Sys.getenv("SUPPLEMENT_TEST_LOG")
   if (on_windows_ci && nzchar(dir)) {

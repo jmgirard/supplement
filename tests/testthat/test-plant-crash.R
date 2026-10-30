@@ -4,6 +4,5 @@
 test_that("a planted crash stops the test process", {
   dll <- Sys.getenv("SUPPLEMENT_PLANT_CRASH")
   skip_if(dll == "", "no crash is planted")
-  dyn.load(dll)
-  .C("plant_crash")
+  .C(getNativeSymbolInfo("plant_crash", dyn.load(dll)))
 })
