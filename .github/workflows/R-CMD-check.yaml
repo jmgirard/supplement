@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      plant_crash:
+        description: Crash one Windows test process, to show that the crash dump steps work
+        type: boolean
+        default: false
 
 name: R-CMD-check
 
@@ -14,6 +19,12 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     name: ${{ matrix.config.os }} (${{ matrix.config.r }})
+
+    # A dump written from inside a crashing test process can hang it
+    # (.github/scripts/crash-catcher.c), so a job stops well before the
+    # 360-minute default. The Windows job took 10.7 and 11.1 minutes on
+    # 2026-10-28 (M068).
+    timeout-minutes: 60
 
     strategy:
       fail-fast: false
@@ -63,11 +74,74 @@ jobs:
           extra-packages: any::rcmdcheck, any::pkgload
           needs: check
 
+      # A test process that crashes on Windows leaves only its exit code in
+      # the check output (cairn/references/windows-test-crash.md). A test
+      # helper (tests/testthat/helper-test-log.R) loads this crash catcher in
+      # each test process, and the catcher writes a dump of the process into
+      # the first folder when a fatal exception reaches it. The helper also
+      # logs the tests each process starts into the second folder.
+      - name: Build the crash catcher
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dumps = Join-Path $env:RUNNER_TEMP 'crash-dumps'
+          $logs = Join-Path $env:RUNNER_TEMP 'test-starts'
+          $catcher = Join-Path $env:RUNNER_TEMP 'catcher'
+          New-Item -ItemType Directory -Force -Path $dumps, $logs, $catcher | Out-Null
+          Copy-Item .github/scripts/crash-catcher.c $catcher
+          Push-Location $catcher
+          $env:PKG_LIBS = '-ldbghelp'
+          # In PowerShell a bare `R` is the alias of Invoke-History.
+          R.exe CMD SHLIB crash-catcher.c
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Pop-Location
+          "CRASH_DUMPS=$dumps" >> $env:GITHUB_ENV
+          "SUPPLEMENT_TEST_LOG=$logs" >> $env:GITHUB_ENV
+          "SUPPLEMENT_CRASH_CATCHER=$(Join-Path $catcher 'crash-catcher.dll')" >> $env:GITHUB_ENV
+
+      # With the plant_crash input, test-plant-crash.R calls a function that
+      # writes through a null pointer, so a run shows what the crash dump
+      # steps print for a crash.
+      - name: Build the planted crash
+        if: runner.os == 'Windows' && inputs.plant_crash
+        shell: pwsh
+        run: |
+          $plant = Join-Path $env:RUNNER_TEMP 'plant'
+          New-Item -ItemType Directory -Force -Path $plant | Out-Null
+          Copy-Item .github/scripts/plant-crash.c $plant
+          Push-Location $plant
+          R.exe CMD SHLIB plant-crash.c
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Pop-Location
+          "SUPPLEMENT_PLANT_CRASH=$(Join-Path $plant 'plant-crash.dll')" >> $env:GITHUB_ENV
+
       - uses: r-lib/actions/check-r-package@v2
         with:
           upload-snapshots: true
           build_args: 'c("--no-manual","--compact-vignettes=gs+qpdf")'
           error-on: '"warning"'
+
+      - name: Read crash dumps
+        id: dumps
+        # The catcher step sets CRASH_DUMPS, so a job that failed before it
+        # has no dumps to read.
+        if: always() && runner.os == 'Windows' && env.CRASH_DUMPS != ''
+        shell: pwsh
+        run: |
+          python .github/scripts/read-dumps.py $env:CRASH_DUMPS $env:SUPPLEMENT_TEST_LOG
+          $found = @(Get-ChildItem -Path $env:CRASH_DUMPS -Filter *.dmp -ErrorAction SilentlyContinue).Count -gt 0
+          "found=$($found.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+
+      - name: Upload crash dumps
+        if: always() && steps.dumps.outputs.found == 'true'
+        uses: actions/upload-artifact@v7
+        with:
+          name: crash-dumps
+          # A rerun of a failed job uploads again under the same name.
+          overwrite: true
+          path: |
+            ${{ env.CRASH_DUMPS }}
+            ${{ env.SUPPLEMENT_TEST_LOG }}
 
       # R CMD check prints the test output only when a test fails. This step
       # reads the output it keeps, prints each skip with its reason, and
@@ -83,6 +157,8 @@ jobs:
         shell: Rscript {0}
         env:
           TESTTHAT_PARALLEL: false
+          # The dump steps ran before this one, so no dump from here is read.
+          SUPPLEMENT_CRASH_CATCHER: ''
         run: |
           res <- as.data.frame(testthat::test_local(filter = "^source$", stop_on_failure = FALSE))
           print(res[c("file", "test", "nb", "failed", "skipped", "error")], right = FALSE)
