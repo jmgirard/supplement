@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-30 (triage: dropped 8 rows as not worth keeping, D-
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M080 | Catch Windows test crashes and fix time bounds | in-progress | — | high | milestones/M080-windows-ci-crashes-and-timing.md |
+| M080 | Catch Windows test crashes and fix time bounds | review | — | high | milestones/M080-windows-ci-crashes-and-timing.md |
 | M079 | Print names that are not UTF-8 in messages | done | — | normal | milestones/archive/M079-print-non-utf8-names.md |
 | M078 | Read report names that are not UTF-8 | done | — | normal | milestones/archive/M078-non-utf8-report-names.md |
 | M077 | Render from short folder names on Windows | done | — | normal | milestones/archive/M077-windows-short-names.md |
