@@ -129,6 +129,8 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: crash-dumps
+          # A rerun of a failed job uploads again under the same name.
+          overwrite: true
           path: |
             ${{ env.CRASH_DUMPS }}
             ${{ env.SUPPLEMENT_TEST_LOG }}
