@@ -1,21 +1,18 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-10-30 (triage: dropped 8 rows as not worth keeping, D-039 written: env argument of run_in, huge PCRE tags, path-test speed, web addresses with invalid bytes, FIFOs, partly copied demo folder, ssh host aliases, printing many rows; promoted to high "Trace the Windows crash in create tests" and "Time the large-page tests on Windows"; compressed Known issue "Link reader limits" to drop its pointer to a dropped row; promote-when conditions added to 25 rows; re-rated to parked 25 rows (10 from normal, 15 from low), "Migrate old sites" already parked; validate green)_
+_Last hygiene check: 2026-10-30 (M080 review: graduated "Trace the Windows crash in create tests" and "Time the large-page tests on Windows"; 2 lessons captured, 2 evicted by rank, 3 marked used; M077 row pruned; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M080 | Catch Windows test crashes and fix time bounds | review | — | high | milestones/M080-windows-ci-crashes-and-timing.md |
+| M080 | Catch Windows test crashes and fix time bounds | done | — | high | milestones/archive/M080-windows-ci-crashes-and-timing.md |
 | M079 | Print names that are not UTF-8 in messages | done | — | normal | milestones/archive/M079-print-non-utf8-names.md |
 | M078 | Read report names that are not UTF-8 | done | — | normal | milestones/archive/M078-non-utf8-report-names.md |
-| M077 | Render from short folder names on Windows | done | — | normal | milestones/archive/M077-windows-short-names.md |
 
 ## Candidates
 
-- [high] Trace the Windows crash in create tests: from the M060 review. The windows-latest job of CI run 40310323002, on main at 4fad253 (a commit that changed only `cairn/` files), failed when the R session of `test-create-supplement.R` exited with -1073741819 (an access violation), where the run on 918a2d6 passed. No cause was looked for; a rerun shows whether it comes again. See also "Measure Sass lock reruns on Windows". — added 2026-10-26 — started M080
-- [high] Time the large-page tests on Windows: from the M076 review. The tests "pages with many comments, elements, and script state changes are read in time" and "comments and element text past one PCRE match are read" assert times under 10 s with about 2.5 times margin on macOS (4.06 s and 2.41 s), and the generated-pages test takes 15 s there; all run on windows-latest, where D-020 already skips slow loops. On 2026-10-29 the first test took 10.19 s there and failed in one M079 CI run (40953514637), then passed on a rerun of the job (corrected M079). — added 2026-10-29 — started M080
 - [parked] Read the next Windows crash dump: from the M080 plan. After M080, the windows-latest job prints the module and offset of each crash dump and the last test the crashed process started, and uploads the dumps. Reading the next dump, and fixing or reporting its cause, is left (`cairn/references/windows-test-crash.md`).; promote when a windows-latest job prints a crash dump after M080 merges — added 2026-10-30
 - [parked] Measure the cost of large data files: from the M018 review. Quarto copies each file the data table links into `docs/`, the size fixtures included (seen on macOS, where the 2 GiB copy stays sparse at 4 KB); the disk cost of the 1 GB, 2 GiB, and 4 GiB fixtures on Linux and Windows was not measured. On Windows the data table counts the bytes of each file of 2 GiB or more on every render, and the time for a 4 GiB file was not measured.; promote when an author reports a slow render or a large `docs/` from big data files — added 2026-10-19
 - [parked] Add a test coverage report to CI: coverage report: add the usethis test-coverage workflow, which runs `covr` and uploads to Codecov, beside the check workflow. It needs the repo linked in a Codecov account, and coverage never gates a merge. From the M018 plan.; promote when the user links the repo in a Codecov account — added 2026-10-19
