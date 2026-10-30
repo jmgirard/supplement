@@ -7,7 +7,7 @@
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** internal — CI steps and test helpers that no user of the package relies on
-- **Branch/PR:** m080-windows-ci-crashes-and-timing
+- **Branch/PR:** m080-windows-ci-crashes-and-timing, https://github.com/jmgirard/supplement/pull/81
 
 ## Goal
 
@@ -26,7 +26,7 @@ Windows CI keeps a trace of each crash of a test process, and the timed tests pa
 - [x] AC3: If the dump folder holds a `.dmp` file, the job uploads the folder as an artifact.
 - [x] AC4: `cairn/references/windows-test-crash.md` lists each crash that a search finds. The search reads the logs of every attempt of the windows-latest job of R-CMD-check runs from 2026-10-19 to 2026-10-29 that failed, for exit code -1073741819. Each entry gives the run, the attempt, the job, the date, the commit, the test file, and the R, testthat, callr, and processx versions. The page states how many job attempts the search read, and `cairn/references/INDEX.md` carries its line.
 - [x] AC5: Each line that `grep -n 'system.time(' tests/testthat/*.R` lists stores a time that its test compares with a bound from one helper in `tests/testthat/helper-*.R`. On Windows the helper returns 5 times the bound a test passes it, and on other systems it returns that bound unchanged.
-- [ ] AC6: `devtools::test()` is clean on macOS, and the three R-CMD-check jobs pass on the PR head.
+- [x] AC6: `devtools::test()` is clean on macOS, and the three R-CMD-check jobs pass on the PR head.
 
 ## Coverage
 
@@ -79,6 +79,8 @@ Windows CI keeps a trace of each crash of a test process, and the timed tests pa
 - 2026-10-30: T7 done at 159295b: run 40978408346 (`plant_crash=true`) printed "Crash dump Rterm.exe.4608.1.dmp: program Rterm.exe, process id 4608", "Exception code: 0xC0000005 (access violation)", "Fault address: plant-crash.dll+0x1380 (nearest export plant_crash+0x0)", "The fault was a write at 0x0.", 12 stack-scan lines in `R.dll`, and "Last test that this process started: test-plant-crash.R:4 a planted crash stops the test process", then uploaded artifact `crash-dumps`. Run 40978411436 (`plant_crash=false`) passed on windows-latest (`[ FAIL 0 | WARN 11 | SKIP 49 | PASS 5932 ]`) and printed "No crash dump in D:\a\_temp\crash-dumps.", so no handled exception in a full suite wrote a dump. On synthetic dumps on the Mac, an address outside every module printed "0x1000, which no loaded module holds" and a dump cut to 100 bytes printed its name and "could not be read". Push run 40978408050 is the AC6 candidate; review waits on the PR head.
 - 2026-10-30: claim audit: not owed — internal tier
 - 2026-10-30: step-7 approval: m080-windows-ci-crashes-and-timing approved for merge
+- 2026-10-30: CI wait on PR #81 hit the 590 s watch limit: build and the push run's three jobs passed, the pull_request run's windows-latest, macos-latest, and ubuntu-latest jobs were pending; watcher stopped, resume with /milestone-review M080.
+- 2026-10-30: resume: PR #81 open at dc8cbe8 with every check passed; route (c). The two local tracking commits (PR URL, CI-wait line) stay unpushed, as step 8 leaves the header record, so the PR head the checks ran on is the head that merges.
 
 ## Decisions
 
@@ -117,3 +119,5 @@ Windows CI keeps a trace of each crash of a test process, and the timed tests pa
 - prior-review #1: `test-plant-crash.R` always skips, against M053's "no skip in a test the diff changes" — reject (planned change: M053's criterion bound M053; T4 and D-040 keep the skip)
 - prior-review #2: the plant input stays in the workflow, where M047 and M057 removed their diagnostic steps — reject (planned change: T4 keeps the input, off by default)
 - ripple #1: the ROADMAP row "Time the large-page tests on Windows" still says the bound is 10 s — reject (planned change: post-merge hygiene removes that row, which this milestone absorbs)
+- AC6 evidence: `devtools::test()` on the Mac at 80bbd89, 539 tests, 0 failed (line above); PR #81 head dc8cbe8: R-CMD-check run 41017453563 (pull_request) passed windows-latest, macos-latest, and ubuntu-latest, and push run 41017446845 passed the same three (`gh pr checks 81`, read on resume).
+- conversation: PR #81 — empty read: 0 reviews, 0 comments, 0 unresolved threads.
