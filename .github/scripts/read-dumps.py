@@ -1,5 +1,5 @@
-# Windows Error Reporting writes a minidump of each program that crashes
-# into the folder that R-CMD-check.yaml names. This script prints, for each
+# crash-catcher.c writes a minidump of each test process that crashes into
+# the folder that R-CMD-check.yaml names. This script prints, for each
 # dump, the program, its process id, the exception code, and the module
 # that holds the fault address, with the nearest exported function when the
 # module file is still on disk. With a log folder, it also prints the last
@@ -167,7 +167,8 @@ def last_log_line(log_dir, pid):
 
 
 def report(path, log_dir):
-    match = re.match(r"^(.*)\.(\d+)\.dmp$", os.path.basename(path))
+    # crash-catcher.c names a dump <program>.<pid>.<n>.dmp.
+    match = re.match(r"^(.*?)\.(\d+)(?:\.\d+)?\.dmp$", os.path.basename(path))
     program, pid = (match.group(1), match.group(2)) if match else (os.path.basename(path), "unknown")
     print("Crash dump %s: program %s, process id %s" % (os.path.basename(path), program, pid))
     with open(path, "rb") as f:

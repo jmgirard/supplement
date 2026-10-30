@@ -51,29 +51,6 @@ jobs:
           mkdir -p "$RUNNER_TEMP/tmp"
           echo "TMPDIR=$RUNNER_TEMP/tmp" >> "$GITHUB_ENV"
 
-      # A test process that crashes on Windows leaves only its exit code in
-      # the check output (cairn/references/windows-test-crash.md). Windows
-      # Error Reporting writes a dump of each program that crashes into
-      # this folder, and each test process logs the tests it starts into
-      # the second one (tests/testthat/helper-test-log.R).
-      - name: Keep crash dumps and a log of started tests
-        if: runner.os == 'Windows'
-        shell: pwsh
-        run: |
-          $dumps = Join-Path $env:RUNNER_TEMP 'crash-dumps'
-          $logs = Join-Path $env:RUNNER_TEMP 'test-starts'
-          New-Item -ItemType Directory -Force -Path $dumps, $logs | Out-Null
-          $wer = 'HKLM:\SOFTWARE\Microsoft\Windows\Windows Error Reporting'
-          New-ItemProperty -Path $wer -Name Disabled -PropertyType DWord -Value 0 -Force | Out-Null
-          New-ItemProperty -Path $wer -Name DontShowUI -PropertyType DWord -Value 1 -Force | Out-Null
-          $key = "$wer\LocalDumps"
-          New-Item -Path $key -Force | Out-Null
-          New-ItemProperty -Path $key -Name DumpFolder -PropertyType ExpandString -Value $dumps -Force | Out-Null
-          New-ItemProperty -Path $key -Name DumpType -PropertyType DWord -Value 1 -Force | Out-Null
-          New-ItemProperty -Path $key -Name DumpCount -PropertyType DWord -Value 20 -Force | Out-Null
-          "CRASH_DUMPS=$dumps" >> $env:GITHUB_ENV
-          "SUPPLEMENT_TEST_LOG=$logs" >> $env:GITHUB_ENV
-
       - uses: quarto-dev/quarto-actions/setup@v2
         with:
           version: 1.10.19
@@ -91,6 +68,31 @@ jobs:
           extra-packages: any::rcmdcheck, any::pkgload
           needs: check
 
+      # A test process that crashes on Windows leaves only its exit code in
+      # the check output (cairn/references/windows-test-crash.md). Each test
+      # process loads this crash catcher, which writes a dump of the process
+      # into the first folder when a fatal exception reaches it, and logs
+      # the tests it starts into the second one
+      # (tests/testthat/helper-test-log.R).
+      - name: Build the crash catcher
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $dumps = Join-Path $env:RUNNER_TEMP 'crash-dumps'
+          $logs = Join-Path $env:RUNNER_TEMP 'test-starts'
+          $catcher = Join-Path $env:RUNNER_TEMP 'catcher'
+          New-Item -ItemType Directory -Force -Path $dumps, $logs, $catcher | Out-Null
+          Copy-Item .github/scripts/crash-catcher.c $catcher
+          Push-Location $catcher
+          $env:PKG_LIBS = '-ldbghelp'
+          # In PowerShell a bare `R` is the alias of Invoke-History.
+          R.exe CMD SHLIB crash-catcher.c
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Pop-Location
+          "CRASH_DUMPS=$dumps" >> $env:GITHUB_ENV
+          "SUPPLEMENT_TEST_LOG=$logs" >> $env:GITHUB_ENV
+          "SUPPLEMENT_CRASH_CATCHER=$(Join-Path $catcher 'crash-catcher.dll')" >> $env:GITHUB_ENV
+
       # With the plant_crash input, test-plant-crash.R calls a function that
       # writes through a null pointer, so a run shows what the crash dump
       # steps print for a crash.
@@ -102,7 +104,6 @@ jobs:
           New-Item -ItemType Directory -Force -Path $plant | Out-Null
           Copy-Item .github/scripts/plant-crash.c $plant
           Push-Location $plant
-          # In PowerShell a bare `R` is the alias of Invoke-History.
           R.exe CMD SHLIB plant-crash.c
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           Pop-Location

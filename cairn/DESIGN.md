@@ -404,9 +404,11 @@ The Ubuntu job sets `TMPDIR` to a folder under `$RUNNER_TEMP` because
 `/tmp` on that runner image has too little space for the render tests'
 large fixtures: on ubuntu-26.04 it is a 7.9 GB tmpfs with a user quota
 (M047).
-The Windows job turns on Windows Error Reporting crash dumps for every
-program before the check, and `tests/testthat/helper-test-log.R` makes each
-test process there write each test it starts to `<pid>.log`. After the
+The Windows job builds `.github/scripts/crash-catcher.c`, and
+`tests/testthat/helper-test-log.R` makes each test process there load it
+and write each test it starts to `<pid>.log`. The catcher's vectored
+exception handler writes a minidump of the process on a fatal exception,
+since Windows Error Reporting wrote none for a planted crash. After the
 check, `.github/scripts/read-dumps.py` prints the program, process id,
 exception code, and fault module and offset of each dump, with the last
 test that the process started, and the job uploads the dumps (D-040). The

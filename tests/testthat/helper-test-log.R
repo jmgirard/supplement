@@ -2,7 +2,10 @@
 # Each test process then writes "<file>:<line> <test name>" to <pid>.log
 # there before each test starts, so the step that reads crash dumps can
 # name the test that a crashed process started last
-# (.github/scripts/read-dumps.py).
+# (.github/scripts/read-dumps.py). It also names the crash catcher DLL in
+# SUPPLEMENT_CRASH_CATCHER, which each test process loads so that a crash
+# writes a dump into the CRASH_DUMPS folder
+# (.github/scripts/crash-catcher.c).
 
 # The test that calls the state inspector: the name and the file and line
 # of the innermost test_that() call on the stack, or NULL outside a test.
@@ -21,8 +24,15 @@ running_test <- function() {
 }
 
 local({
+  on_windows_ci <- .Platform$OS.type == "windows" && identical(Sys.getenv("CI"), "true")
+  catcher <- Sys.getenv("SUPPLEMENT_CRASH_CATCHER")
+  dumps <- Sys.getenv("CRASH_DUMPS")
+  if (on_windows_ci && nzchar(catcher) && nzchar(dumps)) {
+    dyn.load(catcher)
+    .C("catcher_start", normalizePath(dumps))
+  }
   dir <- Sys.getenv("SUPPLEMENT_TEST_LOG")
-  if (.Platform$OS.type == "windows" && identical(Sys.getenv("CI"), "true") && nzchar(dir)) {
+  if (on_windows_ci && nzchar(dir)) {
     log <- file.path(dir, paste0(Sys.getpid(), ".log"))
     last <- NULL
     # testthat calls the inspector before and after each test, so a line
