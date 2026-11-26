@@ -67,6 +67,7 @@ The page footer of every new site says "Created with supplement", with "suppleme
 - 2026-11-26: claim audit: 10 claims read, 0 corrected — NEWS.md, inst/template/GUIDE.md, inst/template/_quarto.yml, tests/testthat/test-shortcodes.R; the reader rendered the template with and without the `right:` line. It found the `_supplement.yml` header comment stale ("The page footer shows the two licenses") and the `_quarto.yml` comment left behind after a delete; both fixed.
 - 2026-11-26: T4: with Quarto 1.11.9, `devtools::test()` passed (0 failed; 18 platform or opt-in skips, neither footer test among them) and `devtools::check()` gave 0 errors, 0 warnings, 0 notes. The two comment fixes came after the check started; test-shortcodes.R, test-template.R, and test-create-supplement.R passed again after them.
 - 2026-11-26: status review.
+- 2026-11-26: review: `devtools::test()` on 5e91aa2 gave 0 failures and 18 skips, neither footer test among them. Feature cap read: 0 open PRs against a cap of 2. No snapshot files changed.
 
 ## Decisions
 
