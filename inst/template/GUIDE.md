@@ -125,9 +125,13 @@ licenses, the authors, the Zenodo DOIs and archive link, and the data
 files. It also holds the site version. `_quarto.yml` loads the file with `metadata-files`, so every page can
 read its values. The home page shows the title, the citation, the
 contact, the Zenodo values, and the data files. Change them in
-`_supplement.yml`, not in `index.qmd`. The page footer shows the two
-licenses. No page shows the preprint or author values yet. Values are
-Markdown, so `*Journal Name*` shows in italics.
+`_supplement.yml`, not in `index.qmd`. The center of the page footer
+shows the two licenses. The right part of the footer shows "Created with
+supplement", with `supplement` linked to
+https://github.com/jmgirard/supplement. To remove it, delete the
+`right:` entry under `page-footer` in `_quarto.yml`. No page shows the
+preprint or author values yet. Values are Markdown, so `*Journal Name*`
+shows in italics.
 
 The home page shows the values with these shortcodes:
 

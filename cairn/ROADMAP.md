@@ -7,7 +7,7 @@ _Last hygiene check: 2026-10-30 (M080 review: graduated "Trace the Windows crash
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M081 | Credit the package in the site footer | planned | — | normal | milestones/M081-footer-credit.md |
+| M081 | Credit the package in the site footer | review | — | normal | milestones/M081-footer-credit.md |
 | M080 | Catch Windows test crashes and fix time bounds | done | — | high | milestones/archive/M080-windows-ci-crashes-and-timing.md |
 | M079 | Print names that are not UTF-8 in messages | done | — | normal | milestones/archive/M079-print-non-utf8-names.md |
 | M078 | Read report names that are not UTF-8 | done | — | normal | milestones/archive/M078-non-utf8-report-names.md |
