@@ -1,13 +1,13 @@
 # M081: Credit the package in the site footer
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the page footer of every new site
-- **Branch/PR:** —
+- **Branch/PR:** m081-footer-credit
 
 ## Goal
 
@@ -37,8 +37,8 @@ The page footer of every new site says "Created with supplement", with "suppleme
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-shortcodes.R`, beside `footer_center()` (line 422), add a `footer_right()` helper and a test that renders a fresh template site and checks AC1 on both pages. Run it on the default branch's template and see it fail.
-- [ ] T2: Add `right: "Created with [supplement](https://github.com/jmgirard/supplement)"` under `page-footer` in `inst/template/_quarto.yml` (line 46), with a comment that authors can delete it. Run the new test and the license footer test.
+- [x] T1: In `tests/testthat/test-shortcodes.R`, beside `footer_center()` (line 422), add a `footer_right()` helper and a test that renders a fresh template site and checks AC1 on both pages. Run it on the default branch's template and see it fail.
+- [x] T2: Add `right: "Created with [supplement](https://github.com/jmgirard/supplement)"` under `page-footer` in `inst/template/_quarto.yml` (line 46), with a comment that authors can delete it. Run the new test and the license footer test.
 - [ ] T3: Update the footer sentences of `inst/template/GUIDE.md` (lines 128 and 155), the template paragraph of `cairn/DESIGN.md` (line 339), and add the NEWS.md entry.
 - [ ] T4: Run `devtools::test()` and `devtools::check()` with Quarto on PATH.
 
@@ -53,6 +53,13 @@ The page footer of every new site says "Created with supplement", with "suppleme
 - 2026-11-26: plan gate chose the footer's right part over the end of the license line because the license line keeps its test and an author removes the credit by deleting one line; falsified by a Quarto theme that hides or wraps `nav-footer-right` on narrow screens.
 - 2026-11-26: criteria audit (full mode, fresh Opus reader): 8 findings, all taken — AC1 names the helper and says "exactly one"; AC1's and AC2's test-harness clauses moved to tasks, AC2 narrowed to the center footer values; AC3 and AC4 give the text and address; AC5 requires the footer tests to run unskipped; DESIGN.md went to T3 as a task, not a criterion, since the consistency gate reads it. The reader confirmed Quarto writes all three footer divs, an empty one holding `&nbsp;`.
 - 2026-11-26: with `web_links = TRUE`, `check_supplement()` now requests the credit address once per site (it drops repeats); D-030 keeps that check opt-in.
+
+- 2026-11-26: status in-progress; branch m081-footer-credit cut from main at 0263095.
+- 2026-11-26: re-audit: AC1 (full) — "Quarto 1.10 or later" is an unbounded version range; my premise was wrong, since R-CMD-check.yaml pins Quarto 1.10.19 and only the local Quarto is 1.11.9; fix: name 1.10.19 and 1.11.9.
+- 2026-11-26: re-audit: AC5 (full) — same version-range finding; name both footer tests; add the pinned-Quarto CI run on the PR head.
+- 2026-11-26: T1: new test "the right part of the page footer credits the package" uses site_copy(); on the old template it failed on both pages (right part held only `&nbsp;`).
+- 2026-11-26: T2: `right:` entry added to `inst/template/_quarto.yml`; the new test and the license footer test pass locally (Quarto 1.11.9).
+- 2026-11-26: checkpoint: T3 edits to GUIDE.md, DESIGN.md, and NEWS.md written, not yet checked off; the fixed AC1 and AC5 wording waits on its one re-entry reader.
 
 ## Decisions
 

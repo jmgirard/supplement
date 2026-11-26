@@ -424,6 +424,22 @@ footer_center <- function(html) {
   if (length(m) == 0) "" else m
 }
 
+test_that("the right part of the page footer credits the package", {
+  skip_if_no_quarto()
+  site <- site_copy()
+
+  for (page in c("index.html", "analyses/example.html")) {
+    html <- read_text(file.path(site$dir, "docs", page))
+    right <- regmatches(html, gregexpr('<div class="nav-footer-right">[\\s\\S]*?</div>', html, perl = TRUE))[[1]]
+    expect_length(right, 1L)
+    expect_equal(strip_tags(right), "Created with supplement", info = page)
+    links <- regmatches(right, gregexpr("<a [^>]*>[\\s\\S]*?</a>", right, perl = TRUE))[[1]]
+    expect_length(links, 1L)
+    expect_match(links, 'href="https://github.com/jmgirard/supplement"', fixed = TRUE, info = page)
+    expect_equal(strip_tags(links), "supplement", info = page)
+  }
+})
+
 test_that("the page footer shows the licenses set in _supplement.yml", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")

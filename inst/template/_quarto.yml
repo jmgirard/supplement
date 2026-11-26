@@ -45,6 +45,8 @@ website:
   # _supplement.yml, and each one links to spdx.org/licenses/<id>.html.
   page-footer:
     center: "Code: {{< supplement-license code >}} · Content: {{< supplement-license content >}}"
+    # Delete this line to remove the credit.
+    right: "Created with [supplement](https://github.com/jmgirard/supplement)"
 
 format:
   html:

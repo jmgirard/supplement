@@ -1,5 +1,11 @@
 # supplement 0.0.0.9000
 
+* The page footer of a new site now shows "Created with supplement" in
+  its right part, with `supplement` linked to
+  https://github.com/jmgirard/supplement. To remove it, delete the
+  `right:` entry under `page-footer` in `_quarto.yml`. The site guide
+  says so.
+
 * A folder in `_freeze/analyses/` that no report names can have a name
   that is not valid UTF-8 text, which a file system on Linux can hold.
   For such a folder, `check_supplement()` no longer stops with the error

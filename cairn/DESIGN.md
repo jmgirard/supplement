@@ -336,9 +336,10 @@ jmgirard/supplement/inst/template` or with `create_supplement()`.
   `supplement-license`. Quarto rewrites any metadata value that names an
   existing path to be page-relative, so the data table and the license
   shortcode undo that. The DOI badge removes a `doi:` or doi.org prefix.
-  The page footer in `_quarto.yml` shows the licenses through
+  The page footer in `_quarto.yml` shows the licenses in its center through
   `supplement-license`, each linked to `spdx.org/licenses/<id>.html`
-  (a page only for ids that SPDX lists). The license and
+  (a page only for ids that SPDX lists). Its right part shows "Created
+  with supplement", linked to the package repository (M081). The license and
   DOI shortcodes apply the rules of `license_id()` and `bare_doi()` and
   stop the render on a value those refuse; `tests/testthat/test-agreement.R`
   runs the same value shapes through both sides, except on Windows, where
