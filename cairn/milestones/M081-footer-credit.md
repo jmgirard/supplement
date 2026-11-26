@@ -68,6 +68,7 @@ The page footer of every new site says "Created with supplement", with "suppleme
 - 2026-11-26: T4: with Quarto 1.11.9, `devtools::test()` passed (0 failed; 18 platform or opt-in skips, neither footer test among them) and `devtools::check()` gave 0 errors, 0 warnings, 0 notes. The two comment fixes came after the check started; test-shortcodes.R, test-template.R, and test-create-supplement.R passed again after them.
 - 2026-11-26: status review.
 - 2026-11-26: review: `devtools::test()` on 5e91aa2 gave 0 failures and 18 skips, neither footer test among them. Feature cap read: 0 open PRs against a cap of 2. No snapshot files changed.
+- 2026-11-26: step-7 approval: m081-footer-credit approved for merge
 
 ## Decisions
 
