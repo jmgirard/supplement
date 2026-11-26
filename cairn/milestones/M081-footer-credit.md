@@ -1,6 +1,6 @@
 # M081: Credit the package in the site footer
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -40,7 +40,7 @@ The page footer of every new site says "Created with supplement", with "suppleme
 - [x] T1: In `tests/testthat/test-shortcodes.R`, beside `footer_center()` (line 422), add a `footer_right()` helper and a test that renders a fresh template site and checks AC1 on both pages. Run it on the default branch's template and see it fail.
 - [x] T2: Add `right: "Created with [supplement](https://github.com/jmgirard/supplement)"` under `page-footer` in `inst/template/_quarto.yml` (line 46), with a comment that authors can delete it. Run the new test and the license footer test.
 - [x] T3: Update the footer sentences of `inst/template/GUIDE.md` (lines 128 and 155), the template paragraph of `cairn/DESIGN.md` (line 339), and add the NEWS.md entry.
-- [ ] T4: Run `devtools::test()` and `devtools::check()` with Quarto on PATH.
+- [x] T4: Run `devtools::test()` and `devtools::check()` with Quarto on PATH.
 
 ## Work log
 
@@ -64,6 +64,9 @@ The page footer of every new site says "Created with supplement", with "suppleme
 - 2026-11-26: re-audit: AC5 (full) — second reader: "the PR's head commit" can be a records commit after the CI run, and "passes" does not say how a rerun counts; held as written, since every push to the branch runs the workflow (no path filter), and a rerun counts by its last attempt as GitHub reports it.
 - 2026-11-26: substantive amendment: AC1 names Quarto 1.10.19 (pinned in CI) and 1.11.9 (local) in place of "Quarto 1.10", and trims white space at both ends of the footer text; AC5 names 1.11.9 for the local run, names both footer tests, and adds the pinned-Quarto CI run on the PR head. The end trim was the user's choice at the second-re-audit stop. The deliverable is unchanged.
 - 2026-11-26: T3: GUIDE.md (paper facts section), DESIGN.md template paragraph, and a NEWS.md entry describe the credit and how to remove it; a render of the old template showed the right part empty (`&nbsp;`), the basis for the removal sentence.
+- 2026-11-26: claim audit: 10 claims read, 0 corrected — NEWS.md, inst/template/GUIDE.md, inst/template/_quarto.yml, tests/testthat/test-shortcodes.R; the reader rendered the template with and without the `right:` line. It found the `_supplement.yml` header comment stale ("The page footer shows the two licenses") and the `_quarto.yml` comment left behind after a delete; both fixed.
+- 2026-11-26: T4: with Quarto 1.11.9, `devtools::test()` passed (0 failed; 18 platform or opt-in skips, neither footer test among them) and `devtools::check()` gave 0 errors, 0 warnings, 0 notes. The two comment fixes came after the check started; test-shortcodes.R, test-template.R, and test-create-supplement.R passed again after them.
+- 2026-11-26: status review.
 
 ## Decisions
 
