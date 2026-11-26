@@ -21,11 +21,11 @@ The page footer of every new site says "Created with supplement", with "suppleme
 
 ## Acceptance criteria
 
-- [ ] AC1: In a site that `quarto use template inst/template` makes (the `use_template()` helper in `tests/testthat/helper-template.R`) and Quarto 1.10 renders, `docs/index.html` and `docs/analyses/example.html` each hold exactly one `<div class="nav-footer-right">` whose text, with tags removed and runs of white space made one space, is `Created with supplement`, and whose only link is an `<a>` with the text `supplement` and `href="https://github.com/jmgirard/supplement"`.
+- [ ] AC1: In a site that `quarto use template inst/template` makes (the `use_template()` helper in `tests/testthat/helper-template.R`) and that Quarto 1.10.19 (the version `.github/workflows/R-CMD-check.yaml` pins) and Quarto 1.11.9 each render, `docs/index.html` and `docs/analyses/example.html` each hold exactly one `<div class="nav-footer-right">` whose text, with tags removed, runs of white space made one space, and white space at both ends removed, is `Created with supplement`, and whose only link is an `<a>` with the text `supplement` and `href="https://github.com/jmgirard/supplement"`.
 - [ ] AC2: On both pages, for both license cases of the test "the page footer shows the licenses set in _supplement.yml" in `tests/testthat/test-shortcodes.R`, the `nav-footer-center` text and SPDX links equal the values that test expects on the default branch at the branch cut.
 - [ ] AC3: `inst/template/GUIDE.md` says that the right part of the page footer shows `Created with supplement`, with `supplement` linked to https://github.com/jmgirard/supplement, and that an author removes it by deleting the `right:` entry under `page-footer` in `_quarto.yml`.
 - [ ] AC4: NEWS.md has an entry that gives the text `Created with supplement` and the address https://github.com/jmgirard/supplement.
-- [ ] AC5: With Quarto 1.10 on PATH, `Rscript -e 'devtools::test()'` passes and runs both footer tests without a skip, and `Rscript -e 'devtools::check()'` gives 0 errors and 0 warnings.
+- [ ] AC5: With Quarto 1.11.9 on PATH, `Rscript -e 'devtools::test()'` passes and runs the tests "the right part of the page footer credits the package" and "the page footer shows the licenses set in _supplement.yml" without a skip, and `Rscript -e 'devtools::check()'` gives 0 errors and 0 warnings; the R-CMD-check workflow, which pins Quarto 1.10.19, passes on the PR's head commit on all three systems.
 
 ## Coverage
 
@@ -39,7 +39,7 @@ The page footer of every new site says "Created with supplement", with "suppleme
 
 - [x] T1: In `tests/testthat/test-shortcodes.R`, beside `footer_center()` (line 422), add a `footer_right()` helper and a test that renders a fresh template site and checks AC1 on both pages. Run it on the default branch's template and see it fail.
 - [x] T2: Add `right: "Created with [supplement](https://github.com/jmgirard/supplement)"` under `page-footer` in `inst/template/_quarto.yml` (line 46), with a comment that authors can delete it. Run the new test and the license footer test.
-- [ ] T3: Update the footer sentences of `inst/template/GUIDE.md` (lines 128 and 155), the template paragraph of `cairn/DESIGN.md` (line 339), and add the NEWS.md entry.
+- [x] T3: Update the footer sentences of `inst/template/GUIDE.md` (lines 128 and 155), the template paragraph of `cairn/DESIGN.md` (line 339), and add the NEWS.md entry.
 - [ ] T4: Run `devtools::test()` and `devtools::check()` with Quarto on PATH.
 
 ## Work log
@@ -62,6 +62,8 @@ The page footer of every new site says "Created with supplement", with "suppleme
 - 2026-11-26: checkpoint: T3 edits to GUIDE.md, DESIGN.md, and NEWS.md written, not yet checked off; the fixed AC1 and AC5 wording waits on its one re-entry reader.
 - 2026-11-26: re-audit: AC1 (full) — second reader on the fixed wording: the text rule does not trim the ends, and a 1.11.9 render puts the credit on its own line, so the text reads " Created with supplement "; fix: also remove white space at both ends. A second line on AC1, so the fix goes to the user.
 - 2026-11-26: re-audit: AC5 (full) — second reader: "the PR's head commit" can be a records commit after the CI run, and "passes" does not say how a rerun counts; held as written, since every push to the branch runs the workflow (no path filter), and a rerun counts by its last attempt as GitHub reports it.
+- 2026-11-26: substantive amendment: AC1 names Quarto 1.10.19 (pinned in CI) and 1.11.9 (local) in place of "Quarto 1.10", and trims white space at both ends of the footer text; AC5 names 1.11.9 for the local run, names both footer tests, and adds the pinned-Quarto CI run on the PR head. The end trim was the user's choice at the second-re-audit stop. The deliverable is unchanged.
+- 2026-11-26: T3: GUIDE.md (paper facts section), DESIGN.md template paragraph, and a NEWS.md entry describe the credit and how to remove it; a render of the old template showed the right part empty (`&nbsp;`), the basis for the removal sentence.
 
 ## Decisions
 
