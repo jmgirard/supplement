@@ -23,8 +23,8 @@ The page footer of every new site says "Created with supplement", with "suppleme
 
 - [ ] AC1: In a site that `quarto use template inst/template` makes (the `use_template()` helper in `tests/testthat/helper-template.R`) and that Quarto 1.10.19 (the version `.github/workflows/R-CMD-check.yaml` pins) and Quarto 1.11.9 each render, `docs/index.html` and `docs/analyses/example.html` each hold exactly one `<div class="nav-footer-right">` whose text, with tags removed, runs of white space made one space, and white space at both ends removed, is `Created with supplement`, and whose only link is an `<a>` with the text `supplement` and `href="https://github.com/jmgirard/supplement"`.
 - [ ] AC2: On both pages, for both license cases of the test "the page footer shows the licenses set in _supplement.yml" in `tests/testthat/test-shortcodes.R`, the `nav-footer-center` text and SPDX links equal the values that test expects on the default branch at the branch cut.
-- [ ] AC3: `inst/template/GUIDE.md` says that the right part of the page footer shows `Created with supplement`, with `supplement` linked to https://github.com/jmgirard/supplement, and that an author removes it by deleting the `right:` entry under `page-footer` in `_quarto.yml`.
-- [ ] AC4: NEWS.md has an entry that gives the text `Created with supplement` and the address https://github.com/jmgirard/supplement.
+- [x] AC3: `inst/template/GUIDE.md` says that the right part of the page footer shows `Created with supplement`, with `supplement` linked to https://github.com/jmgirard/supplement, and that an author removes it by deleting the `right:` entry under `page-footer` in `_quarto.yml`.
+- [x] AC4: NEWS.md has an entry that gives the text `Created with supplement` and the address https://github.com/jmgirard/supplement.
 - [ ] AC5: With Quarto 1.11.9 on PATH, `Rscript -e 'devtools::test()'` passes and runs the tests "the right part of the page footer credits the package" and "the page footer shows the licenses set in _supplement.yml" without a skip, and `Rscript -e 'devtools::check()'` gives 0 errors and 0 warnings; the R-CMD-check workflow, which pins Quarto 1.10.19, passes on the PR's head commit on all three systems.
 
 ## Coverage
@@ -71,3 +71,7 @@ The page footer of every new site says "Created with supplement", with "suppleme
 ## Decisions
 
 ## Review
+
+- 2026-11-26: sync: main has not moved since the branch cut (0 commits behind origin/main). No Copilot round (no `# Copilot review:` line).
+- AC3 evidence: `inst/template/GUIDE.md` lines 128-133 at HEAD say the right part of the footer shows "Created with supplement", with `supplement` linked to https://github.com/jmgirard/supplement, and that deleting the `right:` entry under `page-footer` in `_quarto.yml` removes it. Read 2026-11-26.
+- AC4 evidence: NEWS.md lines 3-7 at HEAD, in the unreleased `# supplement 0.0.0.9000` section, give "Created with supplement" and https://github.com/jmgirard/supplement. Read 2026-11-26.
