@@ -60,6 +60,8 @@ The page footer of every new site says "Created with supplement", with "suppleme
 - 2026-11-26: T1: new test "the right part of the page footer credits the package" uses site_copy(); on the old template it failed on both pages (right part held only `&nbsp;`).
 - 2026-11-26: T2: `right:` entry added to `inst/template/_quarto.yml`; the new test and the license footer test pass locally (Quarto 1.11.9).
 - 2026-11-26: checkpoint: T3 edits to GUIDE.md, DESIGN.md, and NEWS.md written, not yet checked off; the fixed AC1 and AC5 wording waits on its one re-entry reader.
+- 2026-11-26: re-audit: AC1 (full) — second reader on the fixed wording: the text rule does not trim the ends, and a 1.11.9 render puts the credit on its own line, so the text reads " Created with supplement "; fix: also remove white space at both ends. A second line on AC1, so the fix goes to the user.
+- 2026-11-26: re-audit: AC5 (full) — second reader: "the PR's head commit" can be a records commit after the CI run, and "passes" does not say how a rerun counts; held as written, since every push to the branch runs the workflow (no path filter), and a rerun counts by its last attempt as GitHub reports it.
 
 ## Decisions
 
