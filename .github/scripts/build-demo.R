@@ -154,7 +154,7 @@ replace_once("_supplement.yml", "  citation: ", until = "\n", paste0(
 ))
 replace_once("_supplement.yml", '  version: ""', '  version: "1.0.0"')
 replace_once("_supplement.yml", "  contact: ", until = "\n",
-             '  contact: "M. L. Rivera, Department of Psychology, Example University. m.rivera@example.org"\n')
+             '  contact: "M. L. Rivera, Department of Psychology, Example University. <m.rivera@example.org>"\n')
 replace_once("_supplement.yml", "  authors:\n", until = "\n  # ", paste0(
   "  authors:\n",
   '    - family: "Rivera"\n',

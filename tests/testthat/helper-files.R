@@ -103,7 +103,7 @@ replace_in_file <- function(file, from, to) {
 fill_placeholders <- function(site) {
   replace_in_file(
     file.path(site, "_supplement.yml"),
-    c("Title of the paper", "Author, A. A., & Author, B. B.", "Your Name, Your Institution. Your email address.",
+    c("Title of the paper", "Author, A. A., & Author, B. B.", "Your Name, Your Institution. <you@example.edu>",
       'family: "Author"', 'given: "A. A."', 'given: "B. B."'),
     c("Effects of sleep", "Doe, J., & Roe, S.", "Jane Doe, University A.",
       'family: "Doe"', 'given: "Jane"', 'given: "Sam"')

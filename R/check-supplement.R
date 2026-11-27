@@ -451,10 +451,11 @@
 #'   template that the installed package holds:
 #'   * `_supplement.yml` gets one row when `paper-title`, `citation`, or
 #'     `contact` equals the template's value, or an `authors` entry has the
-#'     `family` and `given` of a template author. Values are compared with
-#'     each run of white space read as one space and the ends removed. A
-#'     value that is not one text value does not count. The row names the
-#'     fields.
+#'     `family` and `given` of a template author. A `contact` equal to the
+#'     template's earlier value, `Your Name, Your Institution. Your email
+#'     address.`, also counts. Values are compared with each run of white
+#'     space read as one space and the ends removed. A value that is not
+#'     one text value does not count. The row names the fields.
 #'   * `_quarto.yml` gets a row for the line
 #'     `href: https://github.com/OWNER/REPO`, `index.qmd` for the line
 #'     `## Before your first commit`, `LICENSE.md` and `LICENSE-CC-BY.md`
@@ -479,7 +480,7 @@
 #'   of a placeholder, such as a citation with `(Year)` in it, gives no row.
 #'   A site made from an older version of the template, whose placeholders
 #'   differ from the installed ones, gives no row for them. The example
-#'   report is the exception.
+#'   report and the earlier `contact` value are the exceptions.
 #'
 #' The `"large-file"` and `"saved-object"` checks look at the files that git
 #' tracks or does not ignore, which
@@ -2675,15 +2676,23 @@ template_supplement <- function() {
   read_supplement(system.file("template", package = "supplement", mustWork = TRUE))
 }
 
+# Values the template held before, which still count as placeholders,
+# keyed by field name.
+former_placeholders <- list(
+  contact = "Your Name, Your Institution. Your email address."
+)
+
 # One row naming each of paper-title, citation, contact, and authors whose
-# value equals the installed template's. An author counts when its family
-# and given both equal those of one template author. A value that is not
-# one text value never counts, and neither does an empty template value.
+# value equals the installed template's, or one of that field's values in
+# `former_placeholders`. An author counts when its family and given both
+# equal those of one template author. A value that is not one text value
+# never counts, and neither does an empty template value.
 placeholder_values <- function(meta) {
   template <- template_supplement()
   fields <- c("paper-title", "citation", "contact")
   left <- fields[vapply(fields, function(field) {
-    same_text(meta[[field]], template[[field]])
+    same_text(meta[[field]], template[[field]]) ||
+      any(vapply(former_placeholders[[field]], same_text, logical(1), x = meta[[field]]))
   }, logical(1))]
   template_authors <- lapply(list_entries(template[["authors"]]), author_key)
   template_authors <- Filter(Negate(is.null), template_authors)

@@ -7,7 +7,7 @@ _Last hygiene check: 2026-11-26 (M081 review: no rows graduated, no lessons capt
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M082 | Link the contact email on new sites | planned | — | normal | milestones/M082-contact-email-link.md |
+| M082 | Link the contact email on new sites | review | — | normal | milestones/M082-contact-email-link.md |
 | M081 | Credit the package in the site footer | done | — | normal | milestones/archive/M081-footer-credit.md |
 | M080 | Catch Windows test crashes and fix time bounds | done | — | high | milestones/archive/M080-windows-ci-crashes-and-timing.md |
 | M079 | Print names that are not UTF-8 in messages | done | — | normal | milestones/archive/M079-print-non-utf8-names.md |
