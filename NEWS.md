@@ -1,5 +1,14 @@
 # supplement 0.0.0.9000
 
+* The `contact` value in a new site's `_supplement.yml` is now
+  `"Your Name, Your Institution. <you@example.edu>"`, and the home page
+  shows the address between `<` and `>` as an email link. The comment
+  above it and the site guide say so. `check_supplement()` still flags
+  the earlier value, `Your Name, Your Institution. Your email address.`,
+  as a placeholder. A site made before this change keeps its contact
+  line, and its author can put the address between `<` and `>` in
+  `_supplement.yml` by hand.
+
 * The page footer of a new site now shows "Created with supplement" in
   its right part, with `supplement` linked to
   https://github.com/jmgirard/supplement. To remove it, delete the
