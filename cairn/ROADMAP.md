@@ -1,16 +1,15 @@
 # Roadmap
 
 _The only authority on milestone status. Grouped by status, not ID._
-_Last hygiene check: 2026-11-26 (M081 review: no rows graduated, no lessons captured or marked; M078 row pruned; validate green)_
+_Last hygiene check: 2026-11-27 (M082 review: no rows graduated or unparked, no lessons captured or marked; M079 row pruned; validate green)_
 
 ## Milestones
 
 | ID | Title | Status | Depends on | Priority | File/Archive |
 |---|---|---|---|---|---|
-| M082 | Link the contact email on new sites | review | — | normal | milestones/M082-contact-email-link.md |
+| M082 | Link the contact email on new sites | done | — | normal | milestones/archive/M082-contact-email-link.md |
 | M081 | Credit the package in the site footer | done | — | normal | milestones/archive/M081-footer-credit.md |
 | M080 | Catch Windows test crashes and fix time bounds | done | — | high | milestones/archive/M080-windows-ci-crashes-and-timing.md |
-| M079 | Print names that are not UTF-8 in messages | done | — | normal | milestones/archive/M079-print-non-utf8-names.md |
 
 ## Candidates
 
