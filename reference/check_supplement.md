@@ -524,10 +524,12 @@ The checks, by the value in the `check` column:
 
   - `_supplement.yml` gets one row when `paper-title`, `citation`, or
     `contact` equals the template's value, or an `authors` entry has the
-    `family` and `given` of a template author. Values are compared with
-    each run of white space read as one space and the ends removed. A
-    value that is not one text value does not count. The row names the
-    fields.
+    `family` and `given` of a template author. A `contact` equal to the
+    template's earlier value,
+    `Your Name, Your Institution. Your email address.`, also counts.
+    Values are compared with each run of white space read as one space
+    and the ends removed. A value that is not one text value does not
+    count. The row names the fields.
 
   - `_quarto.yml` gets a row for the line
     `href: https://github.com/OWNER/REPO`, `index.qmd` for the line
@@ -553,7 +555,7 @@ The checks, by the value in the `check` column:
   of a placeholder, such as a citation with `(Year)` in it, gives no
   row. A site made from an older version of the template, whose
   placeholders differ from the installed ones, gives no row for them.
-  The example report is the exception.
+  The example report and the earlier `contact` value are the exceptions.
 
 The `"large-file"` and `"saved-object"` checks look at the files that
 git tracks or does not ignore, which
@@ -597,18 +599,18 @@ to write `CITATION.cff` again.
 ``` r
 site <- file.path(tempdir(), "check-example")
 create_supplement(site)
-#> ✔ Made a supplement site in /tmp/RtmpypzekV/check-example.
+#> ✔ Made a supplement site in /tmp/RtmpfJiQFT/check-example.
 #> ℹ Replace `OWNER/REPO` in _quarto.yml, and `OWNER` and `REPO` in the site
 #>   address in _README.md, with your GitHub repository.
 #> ℹ Put the paper facts in _supplement.yml.
-#> ℹ Run `quarto render` in /tmp/RtmpypzekV/check-example, or
+#> ℹ Run `quarto render` in /tmp/RtmpfJiQFT/check-example, or
 #>   `render_supplement()` in R with that folder as `path`, once before your first
 #>   commit.
 # A new site has not been rendered, its example report has no stored
 # output yet, and it still holds the template's placeholder values.
 problems <- check_supplement(site)
 #> ℹ Skipped the "large-file", "saved-object", and "ignored-output" checks: `git rev-parse` failed, or the folder is not in a git work tree.
-#> ✖ 11 problems found in /tmp/RtmpypzekV/check-example:
+#> ✖ 11 problems found in /tmp/RtmpfJiQFT/check-example:
 #> ✖ no-stored-output analyses/example.qmd: The report has code and no stored
 #>   output in _freeze/. Render the report by name, render the whole site, then
 #>   commit the report with _freeze/, docs/, and figures/. In R,
