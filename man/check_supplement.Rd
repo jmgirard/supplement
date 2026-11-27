@@ -483,11 +483,9 @@ template that the installed package holds:
 \item \verb{_supplement.yml} gets one row when \code{paper-title}, \code{citation}, or
 \code{contact} equals the template's value, or an \code{authors} entry has the
 \code{family} and \code{given} of a template author. A \code{contact} equal to the
-template's earlier value, \verb{Your Name, Your Institution. Your email address.}, also counts.
-Values are compared with
-each run of white space read as one space and the ends removed. A
-value that is not one text value does not count. The row names the
-fields.
+template's earlier value, \verb{Your Name, Your Institution. Your email address.}, also counts. Values are compared with each run of white
+space read as one space and the ends removed. A value that is not
+one text value does not count. The row names the fields.
 \item \verb{_quarto.yml} gets a row for the line
 \verb{href: https://github.com/OWNER/REPO}, \code{index.qmd} for the line
 \verb{## Before your first commit}, \code{LICENSE.md} and \code{LICENSE-CC-BY.md}
@@ -513,7 +511,7 @@ Only a whole value or a whole line counts, so a value that keeps part
 of a placeholder, such as a citation with \code{(Year)} in it, gives no row.
 A site made from an older version of the template, whose placeholders
 differ from the installed ones, gives no row for them. The example
-report is the exception.
+report and the earlier \code{contact} value are the exceptions.
 }
 
 The \code{"large-file"} and \code{"saved-object"} checks look at the files that git

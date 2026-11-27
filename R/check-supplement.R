@@ -453,11 +453,9 @@
 #'     `contact` equals the template's value, or an `authors` entry has the
 #'     `family` and `given` of a template author. A `contact` equal to the
 #'     template's earlier value, `Your Name, Your Institution. Your email
-#'     address.`, also counts.
-#'     Values are compared with
-#'     each run of white space read as one space and the ends removed. A
-#'     value that is not one text value does not count. The row names the
-#'     fields.
+#'     address.`, also counts. Values are compared with each run of white
+#'     space read as one space and the ends removed. A value that is not
+#'     one text value does not count. The row names the fields.
 #'   * `_quarto.yml` gets a row for the line
 #'     `href: https://github.com/OWNER/REPO`, `index.qmd` for the line
 #'     `## Before your first commit`, `LICENSE.md` and `LICENSE-CC-BY.md`
@@ -482,7 +480,7 @@
 #'   of a placeholder, such as a citation with `(Year)` in it, gives no row.
 #'   A site made from an older version of the template, whose placeholders
 #'   differ from the installed ones, gives no row for them. The example
-#'   report is the exception.
+#'   report and the earlier `contact` value are the exceptions.
 #'
 #' The `"large-file"` and `"saved-object"` checks look at the files that git
 #' tracks or does not ignore, which
