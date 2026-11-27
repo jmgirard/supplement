@@ -2678,14 +2678,14 @@ template_supplement <- function() {
   read_supplement(system.file("template", package = "supplement", mustWork = TRUE))
 }
 
-# Template values of earlier package versions that still count as
-# placeholders, by field.
+# Values the template held before, which still count as placeholders,
+# keyed by field name.
 former_placeholders <- list(
   contact = "Your Name, Your Institution. Your email address."
 )
 
 # One row naming each of paper-title, citation, contact, and authors whose
-# value equals the installed template's, or a value in
+# value equals the installed template's, or one of that field's values in
 # `former_placeholders`. An author counts when its family and given both
 # equal those of one template author. A value that is not one text value
 # never counts, and neither does an empty template value.

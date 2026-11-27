@@ -1,6 +1,6 @@
 # M082: Link the contact email on new sites
 
-- **Status:** in-progress
+- **Status:** review
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
@@ -43,7 +43,7 @@ The template's contact value shows its email address as a mailto: link, and the 
 - [x] T2: Change `contact` in `inst/template/_supplement.yml` (line 17) to the new value and add the comment line above it; update `fill_placeholders()` in `tests/testthat/helper-files.R` (line 106), which replaces the old string by fixed match; add the link sentence to the paper-facts section of `inst/template/GUIDE.md` (around line 121). Run T1's test and the placeholder tests.
 - [x] T3: In `R/check-supplement.R`, make `placeholder_values()` (line 2682) also count the former contact value, and update the roxygen text (line 452) and `man/` with `devtools::document()`. Add the AC3 test near line 2140 of `test-check-supplement.R`; plant a raw (uncleaned) comparison of the former value and see the white-space case fail.
 - [x] T4: Change the demo contact line in `.github/scripts/build-demo.R` (line 157) and add the NEWS.md entry in the style of the footer-credit entry.
-- [ ] T5: Run `devtools::test()` and `devtools::check()` with Quarto on PATH.
+- [x] T5: Run `devtools::test()` and `devtools::check()` with Quarto on PATH.
 
 ## Work log
 
@@ -62,6 +62,9 @@ The template's contact value shows its email address as a mailto: link, and the 
 - 2026-11-27: T2 done — template value and comment line, fill_placeholders(), GUIDE.md sentence; test-shortcodes.R green.
 - 2026-11-27: T3 done — `former_placeholders` list beside `placeholder_values()` (chosen over a hard-coded second compare so a later template change adds one entry), roxygen and man/ updated; a planted raw `identical()` compare failed only the white-space case; test-check-supplement.R green (skips are macOS file-system cases).
 - 2026-11-27: T4 done — demo contact line in build-demo.R (its `replace_once("  contact: ")` still matches one line of the template) and the NEWS.md entry.
+- 2026-11-27: T5 done — with Quarto 1.11.9 on PATH, `devtools::test()` 0 failures, 18 skips (platform cases, none the Contact-section test); `devtools::check()` 0 errors, 0 warnings, 0 notes.
+- 2026-11-27: claim audit: 16 claims read, 2 corrected — R/check-supplement.R (the `former_placeholders` comment no longer says "earlier package versions", and the `placeholder_values()` comment says "one of that field's values"); comment-only, made after the T5 run started.
+- 2026-11-27: implement complete; status review.
 
 ## Decisions
 
