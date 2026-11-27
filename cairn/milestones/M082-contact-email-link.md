@@ -66,6 +66,7 @@ The template's contact value shows its email address as a mailto: link, and the 
 - 2026-11-27: claim audit: 16 claims read, 2 corrected — R/check-supplement.R (the `former_placeholders` comment no longer says "earlier package versions", and the `placeholder_values()` comment says "one of that field's values"); comment-only, made after the T5 run started.
 - 2026-11-27: implement complete; status review.
 - 2026-11-27: review: four lenses, 20 findings; 6 fixed in 37f0877 (help page and DESIGN.md name the earlier contact value, roxygen wrap), 13 rejected, 1 noted, none to a candidate row; evidence rerun at 37f0877 green.
+- 2026-11-27: step-7 approval: m082-contact-email-link approved for merge
 
 ## Decisions
 
