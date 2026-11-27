@@ -482,7 +482,9 @@ template that the installed package holds:
 \itemize{
 \item \verb{_supplement.yml} gets one row when \code{paper-title}, \code{citation}, or
 \code{contact} equals the template's value, or an \code{authors} entry has the
-\code{family} and \code{given} of a template author. Values are compared with
+\code{family} and \code{given} of a template author. A \code{contact} equal to the
+template's earlier value, \verb{Your Name, Your Institution. Your email address.}, also counts.
+Values are compared with
 each run of white space read as one space and the ends removed. A
 value that is not one text value does not count. The row names the
 fields.

@@ -444,6 +444,21 @@ test_that("the right part of the page footer credits the package", {
   }
 })
 
+test_that("the home page shows the template's contact address as an email link", {
+  skip_if_no_quarto()
+  site <- site_copy()
+  expect_identical(read_supplement(site$dir)[["contact"]], "Your Name, Your Institution. <you@example.edu>")
+
+  html <- read_text(file.path(site$dir, "docs", "index.html"))
+  section <- regmatches(html, gregexpr('<section id="contact"[\\s\\S]*?</section>', html, perl = TRUE))[[1]]
+  expect_identical(length(section), 1L)
+  expect_equal(strip_tags(section), "Contact Your Name, Your Institution. you@example.edu")
+  links <- regmatches(section, gregexpr("<a [^>]*>[\\s\\S]*?</a>", section, perl = TRUE))[[1]]
+  expect_identical(length(links), 1L)
+  expect_match(links, 'href="mailto:you@example.edu"', fixed = TRUE)
+  expect_equal(strip_tags(links), "you@example.edu")
+})
+
 test_that("the page footer shows the licenses set in _supplement.yml", {
   skip_if_no_quarto()
   dir <- withr::local_tempdir("site-")

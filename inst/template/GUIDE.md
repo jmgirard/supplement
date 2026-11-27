@@ -131,7 +131,9 @@ supplement", with `supplement` linked to
 https://github.com/jmgirard/supplement. To remove it, delete the
 `right:` entry under `page-footer` in `_quarto.yml`. No page shows the
 preprint or author values yet. Values are Markdown, so `*Journal Name*`
-shows in italics.
+shows in italics. An email address written between `<` and `>`, as in the
+template's `contact` value `Your Name, Your Institution. <you@example.edu>`,
+shows as an email link.
 
 The home page shows the values with these shortcodes:
 

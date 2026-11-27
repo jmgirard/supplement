@@ -451,7 +451,10 @@
 #'   template that the installed package holds:
 #'   * `_supplement.yml` gets one row when `paper-title`, `citation`, or
 #'     `contact` equals the template's value, or an `authors` entry has the
-#'     `family` and `given` of a template author. Values are compared with
+#'     `family` and `given` of a template author. A `contact` equal to the
+#'     template's earlier value, `Your Name, Your Institution. Your email
+#'     address.`, also counts.
+#'     Values are compared with
 #'     each run of white space read as one space and the ends removed. A
 #'     value that is not one text value does not count. The row names the
 #'     fields.
@@ -2675,15 +2678,23 @@ template_supplement <- function() {
   read_supplement(system.file("template", package = "supplement", mustWork = TRUE))
 }
 
+# Template values of earlier package versions that still count as
+# placeholders, by field.
+former_placeholders <- list(
+  contact = "Your Name, Your Institution. Your email address."
+)
+
 # One row naming each of paper-title, citation, contact, and authors whose
-# value equals the installed template's. An author counts when its family
-# and given both equal those of one template author. A value that is not
-# one text value never counts, and neither does an empty template value.
+# value equals the installed template's, or a value in
+# `former_placeholders`. An author counts when its family and given both
+# equal those of one template author. A value that is not one text value
+# never counts, and neither does an empty template value.
 placeholder_values <- function(meta) {
   template <- template_supplement()
   fields <- c("paper-title", "citation", "contact")
   left <- fields[vapply(fields, function(field) {
-    same_text(meta[[field]], template[[field]])
+    same_text(meta[[field]], template[[field]]) ||
+      any(vapply(former_placeholders[[field]], same_text, logical(1), x = meta[[field]]))
   }, logical(1))]
   template_authors <- lapply(list_entries(template[["authors"]]), author_key)
   template_authors <- Filter(Negate(is.null), template_authors)

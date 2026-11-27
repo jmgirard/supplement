@@ -1,13 +1,13 @@
 # M082: Link the contact email on new sites
 
-- **Status:** planned
+- **Status:** in-progress
 - **Priority:** normal
 - **Depends on:** —
 - **Driving RR:** —
 - **Principles touched:** —
 - **Resolves:** —
 - **Surface tier:** user-facing — the Contact section of every new site's home page
-- **Branch/PR:** —
+- **Branch/PR:** m082-contact-email-link
 
 ## Goal
 
@@ -39,9 +39,9 @@ The template's contact value shows its email address as a mailto: link, and the 
 
 ## Tasks
 
-- [ ] T1: In `tests/testthat/test-shortcodes.R`, beside the footer test (line 427), add a test that reads the `<section id="contact">` of a `site_copy()` home page and checks AC1. Run it against the default branch's template and see it fail.
-- [ ] T2: Change `contact` in `inst/template/_supplement.yml` (line 17) to the new value and add the comment line above it; update `fill_placeholders()` in `tests/testthat/helper-files.R` (line 106), which replaces the old string by fixed match; add the link sentence to the paper-facts section of `inst/template/GUIDE.md` (around line 121). Run T1's test and the placeholder tests.
-- [ ] T3: In `R/check-supplement.R`, make `placeholder_values()` (line 2682) also count the former contact value, and update the roxygen text (line 452) and `man/` with `devtools::document()`. Add the AC3 test near line 2140 of `test-check-supplement.R`; plant a raw (uncleaned) comparison of the former value and see the white-space case fail.
+- [x] T1: In `tests/testthat/test-shortcodes.R`, beside the footer test (line 427), add a test that reads the `<section id="contact">` of a `site_copy()` home page and checks AC1. Run it against the default branch's template and see it fail.
+- [x] T2: Change `contact` in `inst/template/_supplement.yml` (line 17) to the new value and add the comment line above it; update `fill_placeholders()` in `tests/testthat/helper-files.R` (line 106), which replaces the old string by fixed match; add the link sentence to the paper-facts section of `inst/template/GUIDE.md` (around line 121). Run T1's test and the placeholder tests.
+- [x] T3: In `R/check-supplement.R`, make `placeholder_values()` (line 2682) also count the former contact value, and update the roxygen text (line 452) and `man/` with `devtools::document()`. Add the AC3 test near line 2140 of `test-check-supplement.R`; plant a raw (uncleaned) comparison of the former value and see the white-space case fail.
 - [ ] T4: Change the demo contact line in `.github/scripts/build-demo.R` (line 157) and add the NEWS.md entry in the style of the footer-credit entry.
 - [ ] T5: Run `devtools::test()` and `devtools::check()` with Quarto on PATH.
 
@@ -57,6 +57,10 @@ The template's contact value shows its email address as a mailto: link, and the 
 - 2026-11-27: plan gate chose `<you@example.edu>` over `[you@example.edu](mailto:you@example.edu)` because the address is typed once, so the shown text and link target cannot differ; falsified by a Quarto or Pandoc version that does not autolink `<addr>` in a metadata value.
 - 2026-11-27: Quarto 1.11.9 render (scratch) showed `<addr>` and `[addr](mailto:addr)` in a metadata value both give a mailto: link and a bare address gives plain text; `git log -p` shows one contact placeholder ever, since M004.
 - 2026-11-27: criteria audit (full mode, fresh Opus reader): 7 findings, all taken — T2 updates `fill_placeholders()`, whose fixed replace would silently miss; AC6 names the Contact-section test; AC3 names the existing test and adds a white-space case for the former value; AC2 says "a new comment line" and names the GUIDE.md section; AC4 also states the former-placeholder flag; AC5 pins the exact line. The reader confirmed the rendered section text matches AC1.
+- 2026-11-27: implement started on branch m082-contact-email-link; status in-progress.
+- 2026-11-27: T1 done — Contact-section test in test-shortcodes.R; on the unchanged template it failed 5 expectations (value, section text, link count, href, link text).
+- 2026-11-27: T2 done — template value and comment line, fill_placeholders(), GUIDE.md sentence; test-shortcodes.R green.
+- 2026-11-27: T3 done — `former_placeholders` list beside `placeholder_values()` (chosen over a hard-coded second compare so a later template change adds one entry), roxygen and man/ updated; a planted raw `identical()` compare failed only the white-space case; test-check-supplement.R green (skips are macOS file-system cases).
 
 ## Decisions
 

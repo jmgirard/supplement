@@ -2152,6 +2152,16 @@ test_that("template values in _supplement.yml give one placeholder row that name
   expect_identical(placeholder_fields(site), character())
 })
 
+test_that("the template's earlier contact value still counts", {
+  for (value in c("Your Name, Your Institution. Your email address.",
+                  "  Your Name,  Your\\tInstitution. Your email address. ")) {
+    site <- new_site()
+    for (field in setdiff(names(change_meta), "contact")) change_meta[[field]](site)
+    set_meta_line(site, "contact", sprintf('  contact: "%s"', value))
+    expect_identical(placeholder_fields(site), "contact", info = value)
+  }
+})
+
 test_that("an author counts only when both family and given are a template author's", {
   others <- function(env = parent.frame()) {
     site <- new_site(env)
